@@ -13,7 +13,7 @@ import {
 // import SearchInput from '../../components/SearchInput';
 import UserTable from '../features/User/UserTable';
 import SearchInput from '../components/SearchInput';
-import { getUsers } from '../features/User/userSlice';
+import { getUsers, setKhoaTaiChinhCurent } from '../features/User/userSlice';
 
 import UserInsertForm from '../features/User/UserInsertForm';
 // import UserTable from './UserTable';
@@ -47,7 +47,8 @@ const {totalUsers} =useSelector((state)=>state.user)
 
   const [openEdit, setOpenEdit] = useState(false);
 
-  const handleOpenEditForm = ()=>{
+  const handleOpenEditForm = async()=>{
+    await dispatch(setKhoaTaiChinhCurent([]))
     setOpenEdit(true);
   }
   const handleCloseEditForm = ()=>{

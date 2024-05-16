@@ -10,6 +10,7 @@ const initialState = {
   selectedUser: null,
   users:[],
   totalPages:1,
+  KhoaTaiChinhCurent:[],
 };
 
 const slice = createSlice({
@@ -72,6 +73,12 @@ state.users = state.users.map((user)=>{
 state.users = state.users.filter(user=>user._id !== action.payload._id)
       
     },
+
+    setKhoaTaiChinhCurentSuccess(state,action) {
+      state.isLoading =false
+      state.error = null;
+      state.KhoaTaiChinhCurent = action.payload
+    }
   }
 });
 
@@ -85,7 +92,7 @@ export const updateUserProfile =
     KhoaID,
     PhanQuyen,
     UserName,
-   
+    KhoaTaiChinh,
   }) =>
   async (dispatch) => {
     dispatch(slice.actions.startLoading());
@@ -97,6 +104,7 @@ export const updateUserProfile =
         KhoaID,
         PhanQuyen,
         UserName,
+        KhoaTaiChinh,
       };
     
       const response = await apiService.put(`/user/${UserId}`, data);
@@ -218,6 +226,19 @@ export const getUsers =
       const response = await apiService.delete(`/user/${userId}`)
       dispatch(slice.actions.deleteUserSuccess(response.data.data));
       toast.success("Xóa người dùng thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
+  export const setKhoaTaiChinhCurent =
+  (khoataichinh) =>
+   (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      
+      dispatch(slice.actions.setKhoaTaiChinhCurentSuccess(khoataichinh));
+     
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);

@@ -1383,3 +1383,23 @@ export function tinhChenhLech_DoanhThu_BacSi(doanhThu, doanhThuNgayChenhLech) {
   // Trả về mảng kết quả chênh lệch
   return ketQuaChenhLech;
 }
+
+export function LocKhoaHienThiTheoUser(khoas, user) {
+  // Mảng để lưu các khoa thỏa mãn điều kiện
+  let filteredKhoas = [];
+console.log("user",user)
+  // Duyệt qua từng khoa trong khoas
+  khoas.forEach(khoa => {
+      // Kiểm tra nếu KhoaID của khoa bằng _id của user
+      if (khoa._id === user.KhoaID._id) {
+          filteredKhoas.push(khoa);
+      } else {
+          // Kiểm tra nếu MaKhoa của khoa có trong mảng KhoaTaiChinh của user
+          if (user.KhoaTaiChinh.includes(khoa.MaKhoa)) {
+              filteredKhoas.push(khoa);
+          }
+      }
+  });
+
+  return filteredKhoas;
+}

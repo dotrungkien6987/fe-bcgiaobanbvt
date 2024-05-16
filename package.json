@@ -25,6 +25,7 @@
     "docxtemplater": "^3.46.0",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
+    "formic": "^0.0.10",
     "formik": "^2.4.6",
     "iconsax-react": "^0.0.8",
     "immutability-helper": "^3.1.1",

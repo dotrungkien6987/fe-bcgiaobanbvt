@@ -43,7 +43,7 @@ const reducer = (state, action) => {
         user: null,
       };
     case UPDATE_PROFILE:
-      const { UserName, PassWord, PhanQuyen, KhoaID, HoTen, Email } =
+      const { UserName, PassWord, PhanQuyen, KhoaID, HoTen, Email,KhoaTaiChinh } =
         action.payload;
       return {
         ...state,
@@ -55,6 +55,7 @@ const reducer = (state, action) => {
           KhoaID,
           HoTen,
           Email,
+          KhoaTaiChinh,
         },
       };
     default:

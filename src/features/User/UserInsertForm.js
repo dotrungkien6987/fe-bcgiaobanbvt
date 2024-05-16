@@ -12,11 +12,9 @@ import {
 import {
   Box,
   Stack,
-  
   Dialog,
   DialogTitle,
   DialogContent,
-  
   DialogActions,
   Button,
   Card,
@@ -27,34 +25,34 @@ import {
   MenuItem,
   TextField,
   Autocomplete,
+  Typography,
+  useMediaQuery,
+  Table,
+  TableRow,
+  TableCell,
+  TableHead,
+  TableBody,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { useForm } from "react-hook-form";
 
-import {
-  
-  getKhoas,
-  
-} from "../BaoCaoNgay/baocaongaySlice";
-import { CreateUser, updateUserProfile } from "./userSlice";
+import { getKhoas } from "../BaoCaoNgay/baocaongaySlice";
+import { CreateUser, setKhoaTaiChinhCurent, updateUserProfile } from "./userSlice";
+import ChonKhoaForm from "./ChonKhoaForm";
+import { useTheme } from "@emotion/react";
 
 const yupSchema = Yup.object().shape({
   UserName: Yup.string().required("Bắt buộc nhập UserName"),
 });
 
-function UserInsertForm({
-  open,
-    handleClose,
-  handleSave,
-  user,
-  handleChange,
-}) {
+function UserInsertForm({ open, handleClose, handleSave, user, handleChange }) {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const { khoas } = useSelector((state) => state.baocaongay);
+  const { KhoaTaiChinhCurent } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   useEffect(() => {
     // Update selectedDepartment when khoas changes
-    dispatch(getKhoas())
+    dispatch(getKhoas());
     if (khoas && khoas.length > 0) {
       setSelectedDepartment(khoas[0]._id);
     }
@@ -70,9 +68,9 @@ function UserInsertForm({
   }, [user]);
   const handleSelectChange = (e) => {
     setSelectedDepartment(e.target.value);
-   
   };
-
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const methods = useForm({
     resolver: yupResolver(yupSchema),
     defaultValues: {
@@ -80,10 +78,9 @@ function UserInsertForm({
       PassWord: user.PassWord || "",
       KhoaID: user.KhoaID || "64dddf4dad3370de59be2982",
       HoTen: user.HoTen || "",
-  
+
       Email: user.Email || "",
       PhanQuyen: user.PhanQuyen || "nomal",
-      
     },
   });
   const {
@@ -93,60 +90,59 @@ function UserInsertForm({
     formState: { isSubmitting },
   } = methods;
 
-  
   const resetForm = () => {
     reset();
-   
   };
 
   const onSubmitData = (data) => {
     console.log("data", data);
-    
+
     if (isEditing) {
       const userUpdate = {
-        ...data, 
-        KhoaID:selectedDepartment,
+        ...data,
+        KhoaID: selectedDepartment,
         PhanQuyen: valueQuyen,
-        UserId:user._id
+        KhoaTaiChinh:KhoaTaiChinhCurent,
+        UserId: user._id,
       };
-      dispatch(updateUserProfile(userUpdate))
+      dispatch(updateUserProfile(userUpdate));
     } else {
       // Thêm mới người dùng
       const userUpdate = {
-        ...data, 
-        KhoaID:selectedDepartment,
+        ...data,
+        KhoaID: selectedDepartment,
         PhanQuyen: valueQuyen,
-        
+        KhoaTaiChinh:KhoaTaiChinhCurent,
       };
-      console.log("usser ínert",userUpdate)
-      if(!selectedDepartment) {
-        alert('Bạn chưa chọn khoa');
-        return
+      console.log("usser ínert", userUpdate);
+      if (!selectedDepartment) {
+        alert("Bạn chưa chọn khoa");
+        return;
       }
       dispatch(CreateUser(userUpdate));
     }
-    
+
     handleClose();
   };
-  
+
   useEffect(() => {
     if (user) {
       // Khi prop benhnhan thay đổi, cập nhật lại dữ liệu trong form
-      console.log("chay vao day",user)
+      console.log("chay vao day", user);
       setValue("UserName", user.UserName || "");
       setValue("PassWord", user.PassWord || "");
-      
+
       setValue("HoTen", user.HoTen || "");
-      
+
       setValue("Email", user.Email || "");
       // setValue("PhanQuyen", user.PhanQuyen || "");
-      setValueQuyen(user.PhanQuyen)
-    setSelectedDepartment(user.KhoaID)
+      setValueQuyen(user.PhanQuyen);
+      setSelectedDepartment(user.KhoaID);
+      
     }
-   
-  }, [user,open,setValue]);
+  }, [user, open, setValue]);
 
-  const [valueQuyen, setValueQuyen] = useState('nomal');
+  const [valueQuyen, setValueQuyen] = useState("nomal");
 
   return (
     <div>
@@ -170,36 +166,91 @@ function UserInsertForm({
               onSubmit={handleSubmit(onSubmitData)}
             >
               <Stack spacing={1}>
-              <FormControl fullWidth>
-            <InputLabel >Khoa</InputLabel>
-            <Select value={selectedDepartment||""} onChange={handleSelectChange}>
-              {khoas &&
-                khoas.length > 0 &&
-                khoas.map((department) => (
-                  <MenuItem key={department._id} value={department._id}>
-                    {department.TenKhoa}
-                  </MenuItem>
-                ))}
-            </Select>
-          </FormControl>
-                  <FTextField name="UserName" label="User name"/>
-                  {(!isEditing && <FTextField name="PassWord" label="Password"    type={"password"}/>)}
-                  
-                  
+                <FormControl fullWidth>
+                  <InputLabel>Khoa</InputLabel>
+                  <Select
+                    value={selectedDepartment || ""}
+                    onChange={handleSelectChange}
+                  >
+                    {khoas &&
+                      khoas.length > 0 &&
+                      khoas.map((department) => (
+                        <MenuItem key={department._id} value={department._id}>
+                          {department.TenKhoa}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+                <FTextField name="UserName" label="User name" />
+                {!isEditing && (
+                  <FTextField
+                    name="PassWord"
+                    label="Password"
+                    type={"password"}
+                  />
+                )}
+
                 <FTextField multiline name="HoTen" label="Tên" />
                 <FTextField multiline name="Email" label="Email" />
-                
-<Autocomplete
-    options={['admin', 'nomal', 'manager']}
-    value={valueQuyen||'nomal'}
-    onChange={(event, newValue) => {
-      setValueQuyen(newValue||'nomal');
-    }}
-    renderInput={(params) => <TextField {...params} label="Phân quyền" variant="outlined" />}
-  />
+
+                <Autocomplete
+                  options={["admin", "nomal", "manager"]}
+                  value={valueQuyen || "nomal"}
+                  onChange={(event, newValue) => {
+                    setValueQuyen(newValue || "nomal");
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Phân quyền"
+                      variant="outlined"
+                    />
+                  )}
+                />
 
                 <Divider />
-                
+                <ChonKhoaForm KhoaTaiChinh={KhoaTaiChinhCurent} />
+                <Card
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#f2f2f2",
+                    backgroundColor: "#1939B7",
+                    p: 1,
+                    boxShadow: 3,
+                    borderRadius: 3,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      textAlign: "center",
+                      fontSize: isSmallScreen ? "0.7rem" : "1rem",
+                    }}
+                  >
+                    Phân quyền xem báo cáo tài chính cho khoa khác:
+                  </Typography>
+                </Card>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Mã</TableCell>
+
+                      <TableCell>Tên khoa</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {KhoaTaiChinhCurent && KhoaTaiChinhCurent.length > 0 &&
+                      KhoaTaiChinhCurent.map((row, index) => (
+                        <TableRow>
+                          <TableCell>
+                            {khoas.find((khoa) => khoa.MaKhoa === row).MaKhoa}
+                          </TableCell>
+                          <TableCell>
+                            {khoas.find((khoa) => khoa.MaKhoa === row).TenKhoa}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
                 <Box
                   sx={{
                     display: "flex",
@@ -213,7 +264,7 @@ function UserInsertForm({
                     size="small"
                     loading={isSubmitting}
                   >
-                   Lưu
+                    Lưu
                   </LoadingButton>
                 </Box>
               </Stack>
@@ -221,7 +272,7 @@ function UserInsertForm({
           </Card>
         </DialogContent>
         <DialogActions>
-          <Button variant ="contained" onClick={handleClose} color="error">
+          <Button variant="contained" onClick={handleClose} color="error">
             Hủy
           </Button>
         </DialogActions>

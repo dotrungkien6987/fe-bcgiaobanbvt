@@ -21,7 +21,7 @@ import {
 import UserInsertForm from "./UserInsertForm";
 import ResetPassForm from "./ResetPassForm";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteUser } from "./userSlice";
+import { deleteUser, setKhoaTaiChinhCurent } from "./userSlice";
 import { addTenKhoaToUsers } from "../../utils/heplFuntion";
 
 
@@ -29,8 +29,10 @@ function UserTable({ users }) {
   const {khoas} = useSelector((state)=>state.baocaongay)
   const updateUser = addTenKhoaToUsers(users,khoas)
     const [userEdit,setUserEdit] =useState({_id:0})
-const handleEditUser =(userId)=>{
+    const dispatch = useDispatch()
+const handleEditUser =async(userId)=>{
     const bn= users.find(user=>user._id === userId)
+    await dispatch(setKhoaTaiChinhCurent(bn.KhoaTaiChinh))
     console.log("user suwar",userEdit)
     setUserEdit(bn)
     setOpenEdit(true)
@@ -45,7 +47,7 @@ const handleClickDeleteUser =(userId)=>{
 const handleCloseDeleteForm =()=>{
   setOpenDelete(false)
 }
-const dispatch = useDispatch()
+
 const handleDeleteUser =()=>{
  dispatch(deleteUser(userEdit._id))
 setOpenDelete(false)

@@ -33,6 +33,7 @@ import {
   ConvertDoanhThuBacSiKhoa,
   ConvertDoanhThuCanLamSang,
   Get_KhoaID_By_MaKhoa,
+  LocKhoaHienThiTheoUser,
   calculateTotalForType,
   tinhChenhLech_DoanhThu_BacSi,
 } from "../../../utils/heplFuntion";
@@ -49,12 +50,8 @@ import TableCanLamSangKhoa from "./TableCanLamSangKhoa";
 function DashBoardKhoa() {
   const { user } = useAuth();
   const { khoas } = useSelector((state) => state.baocaongay);
-  // const {
-  //   chisokhoa,
-  //   dashboad_NgayChenhLech,
-
-  // } = useSelector((state) => state.dashboard);
-
+  
+  const KhoaHienThi = user.PhanQuyen !== "admin"?LocKhoaHienThiTheoUser(khoas,user):khoas
   const { chisokhoa, chisokhoa_NgayChenhLech } = useSelector(
     (state) => state.dashboardkhoa
   );
@@ -185,7 +182,7 @@ function DashBoardKhoa() {
   );
 
   const [selectedDepartment, setSelectedDepartment] = useState(user.KhoaID._id);
-  const [loaikhoa, setLoaikhoa] = useState("noi");
+  
   const [makhoa, setMakhoa] = useState("");
 
   const dispatch = useDispatch();
@@ -193,25 +190,22 @@ function DashBoardKhoa() {
 
   useEffect(() => {
     dispatch(getKhoas());
+    
   }, [dispatch]);
 
   useEffect(() => {
     // Update selectedDepartment when khoas changes
-    if (khoas && khoas.length > 0) {
+    if (KhoaHienThi && KhoaHienThi.length > 0) {
       console.log("chay day");
       setSelectedDepartment(user.KhoaID._id);
-      const loai_khoa = khoas.find(
-        (khoa) => khoa._id === selectedDepartment
-      )?.LoaiKhoa;
-      const ma_khoa = khoas.find(
+     
+      const ma_khoa = KhoaHienThi.find(
         (khoa) => khoa._id === selectedDepartment
       )?.MaKhoa;
 
-      console.log("UF1 loaikhoa", loai_khoa);
-      setLoaikhoa(loai_khoa);
       setMakhoa(ma_khoa);
     }
-  }, [khoas, user.KhoaID._id]);
+  }, [KhoaHienThi, user.KhoaID._id]);
 
   const handleDateChange = (newDate) => {
     // Chuyển đổi về múi giờ VN, kiểm tra đầu vào
@@ -244,17 +238,11 @@ function DashBoardKhoa() {
 
   const handleSelectChange = (e) => {
     setSelectedDepartment(e.target.value);
-    //setLoaikhoa de hien thi giao dien tuong ung
-    const loai_khoa = khoas.find(
-      (khoa) => khoa._id === e.target.value
-    )?.LoaiKhoa;
-    const ma_khoa = khoas.find((khoa) => khoa._id === e.target.value)?.MaKhoa;
+    
+    const ma_khoa = KhoaHienThi.find((khoa) => khoa._id === e.target.value)?.MaKhoa;
 
     setMakhoa(ma_khoa);
-    const khoaid = Get_KhoaID_By_MaKhoa(makhoa);
-    console.log("makhoa in ch", ma_khoa, khoaid);
-    // dispatch(getDataNewestByNgayKhoa(date.toISOString(),khoaid))
-    setLoaikhoa(loai_khoa);
+    
   };
   useEffect(() => {
     dispatch(
@@ -278,14 +266,14 @@ function DashBoardKhoa() {
       setNam(nam);
       setNgay(ngay);
       // Gọi dispatch cho getKhuyenCaoKhoaByThangNam trước
-      dispatch(getKhuyenCaoKhoaByThangNam(thang, nam));
+      // dispatch(getKhuyenCaoKhoaByThangNam(thang, nam));
       dispatch(
         getDataNewestByNgayKhoa(
           date.toISOString(),
           Get_KhoaID_By_MaKhoa(makhoa)
         )
       );
-      console.log("render lại");
+      console.log("render lại",makhoa);
     };
     fetchNewestData();
     // Kiểm tra nếu ngày là ngày hiện tại mới chạy setInterval
@@ -335,12 +323,12 @@ function DashBoardKhoa() {
               <Select
                 value={selectedDepartment}
                 onChange={handleSelectChange}
-                disabled={user.PhanQuyen !== "admin"}
+                // disabled={user.PhanQuyen !== "admin"}
                 sx={{ m: 1 }}
               >
-                {khoas &&
-                  khoas.length > 0 &&
-                  khoas.map((department) => (
+                {KhoaHienThi &&
+                  KhoaHienThi.length > 0 &&
+                  KhoaHienThi.map((department) => (
                     <MenuItem key={department._id} value={department._id}>
                       {department.TenKhoa}
                     </MenuItem>
@@ -371,7 +359,7 @@ function DashBoardKhoa() {
         {chisokhoa.Ngay && (
           <Stack sx={{ textAlign: "center" }}>
             <Typography variant="h6">
-              {` DOANH THU ${khoas
+              {` DOANH THU ${KhoaHienThi
                 .find((khoa) => khoa.MaKhoa === makhoa)
                 ?.TenKhoa.toUpperCase()} TỪ 00:00  1/${thang}/${nam} ĐẾN ${formatDateTime(
                 chisokhoa.Ngay
