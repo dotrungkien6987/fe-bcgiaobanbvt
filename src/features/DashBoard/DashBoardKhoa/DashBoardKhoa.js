@@ -191,13 +191,13 @@ function DashBoardKhoa() {
   useEffect(() => {
     dispatch(getKhoas());
     
-  }, [dispatch]);
+  }, []);
 
   useEffect(() => {
     // Update selectedDepartment when khoas changes
     if (KhoaHienThi && KhoaHienThi.length > 0) {
       console.log("chay day");
-      setSelectedDepartment(user.KhoaID._id);
+      // setSelectedDepartment(user.KhoaID._id);
      
       const ma_khoa = KhoaHienThi.find(
         (khoa) => khoa._id === selectedDepartment
