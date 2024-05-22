@@ -83,7 +83,11 @@ const initialState = {
   DoanhThu_ToanVien_BacSi_DuyetKeToan:[],
   DoanhThu_ToanVien_BacSi_TheoChiDinh:[],
 
-
+  DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa:[],
+  DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa:[],
+  
+  SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc:[],
+  SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai:[],
 };
 
 const slice = createSlice({
@@ -336,6 +340,23 @@ const slice = createSlice({
         
         state.DoanhThu_ToanVien_BacSi_TheoChiDinh = state.chisosObj.json_doanhthu_toanvien_bacsi_theochidinh 
         ? JSON.parse(state.chisosObj.json_doanhthu_toanvien_bacsi_theochidinh )
+        : [] || [];
+        
+        state.DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa = state.chisosObj.json_doanhthu_chuaduyetketoan_thanghientai_theokhoa 
+        ? JSON.parse(state.chisosObj.json_doanhthu_chuaduyetketoan_thanghientai_theokhoa )
+        : [] || [];
+        
+        state.DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa = state.chisosObj.json_doanhthu_chuaduyettetoan_thangtruoc_theokhoa 
+        ? JSON.parse(state.chisosObj.json_doanhthu_chuaduyettetoan_thangtruoc_theokhoa )
+        : [] || [];
+        
+        state.SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc = state.chisosObj.json_soluong_tongtien_chuaduyetkt_thangtruoc_toanvien 
+        ? JSON.parse(state.chisosObj.json_soluong_tongtien_chuaduyetkt_thangtruoc_toanvien )
+        : [] || [];
+        
+        
+        state.SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai = state.chisosObj.json_soluong_tongtien_chuaduyetkt_thanghientai_toanvien 
+        ? JSON.parse(state.chisosObj.json_soluong_tongtien_chuaduyetkt_thanghientai_toanvien )
         : [] || [];
         
     },

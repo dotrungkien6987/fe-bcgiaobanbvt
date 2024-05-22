@@ -38,6 +38,7 @@ import {
 
 import MyPieChartForMoney from "./MyPieChartForMoney";
 import TableDoanhThuCanLamSang from "./TableDoanhThuCanLamSang";
+import CardTongTienChuaDuyetKT from "./CardTongTienChuaDuyetKT";
 
 const TaiChinh = () => {
   dayjs.tz.setDefault("Asia/Ho_Chi_Minh"); // Cấu hình múi giờ nếu cần
@@ -71,12 +72,21 @@ const TaiChinh = () => {
     doanhthu_canlamsang_theochidinh_NgayChenhLech,
     doanhthu_canlamsang_duyetketoan_NgayChenhLech,
     khuyencaokhoa,
+
+    DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa,
+    DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa,
+    SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc,
+    SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai,
   } = useSelector((state) => state.dashboard);
+
+  
   const CanLamSangDuyetKeToan = ConvertDoanhThuCanLamSang(
-    doanhthu_canlamsang_duyetketoan,doanhthu_canlamsang_duyetketoan_NgayChenhLech
+    doanhthu_canlamsang_duyetketoan,
+    doanhthu_canlamsang_duyetketoan_NgayChenhLech
   );
   const CanLamSangTheoChiDinh = ConvertDoanhThuCanLamSang(
-    doanhthu_canlamsang_theochidinh,doanhthu_canlamsang_theochidinh_NgayChenhLech
+    doanhthu_canlamsang_theochidinh,
+    doanhthu_canlamsang_theochidinh_NgayChenhLech
   );
   const VND = new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -202,12 +212,14 @@ const TaiChinh = () => {
   const Tong_DuyetKeToan = TongHopSoLieuChoRowTongDoanhThuKPI(
     doanhthu_toanvien_duyetketoan,
     doanhthu_toanvien_duyetketoan_NgayChenhLech,
-    KhuyenCao_ToanVien,ngay
+    KhuyenCao_ToanVien,
+    ngay
   );
   const Tong_TheoChiDinh = TongHopSoLieuChoRowTongDoanhThuKPI(
     doanhthu_toanvien_theochidinh,
     doanhthu_toanvien_theochidinh_NgayChenhLech,
-    KhuyenCao_ToanVien,ngay
+    KhuyenCao_ToanVien,
+    ngay
   );
   const dispatch = useDispatch();
   const { darkMode } = useSelector((state) => state.mytheme);
@@ -247,7 +259,7 @@ const TaiChinh = () => {
   };
 
   useEffect(() => {
-    dispatch(getDataNewestByNgayChenhLech(dateChenhLech.toISOString(),ngay));
+    dispatch(getDataNewestByNgayChenhLech(dateChenhLech.toISOString(), ngay));
   }, [dispatch, dateChenhLech]);
 
   useEffect(() => {
@@ -256,13 +268,13 @@ const TaiChinh = () => {
       const dateObj = new Date(date);
 
       // Tính toán tháng và năm từ `dateObj`
-      const ngay = dateObj.getDate()
+      const ngay = dateObj.getDate();
       const thang = dateObj.getMonth() + 1; // JavaScript đếm tháng từ 0
 
       const nam = dateObj.getFullYear();
       setThang(thang);
       setNam(nam);
-      setNgay(ngay)
+      setNgay(ngay);
       // Gọi dispatch cho getKhuyenCaoKhoaByThangNam trước
       dispatch(getKhuyenCaoKhoaByThangNam(thang, nam));
       dispatch(getDataNewestByNgay(date.toISOString()));
@@ -339,6 +351,83 @@ const TaiChinh = () => {
         </Toolbar>
       </AppBar>
 
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={12} md={5.2} spacing={2}>
+          <Card
+            sx={{
+              fontWeight: "bold",
+              color: "#FFF" ,
+              backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
+              boxShadow: 10,
+              p:1,
+              m:1,
+            }}
+          >
+            
+            <Typography variant="h6">
+              Chưa duyệt kế toán tháng trước
+            </Typography>
+            
+            <Grid container>
+              <Grid item xs={12} sm={12} md={6} spacing={1}>
+                <CardTongTienChuaDuyetKT
+                title={"Đã ra viện"}
+                soluong={SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(e=>e.vienphistatus===1)?.soluong}
+                tongtien={VND.format(SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(e=>e.vienphistatus===1)?.tongtien)}
+                
+                />
+              </Grid>
+              <Grid item xs={12} sm={12} md={6} spacing={1}>
+              <CardTongTienChuaDuyetKT
+              title={"Chưa ra viện"}
+              soluong={SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(e=>e.vienphistatus===0)?.soluong}
+              tongtien={VND.format(SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(e=>e.vienphistatus===0)?.tongtien)}
+              />
+              </Grid>
+            </Grid>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={12} md={5.2} spacing={2}>
+          <Card
+            sx={{
+              fontWeight: "bold",
+              color: "#FFF" ,
+              backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
+              boxShadow: 10,
+              p:1,
+              m:1,
+            }}
+          >
+            
+            <Typography variant="h6" >
+              Chưa duyệt kế toán tháng hiện tại
+            </Typography>
+            
+            <Grid container>
+              <Grid item xs={12} sm={12} md={6} spacing={1}>
+                <CardTongTienChuaDuyetKT
+                title={"Đã ra viện"}
+                soluong={SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(e=>e.vienphistatus===1)?.soluong}
+                tongtien={VND.format(SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(e=>e.vienphistatus===1)?.tongtien)}
+                />
+              </Grid>
+              <Grid item xs={12} sm={12} md={6} spacing={1}>
+              <CardTongTienChuaDuyetKT
+              title={"Chưa ra viện"}
+              soluong={SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(e=>e.vienphistatus===0)?.soluong}
+              tongtien={VND.format(SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(e=>e.vienphistatus===0)?.tongtien)}
+              />
+              </Grid>
+            </Grid>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={12} md={1.6} spacing={1}>
+          Thu ngan
+        </Grid>
+      </Grid>
+
       <Card
         sx={{
           fontWeight: "bold",
@@ -364,13 +453,13 @@ const TaiChinh = () => {
                 variant="h7"
                 sx={{ marginX: "auto", textAlign: "center" }}
               >
-                 {ngay === 1
-      ? `(Tính chênh lệch từ 00:00 1/${thang}/${nam} đến ${formatDateTime(
-          dashboadChiSoChatLuong.Ngay
-        )})`
-      : `(Tính chênh lệch từ ${formatDateTime(
-          dashboad_NgayChenhLech.Ngay
-        )} đến ${formatDateTime(dashboadChiSoChatLuong.Ngay)})`}
+                {ngay === 1
+                  ? `(Tính chênh lệch từ 00:00 1/${thang}/${nam} đến ${formatDateTime(
+                      dashboadChiSoChatLuong.Ngay
+                    )})`
+                  : `(Tính chênh lệch từ ${formatDateTime(
+                      dashboad_NgayChenhLech.Ngay
+                    )} đến ${formatDateTime(dashboadChiSoChatLuong.Ngay)})`}
               </Typography>
             </Stack>
           )}
@@ -433,17 +522,33 @@ const TaiChinh = () => {
                       {`Tính chênh lệch doanh thu toàn viện (${selectedTrangThai})`}
                       {selectedTrangThai === "Duyệt kế toán" ? (
                         <MyPieChartForMoney
-                          data={ngay===1?Pie_DoanhThu_DuyetKeToan:Pie_DoanhThu_DuyetKeToan_ChenhLech}
+                          data={
+                            ngay === 1
+                              ? Pie_DoanhThu_DuyetKeToan
+                              : Pie_DoanhThu_DuyetKeToan_ChenhLech
+                          }
                           colors={colors}
                           other={{ height: 300 }}
-                          dataEx={ngay===1?dataEx_DuyetKeToan:dataEx_ChenhLech_DuyetKeToan}
+                          dataEx={
+                            ngay === 1
+                              ? dataEx_DuyetKeToan
+                              : dataEx_ChenhLech_DuyetKeToan
+                          }
                         />
                       ) : (
                         <MyPieChartForMoney
-                          data={ngay === 1 ? Pie_DoanhThu_TheoChiDinh:Pie_DoanhThu_TheoChiDinh_ChenhLech}
+                          data={
+                            ngay === 1
+                              ? Pie_DoanhThu_TheoChiDinh
+                              : Pie_DoanhThu_TheoChiDinh_ChenhLech
+                          }
                           colors={colors}
                           other={{ height: 300 }}
-                          dataEx={ngay===1 ? dataEx_TheoChiDinh:dataEx_ChenhLech_TheoChiDinh}
+                          dataEx={
+                            ngay === 1
+                              ? dataEx_TheoChiDinh
+                              : dataEx_ChenhLech_TheoChiDinh
+                          }
                         />
                       )}
                     </Card>
@@ -511,18 +616,16 @@ const TaiChinh = () => {
           doanhthu={KPI_TheoChiDinh_With_ChenhLech}
           doanhthutong={Tong_TheoChiDinh}
           khuyencaotoanvien={KhuyenCao_ToanVien}
-          ngayhientai = {ngay}
+          ngayhientai={ngay}
         />
       )}
 
       <Grid item xs={12} sm={12} md={12}>
-        
         <TableDoanhThuCanLamSang
           canlamsangDuyetKeToan={CanLamSangDuyetKeToan}
           canlamsangChiDinh={CanLamSangTheoChiDinh}
-       ngayhientai={ngay}
+          ngayhientai={ngay}
         />
-     
       </Grid>
 
       <Grid container spacing={2}>
