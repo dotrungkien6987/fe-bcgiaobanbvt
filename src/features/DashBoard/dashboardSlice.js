@@ -346,8 +346,8 @@ const slice = createSlice({
         ? JSON.parse(state.chisosObj.json_doanhthu_chuaduyetketoan_thanghientai_theokhoa )
         : [] || [];
         
-        state.DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa = state.chisosObj.json_doanhthu_chuaduyettetoan_thangtruoc_theokhoa 
-        ? JSON.parse(state.chisosObj.json_doanhthu_chuaduyettetoan_thangtruoc_theokhoa )
+        state.DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa = state.chisosObj.json_doanhthu_chuaduyetketoan_thangtruoc_theokhoa 
+        ? JSON.parse(state.chisosObj.json_doanhthu_chuaduyetketoan_thangtruoc_theokhoa )
         : [] || [];
         
         state.SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc = state.chisosObj.json_soluong_tongtien_chuaduyetkt_thangtruoc_toanvien 

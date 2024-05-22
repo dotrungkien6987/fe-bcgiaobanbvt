@@ -374,7 +374,8 @@ const TaiChinh = () => {
                 title={"Đã ra viện"}
                 soluong={SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(e=>e.vienphistatus===1)?.soluong}
                 tongtien={VND.format(SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(e=>e.vienphistatus===1)?.tongtien)}
-                
+                bg={"#bb1515"}
+                data = {DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa.filter(e=>e.vienphistatus===1)}
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={6} spacing={1}>
@@ -382,6 +383,8 @@ const TaiChinh = () => {
               title={"Chưa ra viện"}
               soluong={SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(e=>e.vienphistatus===0)?.soluong}
               tongtien={VND.format(SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(e=>e.vienphistatus===0)?.tongtien)}
+              bg={"#1939B7"}
+              data = {DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa.filter(e=>e.vienphistatus===0)}
               />
               </Grid>
             </Grid>
@@ -410,13 +413,17 @@ const TaiChinh = () => {
                 title={"Đã ra viện"}
                 soluong={SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(e=>e.vienphistatus===1)?.soluong}
                 tongtien={VND.format(SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(e=>e.vienphistatus===1)?.tongtien)}
-                />
+                bg={"#bb1515"}
+                data = {DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa.filter(e=>e.vienphistatus===1)}
+               />
               </Grid>
               <Grid item xs={12} sm={12} md={6} spacing={1}>
               <CardTongTienChuaDuyetKT
               title={"Chưa ra viện"}
               soluong={SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(e=>e.vienphistatus===0)?.soluong}
               tongtien={VND.format(SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(e=>e.vienphistatus===0)?.tongtien)}
+              bg={"#1939B7"}
+              data = {DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa.filter(e=>e.vienphistatus===0)}
               />
               </Grid>
             </Grid>
