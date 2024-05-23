@@ -1403,3 +1403,39 @@ console.log("user",user)
 
   return filteredKhoas;
 }
+
+export function ConvertDoanhThuKhoaThemTong(doanhThu,soluong) {
+
+  if (!Array.isArray(doanhThu)) {
+    console.error('Lỗi: Đầu vào phải là một mảng');
+    return [];  // Trả về một mảng rỗng hoặc có thể là null tùy theo yêu cầu xử lý lỗi
+}
+let doanhthuBacSiKhoa=doanhThu.map(item=>({...item}))
+
+  // Khởi tạo đối tượng tổng cộng
+  let tongCong = {
+      tenkhoa: 'Tổng cộng',
+      dongchitra: 0,
+      bhyt: 0,
+      thutructiep: 0,
+      tongtien: 0,
+      tienmri30:0,
+      soluong:soluong,
+  };
+
+  // Duyệt qua mỗi đối tượng trong mảng để thêm tongdoanhthu và tính tổng
+  doanhthuBacSiKhoa.forEach(item => {
+      
+      tongCong.dongchitra += item.dongchitra || 0;
+      tongCong.bhyt += item.bhyt || 0;
+      tongCong.thutructiep += item.thutructiep || 0;
+      tongCong.tongtien += item.tongtien;
+      tongCong.tienmri30 += item.tienmri30;
+      
+  });
+
+  // Thêm đối tượng tổng cộng vào đầu mảng
+  doanhthuBacSiKhoa.unshift(tongCong);
+
+  return doanhthuBacSiKhoa;
+}

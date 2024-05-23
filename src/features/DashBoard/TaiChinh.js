@@ -31,6 +31,7 @@ import { useForm } from "react-hook-form";
 import BarGroupStackChart from "./BarGroupStachChart";
 import {
   ConvertDoanhThuCanLamSang,
+  ConvertDoanhThuKhoaThemTong,
   TongHopSoLieuChoRowTongDoanhThuKPI,
   calculateKhuyenCaoToanVien,
   calculateTotalForType,
@@ -79,7 +80,43 @@ const TaiChinh = () => {
     SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai,
   } = useSelector((state) => state.dashboard);
 
-  
+  const DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_RaVien_ThemTong =
+    ConvertDoanhThuKhoaThemTong(
+      DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa.filter(
+        (e) => e.vienphistatus === 1
+      ),
+      SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(
+        (e) => e.vienphistatus === 1
+      )?.soluong
+    );
+  const DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_ChuaRaVien_ThemTong =
+    ConvertDoanhThuKhoaThemTong(
+      DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa.filter(
+        (e) => e.vienphistatus === 0
+      ),
+      SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(
+        (e) => e.vienphistatus === 0
+      )?.soluong
+    );
+  const DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_ChuaRaVien_ThemTong =
+    ConvertDoanhThuKhoaThemTong(
+      DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa.filter(
+        (e) => e.vienphistatus === 0
+      ),
+      SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(
+        (e) => e.vienphistatus === 0
+      )?.soluong
+    );
+  const DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_RaVien_ThemTong =
+    ConvertDoanhThuKhoaThemTong(
+      DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa.filter(
+        (e) => e.vienphistatus === 1
+      ),
+      SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(
+        (e) => e.vienphistatus === 1
+      )?.soluong
+    );
+
   const CanLamSangDuyetKeToan = ConvertDoanhThuCanLamSang(
     doanhthu_canlamsang_duyetketoan,
     doanhthu_canlamsang_duyetketoan_NgayChenhLech
@@ -356,36 +393,51 @@ const TaiChinh = () => {
           <Card
             sx={{
               fontWeight: "bold",
-              color: "#FFF" ,
+              color: "#FFF",
               backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
               boxShadow: 10,
-              p:1,
-              m:1,
+              p: 1,
+              m: 1,
             }}
           >
-            
-            <Typography variant="h6">
-              Chưa duyệt kế toán tháng trước
-            </Typography>
-            
+            <Typography variant="h6">Chưa duyệt kế toán tháng trước</Typography>
+
             <Grid container>
               <Grid item xs={12} sm={12} md={6} spacing={1}>
                 <CardTongTienChuaDuyetKT
-                title={"Đã ra viện"}
-                soluong={SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(e=>e.vienphistatus===1)?.soluong}
-                tongtien={VND.format(SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(e=>e.vienphistatus===1)?.tongtien)}
-                bg={"#bb1515"}
-                data = {DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa.filter(e=>e.vienphistatus===1)}
+                  title={"Đã ra viện"}
+                  soluong={
+                    SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(
+                      (e) => e.vienphistatus === 1
+                    )?.soluong
+                  }
+                  tongtien={VND.format(
+                    SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(
+                      (e) => e.vienphistatus === 1
+                    )?.tongtien
+                  )}
+                  bg={"#bb1515"}
+                  data={DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_RaVien_ThemTong}
+                  titleMore={"Doanh thu đã ra viện, chưa duyệt kế toán tháng trước"}
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={6} spacing={1}>
-              <CardTongTienChuaDuyetKT
-              title={"Chưa ra viện"}
-              soluong={SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(e=>e.vienphistatus===0)?.soluong}
-              tongtien={VND.format(SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(e=>e.vienphistatus===0)?.tongtien)}
-              bg={"#1939B7"}
-              data = {DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa.filter(e=>e.vienphistatus===0)}
-              />
+                <CardTongTienChuaDuyetKT
+                  title={"Chưa ra viện"}
+                  soluong={
+                    SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(
+                      (e) => e.vienphistatus === 0
+                    )?.soluong
+                  }
+                  tongtien={VND.format(
+                    SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc.find(
+                      (e) => e.vienphistatus === 0
+                    )?.tongtien
+                  )}
+                  bg={"#1939B7"}
+                  data={DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_ChuaRaVien_ThemTong}
+                  titleMore={"Doanh thu chưa ra viện, chưa duyệt kế toán tháng trước"}
+                />
               </Grid>
             </Grid>
           </Card>
@@ -395,36 +447,53 @@ const TaiChinh = () => {
           <Card
             sx={{
               fontWeight: "bold",
-              color: "#FFF" ,
+              color: "#FFF",
               backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
               boxShadow: 10,
-              p:1,
-              m:1,
+              p: 1,
+              m: 1,
             }}
           >
-            
-            <Typography variant="h6" >
+            <Typography variant="h6">
               Chưa duyệt kế toán tháng hiện tại
             </Typography>
-            
+
             <Grid container>
               <Grid item xs={12} sm={12} md={6} spacing={1}>
                 <CardTongTienChuaDuyetKT
-                title={"Đã ra viện"}
-                soluong={SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(e=>e.vienphistatus===1)?.soluong}
-                tongtien={VND.format(SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(e=>e.vienphistatus===1)?.tongtien)}
-                bg={"#bb1515"}
-                data = {DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa.filter(e=>e.vienphistatus===1)}
-               />
+                  title={"Đã ra viện"}
+                  soluong={
+                    SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(
+                      (e) => e.vienphistatus === 1
+                    )?.soluong
+                  }
+                  tongtien={VND.format(
+                    SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(
+                      (e) => e.vienphistatus === 1
+                    )?.tongtien
+                  )}
+                  bg={"#bb1515"}
+                  data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_RaVien_ThemTong}
+                  titleMore={"Doanh thu đã ra viện, chưa duyệt kế toán tháng hiện tại"}
+                />
               </Grid>
               <Grid item xs={12} sm={12} md={6} spacing={1}>
-              <CardTongTienChuaDuyetKT
-              title={"Chưa ra viện"}
-              soluong={SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(e=>e.vienphistatus===0)?.soluong}
-              tongtien={VND.format(SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(e=>e.vienphistatus===0)?.tongtien)}
-              bg={"#1939B7"}
-              data = {DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa.filter(e=>e.vienphistatus===0)}
-              />
+                <CardTongTienChuaDuyetKT
+                  title={"Chưa ra viện"}
+                  soluong={
+                    SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(
+                      (e) => e.vienphistatus === 0
+                    )?.soluong
+                  }
+                  tongtien={VND.format(
+                    SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai.find(
+                      (e) => e.vienphistatus === 0
+                    )?.tongtien
+                  )}
+                  bg={"#1939B7"}
+                  data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_ChuaRaVien_ThemTong}
+                  titleMore={"Doanh thu chưa ra viện, chưa duyệt kế toán tháng hiện tại"}
+                />
               </Grid>
             </Grid>
           </Card>

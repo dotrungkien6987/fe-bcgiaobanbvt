@@ -46,12 +46,14 @@ import {
 } from "./dashboardkhoaSlice";
 import TableDoanhThuKhoaBacSi from "./TableDoanhThuKhoaBacSi";
 import TableCanLamSangKhoa from "./TableCanLamSangKhoa";
+import CardTongTienChuaDuyetKT from "../CardTongTienChuaDuyetKT";
 
 function DashBoardKhoa() {
   const { user } = useAuth();
   const { khoas } = useSelector((state) => state.baocaongay);
-  
-  const KhoaHienThi = user.PhanQuyen !== "admin"?LocKhoaHienThiTheoUser(khoas,user):khoas
+
+  const KhoaHienThi =
+    user.PhanQuyen !== "admin" ? LocKhoaHienThiTheoUser(khoas, user) : khoas;
   const { chisokhoa, chisokhoa_NgayChenhLech } = useSelector(
     (state) => state.dashboardkhoa
   );
@@ -92,6 +94,23 @@ function DashBoardKhoa() {
   let dataEx_ChenhLech_TheoChiDinh = [];
 
   let dataEx_ChenhLech_DuyetKeToan = [];
+
+  const doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien =
+    chisokhoa.json_doanhthu_chuaduyetketoan_thangtruoc_theokhoa?.find(
+      (e) => e.vienphistatus === 1
+    );
+  const doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien =
+    chisokhoa.json_doanhthu_chuaduyetketoan_thangtruoc_theokhoa?.find(
+      (e) => e.vienphistatus === 0
+    );
+  const doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien =
+    chisokhoa.json_doanhthu_chuaduyetketoan_thanghientai_theokhoa?.find(
+      (e) => e.vienphistatus === 1
+    );
+  const doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien =
+    chisokhoa.json_doanhthu_chuaduyetketoan_thanghientai_theokhoa?.find(
+      (e) => e.vienphistatus === 0
+    );
 
   const doanhthu_table_DuyetKeToan = ConvertDoanhThuBacSiKhoa(
     chisokhoa.json_doanhthu_toanvien_bacsi_duyetketoan
@@ -182,7 +201,7 @@ function DashBoardKhoa() {
   );
 
   const [selectedDepartment, setSelectedDepartment] = useState(user.KhoaID._id);
-  
+
   const [makhoa, setMakhoa] = useState("");
 
   const dispatch = useDispatch();
@@ -190,7 +209,6 @@ function DashBoardKhoa() {
 
   useEffect(() => {
     dispatch(getKhoas());
-    
   }, []);
 
   useEffect(() => {
@@ -198,7 +216,7 @@ function DashBoardKhoa() {
     if (KhoaHienThi && KhoaHienThi.length > 0) {
       console.log("chay day");
       // setSelectedDepartment(user.KhoaID._id);
-     
+
       const ma_khoa = KhoaHienThi.find(
         (khoa) => khoa._id === selectedDepartment
       )?.MaKhoa;
@@ -238,11 +256,12 @@ function DashBoardKhoa() {
 
   const handleSelectChange = (e) => {
     setSelectedDepartment(e.target.value);
-    
-    const ma_khoa = KhoaHienThi.find((khoa) => khoa._id === e.target.value)?.MaKhoa;
+
+    const ma_khoa = KhoaHienThi.find(
+      (khoa) => khoa._id === e.target.value
+    )?.MaKhoa;
 
     setMakhoa(ma_khoa);
-    
   };
   useEffect(() => {
     dispatch(
@@ -273,7 +292,7 @@ function DashBoardKhoa() {
           Get_KhoaID_By_MaKhoa(makhoa)
         )
       );
-      console.log("render lại",makhoa);
+      console.log("render lại", makhoa);
     };
     fetchNewestData();
     // Kiểm tra nếu ngày là ngày hiện tại mới chạy setInterval
@@ -348,6 +367,91 @@ function DashBoardKhoa() {
           </Card>
         </Toolbar>
       </AppBar>
+ 
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={12} md={6} spacing={2}>
+          <Card
+            sx={{
+              fontWeight: "bold",
+              color: "#FFF",
+              backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
+              boxShadow: 10,
+              p: 1,
+              m: 1,
+            }}
+          >
+            <Typography variant="h6">Chưa duyệt kế toán tháng trước</Typography>
+
+            <Grid container>
+              <Grid item xs={12} sm={12} md={6} spacing={1}>
+                <CardTongTienChuaDuyetKT
+                  title={"Đã ra viện"}
+                  soluong={doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien?.soluong}
+                  tongtien={VND.format(doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien?.tongtien||0)}
+                  bg={"#bb1515"}
+                  // data={DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_RaVien_ThemTong}
+                  titleMore={"Doanh thu đã ra viện, chưa duyệt kế toán tháng trước"}
+                />
+              </Grid>
+              <Grid item xs={12} sm={12} md={6} spacing={1}>
+                <CardTongTienChuaDuyetKT
+                  title={"Chưa ra viện"}
+                  soluong={doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien?.soluong}
+                  tongtien={VND.format(doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien?.tongtien||0)}
+                  bg={"#1939B7"}
+                  // data={DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_ChuaRaVien_ThemTong}
+                  titleMore={"Doanh thu chưa ra viện, chưa duyệt kế toán tháng trước"}
+                />
+              </Grid>
+            </Grid>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={12} md={6} spacing={2}>
+          <Card
+            sx={{
+              fontWeight: "bold",
+              color: "#FFF",
+              backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
+              boxShadow: 10,
+              p: 1,
+              m: 1,
+            }}
+          >
+            <Typography variant="h6">
+              Chưa duyệt kế toán tháng hiện tại
+            </Typography>
+
+            <Grid container>
+              <Grid item xs={12} sm={12} md={6} spacing={1}>
+                <CardTongTienChuaDuyetKT
+                  title={"Đã ra viện"}
+                  soluong={doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien?.soluong}
+                  tongtien={VND.format(doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien?.tongtien||0)}
+                  bg={"#bb1515"}
+                  // data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_RaVien_ThemTong}
+                  titleMore={"Doanh thu đã ra viện, chưa duyệt kế toán tháng hiện tại"}
+                />
+              </Grid>
+              <Grid item xs={12} sm={12} md={6} spacing={1}>
+                <CardTongTienChuaDuyetKT
+                  title={"Chưa ra viện"}
+                  soluong={doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien?.soluong}
+                  tongtien={VND.format(doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien?.tongtien||0)}
+                  bg={"#1939B7"}
+                  // data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_ChuaRaVien_ThemTong}
+                  titleMore={"Doanh thu chưa ra viện, chưa duyệt kế toán tháng hiện tại"}
+                />
+              </Grid>
+            </Grid>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={12} md={1.6} spacing={1}>
+          Thu ngan
+        </Grid>
+      </Grid> 
+
 
       <Card
         sx={{
@@ -359,9 +463,9 @@ function DashBoardKhoa() {
         {chisokhoa.Ngay && (
           <Stack sx={{ textAlign: "center" }}>
             <Typography variant="h6">
-              {` DOANH THU ${KhoaHienThi
-                .find((khoa) => khoa.MaKhoa === makhoa)
-                ?.TenKhoa.toUpperCase()} TỪ 00:00  1/${thang}/${nam} ĐẾN ${formatDateTime(
+              {` DOANH THU ${KhoaHienThi.find(
+                (khoa) => khoa.MaKhoa === makhoa
+              )?.TenKhoa.toUpperCase()} TỪ 00:00  1/${thang}/${nam} ĐẾN ${formatDateTime(
                 chisokhoa.Ngay
               )}`}{" "}
               {selectedTrangThai === "Duyệt kế toán"
@@ -440,14 +544,22 @@ function DashBoardKhoa() {
                       {`Tính chênh lệch doanh thu khoa (${selectedTrangThai})`}
                       {selectedTrangThai === "Duyệt kế toán" ? (
                         <MyPieChartForMoney
-                          data={ngay===1?data_Pie_DuyetKeToan:data_Pie_DuyetKeToan_ChenhLech}
+                          data={
+                            ngay === 1
+                              ? data_Pie_DuyetKeToan
+                              : data_Pie_DuyetKeToan_ChenhLech
+                          }
                           colors={colors}
                           other={{ height: 300 }}
                           dataEx={dataEx_ChenhLech_DuyetKeToan}
                         />
                       ) : (
                         <MyPieChartForMoney
-                          data={ngay===1? data_Pie_TheoChiDinh: data_Pie_TheoChiDinh_ChenhLech}
+                          data={
+                            ngay === 1
+                              ? data_Pie_TheoChiDinh
+                              : data_Pie_TheoChiDinh_ChenhLech
+                          }
                           colors={colors}
                           other={{ height: 300 }}
                           dataEx={dataEx_ChenhLech_TheoChiDinh}
@@ -515,13 +627,13 @@ function DashBoardKhoa() {
           <TableDoanhThuKhoaBacSi
             doanhthu_table={doanhthu_table_DuyetKeToan}
             doanhthu_ChenhLech={doanhthu_ChenhLech_DuyetKeToan}
-            ngayhientai = {ngay}
+            ngayhientai={ngay}
           />
         ) : (
           <TableDoanhThuKhoaBacSi
             doanhthu_table={doanhthu_table_TheoChiDinh}
             doanhthu_ChenhLech={doanhthu_ChenhLech_TheoChiDinh}
-            ngayhientai ={ngay}
+            ngayhientai={ngay}
           />
         )}
       </Card>
