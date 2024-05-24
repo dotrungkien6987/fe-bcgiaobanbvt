@@ -656,6 +656,14 @@ const khoaToDepartmentGroupMapping = [
     MaKhoa: "HSCCYC",
     departmentgroupid: 1003,
   },
+  {
+    MaKhoa: "CDHA",
+    departmentgroupid: 27,
+  },
+  {
+    MaKhoa: "DQCT",
+    departmentgroupid: 120,
+  },
 
   // Thêm các mapping khác tùy theo cấu trúc và dữ liệu của bạn
 ];
@@ -1191,50 +1199,6 @@ export function convertData_CanLamSang_PhongThucHien(dataArray) {
   return result;
 }
 
-// export function convertDataWithTextKeys_CanLamSang_PhongThucHien(dataArray) {
-//   // Các ánh xạ từ mã số sang văn bản
-//   const departmentTypeMapping = {
-//     2: 'ngoaitru',
-//     3: 'noitru'
-//   };
-  
-//   const doiTuongMapping = {
-//     0: 'BHYT',
-//     1: 'VP',
-//     3: 'YC',
-//     4: 'BHYTYC'
-//   };
-
-//   const statusMapping = {
-//     0: 'ChiDinh',
-//     1: 'ChiDinh', // Giả định 0 và 1 cùng là ChiDinh
-//     16: 'DaThucHien',
-//     2: 'DaTraKQ'
-//   };
-
-//   const result = {};
-
-//   dataArray.forEach(item => {
-//     const { phongthuchien, departmenttype, loaidoituong, maubenhphamstatus, soluong } = item;
-    
-//     const deptKey = departmentTypeMapping[departmenttype] || 'unknown';
-//     const doiTuongKey = doiTuongMapping[loaidoituong] || 'unknown';
-//     const statusKey = statusMapping[maubenhphamstatus] || 'unknown';
-    
-//     if (!result[phongthuchien]) {
-//       result[phongthuchien] = { noitru: {}, ngoaitru: {} };
-//     }
-    
-//     if (!result[phongthuchien][deptKey][doiTuongKey]) {
-//       result[phongthuchien][deptKey][doiTuongKey] = {};
-//     }
-
-//     result[phongthuchien][deptKey][doiTuongKey][statusKey] = (result[phongthuchien][deptKey][doiTuongKey][statusKey] || 0) + soluong;
-//   });
-
-//   return result;
-// }
-
 function initializeStructure(deptKey, obj) {
   const statusKeys = ['ChiDinh', 'DaThucHien', 'DaTraKQ'];
   const doiTuongKeys = ['BHYT', 'VP', 'YC', 'BHYTYC'];
@@ -1438,4 +1402,43 @@ let doanhthuBacSiKhoa=doanhThu.map(item=>({...item}))
   doanhthuBacSiKhoa.unshift(tongCong);
 
   return doanhthuBacSiKhoa;
+}
+
+
+
+export function ConvertMangVienPhiThemTong(doanhThu) {
+
+  if (!Array.isArray(doanhThu)) {
+    console.error('Lỗi: Đầu vào phải là một mảng');
+    return [];  // Trả về một mảng rỗng hoặc có thể là null tùy theo yêu cầu xử lý lỗi
+}
+
+let doanhthutheovienphi=doanhThu.map(item=>({...item}))
+
+  // Khởi tạo đối tượng tổng cộng
+  let tongCong = {
+      patientname: 'Tổng cộng',
+      dongchitra: 0,
+      bhyt: 0,
+      thutructiep: 0,
+      tongtien: 0,
+      tienmri30:0,
+      
+  };
+
+  // Duyệt qua mỗi đối tượng trong mảng để thêm tongdoanhthu và tính tổng
+  doanhthutheovienphi.forEach(item => {
+      
+      tongCong.dongchitra += item.dongchitra || 0;
+      tongCong.bhyt += item.bhyt || 0;
+      tongCong.thutructiep += item.thutructiep || 0;
+      tongCong.tongtien += item.tongtien;
+      tongCong.tienmri30 += item.tienmri30;
+      
+  });
+
+  // Thêm đối tượng tổng cộng vào đầu mảng
+  doanhthutheovienphi.unshift(tongCong);
+
+  return doanhthutheovienphi;
 }

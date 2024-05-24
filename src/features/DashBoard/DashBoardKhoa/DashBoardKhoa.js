@@ -32,6 +32,7 @@ import MyPieChartForMoney from "../MyPieChartForMoney";
 import {
   ConvertDoanhThuBacSiKhoa,
   ConvertDoanhThuCanLamSang,
+  ConvertMangVienPhiThemTong,
   Get_KhoaID_By_MaKhoa,
   LocKhoaHienThiTheoUser,
   calculateTotalForType,
@@ -110,6 +111,19 @@ function DashBoardKhoa() {
   const doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien =
     chisokhoa.json_doanhthu_chuaduyetketoan_thanghientai_theokhoa?.find(
       (e) => e.vienphistatus === 0
+    );
+
+  const doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien_ChiTiet =
+    ConvertMangVienPhiThemTong(
+      chisokhoa.json_doanhthu_chuaduyetkt_thangtruoc_theovienphi_daravien
+    );
+  const doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien_ChiTiet =
+    ConvertMangVienPhiThemTong(
+      chisokhoa.json_doanhthu_chuaduyetkt_thangtruoc_theovienphi_chuaravien
+    );
+  const doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien_ChiTiet =
+    ConvertMangVienPhiThemTong(
+      chisokhoa.json_doanhthu_chuaduyetkt_thanghientai_theovienphi_daravien
     );
 
   const doanhthu_table_DuyetKeToan = ConvertDoanhThuBacSiKhoa(
@@ -367,7 +381,7 @@ function DashBoardKhoa() {
           </Card>
         </Toolbar>
       </AppBar>
- 
+
       <Grid container spacing={2}>
         <Grid item xs={12} sm={12} md={6} spacing={2}>
           <Card
@@ -386,21 +400,38 @@ function DashBoardKhoa() {
               <Grid item xs={12} sm={12} md={6} spacing={1}>
                 <CardTongTienChuaDuyetKT
                   title={"Đã ra viện"}
-                  soluong={doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien?.soluong}
-                  tongtien={VND.format(doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien?.tongtien||0)}
+                  soluong={
+                    doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien?.soluong
+                  }
+                  tongtien={VND.format(
+                    doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien?.tongtien || 0
+                  )}
                   bg={"#bb1515"}
                   // data={DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_RaVien_ThemTong}
-                  titleMore={"Doanh thu đã ra viện, chưa duyệt kế toán tháng trước"}
+                  titleMore={
+                    "Doanh thu đã ra viện, chưa duyệt kế toán tháng trước"
+                  }
+                  data = {doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien_ChiTiet}
+                  isXemToanVien={false}
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={6} spacing={1}>
                 <CardTongTienChuaDuyetKT
                   title={"Chưa ra viện"}
-                  soluong={doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien?.soluong}
-                  tongtien={VND.format(doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien?.tongtien||0)}
+                  soluong={
+                    doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien?.soluong
+                  }
+                  tongtien={VND.format(
+                    doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien?.tongtien ||
+                      0
+                  )}
                   bg={"#1939B7"}
                   // data={DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_ChuaRaVien_ThemTong}
-                  titleMore={"Doanh thu chưa ra viện, chưa duyệt kế toán tháng trước"}
+                  titleMore={
+                    "Doanh thu chưa ra viện, chưa duyệt kế toán tháng trước"
+                  }
+                  data = {doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien_ChiTiet}
+                  isXemToanVien={false}
                 />
               </Grid>
             </Grid>
@@ -426,33 +457,47 @@ function DashBoardKhoa() {
               <Grid item xs={12} sm={12} md={6} spacing={1}>
                 <CardTongTienChuaDuyetKT
                   title={"Đã ra viện"}
-                  soluong={doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien?.soluong}
-                  tongtien={VND.format(doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien?.tongtien||0)}
+                  soluong={
+                    doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien?.soluong
+                  }
+                  tongtien={VND.format(
+                    doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien?.tongtien ||
+                      0
+                  )}
                   bg={"#bb1515"}
                   // data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_RaVien_ThemTong}
-                  titleMore={"Doanh thu đã ra viện, chưa duyệt kế toán tháng hiện tại"}
+                  titleMore={
+                    "Doanh thu đã ra viện, chưa duyệt kế toán tháng hiện tại"
+                  }
+                  data = {doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien_ChiTiet}
+                  isXemToanVien={false}
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={6} spacing={1}>
                 <CardTongTienChuaDuyetKT
                   title={"Chưa ra viện"}
-                  soluong={doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien?.soluong}
-                  tongtien={VND.format(doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien?.tongtien||0)}
+                  soluong={
+                    doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien?.soluong
+                  }
+                  tongtien={VND.format(
+                    doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien?.tongtien ||
+                      0
+                  )}
                   bg={"#1939B7"}
                   // data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_ChuaRaVien_ThemTong}
-                  titleMore={"Doanh thu chưa ra viện, chưa duyệt kế toán tháng hiện tại"}
-                  CanHovered={false}
+                  titleMore={
+                    "Doanh thu chưa ra viện, chưa duyệt kế toán tháng hiện tại"
+                  }
+                  CanHovered={true}
+                  isKhongHienChiTiet={true}
+                  data ={[{...doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien}]}
                 />
               </Grid>
             </Grid>
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={12} md={1.6} spacing={1}>
-          Thu ngan
-        </Grid>
-      </Grid> 
-
+      </Grid>
 
       <Card
         sx={{
