@@ -25,7 +25,7 @@ import {
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
 
-function CardTongTienChuaDuyetKT({title,soluong,tongtien,bg,data,titleMore}) {
+function CardTongTienChuaDuyetKT({title,soluong,tongtien,bg,data,titleMore,CanHovered=true,isXemToanVien=true}) {
   const theme = useTheme();
   const { darkMode } = useSelector((state) => state.mytheme);
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -63,7 +63,8 @@ function CardTongTienChuaDuyetKT({title,soluong,tongtien,bg,data,titleMore}) {
   const [isHovered, setHovered] = useState(false);
 
   const handleMouseOver = () => {
-    setHovered(true);
+    
+    setHovered(CanHovered);
   };
 
   const handleMouseOut = () => {

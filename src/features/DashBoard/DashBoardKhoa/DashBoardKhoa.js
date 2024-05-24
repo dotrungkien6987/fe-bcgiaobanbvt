@@ -441,6 +441,7 @@ function DashBoardKhoa() {
                   bg={"#1939B7"}
                   // data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_ChuaRaVien_ThemTong}
                   titleMore={"Doanh thu chưa ra viện, chưa duyệt kế toán tháng hiện tại"}
+                  CanHovered={false}
                 />
               </Grid>
             </Grid>
