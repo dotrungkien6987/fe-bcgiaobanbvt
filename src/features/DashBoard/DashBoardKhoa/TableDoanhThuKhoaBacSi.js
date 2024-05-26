@@ -117,7 +117,7 @@ function TableDoanhThuKhoaBacSi({ doanhthu_table, doanhthu_ChenhLech,ngayhientai
               
               <TableCell style={commonStyleReponsive}>BHYT</TableCell>
               <TableCell style={commonStyleReponsive}>Đồng chi trả</TableCell>
-              <TableCell style={commonStyleReponsive}>Thu trực tiếp</TableCell>
+              <TableCell style={commonStyleReponsive}>NB tự trả</TableCell>
               <TableCell style={commonStyleReponsive}>MRI 3.0</TableCell>
             </TableRow>
           </TableHead>

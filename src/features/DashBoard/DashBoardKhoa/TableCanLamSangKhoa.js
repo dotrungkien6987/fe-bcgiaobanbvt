@@ -110,7 +110,7 @@ function TableCanLamSangKhoa({ canlamsangDuyetKeToan, canlamsangChiDinh,ngayhien
               </TableCell>
               <TableCell style={commonStyleReponsive}>Đồng chi trả</TableCell>
               <TableCell style={commonStyleReponsive}>
-               Thu trực tiếp
+               NB tự trả
               </TableCell>
               <TableCell style={commonStyleReponsive}>
                Tổng Doanh thu (Duyệt kế toán)
@@ -125,7 +125,7 @@ function TableCanLamSangKhoa({ canlamsangDuyetKeToan, canlamsangChiDinh,ngayhien
               </TableCell>
               <TableCell style={commonStyleReponsive}>Đồng chi trả</TableCell>
               <TableCell style={commonStyleReponsive}>
-               Thu trực tiếp
+               NB tự trả
               </TableCell>
              
             </TableRow>

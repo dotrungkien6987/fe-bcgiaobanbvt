@@ -80,7 +80,7 @@ function CardTongTienChuaDuyetKT({
   };
 
   return (
-    <Card sx={{ m: 1 }}>
+    <Card sx={{ m: 0.5 }}>
       <Typography
         sx={{
           textAlign: "center",

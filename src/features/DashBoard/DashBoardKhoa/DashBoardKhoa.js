@@ -150,7 +150,7 @@ function DashBoardKhoa() {
 
   const data_Pie_DuyetKeToan = [
     {
-      label: "Thu trực tiếp",
+      label: "NB tự trả",
       value: doanhthu_table_DuyetKeToan[0]?.thutructiep || 0,
     },
     {
@@ -162,7 +162,7 @@ function DashBoardKhoa() {
   ];
   const data_Pie_DuyetKeToan_ChenhLech = [
     {
-      label: "Thu trực tiếp",
+      label: "NB tự trả",
       value: doanhthu_ChenhLech_DuyetKeToan[0]?.thutructiep || 0,
     },
     {
@@ -178,7 +178,7 @@ function DashBoardKhoa() {
 
   const data_Pie_TheoChiDinh = [
     {
-      label: "Thu trực tiếp",
+      label: "NB tự trả",
       value: doanhthu_table_TheoChiDinh[0]?.thutructiep || 0,
     },
     {
@@ -190,7 +190,7 @@ function DashBoardKhoa() {
   ];
   const data_Pie_TheoChiDinh_ChenhLech = [
     {
-      label: "Thu trực tiếp",
+      label: "NB tự trả",
       value: doanhthu_ChenhLech_TheoChiDinh[0]?.thutructiep || 0,
     },
     {

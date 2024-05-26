@@ -78,6 +78,8 @@ const TaiChinh = () => {
     DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa,
     SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc,
     SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai,
+    chisosObj,
+    chisosObj_NgayChenhLech,
   } = useSelector((state) => state.dashboard);
 
   const DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_RaVien_ThemTong =
@@ -129,6 +131,10 @@ const TaiChinh = () => {
     style: "currency",
     currency: "VND",
   });
+
+  const congthutructiep=(dataPie)=>{
+    return(dataPie[0]?.value+dataPie[1]?.value+dataPie[3]?.value)
+  }
   let dataEx_DuyetKeToan = [];
   dataEx_DuyetKeToan.push({
     label: `MRI 1.5: ${VND.format(
@@ -147,6 +153,13 @@ const TaiChinh = () => {
   dataEx_DuyetKeToan.push({
     label: `CT 32: ${VND.format(
       calculateTotalForType("CLVT32", doanhthu_canlamsang_duyetketoan)
+    )}`,
+    value: 0,
+    color: "white",
+  });
+  dataEx_DuyetKeToan.push({
+    label: `Cộng thu trực tiếp: ${VND.format(
+      congthutructiep(Pie_DoanhThu_DuyetKeToan)
     )}`,
     value: 0,
     color: "white",
@@ -170,6 +183,13 @@ const TaiChinh = () => {
   dataEx_TheoChiDinh.push({
     label: `CT 32: ${VND.format(
       calculateTotalForType("CLVT32", doanhthu_canlamsang_theochidinh)
+    )}`,
+    value: 0,
+    color: "white",
+  });
+  dataEx_TheoChiDinh.push({
+    label: `Cộng thu trực tiếp: ${VND.format(
+      congthutructiep(Pie_DoanhThu_TheoChiDinh)
     )}`,
     value: 0,
     color: "white",
@@ -209,6 +229,14 @@ const TaiChinh = () => {
     value: 0,
     color: "white",
   });
+  dataEx_ChenhLech_TheoChiDinh.push({
+    label: `Cộng thu trực tiếp: ${VND.format(
+      congthutructiep(Pie_DoanhThu_TheoChiDinh_ChenhLech)
+    )}`,
+    value: 0,
+    color: "white",
+  });
+
 
   let dataEx_ChenhLech_DuyetKeToan = [];
   dataEx_ChenhLech_DuyetKeToan.push({
@@ -244,7 +272,13 @@ const TaiChinh = () => {
     value: 0,
     color: "white",
   });
-
+  dataEx_ChenhLech_DuyetKeToan.push({
+    label: `Cộng thu trực tiếp: ${VND.format(
+      congthutructiep(Pie_DoanhThu_DuyetKeToan_ChenhLech)
+    )}`,
+    value: 0,
+    color: "white",
+  });
   const KhuyenCao_ToanVien = calculateKhuyenCaoToanVien(khuyencaokhoa);
   const Tong_DuyetKeToan = TongHopSoLieuChoRowTongDoanhThuKPI(
     doanhthu_toanvien_duyetketoan,
@@ -389,7 +423,7 @@ const TaiChinh = () => {
       </AppBar>
 
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={12} md={5.2} spacing={2}>
+        <Grid item xs={12} sm={12} md={5} spacing={2}>
           <Card
             sx={{
               fontWeight: "bold",
@@ -397,7 +431,7 @@ const TaiChinh = () => {
               backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
               boxShadow: 10,
               p: 1,
-              m: 1,
+              mb: 1,
             }}
           >
             <Typography variant="h6">Chưa duyệt kế toán tháng trước</Typography>
@@ -417,8 +451,12 @@ const TaiChinh = () => {
                     )?.tongtien
                   )}
                   bg={"#bb1515"}
-                  data={DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_RaVien_ThemTong}
-                  titleMore={"Doanh thu đã ra viện, chưa duyệt kế toán tháng trước"}
+                  data={
+                    DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_RaVien_ThemTong
+                  }
+                  titleMore={
+                    "Doanh thu đã ra viện, chưa duyệt kế toán tháng trước"
+                  }
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={6} spacing={1}>
@@ -435,15 +473,19 @@ const TaiChinh = () => {
                     )?.tongtien
                   )}
                   bg={"#1939B7"}
-                  data={DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_ChuaRaVien_ThemTong}
-                  titleMore={"Doanh thu chưa ra viện, chưa duyệt kế toán tháng trước"}
+                  data={
+                    DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_ChuaRaVien_ThemTong
+                  }
+                  titleMore={
+                    "Doanh thu chưa ra viện, chưa duyệt kế toán tháng trước"
+                  }
                 />
               </Grid>
             </Grid>
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={12} md={5.2} spacing={2}>
+        <Grid item xs={12} sm={12} md={5} spacing={2}>
           <Card
             sx={{
               fontWeight: "bold",
@@ -451,7 +493,7 @@ const TaiChinh = () => {
               backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
               boxShadow: 10,
               p: 1,
-              m: 1,
+              mb: 1,
             }}
           >
             <Typography variant="h6">
@@ -473,8 +515,12 @@ const TaiChinh = () => {
                     )?.tongtien
                   )}
                   bg={"#bb1515"}
-                  data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_RaVien_ThemTong}
-                  titleMore={"Doanh thu đã ra viện, chưa duyệt kế toán tháng hiện tại"}
+                  data={
+                    DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_RaVien_ThemTong
+                  }
+                  titleMore={
+                    "Doanh thu đã ra viện, chưa duyệt kế toán tháng hiện tại"
+                  }
                 />
               </Grid>
               <Grid item xs={12} sm={12} md={6} spacing={1}>
@@ -491,16 +537,64 @@ const TaiChinh = () => {
                     )?.tongtien
                   )}
                   bg={"#1939B7"}
-                  data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_ChuaRaVien_ThemTong}
-                  titleMore={"Doanh thu chưa ra viện, chưa duyệt kế toán tháng hiện tại"}
+                  data={
+                    DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_ChuaRaVien_ThemTong
+                  }
+                  titleMore={
+                    "Doanh thu chưa ra viện, chưa duyệt kế toán tháng hiện tại"
+                  }
                 />
               </Grid>
             </Grid>
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={12} md={1.6} spacing={1}>
-          Thu ngan
+        <Grid item xs={12} sm={12} md={2} spacing={1}>
+          <Card
+            sx={{
+              fontWeight: "bold",
+              color: "#FFF",
+              backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
+              boxShadow: 10,
+              p: 1,
+              minBlockSize: 1,
+            }}
+          >
+            <Typography variant="h6">Thu ngân</Typography>
+            <Card sx={{ m: 0.5 }}>
+            <Typography
+        sx={{
+          textAlign: "center",
+          fontSize: "1rem",
+          color: "#1939B7",
+          fontWeight: "bold",
+        }}
+      >
+        Tổng tiền kế toán thu
+      </Typography>
+              <Card
+                sx={{
+                  fontWeight: "bold",
+                  color: "#f2f2f2",
+                  backgroundColor: '#1939B7',
+                  // p: 1,
+                  boxShadow: 10,
+                  borderRadius: 3,
+                  m: 1,
+                  
+                }}
+              >
+                 <CardContent>
+          <Typography sx={{ textAlign: "center", fontSize: "1rem" }}>
+            {VND.format(chisosObj?.thungan)}
+          </Typography>
+          <Typography sx={{ textAlign: "center",fontSize: "0.9rem" }}>
+          + {VND.format((chisosObj?.thungan-chisosObj_NgayChenhLech?.thungan))}
+          </Typography>
+        </CardContent>
+              </Card>
+            </Card>
+          </Card>
         </Grid>
       </Grid>
 
@@ -748,7 +842,7 @@ const TaiChinh = () => {
                         data: CanLamSangDuyetKeToan.dongchitra,
                       },
                       {
-                        name: "Thu trực tiếp (Duyệt KT)",
+                        name: "NB tự trả (Duyệt KT)",
                         group: "DuyetKeToan",
                         data: CanLamSangDuyetKeToan.thutructiep,
                       },
@@ -763,7 +857,7 @@ const TaiChinh = () => {
                         data: CanLamSangTheoChiDinh.dongchitra,
                       },
                       {
-                        name: "Thu trực tiếp (Theo chỉ định)",
+                        name: "NB tự trả (Theo chỉ định)",
                         group: "TheoChiDinh",
                         data: CanLamSangTheoChiDinh.thutructiep,
                       },

@@ -700,8 +700,8 @@ export function calculateDoanhThuAdjusted(khuyencaokhoa, doanhthu_from_db, ngayh
       BHYT = 0;
       MRI30 = 0;
     } else {
-      TongThu = item.thutructiep + item.dongchitra + item.bhyt;
-      ThuTrucTiep = item.thutructiep + item.dongchitra;
+      TongThu = item.thutructiep + item.dongchitra + item.bhyt +item.tienmri30;
+      ThuTrucTiep = item.thutructiep + item.dongchitra+item.tienmri30;
       BHYT = item.bhyt;
       MRI30 = item.tienmri30;
     }
@@ -934,7 +934,7 @@ export function TongHopSoLieuChoPieChartDoanhThu(doanhthu, canlamsang) {
   });
 
   return [
-    { label: "Thu trực tiếp", value: thuTrucTiep },
+    { label: "NB tự trả", value: thuTrucTiep },
     { label: "Đồng chi trả", value: dongChiTra },
     { label: "BHYT", value: tongBHYT },
     { label: "MRI 3.0", value: tongtienMri30 },
@@ -976,7 +976,7 @@ export function TongHopSoLieuChoPieChartDoanhThuChenhLech(
   });
 
   return [
-    { label: "Thu trực tiếp", value: thuTrucTiep - thuTrucTiep_ngaychenhlech },
+    { label: "NB tự trả", value: thuTrucTiep - thuTrucTiep_ngaychenhlech },
     { label: "Đồng chi trả", value: dongChiTra - dongChiTra_ngaychenhlech },
     { label: "BHYT", value: tongBHYT - tongBHYT_ngaychenhlech },
     { label: "MRI 3.0", value: tongtienMri30 - tongtienMri30_ngaychenhlech },
@@ -1024,14 +1024,14 @@ export function TongHopSoLieuChoRowTongDoanhThuKPI(
     tongtienMri30_ngaychenhlech += obj.tienmri30;
   });
 
-  const TongTien = thuTrucTiep + dongChiTra + tongBHYT;
+  const TongTien = thuTrucTiep + dongChiTra + tongBHYT+tongtienMri30;
   const TongTien_NgayChenhLech =
     thuTrucTiep_ngaychenhlech +
     dongChiTra_ngaychenhlech +
-    tongBHYT_ngaychenhlech;
+    tongBHYT_ngaychenhlech +tongtienMri30_ngaychenhlech;
 
-    const ThuTrucTiep = thuTrucTiep + dongChiTra
-    const ThuTrucTiep_NgayChenhLech = thuTrucTiep_ngaychenhlech + dongChiTra_ngaychenhlech
+    const ThuTrucTiep = thuTrucTiep + dongChiTra+tongtienMri30
+    const ThuTrucTiep_NgayChenhLech = thuTrucTiep_ngaychenhlech + dongChiTra_ngaychenhlech+tongtienMri30_ngaychenhlech
 
     const TyLe_ThucTe_DoanhThu_KhuyenCao = TongTien/khuyencaotoanvien.DoanhThu
     const TyLe_ThucTe_DoanhThu_KhuyenCao_NgayChenhLech = TongTien_NgayChenhLech/khuyencaotoanvien.DoanhThu
