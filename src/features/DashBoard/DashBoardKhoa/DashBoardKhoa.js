@@ -88,13 +88,7 @@ function DashBoardKhoa() {
     { color: "#FFBB28" },
     { color: "#2ABC28" },
   ];
-  let dataEx_DuyetKeToan = [];
-
-  let dataEx_TheoChiDinh = [];
-
-  let dataEx_ChenhLech_TheoChiDinh = [];
-
-  let dataEx_ChenhLech_DuyetKeToan = [];
+  
 
   const doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien =
     chisokhoa.json_doanhthu_chuaduyetketoan_thangtruoc_theokhoa?.find(
@@ -203,6 +197,45 @@ function DashBoardKhoa() {
       value: doanhthu_ChenhLech_TheoChiDinh[0]?.tienmri30 || 0,
     },
   ];
+
+  const congthutructiep=(dataPie)=>{
+    return(dataPie[0]?.value+dataPie[1]?.value+dataPie[3]?.value)
+  }
+  let dataEx_DuyetKeToan = [];
+  dataEx_DuyetKeToan.push({
+    label: `Cộng thu trực tiếp: ${VND.format(
+      congthutructiep(data_Pie_DuyetKeToan)
+    )}`,
+    value: 0,
+    color: "white",
+  });
+  let dataEx_TheoChiDinh = [];
+  dataEx_TheoChiDinh.push({
+    label: `Cộng thu trực tiếp: ${VND.format(
+      congthutructiep(data_Pie_TheoChiDinh)
+    )}`,
+    value: 0,
+    color: "white",
+  });
+
+  let dataEx_ChenhLech_TheoChiDinh = [];
+  dataEx_ChenhLech_TheoChiDinh.push({
+    label: `Cộng thu trực tiếp: ${VND.format(
+      congthutructiep(data_Pie_TheoChiDinh_ChenhLech)
+    )}`,
+    value: 0,
+    color: "white",
+  });
+
+
+  let dataEx_ChenhLech_DuyetKeToan = [];
+  dataEx_ChenhLech_DuyetKeToan.push({
+    label: `Cộng thu trực tiếp: ${VND.format(
+      congthutructiep(data_Pie_DuyetKeToan_ChenhLech)
+    )}`,
+    value: 0,
+    color: "white",
+  });
 
   const CanLamSangDuyetKeToan = ConvertDoanhThuCanLamSang(
     chisokhoa?.json_doanhthu_canlamsang_duyetketoan_khoa || [],
@@ -381,8 +414,8 @@ function DashBoardKhoa() {
           </Card>
         </Toolbar>
       </AppBar>
-
-      <Grid container spacing={2}>
+{user.PhanQuyen==='admin'&&(
+  <Grid container spacing={2}>
         <Grid item xs={12} sm={12} md={6} spacing={2}>
           <Card
             sx={{
@@ -498,6 +531,8 @@ function DashBoardKhoa() {
         </Grid>
 
       </Grid>
+)}
+      
 
       <Card
         sx={{
