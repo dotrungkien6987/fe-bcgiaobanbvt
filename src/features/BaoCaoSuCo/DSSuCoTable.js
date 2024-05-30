@@ -20,6 +20,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fDate } from "../../utils/formatTime";
 import { useNavigate } from "react-router-dom";
 import { UpdateTrangThaiSuCo, deleteOneSuCo } from "./baocaosucoSlice";
+import MyReactTable from "../../components/MyAble-Component/MyReactTable";
 
 function DSSuCoTable() {
   const { khoas } = useSelector((state) => state.baocaongay);
@@ -75,6 +76,10 @@ function DSSuCoTable() {
   const navigate = useNavigate();
   return (
     <Box sx={{ overflowX: "auto" }}>
+
+      <Button>Test</Button>
+      <MyReactTable/>
+      
       <TableContainer>
         {/* <TableContainer sx={{ minWidth: 800 }}> */}
         <Table>
@@ -221,6 +226,7 @@ function DSSuCoTable() {
           </Button>
         </DialogActions>
       </Dialog>
+
     </Box>
   );
 }
