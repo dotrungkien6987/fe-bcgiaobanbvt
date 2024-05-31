@@ -57,8 +57,9 @@ export const getDataNewestByNgayKhoa = (date, khoaid) => async (dispatch) => {
       Ngay: date,
       KhoaID: khoaid,
     };
+    console.log(`chi so dashboard khoa 0106 ${date,khoaid}`);
     const response = await apiService.get(`/dashboard/khoa`, { params });
-    console.log("chi so dashboard khoa", response.data.data.chisoKhoa);
+    console.log("chi so dashboard khoa 0106", response.data.data.chisoKhoa);
     dispatch(
       slice.actions.getDataNewestByNgayKhoaSuccess(response.data.data.chisoKhoa)
     );

@@ -331,7 +331,7 @@ const TaiChinh = () => {
 
   useEffect(() => {
     dispatch(getDataNewestByNgayChenhLech(dateChenhLech.toISOString(), ngay));
-  }, [dispatch, dateChenhLech]);
+  }, [dispatch, dateChenhLech,ngay]);
 
   useEffect(() => {
     const fetchNewestData = () => {
@@ -588,9 +588,12 @@ const TaiChinh = () => {
           <Typography sx={{ textAlign: "center", fontSize: "1rem" }}>
             {VND.format(chisosObj?.thungan)}
           </Typography>
-          <Typography sx={{ textAlign: "center",fontSize: "0.9rem" }}>
-          + {VND.format((chisosObj?.thungan-chisosObj_NgayChenhLech?.thungan))}
-          </Typography>
+          {ngay !==1 &&(
+ <Typography sx={{ textAlign: "center",fontSize: "0.9rem" }}>
+ + {VND.format((chisosObj?.thungan-chisosObj_NgayChenhLech?.thungan))}
+ </Typography>
+          )}
+         
         </CardContent>
               </Card>
             </Card>

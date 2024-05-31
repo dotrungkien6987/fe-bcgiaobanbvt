@@ -686,7 +686,7 @@ export function calculateDoanhThuAdjusted(khuyencaokhoa, doanhthu_from_db, ngayh
     ])
   );
 
-  return doanhthu_from_db.map((item, index) => {
+  return doanhthu_from_db?.map((item, index) => {
     const MaKhoa = mapping.get(item.departmentgroupid);
     const khoaInfo = khuyencaokhoa.find((khoa) => khoa.MaKhoa === MaKhoa) || {};
     const KC_DoanhThu = khoaInfo.DoanhThu || 0;
@@ -873,12 +873,12 @@ export function ConvertDoanhThuCanLamSang(canlamsang, canlamsang_ngaychenhlech) 
 
   // Chuẩn bị map dữ liệu để dễ dàng truy xuất và tính toán
   let mapCanLamSang = new Map();
-  canlamsang.forEach(item => {
+  canlamsang?.forEach(item => {
     mapCanLamSang.set(item.canlamsangtype, item);
   });
 
   let mapCanLamSangChenhlech = new Map();
-  canlamsang_ngaychenhlech.forEach(item => {
+  canlamsang_ngaychenhlech?.forEach(item => {
     mapCanLamSangChenhlech.set(item.canlamsangtype, item);
   });
 
@@ -1010,14 +1010,14 @@ export function TongHopSoLieuChoRowTongDoanhThuKPI(
   }
 
 
-  doanhthu.forEach((obj) => {
+  doanhthu?.forEach((obj) => {
     thuTrucTiep += obj.thutructiep;
     dongChiTra += obj.dongchitra;
     tongBHYT += obj.bhyt;
     tongtienMri30 += obj.tienmri30;
   });
 
-  doanhthu_ngaychenhlech.forEach((obj) => {
+  doanhthu_ngaychenhlech?.forEach((obj) => {
     thuTrucTiep_ngaychenhlech += obj.thutructiep;
     dongChiTra_ngaychenhlech += obj.dongchitra;
     tongBHYT_ngaychenhlech += obj.bhyt;
@@ -1261,7 +1261,7 @@ export function calculateTotalForType(type, dataArray) {
   let total = 0;
 
   // Duyệt qua mỗi phần tử trong mảng
-  dataArray.forEach(item => {
+  dataArray?.forEach(item => {
       if (item.canlamsangtype === type) {
           // Cộng dồn tổng của dongchitra, bhyt, và thutructiep nếu khớp với type
           total += item.dongchitra + item.bhyt + item.thutructiep;
@@ -1413,7 +1413,7 @@ export function ConvertMangVienPhiThemTong(doanhThu) {
     return [];  // Trả về một mảng rỗng hoặc có thể là null tùy theo yêu cầu xử lý lỗi
 }
 
-let doanhthutheovienphi=doanhThu.map(item=>({...item}))
+let doanhthutheovienphi=doanhThu?.map(item=>({...item}))
 
   // Khởi tạo đối tượng tổng cộng
   let tongCong = {

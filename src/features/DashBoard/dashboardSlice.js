@@ -211,15 +211,15 @@ const slice = createSlice({
           state.chisosObj.giuongyeucau_sudung,
       });
 
-      state.bnvuotkhuyencao = state.chisosObj.benhnhan_vuotkhuyencao
-        ? JSON.parse(state.chisosObj.benhnhan_vuotkhuyencao)
-        : [] || [];
-      state.bndonthuocmax = state.chisosObj.benhnhan_donthuoc_max
-        ? JSON.parse(state.chisosObj.benhnhan_donthuoc_max)
-        : [] || [];
-      state.bndonthuocmin = state.chisosObj.benhnhan_donthuoc_min
-        ? JSON.parse(state.chisosObj.benhnhan_donthuoc_min)
-        : [] || [];
+      // state.bnvuotkhuyencao = state.chisosObj.benhnhan_vuotkhuyencao
+      //   ? JSON.parse(state.chisosObj.benhnhan_vuotkhuyencao)
+      //   : [] || [];
+      // state.bndonthuocmax = state.chisosObj.benhnhan_donthuoc_max
+      //   ? JSON.parse(state.chisosObj.benhnhan_donthuoc_max)
+      //   : [] || [];
+      // state.bndonthuocmin = state.chisosObj.benhnhan_donthuoc_min
+      //   ? JSON.parse(state.chisosObj.benhnhan_donthuoc_min)
+      //   : [] || [];
 
       state.bnngoaitruchuyenvien = state.chisosObj.benhnhan_ngoaitru_chuyenvien
         ? JSON.parse(state.chisosObj.benhnhan_ngoaitru_chuyenvien)
@@ -255,7 +255,7 @@ const slice = createSlice({
         ? JSON.parse(state.chisosObj.doanhthu_toanvien_theochidinh)
         : [] || [];
       state.doanhthu_toanvien_duyetketoan = state.chisosObj
-        .doanhthu_toanvien_duyetketoan
+        .doanhthu_toanvien_duyetketoan!=='null'
         ? JSON.parse(state.chisosObj.doanhthu_toanvien_duyetketoan)
         : [] || [];
       state.doanhthu_canlamsang_theochidinh = state.chisosObj
@@ -263,7 +263,7 @@ const slice = createSlice({
         ? JSON.parse(state.chisosObj.doanhthu_canlamsang_theochidinh)
         : [] || [];
       state.doanhthu_canlamsang_duyetketoan = state.chisosObj
-        .doanhthu_canlamsang_duyetketoan
+        .doanhthu_canlamsang_duyetketoan!=='null'
         ? JSON.parse(state.chisosObj.doanhthu_canlamsang_duyetketoan)
         : [] || [];
       state.KPI_DuyetKeToan = calculateDoanhThuAdjusted(
@@ -311,7 +311,7 @@ const slice = createSlice({
         ? JSON.parse(state.chisosObj.json_chitietbn_phongthuchien )
         : [] || [];
         
-        state.ChitietBN_PhongThucHien= state.ChitietBN_PhongThucHien.map(benhnhan=>{
+        state.ChitietBN_PhongThucHien= state.ChitietBN_PhongThucHien?.map(benhnhan=>{
           if(benhnhan.maubenhphamstatus === 0) {
             return {...benhnhan,maubenhphamstatus:1}
           }
@@ -322,7 +322,7 @@ const slice = createSlice({
         ? JSON.parse(state.chisosObj.json_chitietbn_phongthuchien_cho_ngaytruoc )
         : [] || [];
         
-        state.ChitietBN_PhongThucHien_Cho_NgayTruoc= state.ChitietBN_PhongThucHien_Cho_NgayTruoc.map(benhnhan=>{
+        state.ChitietBN_PhongThucHien_Cho_NgayTruoc= state.ChitietBN_PhongThucHien_Cho_NgayTruoc?.map(benhnhan=>{
           if(benhnhan.maubenhphamstatus === 0) {
             return {...benhnhan,maubenhphamstatus:1}
           }
@@ -796,13 +796,14 @@ export const getDataNewestByNgay = (date) => async (dispatch) => {
       Ngay: date,
     };
     const response = await apiService.get(`/dashboard`, { params });
-    console.log("dashboard", response.data);
+    console.log(`dashboard${date}`, response.data);
     dispatch(
       slice.actions.getDataNewestByNgaySuccess(response.data.data.dashboard)
     );
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
+    toast.error('1')
   }
 };
 
@@ -814,7 +815,7 @@ export const getDataNewestByNgayChenhLech = (date,ngay) => async (dispatch) => {
     };
     const response = await apiService.get(`/dashboard`, { params });
     response.data.data.dashboard.NgayHienTai = ngay;
-    console.log("dashboard", response.data);
+    console.log(`dashboard${ngay}`, response.data);
     dispatch(
       slice.actions.getDataNewestByNgayChenhLechSuccess(
         response.data.data.dashboard
@@ -823,6 +824,7 @@ export const getDataNewestByNgayChenhLech = (date,ngay) => async (dispatch) => {
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
+    toast.error('2')
   }
 };
 
@@ -834,6 +836,7 @@ export const getKhoas = () => async (dispatch) => {
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
+    toast.error('3')
   }
 };
 
@@ -856,6 +859,7 @@ export const getKhuyenCaoKhoaByThangNam = (Thang, Nam) => async (dispatch) => {
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
+    toast.error('4')
   }
 };
 

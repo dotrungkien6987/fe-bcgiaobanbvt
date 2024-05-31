@@ -88,7 +88,6 @@ function DashBoardKhoa() {
     { color: "#FFBB28" },
     { color: "#2ABC28" },
   ];
-  
 
   const doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien =
     chisokhoa.json_doanhthu_chuaduyetketoan_thangtruoc_theokhoa?.find(
@@ -198,9 +197,9 @@ function DashBoardKhoa() {
     },
   ];
 
-  const congthutructiep=(dataPie)=>{
-    return(dataPie[0]?.value+dataPie[1]?.value+dataPie[3]?.value)
-  }
+  const congthutructiep = (dataPie) => {
+    return dataPie[0]?.value + dataPie[1]?.value + dataPie[3]?.value;
+  };
   let dataEx_DuyetKeToan = [];
   dataEx_DuyetKeToan.push({
     label: `Cộng thu trực tiếp: ${VND.format(
@@ -226,7 +225,6 @@ function DashBoardKhoa() {
     value: 0,
     color: "white",
   });
-
 
   let dataEx_ChenhLech_DuyetKeToan = [];
   dataEx_ChenhLech_DuyetKeToan.push({
@@ -414,125 +412,132 @@ function DashBoardKhoa() {
           </Card>
         </Toolbar>
       </AppBar>
-{user.PhanQuyen==='admin'&&(
-  <Grid container spacing={2}>
-        <Grid item xs={12} sm={12} md={6} spacing={2}>
-          <Card
-            sx={{
-              fontWeight: "bold",
-              color: "#FFF",
-              backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
-              boxShadow: 10,
-              p: 1,
-              m: 1,
-            }}
-          >
-            <Typography variant="h6">Chưa duyệt kế toán tháng trước</Typography>
+      {user.PhanQuyen === "admin" && (
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={12} md={6} spacing={2}>
+            <Card
+              sx={{
+                fontWeight: "bold",
+                color: "#FFF",
+                backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
+                boxShadow: 10,
+                p: 1,
+                m: 1,
+              }}
+            >
+              <Typography variant="h6">
+                Chưa duyệt kế toán tháng trước
+              </Typography>
 
-            <Grid container>
-              <Grid item xs={12} sm={12} md={6} spacing={1}>
-                <CardTongTienChuaDuyetKT
-                  title={"Đã ra viện"}
-                  soluong={
-                    doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien?.soluong
-                  }
-                  tongtien={VND.format(
-                    doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien?.tongtien || 0
-                  )}
-                  bg={"#bb1515"}
-                  // data={DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_RaVien_ThemTong}
-                  titleMore={
-                    "Doanh thu đã ra viện, chưa duyệt kế toán tháng trước"
-                  }
-                  data = {doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien_ChiTiet}
-                  isXemToanVien={false}
-                />
+              <Grid container>
+                <Grid item xs={12} sm={12} md={6} spacing={1}>
+                  <CardTongTienChuaDuyetKT
+                    title={"Đã ra viện"}
+                    soluong={
+                      doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien?.soluong
+                    }
+                    tongtien={VND.format(
+                      doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien?.tongtien ||
+                        0
+                    )}
+                    bg={"#bb1515"}
+                    // data={DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_RaVien_ThemTong}
+                    titleMore={
+                      "Doanh thu đã ra viện, chưa duyệt kế toán tháng trước"
+                    }
+                    data={doanhthu_ChuaDuyetKeToan_ThangTruoc_DaRaVien_ChiTiet}
+                    isXemToanVien={false}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={12} md={6} spacing={1}>
+                  <CardTongTienChuaDuyetKT
+                    title={"Chưa ra viện"}
+                    soluong={
+                      doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien?.soluong
+                    }
+                    tongtien={VND.format(
+                      doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien?.tongtien ||
+                        0
+                    )}
+                    bg={"#1939B7"}
+                    // data={DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_ChuaRaVien_ThemTong}
+                    titleMore={
+                      "Doanh thu chưa ra viện, chưa duyệt kế toán tháng trước"
+                    }
+                    data={
+                      doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien_ChiTiet
+                    }
+                    isXemToanVien={false}
+                  />
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={12} md={6} spacing={1}>
-                <CardTongTienChuaDuyetKT
-                  title={"Chưa ra viện"}
-                  soluong={
-                    doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien?.soluong
-                  }
-                  tongtien={VND.format(
-                    doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien?.tongtien ||
-                      0
-                  )}
-                  bg={"#1939B7"}
-                  // data={DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa_ChuaRaVien_ThemTong}
-                  titleMore={
-                    "Doanh thu chưa ra viện, chưa duyệt kế toán tháng trước"
-                  }
-                  data = {doanhthu_ChuaDuyetKeToan_ThangTruoc_ChuaRaVien_ChiTiet}
-                  isXemToanVien={false}
-                />
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} sm={12} md={6} spacing={2}>
+            <Card
+              sx={{
+                fontWeight: "bold",
+                color: "#FFF",
+                backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
+                boxShadow: 10,
+                p: 1,
+                m: 1,
+              }}
+            >
+              <Typography variant="h6">
+                Chưa duyệt kế toán tháng hiện tại
+              </Typography>
+
+              <Grid container>
+                <Grid item xs={12} sm={12} md={6} spacing={1}>
+                  <CardTongTienChuaDuyetKT
+                    title={"Đã ra viện"}
+                    soluong={
+                      doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien?.soluong
+                    }
+                    tongtien={VND.format(
+                      doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien?.tongtien ||
+                        0
+                    )}
+                    bg={"#bb1515"}
+                    // data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_RaVien_ThemTong}
+                    titleMore={
+                      "Doanh thu đã ra viện, chưa duyệt kế toán tháng hiện tại"
+                    }
+                    data={
+                      doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien_ChiTiet
+                    }
+                    isXemToanVien={false}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={12} md={6} spacing={1}>
+                  <CardTongTienChuaDuyetKT
+                    title={"Chưa ra viện"}
+                    soluong={
+                      doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien?.soluong
+                    }
+                    tongtien={VND.format(
+                      doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien?.tongtien ||
+                        0
+                    )}
+                    bg={"#1939B7"}
+                    // data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_ChuaRaVien_ThemTong}
+                    titleMore={
+                      "Doanh thu chưa ra viện, chưa duyệt kế toán tháng hiện tại"
+                    }
+                    CanHovered={true}
+                    isKhongHienChiTiet={true}
+                    data={[
+                      { ...doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien },
+                    ]}
+                  />
+                </Grid>
               </Grid>
-            </Grid>
-          </Card>
+            </Card>
+          </Grid>
         </Grid>
-
-        <Grid item xs={12} sm={12} md={6} spacing={2}>
-          <Card
-            sx={{
-              fontWeight: "bold",
-              color: "#FFF",
-              backgroundColor: darkMode ? "#1D1D1D" : "#1939B7",
-              boxShadow: 10,
-              p: 1,
-              m: 1,
-            }}
-          >
-            <Typography variant="h6">
-              Chưa duyệt kế toán tháng hiện tại
-            </Typography>
-
-            <Grid container>
-              <Grid item xs={12} sm={12} md={6} spacing={1}>
-                <CardTongTienChuaDuyetKT
-                  title={"Đã ra viện"}
-                  soluong={
-                    doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien?.soluong
-                  }
-                  tongtien={VND.format(
-                    doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien?.tongtien ||
-                      0
-                  )}
-                  bg={"#bb1515"}
-                  // data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_RaVien_ThemTong}
-                  titleMore={
-                    "Doanh thu đã ra viện, chưa duyệt kế toán tháng hiện tại"
-                  }
-                  data = {doanhthu_ChuaDuyetKeToan_ThangHienTai_DaRaVien_ChiTiet}
-                  isXemToanVien={false}
-                />
-              </Grid>
-              <Grid item xs={12} sm={12} md={6} spacing={1}>
-                <CardTongTienChuaDuyetKT
-                  title={"Chưa ra viện"}
-                  soluong={
-                    doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien?.soluong
-                  }
-                  tongtien={VND.format(
-                    doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien?.tongtien ||
-                      0
-                  )}
-                  bg={"#1939B7"}
-                  // data={DoanhThu_ChuaDuyetKeToan_ThangHienTai_TheoKhoa_ChuaRaVien_ThemTong}
-                  titleMore={
-                    "Doanh thu chưa ra viện, chưa duyệt kế toán tháng hiện tại"
-                  }
-                  CanHovered={true}
-                  isKhongHienChiTiet={true}
-                  data ={[{...doanhthu_ChuaDuyetKeToan_ThangHienTai_ChuaRaVien}]}
-                />
-              </Grid>
-            </Grid>
-          </Card>
-        </Grid>
-
-      </Grid>
-)}
-      
+      )}
 
       <Card
         sx={{
@@ -632,7 +637,12 @@ function DashBoardKhoa() {
                           }
                           colors={colors}
                           other={{ height: 300 }}
-                          dataEx={dataEx_ChenhLech_DuyetKeToan}
+                          // dataEx={dataEx_ChenhLech_DuyetKeToan}
+                          dataEx={
+                            ngay === 1
+                              ? dataEx_DuyetKeToan
+                              : dataEx_ChenhLech_DuyetKeToan
+                          }
                         />
                       ) : (
                         <MyPieChartForMoney
@@ -643,7 +653,12 @@ function DashBoardKhoa() {
                           }
                           colors={colors}
                           other={{ height: 300 }}
-                          dataEx={dataEx_ChenhLech_TheoChiDinh}
+                          // dataEx={dataEx_ChenhLech_TheoChiDinh}
+                          dataEx={
+                            ngay === 1
+                              ? dataEx_TheoChiDinh
+                              : dataEx_ChenhLech_TheoChiDinh
+                          }
                         />
                       )}
                     </Card>

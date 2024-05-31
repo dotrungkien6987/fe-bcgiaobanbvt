@@ -21,7 +21,7 @@ import { fDate } from "../../utils/formatTime";
 import { useNavigate } from "react-router-dom";
 import { UpdateTrangThaiSuCo, deleteOneSuCo } from "./baocaosucoSlice";
 import MyReactTable from "../../components/MyAble-Component/MyReactTable";
-import ColumnHiding from "../../pages/tables/react-table/column-hiding";
+// import ColumnHiding from "../../pages/tables/react-table/column-hiding";
 
 function DSSuCoTable() {
   const { khoas } = useSelector((state) => state.baocaongay);
