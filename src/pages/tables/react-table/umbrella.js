@@ -76,7 +76,7 @@ import {
   SliderColumnFilter,
   NumberRangeColumnFilter
 } from 'utils/react-table';
-import { ThemeMode } from 'config';
+import { ThemeMode } from 'configAble';
 
 // assets
 import { ArrowDown2, ArrowRight2, Edit, LayoutMaximize, Maximize1, Send } from 'iconsax-react';

@@ -14,6 +14,7 @@ import {
   DialogContentText,
   DialogActions,
   Stack,
+  Container,
 } from "@mui/material";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -21,6 +22,9 @@ import { fDate } from "../../utils/formatTime";
 import { useNavigate } from "react-router-dom";
 import { UpdateTrangThaiSuCo, deleteOneSuCo } from "./baocaosucoSlice";
 import MyReactTable from "../../components/MyAble-Component/MyReactTable";
+import Basic from "pages/tables/react-table/basic";
+import UmbrellaTable from "pages/tables/react-table/umbrella";
+
 // import ColumnHiding from "../../pages/tables/react-table/column-hiding";
 
 function DSSuCoTable() {
@@ -76,10 +80,11 @@ function DSSuCoTable() {
   } 
   const navigate = useNavigate();
   return (
-    <Box sx={{ overflowX: "auto" }}>
+    <Container sx={{ overflowX: "auto" }}>
 
-      <Button>Test</Button>
-      <MyReactTable/>
+      {/* <MyReactTable/> */}
+{/* <Basic/> */}
+<UmbrellaTable/>
       {/* <ColumnHiding/> */}
       
       <TableContainer>
@@ -229,7 +234,7 @@ function DSSuCoTable() {
         </DialogActions>
       </Dialog>
 
-    </Box>
+    </Container>
   );
 }
 
