@@ -80,11 +80,11 @@ function DSSuCoTable() {
   } 
   const navigate = useNavigate();
   return (
-    <Container sx={{ overflowX: "auto" }}>
+    <Stack sx={{ overflowX: "auto" }}>
 
       {/* <MyReactTable/> */}
 {/* <Basic/> */}
-<UmbrellaTable/>
+<UmbrellaTable />
       {/* <ColumnHiding/> */}
       
       <TableContainer>
@@ -234,7 +234,7 @@ function DSSuCoTable() {
         </DialogActions>
       </Dialog>
 
-    </Container>
+    </Stack>
   );
 }
 

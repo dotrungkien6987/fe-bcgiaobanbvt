@@ -19,7 +19,8 @@ import {
   MenuItem,
   Slider,
   Tooltip,
-  IconButton
+  IconButton,
+  Button
 } from '@mui/material';
 
 // third-party
@@ -80,6 +81,9 @@ import { ThemeMode } from 'configAble';
 
 // assets
 import { ArrowDown2, ArrowRight2, Edit, LayoutMaximize, Maximize1, Send } from 'iconsax-react';
+import { useSelector } from 'react-redux';
+import { values } from 'lodash';
+import ActionSuco from 'features/BaoCaoSuCo/ActionSuco';
 
 const avatarImage = require.context('assets/images/users', true);
 
@@ -343,6 +347,18 @@ function ReactTable({ columns, data }) {
               </Stack>
             </>
           )
+        },
+        {
+          accessor: 'action',
+          id: 'action',
+          Footer: 'Action',
+          Header: 'Action',
+          disableFilters: true,
+          disableSortBy: true,
+          disableGroupBy: true,
+          groupByBoundary: true,
+          Cell: ({ row, setEditableRowIndex, editableRowIndex }) => (<Button variant="contained" onClick={()=>console.log('row',row)} >action</Button>
+          )
         }
       ]);
     }
@@ -540,8 +556,10 @@ ReactTable.propTypes = {
 
 // ==============================|| REACT TABLE - UMBRELLA ||============================== //
 
+
 const UmbrellaTable = () => {
-  const data = useMemo(() => makeData(200), []);
+  const { baocaosucos } = useSelector((state) => state.baocaosuco);
+  const data = useMemo(() => baocaosucos, []);
   const columns = useMemo(
     () => [
       {
@@ -560,7 +578,7 @@ const UmbrellaTable = () => {
       {
         Header: '#',
         Footer: '#',
-        accessor: 'id',
+        accessor: '_id',
         className: 'cell-center',
         disableFilters: true,
         disableGroupBy: true
@@ -576,110 +594,127 @@ const UmbrellaTable = () => {
         Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarImage(`./avatar-${!value ? 1 : value}.png`)} />
       },
       {
-        Header: 'First Name',
-        Footer: 'First Name',
-        accessor: 'firstName',
+        Header: 'Hình thức',
+        Footer: 'Hình thức',
+        accessor: 'HinhThuc',
         dataType: 'text',
-        disableGroupBy: true,
+        // disableGroupBy: true,
         aggregate: 'count',
         Aggregated: ({ value }) => `${value} Person`
       },
       {
-        Header: 'Last Name',
-        Footer: 'Last Name',
-        accessor: 'lastName',
+        Header: 'Ngày sự cố',
+        Footer: 'Ngày sự cố',
+        accessor: 'NgaySuCo',
+        dataType: 'Date',
+        filter: 'filterGreaterThan',
+        disableGroupBy: true,
+        Cell:({value})=> new Date(value).toDateString()
+      },
+      {
+        Header: 'Tên bệnh nhân',
+        Footer: 'Tên bệnh nhân',
+        accessor: 'TenBN',
         dataType: 'text',
         filter: 'fuzzyText',
         disableGroupBy: true
       },
       {
-        Header: 'Father Name',
-        Footer: 'Father Name',
-        accessor: 'fatherName',
+        Header: 'Mô tả sự cố',
+        Footer: 'Mô tả sự cố',
+        accessor: 'MoTa',
         dataType: 'text',
+        filter: 'fuzzyText',
         disableGroupBy: true
       },
-      {
-        Header: 'Email',
-        Footer: 'Email',
-        accessor: 'email',
-        dataType: 'text',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Age',
-        Footer: 'Age',
-        accessor: 'age',
-        dataType: 'text',
+      // {
+      //   Header: 'Father Name',
+      //   Footer: 'Father Name',
+      //   accessor: 'fatherName',
+      //   dataType: 'text',
+      //   disableGroupBy: true
+      // },
+      // {
+      //   Header: 'Email',
+      //   Footer: 'Email',
+      //   accessor: 'email',
+      //   dataType: 'text',
+      //   disableGroupBy: true
+      // },
+      // {
+      //   Header: 'Age',
+      //   Footer: 'Age',
+      //   accessor: 'age',
+      //   dataType: 'text',
 
-        className: 'cell-right',
-        Filter: SliderColumnFilter,
-        filter: 'equals',
-        aggregate: 'average',
-        Aggregated: ({ value }) => `${Math.round(value * 100) / 100} (avg)`
-      },
-      {
-        Header: 'Role',
-        Footer: 'Role',
-        dataType: 'text',
-        accessor: 'role',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Contact',
-        dataType: 'text',
-        Footer: 'Contact',
-        accessor: 'contact',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Country',
-        Footer: 'Country',
-        accessor: 'country',
-        dataType: 'text',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Visits',
-        accessor: 'visits',
-        dataType: 'text',
-        className: 'cell-right',
-        Filter: NumberRangeColumnFilter,
-        filter: 'between',
-        disableGroupBy: true,
-        aggregate: 'sum',
-        Aggregated: ({ value }) => `${value} (total)`,
-        Footer: (info) => {
-          const { rows } = info;
-          // only calculate total visits if rows change
-          const total = useMemo(() => rows.reduce((sum, row) => row.values.visits + sum, 0), [rows]);
+      //   className: 'cell-right',
+      //   Filter: SliderColumnFilter,
+      //   filter: 'equals',
+      //   aggregate: 'average',
+      //   Aggregated: ({ value }) => `${Math.round(value * 100) / 100} (avg)`
+      // },
+      // {
+      //   Header: 'Role',
+      //   Footer: 'Role',
+      //   dataType: 'text',
+      //   accessor: 'role',
+      //   disableGroupBy: true
+      // },
+      // {
+      //   Header: 'Contact',
+      //   dataType: 'text',
+      //   Footer: 'Contact',
+      //   accessor: 'contact',
+      //   disableGroupBy: true
+      // },
+      // {
+      //   Header: 'Country',
+      //   Footer: 'Country',
+      //   accessor: 'country',
+      //   dataType: 'text',
+      //   disableGroupBy: true
+      // },
+      // {
+      //   Header: 'Visits',
+      //   accessor: 'visits',
+      //   dataType: 'text',
+      //   className: 'cell-right',
+      //   Filter: NumberRangeColumnFilter,
+      //   filter: 'between',
+      //   disableGroupBy: true,
+      //   aggregate: 'sum',
+      //   Aggregated: ({ value }) => `${value} (total)`,
+      //   Footer: (info) => {
+      //     const { rows } = info;
+      //     // only calculate total visits if rows change
+      //     const total = useMemo(() => rows.reduce((sum, row) => row.values.visits + sum, 0), [rows]);
 
-          return (
-            <Typography variant="subtitle1">
-              <NumericFormat value={total} displayType="text" thousandSeparator />
-            </Typography>
-          );
-        }
-      },
-      {
-        Header: 'Status',
-        Footer: 'Status',
-        accessor: 'status',
-        dataType: 'select',
-        Filter: SelectColumnFilter,
-        filter: 'includes'
-      },
-      {
-        Header: 'Profile Progress',
-        Footer: 'Profile Progress',
-        accessor: 'progress',
-        Filter: SliderColumnFilter,
-        dataType: 'progress',
-        filter: filterGreaterThan,
-        disableGroupBy: true,
-        aggregate: roundedMedian,
-        Aggregated: ({ value }) => `${value} (med)`
-      }
+      //     return (
+      //       <Typography variant="subtitle1">
+      //         <NumericFormat value={total} displayType="text" thousandSeparator />
+      //       </Typography>
+      //     );
+      //   }
+      // },
+      // {
+      //   Header: 'Status',
+      //   Footer: 'Status',
+      //   accessor: 'status',
+      //   dataType: 'select',
+      //   Filter: SelectColumnFilter,
+      //   filter: 'includes'
+      // },
+      // {
+      //   Header: 'Profile Progress',
+      //   Footer: 'Profile Progress',
+      //   accessor: 'progress',
+      //   Filter: SliderColumnFilter,
+      //   dataType: 'progress',
+      //   filter: filterGreaterThan,
+      //   disableGroupBy: true,
+      //   aggregate: roundedMedian,
+      //   Aggregated: ({ value }) => `${value} (med)`
+      // }
     ],
     []
   );

@@ -68,7 +68,7 @@ const {totalSuCo} =useSelector((state)=>state.baocaosuco)
   }
 
   return (
-    <Container>
+    <Stack>
       <Typography variant="h4" sx={{ mb: 3 }}>
        Danh sách báo cáo sự cố y khoa
       </Typography>
@@ -116,7 +116,7 @@ const {totalSuCo} =useSelector((state)=>state.baocaosuco)
       <DSSuCoTable />
         </Stack>
       </Card>
-    </Container>
+    </Stack>
   )
 }
 
