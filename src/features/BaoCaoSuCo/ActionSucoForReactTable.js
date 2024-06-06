@@ -17,7 +17,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { UpdateTrangThaiSuCo, deleteOneSuCo } from "./baocaosucoSlice";
 
-function ActionSuco(params) {
+function ActionSucoForReactTable(params) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [openDelete, setOpenDelete] = useState(false);
   const trangthai = params.TrangThai;
@@ -30,7 +30,7 @@ function ActionSuco(params) {
     setOpenDelete(false);
   };
   const handleDeleteSuCoOnDB = () => {
-    dispatch(deleteOneSuCo(params.params.id));
+    dispatch(deleteOneSuCo(params._id));
     setOpenDelete(false);
   };
   
@@ -154,4 +154,4 @@ function ActionSuco(params) {
   );
 }
 
-export default ActionSuco;
+export default ActionSucoForReactTable;

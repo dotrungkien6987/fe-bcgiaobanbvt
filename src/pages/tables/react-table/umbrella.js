@@ -359,6 +359,19 @@ function ReactTable({ columns, data }) {
           groupByBoundary: true,
           Cell: ({ row, setEditableRowIndex, editableRowIndex }) => (<Button variant="contained" onClick={()=>console.log('row',row)} >action</Button>
           )
+        },
+        {
+          accessor: 'action1',
+          id: 'action1',
+          Footer: 'Action1',
+          Header: 'Action1',
+          disableFilters: true,
+          disableSortBy: true,
+          disableGroupBy: true,
+          groupByBoundary: true,
+          Cell: ({ row, setEditableRowIndex, editableRowIndex }) => (
+          <ActionSuco params = {row.original}/>
+          )
         }
       ]);
     }
