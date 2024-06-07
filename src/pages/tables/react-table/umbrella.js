@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 // material-ui
-import { alpha, useTheme } from '@mui/material/styles';
+import { styled,alpha, useTheme } from '@mui/material/styles';
 import {
   Box,
   Chip,
@@ -27,7 +27,7 @@ import {
 import { Formik, Form } from 'formik';
 import * as Yup from 'yup';
 import update from 'immutability-helper';
-
+import { useSticky } from 'react-table-sticky';
 import { NumericFormat } from 'react-number-format';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -81,12 +81,24 @@ import { ThemeMode } from 'configAble';
 
 // assets
 import { ArrowDown2, ArrowRight2, Edit, LayoutMaximize, Maximize1, Send } from 'iconsax-react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { values } from 'lodash';
 import ActionSuco from 'features/BaoCaoSuCo/ActionSuco';
+import ActionSucoForReactTable from 'features/BaoCaoSuCo/ActionSucoForReactTable';
+import { getBaoCaoSuCoForDataGrid } from 'features/BaoCaoSuCo/baocaosucoSlice';
 
 const avatarImage = require.context('assets/images/users', true);
-
+const TableWrapper = styled('div')(() => ({
+  '.header': {
+    position: 'sticky',
+    zIndex: 1,
+    width: 'fit-content'
+  },
+  '& th[data-sticky-td]': {
+    position: 'sticky',
+    zIndex: '5 !important'
+  }
+}));
 // ==============================|| REACT TABLE ||============================== //
 
 const EditableRow = ({ value: initialValue, row: { index }, column: { id, dataType }, editableRowIndex }) => {
@@ -107,7 +119,9 @@ const EditableRow = ({ value: initialValue, row: { index }, column: { id, dataTy
         return <Chip color="info" label="Single" size="small" variant="light" />;
     }
   };
-
+const ShowTenKhoa = (value)=>{
+  return value.TenKhoa
+}
   let element;
   let userInfoSchema;
 
@@ -245,6 +259,8 @@ const EditableRow = ({ value: initialValue, row: { index }, column: { id, dataTy
         </>
       );
       break;
+      case 'TenKhoa': element = (ShowTenKhoa(value))
+      break
     default:
       element = <span>{value}</span>;
       break;
@@ -311,43 +327,44 @@ function ReactTable({ columns, data }) {
     useExpanded,
     usePagination,
     useRowSelect,
+    useSticky,
     (hooks) => {
       hooks.allColumns.push((columns) => [
         ...columns,
-        {
-          accessor: 'edit',
-          id: 'edit',
-          Footer: 'Edit',
-          Header: 'Edit',
-          disableFilters: true,
-          disableSortBy: true,
-          disableGroupBy: true,
-          groupByBoundary: true,
-          Cell: ({ row, setEditableRowIndex, editableRowIndex }) => (
-            <>
-              <Stack direction="row" alignItems="center" justifyContent="center" spacing={0}>
-                <Tooltip title={editableRowIndex !== row.index ? 'Edit' : 'Save'}>
-                  <IconButton
-                    color={editableRowIndex !== row.index ? 'primary' : 'success'}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const currentIndex = row.index;
-                      if (editableRowIndex !== currentIndex) {
-                        // row requested for edit access
-                        setEditableRowIndex(currentIndex);
-                      } else {
-                        // request for saving the updated row
-                        setEditableRowIndex(null);
-                      }
-                    }}
-                  >
-                    {editableRowIndex !== row.index ? <Edit /> : <Send />}
-                  </IconButton>
-                </Tooltip>
-              </Stack>
-            </>
-          )
-        },
+        // {
+        //   accessor: 'edit',
+        //   id: 'edit',
+        //   Footer: 'Edit',
+        //   Header: 'Edit',
+        //   disableFilters: true,
+        //   disableSortBy: true,
+        //   disableGroupBy: true,
+        //   groupByBoundary: true,
+        //   Cell: ({ row, setEditableRowIndex, editableRowIndex }) => (
+        //     <>
+        //       <Stack direction="row" alignItems="center" justifyContent="center" spacing={0}>
+        //         <Tooltip title={editableRowIndex !== row.index ? 'Edit' : 'Save'}>
+        //           <IconButton
+        //             color={editableRowIndex !== row.index ? 'primary' : 'success'}
+        //             onClick={(e) => {
+        //               e.stopPropagation();
+        //               const currentIndex = row.index;
+        //               if (editableRowIndex !== currentIndex) {
+        //                 // row requested for edit access
+        //                 setEditableRowIndex(currentIndex);
+        //               } else {
+        //                 // request for saving the updated row
+        //                 setEditableRowIndex(null);
+        //               }
+        //             }}
+        //           >
+        //             {editableRowIndex !== row.index ? <Edit /> : <Send />}
+        //           </IconButton>
+        //         </Tooltip>
+        //       </Stack>
+        //     </>
+        //   )
+        // },
         {
           accessor: 'action',
           id: 'action',
@@ -370,7 +387,7 @@ function ReactTable({ columns, data }) {
           disableGroupBy: true,
           groupByBoundary: true,
           Cell: ({ row, setEditableRowIndex, editableRowIndex }) => (
-          <ActionSuco params = {row.original}/>
+          <ActionSucoForReactTable params = {row.original}/>
           )
         }
       ]);
@@ -572,27 +589,33 @@ ReactTable.propTypes = {
 
 const UmbrellaTable = () => {
   const { baocaosucos } = useSelector((state) => state.baocaosuco);
-  const data = useMemo(() => baocaosucos, []);
+  const data = useMemo(() => baocaosucos, [baocaosucos]);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    
+    dispatch(getBaoCaoSuCoForDataGrid('2023-09-30T17:00:00.000Z','2024-06-06T04:06:15.000Z','Tất cả'));
+  }, [dispatch]);
   const columns = useMemo(
     () => [
+      // {
+      //   title: 'Row Selection',
+      //   id: 'selection',
+      //   Header: ({ getToggleAllPageRowsSelectedProps }) => <IndeterminateCheckbox indeterminate {...getToggleAllPageRowsSelectedProps()} />,
+      //   Footer: '#',
+      //   accessor: 'selection',
+      //   groupByBoundary: true,
+      //   Cell: ({ row }) => <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />,
+      //   disableSortBy: true,
+      //   disableFilters: true,
+      //   disableGroupBy: true,
+      //   Aggregated: () => null
+      // },
       {
-        title: 'Row Selection',
-        id: 'selection',
-        Header: ({ getToggleAllPageRowsSelectedProps }) => <IndeterminateCheckbox indeterminate {...getToggleAllPageRowsSelectedProps()} />,
-        Footer: '#',
-        accessor: 'selection',
-        groupByBoundary: true,
-        Cell: ({ row }) => <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />,
-        disableSortBy: true,
-        disableFilters: true,
-        disableGroupBy: true,
-        Aggregated: () => null
-      },
-      {
-        Header: '#',
-        Footer: '#',
+        Header: '_id',
+        Footer: '_id',
         accessor: '_id',
         className: 'cell-center',
+        sticky:'left',
         disableFilters: true,
         disableGroupBy: true
       },
@@ -601,6 +624,7 @@ const UmbrellaTable = () => {
         Footer: 'Avatar',
         accessor: 'avatar',
         className: 'cell-center',
+        sticky:'left',
         disableSortBy: true,
         disableFilters: true,
         disableGroupBy: true,
@@ -633,9 +657,57 @@ const UmbrellaTable = () => {
         disableGroupBy: true
       },
       {
+        Header: 'Tên khoa',
+        Footer: 'Tên khoa',
+        accessor: 'KhoaSuCo',
+        dataType: 'TenKhoa',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
         Header: 'Mô tả sự cố',
         Footer: 'Mô tả sự cố',
         accessor: 'MoTa',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Giải pháp',
+        Footer: 'Giải pháp',
+        accessor: 'GiaiPhap',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Đánh giá nhóm sự cố',
+        Footer: 'Đánh giá nhóm sự cố',
+        accessor: 'ChiTietNhomSuCo',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Đánh giá nguyên nhân',
+        Footer: 'Đánh giá nguyên nhân',
+        accessor: 'ChiTietNguyenNhan',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Tổn thương NB',
+        Footer: 'Tổn thương NB',
+        accessor: 'TonThuongChiTiet',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Hành động khắc phục',
+        Footer: 'Hành động khắc phục',
+        accessor: 'HanhDongKhacPhuc',
         dataType: 'text',
         filter: 'fuzzyText',
         disableGroupBy: true
@@ -739,10 +811,13 @@ const UmbrellaTable = () => {
       content={false}
     >
       <ScrollX>
+        <TableWrapper>
         <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
           <ReactTable columns={columns} data={data} />
           <DragPreview />
         </DndProvider>
+        </TableWrapper>
+        
       </ScrollX>
     </MainCard>
   );

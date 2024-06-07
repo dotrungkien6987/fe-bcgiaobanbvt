@@ -20,7 +20,7 @@ import { UpdateTrangThaiSuCo, deleteOneSuCo } from "./baocaosucoSlice";
 function ActionSucoForReactTable(params) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [openDelete, setOpenDelete] = useState(false);
-  const trangthai = params.TrangThai;
+  const trangthai = params.params.TrangThai;
   const dispatch = useDispatch();
   const handleDeleteSuCo = (sucoId) => {
     setOpenDelete(true);
@@ -30,13 +30,13 @@ function ActionSucoForReactTable(params) {
     setOpenDelete(false);
   };
   const handleDeleteSuCoOnDB = () => {
-    dispatch(deleteOneSuCo(params._id));
+    dispatch(deleteOneSuCo(params.params._id));
     setOpenDelete(false);
   };
   
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
-    console.log("param", params);
+    console.log("param", params.params);
   };
   const handleClose = () => {
     setAnchorEl(null);
@@ -44,8 +44,8 @@ function ActionSucoForReactTable(params) {
   
   const navigate = useNavigate();
   const handleChangeTrangThai = () => {
-    const sucoId = params.params.id;
-    const trangthai = !(params.params.row.TrangThai || false);
+    const sucoId = params.params._id;
+    const trangthai = !(params.params.TrangThai || false);
     dispatch(UpdateTrangThaiSuCo(sucoId, trangthai));
   };
   return (
@@ -68,10 +68,12 @@ function ActionSucoForReactTable(params) {
             variant="contained"
             size="small"
             // style={{ marginLeft: 16 }}
-            tabIndex={params.hasFocus ? 0 : -1}
+            // tabIndex={params.hasFocus ? 0 : -1}
+
+
             onClick={() => {
-              console.log("paramid", params.params);
-              navigate(`../suco/${params.params.id}`);
+              console.log("paramid", params);
+              navigate(`../suco/${params.params._id}`);
             }}
           >
             Sửa
@@ -83,23 +85,23 @@ function ActionSucoForReactTable(params) {
             sx={{ fontSize: "0.6rem", minWidth: "auto", flex: 1 }}
             size="small"
             variant="contained"
-            color={params.params.row.TrangThai === true ? "error" : "primary"}
+            color={params.TrangThai === true ? "error" : "primary"}
             onClick={() => handleChangeTrangThai()}
           >
-            {params.params.row.TrangThai === true
+            {params.params.TrangThai === true
               ? "Hủy tiếp nhận"
               : "Tiếp nhận"}
           </Button>
         </MenuItem>
         <Divider />
-        {(params.params.row.TrangThai === true) &&(
+        {(params.params.TrangThai === true) &&(
  <MenuItem>
  <Button
    sx={{ fontSize: "0.6rem", minWidth: "auto", flex: 1 }}
    size="small"
    variant="contained"
    //   color="error"
-   onClick={() => navigate(`../phantich/${params.params.id}`)}
+   onClick={() => navigate(`../phantich/${params.params._id}`)}
  >
    Phân tích
  </Button>
@@ -113,7 +115,7 @@ function ActionSucoForReactTable(params) {
             size="small"
             variant="contained"
             color="error"
-            onClick={() => handleDeleteSuCo(params.id)}
+            onClick={() => handleDeleteSuCo(params.params._id)}
           >
             Xóa
           </Button>

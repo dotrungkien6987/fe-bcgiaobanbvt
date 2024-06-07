@@ -20,7 +20,7 @@ import { UpdateTrangThaiSuCo, deleteOneSuCo } from "./baocaosucoSlice";
 function ActionSuco(params) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [openDelete, setOpenDelete] = useState(false);
-  const trangthai = params.TrangThai;
+  const trangthai = params.params.row.TrangThai;
   const dispatch = useDispatch();
   const handleDeleteSuCo = (sucoId) => {
     setOpenDelete(true);

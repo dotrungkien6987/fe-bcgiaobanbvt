@@ -62,7 +62,7 @@ if(sucoId) {
  })
 const dispatch = useDispatch();
   useEffect(() => {
-    console.log('dispatch',fromdate,todate,selectedTrangThai)
+    console.log('dispatch getBaoCaoSuCoForDataGrid',fromdate.toISOString(),todate.toISOString(),selectedTrangThai)
     dispatch(getBaoCaoSuCoForDataGrid(fromdate.toISOString(),todate.toISOString(),selectedTrangThai));
   }, [fromdate,todate,selectedTrangThai,dispatch]);
 const {totalSuCo} =useSelector((state)=>state.baocaosuco)
