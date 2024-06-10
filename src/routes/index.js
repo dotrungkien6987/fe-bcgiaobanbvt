@@ -26,6 +26,7 @@ import KhuyenCaoKhoaPage from "../pages/KhuyenCaoKhoaPage";
 import DashboardRequire from "./DashboardRequire";
 import SupperAdminPage from "../pages/SupperAdminPage";
 import DaoTaoPage from "../pages/DaoTaoPage";
+import NavLayOut from "layouts/NavLayOut";
 function Router() {
   return (
     <div>
@@ -86,6 +87,14 @@ function Router() {
 
           <Route path="*" element={<NotFoundPage />} />
         </Route>
+
+
+        <Route element={<AuthRequire> <NavLayOut /> </AuthRequire>}>
+          <Route path="/dev" element={<SupperAdminPage />} />
+
+          {/* <Route path="*" element={<NotFoundPage />} /> */}
+        </Route>
+
       </Routes>
     </div>
   );
