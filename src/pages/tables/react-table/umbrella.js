@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { useEffect, useMemo, useState } from 'react';
-
+import AddIcon from "@mui/icons-material/Add";
 // material-ui
 import { styled,alpha, useTheme } from '@mui/material/styles';
 import {
@@ -75,7 +75,8 @@ import {
   DefaultColumnFilter,
   SelectColumnFilter,
   SliderColumnFilter,
-  NumberRangeColumnFilter
+  NumberRangeColumnFilter,
+  DateColumnFilter,
 } from 'utils/react-table';
 import { ThemeMode } from 'configAble';
 
@@ -86,6 +87,7 @@ import { values } from 'lodash';
 import ActionSuco from 'features/BaoCaoSuCo/ActionSuco';
 import ActionSucoForReactTable from 'features/BaoCaoSuCo/ActionSucoForReactTable';
 import { getBaoCaoSuCoForDataGrid } from 'features/BaoCaoSuCo/baocaosucoSlice';
+import AddNhanVienButton from 'features/Daotao/AddNhanVienButton';
 
 const avatarImage = require.context('assets/images/users', true);
 const TableWrapper = styled('div')(() => ({
@@ -268,7 +270,7 @@ const ShowTenKhoa = (value)=>{
   return element;
 };
 
-function ReactTable({ columns, data }) {
+function ReactTable({ columns, data, init }) {
   const theme = useTheme();
   const filterTypes = useMemo(() => renderFilterTypes, []);
   const [editableRowIndex, setEditableRowIndex] = useState(null);
@@ -282,13 +284,7 @@ function ReactTable({ columns, data }) {
   );
 
   const initialState = useMemo(
-    () => ({
-      filters: [{ id: 'status', value: '' }],
-      hiddenColumns: ['id', 'role', 'contact', 'country', 'fatherName'],
-      columnOrder: ['selection', 'avatar', 'lastName', 'firstName', 'email', 'age', 'visits', 'status', 'progress'],
-      pageIndex: 0,
-      pageSize: 10
-    }),
+    () => ({init}),
     []
   );
 
@@ -370,6 +366,8 @@ function ReactTable({ columns, data }) {
           id: 'action',
           Footer: 'Action',
           Header: 'Action',
+          sticky:'right',
+        width: 50,
           disableFilters: true,
           disableSortBy: true,
           disableGroupBy: true,
@@ -382,6 +380,8 @@ function ReactTable({ columns, data }) {
           id: 'action1',
           Footer: 'Action1',
           Header: 'Action1',
+          sticky:'right',
+        width: 50,
           disableFilters: true,
           disableSortBy: true,
           disableGroupBy: true,
@@ -419,6 +419,9 @@ function ReactTable({ columns, data }) {
     }
     return item;
   });
+const handleThemMoi = ()=>{
+  console.log("them moi")
+}
 
   return (
     <>
@@ -438,18 +441,19 @@ function ReactTable({ columns, data }) {
               filename={'umbrella-table.csv'}
               headers={headers}
             />
+             <AddNhanVienButton/>
           </Stack>
         </Stack>
 
         <Box sx={{ width: '100%', overflowX: 'auto', display: 'block' }}>
-          <Table {...getTableProps()}>
+          <Table {...getTableProps()} stickyHeader>
             <TableHead sx={{ borderTopWidth: 2 }}>
               {headerGroups.map((headerGroup) => (
                 <TableRow key={headerGroup} {...headerGroup.getHeaderGroupProps()}>
                   {headerGroup.headers.map((column, index) => {
                     const groupIcon = column.isGrouped ? <Maximize1 size={18} /> : <LayoutMaximize size={18} />;
                     return (
-                      <TableCell key={column} {...column.getHeaderProps([{ className: column.className }])}>
+                      <TableCell key={column}  {...column.getHeaderProps([{ className: column.className }])}>
                         <DraggableHeader reorder={reorder} key={column.id} column={column} index={index}>
                           <Stack direction="row" spacing={1.15} alignItems="center" sx={{ display: 'inline-flex' }}>
                             {column.canGroupBy ? (
@@ -587,230 +591,15 @@ ReactTable.propTypes = {
 // ==============================|| REACT TABLE - UMBRELLA ||============================== //
 
 
-const UmbrellaTable = () => {
-  const { baocaosucos } = useSelector((state) => state.baocaosuco);
-  const data = useMemo(() => baocaosucos, [baocaosucos]);
-  const dispatch = useDispatch();
-  useEffect(() => {
-    
-    dispatch(getBaoCaoSuCoForDataGrid('2023-09-30T17:00:00.000Z','2024-06-06T04:06:15.000Z','Tất cả'));
-  }, [dispatch]);
-  const columns = useMemo(
-    () => [
-      // {
-      //   title: 'Row Selection',
-      //   id: 'selection',
-      //   Header: ({ getToggleAllPageRowsSelectedProps }) => <IndeterminateCheckbox indeterminate {...getToggleAllPageRowsSelectedProps()} />,
-      //   Footer: '#',
-      //   accessor: 'selection',
-      //   groupByBoundary: true,
-      //   Cell: ({ row }) => <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />,
-      //   disableSortBy: true,
-      //   disableFilters: true,
-      //   disableGroupBy: true,
-      //   Aggregated: () => null
-      // },
-      {
-        Header: '_id',
-        Footer: '_id',
-        accessor: '_id',
-        className: 'cell-center',
-        sticky:'left',
-        disableFilters: true,
-        disableGroupBy: true
-      },
-      {
-        Header: 'Avatar',
-        Footer: 'Avatar',
-        accessor: 'avatar',
-        className: 'cell-center',
-        sticky:'left',
-        disableSortBy: true,
-        disableFilters: true,
-        disableGroupBy: true,
-        Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarImage(`./avatar-${!value ? 1 : value}.png`)} />
-      },
-      {
-        Header: 'Hình thức',
-        Footer: 'Hình thức',
-        accessor: 'HinhThuc',
-        dataType: 'text',
-        // disableGroupBy: true,
-        aggregate: 'count',
-        Aggregated: ({ value }) => `${value} Person`
-      },
-      {
-        Header: 'Ngày sự cố',
-        Footer: 'Ngày sự cố',
-        accessor: 'NgaySuCo',
-        dataType: 'Date',
-        filter: 'filterGreaterThan',
-        disableGroupBy: true,
-        Cell:({value})=> new Date(value).toDateString()
-      },
-      {
-        Header: 'Tên bệnh nhân',
-        Footer: 'Tên bệnh nhân',
-        accessor: 'TenBN',
-        dataType: 'text',
-        filter: 'fuzzyText',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Tên khoa',
-        Footer: 'Tên khoa',
-        accessor: 'KhoaSuCo',
-        dataType: 'TenKhoa',
-        filter: 'fuzzyText',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Mô tả sự cố',
-        Footer: 'Mô tả sự cố',
-        accessor: 'MoTa',
-        dataType: 'text',
-        filter: 'fuzzyText',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Giải pháp',
-        Footer: 'Giải pháp',
-        accessor: 'GiaiPhap',
-        dataType: 'text',
-        filter: 'fuzzyText',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Đánh giá nhóm sự cố',
-        Footer: 'Đánh giá nhóm sự cố',
-        accessor: 'ChiTietNhomSuCo',
-        dataType: 'text',
-        filter: 'fuzzyText',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Đánh giá nguyên nhân',
-        Footer: 'Đánh giá nguyên nhân',
-        accessor: 'ChiTietNguyenNhan',
-        dataType: 'text',
-        filter: 'fuzzyText',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Tổn thương NB',
-        Footer: 'Tổn thương NB',
-        accessor: 'TonThuongChiTiet',
-        dataType: 'text',
-        filter: 'fuzzyText',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Hành động khắc phục',
-        Footer: 'Hành động khắc phục',
-        accessor: 'HanhDongKhacPhuc',
-        dataType: 'text',
-        filter: 'fuzzyText',
-        disableGroupBy: true
-      },
-      // {
-      //   Header: 'Father Name',
-      //   Footer: 'Father Name',
-      //   accessor: 'fatherName',
-      //   dataType: 'text',
-      //   disableGroupBy: true
-      // },
-      // {
-      //   Header: 'Email',
-      //   Footer: 'Email',
-      //   accessor: 'email',
-      //   dataType: 'text',
-      //   disableGroupBy: true
-      // },
-      // {
-      //   Header: 'Age',
-      //   Footer: 'Age',
-      //   accessor: 'age',
-      //   dataType: 'text',
-
-      //   className: 'cell-right',
-      //   Filter: SliderColumnFilter,
-      //   filter: 'equals',
-      //   aggregate: 'average',
-      //   Aggregated: ({ value }) => `${Math.round(value * 100) / 100} (avg)`
-      // },
-      // {
-      //   Header: 'Role',
-      //   Footer: 'Role',
-      //   dataType: 'text',
-      //   accessor: 'role',
-      //   disableGroupBy: true
-      // },
-      // {
-      //   Header: 'Contact',
-      //   dataType: 'text',
-      //   Footer: 'Contact',
-      //   accessor: 'contact',
-      //   disableGroupBy: true
-      // },
-      // {
-      //   Header: 'Country',
-      //   Footer: 'Country',
-      //   accessor: 'country',
-      //   dataType: 'text',
-      //   disableGroupBy: true
-      // },
-      // {
-      //   Header: 'Visits',
-      //   accessor: 'visits',
-      //   dataType: 'text',
-      //   className: 'cell-right',
-      //   Filter: NumberRangeColumnFilter,
-      //   filter: 'between',
-      //   disableGroupBy: true,
-      //   aggregate: 'sum',
-      //   Aggregated: ({ value }) => `${value} (total)`,
-      //   Footer: (info) => {
-      //     const { rows } = info;
-      //     // only calculate total visits if rows change
-      //     const total = useMemo(() => rows.reduce((sum, row) => row.values.visits + sum, 0), [rows]);
-
-      //     return (
-      //       <Typography variant="subtitle1">
-      //         <NumericFormat value={total} displayType="text" thousandSeparator />
-      //       </Typography>
-      //     );
-      //   }
-      // },
-      // {
-      //   Header: 'Status',
-      //   Footer: 'Status',
-      //   accessor: 'status',
-      //   dataType: 'select',
-      //   Filter: SelectColumnFilter,
-      //   filter: 'includes'
-      // },
-      // {
-      //   Header: 'Profile Progress',
-      //   Footer: 'Profile Progress',
-      //   accessor: 'progress',
-      //   Filter: SliderColumnFilter,
-      //   dataType: 'progress',
-      //   filter: filterGreaterThan,
-      //   disableGroupBy: true,
-      //   aggregate: roundedMedian,
-      //   Aggregated: ({ value }) => `${value} (med)`
-      // }
-    ],
-    []
-  );
-
+const UmbrellaTable = ({data,columns}) => {
+  
   return (
     <MainCard
       title="Umbrella Table"
       subheader="This page consist combination of most possible features of react-table in to one table. Sorting, grouping, row selection, hidden row, filter, search, pagination, footer row available in below table."
       content={false}
     >
-      <ScrollX>
+      <ScrollX sx ={{height:500}}>
         <TableWrapper>
         <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
           <ReactTable columns={columns} data={data} />
