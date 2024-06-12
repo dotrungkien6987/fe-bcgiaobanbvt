@@ -6,7 +6,7 @@ function FAutocomplete({ name, children,options,displayField,label, ...other }) 
 
   return (
     <Controller
-    name="select"
+    name={name}
     control={control}
     render={({ field: { onChange, value }, fieldState: { error } }) => (
       <Autocomplete

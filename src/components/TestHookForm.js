@@ -4,6 +4,11 @@ import { getKhoas } from "features/BaoCaoNgay/baocaongaySlice";
 import React, { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
+import { FTextField, FormProvider } from "./form";
+import FAutocomplete from "./form/FAutocomplete";
+import { LoadingButton } from "@mui/lab";
+import FDatePicker from "./form/FDatePicker";
+import { SignalCellularNullTwoTone } from "@mui/icons-material";
 
 function TestHookForm() {
   const dispatch = useDispatch();
@@ -13,19 +18,32 @@ function TestHookForm() {
   const [department, setDepartment] = React.useState("NoiTM");
   const { khoas } = useSelector((state) => state.baocaongay);
   const khoasLabel = khoas.map((khoa) => ({ label: khoa.TenKhoa }));
-  const { control, handleSubmit, register } = useForm({
+  const methods = useForm({
     defaultValues: {
       firstName: "",
+      Ngay:null,
       select: null,
     },
   });
+  // const { control, handleSubmit, register } = useForm({
+  //   defaultValues: {
+  //     firstName: "",
+  //     select: null,
+  //   },
+  // });
+  const {
+handleSubmit,
+reset,
+setValue,
+formState:{isSubmitting}
+  } =methods;
   const onSubmit = (data) => {
     console.log(data);
   };
 
   return (
     <Box>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      {/* <form onSubmit={handleSubmit(onSubmit)}>
         <Controller
           name="firstName"
           control={control}
@@ -57,25 +75,30 @@ function TestHookForm() {
         />
         <input type="submit" />
       </form>
-    
+     */}
+
 <Stack spacing={1} sx={{ width: 300 }}>
-    
-      {/* <Autocomplete
-        {...defaultProps}
-        id="controlled-demo"
-        value={value}
-        
-        onChange={(event, newValue) => {
-            console.log('new value',newValue)
-            console.log('value',value)
-          setValue(newValue);
-        }}
-        isOptionEqualToValue={(option, value) => option.title === value.title && option.year === value.year}
-        renderInput={(params) => (
-          <TextField {...params} label="controlled" variant="standard" />
-        )}
-      /> */}
-     
+
+    <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+<FTextField multiline name ="fisrtname" label="Ho ten:"/>
+<FAutocomplete 
+name ="select"
+options={khoas}
+displayField="TenKhoa"
+label="Chon khoa"
+/>
+
+<FDatePicker name ="Ngay" label="Ngày sinh" sx={{m:3}}/>
+<LoadingButton
+type="submit"
+variant="contained" 
+size="small"
+loading={isSubmitting}
+
+>
+Submit
+</LoadingButton>
+    </FormProvider>
     </Stack>
 
     </Box>

@@ -1,15 +1,40 @@
-import * as React from 'react';
-import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import React from 'react';
+import { useFormContext, Controller } from 'react-hook-form';
+import { TextField } from '@mui/material';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
-export default function BasicDatePicker() {
+function FDatePicker({ name, label, ...other }) {
+  const { control } = useFormContext();
+
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <DemoContainer components={['DatePicker']}>
-        <DatePicker label="Basic date picker" />
-      </DemoContainer>
+      <Controller
+        name={name}
+        control={control}
+        render={({ field: { onChange, value }, fieldState: { error } }) => (
+          <DatePicker
+            value={value}
+            onChange={(date) => {
+              onChange(date); // Ensure date is in correct format
+            }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label={"Ngày sinh"}
+                variant="standard"
+                error={!!error}
+                helperText={error ? error.message : null}
+                InputLabelProps={{ shrink: true }} // Ensure label is shown
+              />
+            )}
+            {...other}
+          />
+        )}
+      />
     </LocalizationProvider>
   );
 }
+
+
+export default FDatePicker;
