@@ -5,6 +5,7 @@ import dayjs from 'dayjs'
 import React, { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { deleteDashboardIsNotNewestByNgay } from '../features/DashBoard/DashBoardKhoa/dashboardkhoaSlice'
+import TestHookForm from 'components/TestHookForm'
 
 function SupperAdminPage() {
 const now = dayjs().tz('Asia/Ho_Chi_Minh')
@@ -32,6 +33,8 @@ format="DD/MM/YYYY"
       </LocalizationProvider>
 
       <Button onClick={handleClearClick}>Clear</Button>
+
+      <TestHookForm/>
       </Container>
   )
 }
