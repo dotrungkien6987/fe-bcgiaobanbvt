@@ -7,6 +7,7 @@ import dashboardSlice from "../features/DashBoard/dashboardSlice";
 import dashboardkhoaSlice from "../features/DashBoard/DashBoardKhoa/dashboardkhoaSlice";
 import themeslice from "../features/Theme/themeslice";
 import daotaoSlice from "../features/Daotao/daotaoSlice";
+import nhanvienSlice from "features/NhanVien/nhanvienSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -18,6 +19,7 @@ const rootReducer = {
   dashboardkhoa: dashboardkhoaSlice,
   mytheme: themeslice,
   daotao: daotaoSlice,
+  nhanvien:nhanvienSlice,
 };
 
 const store = configureStore({

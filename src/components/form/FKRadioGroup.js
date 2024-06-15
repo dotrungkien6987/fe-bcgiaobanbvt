@@ -1,49 +1,48 @@
+import React from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import {
-  Radio,
+  FormControl,
+  FormLabel,
   RadioGroup,
-  FormHelperText,
   FormControlLabel,
+  Radio,
 } from "@mui/material";
-import { useEffect } from "react";
 
-function FKRadioGroup({ name, options, getOptionLabel,selectedGroup, onSelectGroup,...other }) {
-  const { control,setValue } = useFormContext();
-  useEffect(() => {
-    if (selectedGroup && selectedGroup !== name) {
-      setValue(name, null);
-    }
-  }, [selectedGroup, name, setValue]);
-  
-  const handleSelect = () => {
-    if (onSelectGroup) onSelectGroup();
-  };
+function FKRadioGroup({ name, label, options, onChange: customOnChange, ...other }) {
+  const { control } = useFormContext();
 
   return (
-    <Controller
-      name={name}
-      control={control}
-      render={({ field, fieldState: { error } }) => (
-        <div>
-          <RadioGroup {...field} row {...other}>
-            {options.map((option, index) => (
+    <FormControl>
+      <FormLabel>{label}</FormLabel>
+      <Controller
+        name={name}
+        control={control}
+        render={({
+          field: { onChange, value = "" },
+          fieldState: { error },
+        }) => (
+          <RadioGroup
+            value={value}
+            onChange={(e) => {
+              onChange(e);
+              if (customOnChange) {
+                customOnChange(e);
+              }
+            }}
+            {...other}
+          >
+            {options.map((option) => (
               <FormControlLabel
-                key={option}
-                value={option}
+                key={option.value}
+                value={option.value}
                 control={<Radio />}
-                label={getOptionLabel?.length ? getOptionLabel[index] : option}
+                label={option.label}
               />
             ))}
           </RadioGroup>
-
-          {!!error && (
-            <FormHelperText error sx={{ px: 2 }}>
-              {error.message}
-            </FormHelperText>
-          )}
-        </div>
-      )}
-    />
+        )}
+      />
+    </FormControl>
   );
 }
 

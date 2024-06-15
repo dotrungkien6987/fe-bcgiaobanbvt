@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   Stack,
   Typography,
@@ -21,15 +21,135 @@ import {
   fn_GetDanhSachCanBo,
   fn_getDanhSachKhoa,
 } from "../features/Daotao/daotaoSlice";
+import MyReactTable from "./tables/react-table/MyReactTable";
+import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 function DaoTaoPage() {
+  const columns = useMemo(
+    () => [
+      // {
+      //   title: 'Row Selection',
+      //   id: 'selection',
+      //   Header: ({ getToggleAllPageRowsSelectedProps }) => <IndeterminateCheckbox indeterminate {...getToggleAllPageRowsSelectedProps()} />,
+      //   Footer: '#',
+      //   accessor: 'selection',
+      //   groupByBoundary: true,
+      //   Cell: ({ row }) => <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />,
+      //   disableSortBy: true,
+      //   disableFilters: true,
+      //   disableGroupBy: true,
+      //   Aggregated: () => null
+      // },
+      {
+        Header: '_id',
+        Footer: '_id',
+        accessor: '_id',
+        className: 'cell-center',
+        sticky:'left',
+        width: 50,
+        disableFilters: true,
+        disableGroupBy: true
+      },
+      {
+        Header: 'Mã NV',
+        Footer: 'Mã NV',
+        accessor: 'MaNhanVien',
+        className: 'cell-center',
+        sticky:'left',
+        width: 50,
+        disableSortBy: false,
+        disableFilters: false,
+        disableGroupBy: true,
+        // Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarIma(`./avatar-${!value ? 1 : value}.png`)} />
+      },
+      {
+        Header: 'Họ Tên',
+        Footer: 'Họ Tên',
+        accessor: 'Ten',
+        dataType: 'text',
+        // disableGroupBy: true,
+        aggregate: 'count',
+        Aggregated: ({ value }) => `${value} nhân viên`
+      },
+      {
+        Header: 'Giới tính',
+        Footer: 'Giới tính',
+        accessor: 'GioiTinh',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true,
+        // Cell:({value})=> new Date(value).toDateString()
+      },
+      {
+        Header: 'Ngày sinh',
+        Footer: 'Ngày sinh',
+        accessor: 'NgaySinh',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true,
+        Cell:({value})=> new Date(value).toDateString()
+      },
+      {
+        Header: 'Phân loại',
+        Footer: 'Phân loại',
+        accessor: 'Loai',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Khoa',
+        Footer: 'Khoa',
+        accessor: 'KhoaID',
+        dataType: 'TenKhoa',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Trình độ chuyên môn',
+        Footer: 'Trình độ chuyên môn',
+        accessor: 'TrinhDoChuyenMon',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Điện thoại',
+        Footer: 'Điện thoại',
+        accessor: 'SoDienThoai',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Email',
+        Footer: 'Email',
+        accessor: 'Email',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+    
+    ],
+    []
+  );
+  const init = {
+    filters: [{ id: 'status', value: '' }],
+    hiddenColumns: ['id', 'role', 'contact', 'country', 'fatherName'],
+    columnOrder: ['selection', 'avatar', 'lastName', 'firstName', 'email', 'age', 'visits', 'status', 'progress'],
+    pageIndex: 0,
+    pageSize: 5,
+  }
   const dispatch = useDispatch();
   const danhSachCanBo = useSelector((state) => state.daotao.danhsachcanbo);
   console.log(danhSachCanBo);
   useEffect(() => {
     // Gọi hàm để lấy danh sách cán bộ khi component được tạo
-    dispatch(fn_getDanhSachKhoa());
-    dispatch(fn_GetDanhSachCanBo());
+    dispatch(getAllNhanVien());
+    
   }, [dispatch]);
+
+  const {nhanviens} = useSelector((state)=>state.nhanvien)
+  const data = useMemo(() => nhanviens, [nhanviens]);
   return (
     <Stack direction="column" justifyContent="center">
       <Stack textAlign="center">
@@ -64,7 +184,8 @@ function DaoTaoPage() {
           </Container>
         </AccordionSummary>
         <AccordionDetails>
-          <DaoTao_ThongTinCanBo />
+          {/* <DaoTao_ThongTinCanBo /> */}
+          <MyReactTable data ={data} columns={columns} initialState={init}/>
         </AccordionDetails>
       </Accordion>
     </Stack>

@@ -1,4 +1,16 @@
-import { Autocomplete, Box, Input, Select, Stack, TextField } from "@mui/material";
+import {
+  Autocomplete,
+  Box,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Input,
+  Radio,
+  RadioGroup,
+  Select,
+  Stack,
+  TextField,
+} from "@mui/material";
 import { getKhoas } from "features/BaoCaoNgay/baocaongaySlice";
 
 import React, { useEffect } from "react";
@@ -9,6 +21,7 @@ import FAutocomplete from "./form/FAutocomplete";
 import { LoadingButton } from "@mui/lab";
 import FDatePicker from "./form/FDatePicker";
 import { SignalCellularNullTwoTone } from "@mui/icons-material";
+import FKRadioGroup from "./form/FKRadioGroup";
 
 function TestHookForm() {
   const dispatch = useDispatch();
@@ -21,24 +34,28 @@ function TestHookForm() {
   const methods = useForm({
     defaultValues: {
       firstName: "",
-      Ngay:null,
+      Ngay: null,
       select: null,
+      gioitinh: 0,
     },
   });
-  // const { control, handleSubmit, register } = useForm({
-  //   defaultValues: {
-  //     firstName: "",
-  //     select: null,
-  //   },
-  // });
+  const [value, setValue] = React.useState("female");
+
+  const handleChange = (event) => {
+    setValue(event.target.value);
+  };
   const {
-handleSubmit,
-reset,
-setValue,
-formState:{isSubmitting}
-  } =methods;
+    handleSubmit,
+    reset,
+
+    formState: { isSubmitting },
+  } = methods;
   const onSubmit = (data) => {
     console.log(data);
+  };
+  const handleGenderChange = (event) => {
+    console.log("Gender changed:", event.target.value);
+    // Thực hiện các logic khác tại đây
   };
 
   return (
@@ -77,30 +94,55 @@ formState:{isSubmitting}
       </form>
      */}
 
-<Stack spacing={1} sx={{ width: 300 }}>
+      <Stack spacing={1} sx={{ width: 300 }}>
+        <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+          <FTextField multiline name="fisrtname" label="Ho ten:" />
+          <FAutocomplete
+            name="select"
+            options={khoas}
+            displayField="TenKhoa"
+            label="Chon khoa"
+          />
 
-    <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-<FTextField multiline name ="fisrtname" label="Ho ten:"/>
-<FAutocomplete 
-name ="select"
-options={khoas}
-displayField="TenKhoa"
-label="Chon khoa"
-/>
+          <FDatePicker name="Ngay" label="Ngày sinh" sx={{ m: 3 }} />
 
-<FDatePicker name ="Ngay" label="Ngày sinh" sx={{m:3}}/>
-<LoadingButton
-type="submit"
-variant="contained" 
-size="small"
-loading={isSubmitting}
+          <FKRadioGroup
+            name="gioitinh"
+            label="Giới tính"
+            options={[
+              { value: 0, label: "Female" },
+              { value: 1, label: "Male" },
+              { value: 2, label: "Other" },
+            ]}
+            onChange={handleGenderChange}
+          />
+          <LoadingButton
+            type="submit"
+            variant="contained"
+            size="small"
+            loading={isSubmitting}
+          >
+            Submit
+          </LoadingButton>
+        </FormProvider>
 
->
-Submit
-</LoadingButton>
-    </FormProvider>
-    </Stack>
-
+        <FormControl>
+          <FormLabel id="demo-controlled-radio-buttons-group">Gender</FormLabel>
+          <RadioGroup
+            aria-labelledby="demo-controlled-radio-buttons-group"
+            name="controlled-radio-buttons-group"
+            value={value}
+            onChange={handleChange}
+          >
+            <FormControlLabel
+              value="female"
+              control={<Radio />}
+              label="Female"
+            />
+            <FormControlLabel value="male" control={<Radio />} label="Male" />
+          </RadioGroup>
+        </FormControl>
+      </Stack>
     </Box>
   );
 }
