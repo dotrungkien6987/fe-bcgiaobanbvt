@@ -19,11 +19,12 @@ import FAutocomplete from "components/form/FAutocomplete";
 import FDatePicker from "components/form/FDatePicker";
 import FKRadioGroup from "components/form/FKRadioGroup";
 import { getKhoas } from "features/BaoCaoNgay/baocaongaySlice";
-import { insertOneNhanVien } from "features/NhanVien/nhanvienSlice";
+import { insertOneNhanVien, updateOneNhanVien } from "features/NhanVien/nhanvienSlice";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
+import dayjs from "dayjs";
 
 const yupSchema = Yup.object().shape({
   Ten: Yup.string().required("Bắt buộc nhập UserName"),
@@ -36,6 +37,7 @@ const yupSchema = Yup.object().shape({
 });
 
 function ThongTinNhanVien({ nhanvien, open, handleClose }) {
+  
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(getKhoas());
@@ -67,13 +69,14 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
   } = methods;
 
   useEffect(() => {
+    
     // Kiểm tra xem `nhanvien` có tồn tại và form đang ở chế độ cập nhật không
     if (nhanvien && nhanvien._id) {
       // Cập nhật giá trị mặc định cho form bằng thông tin của `nhanvien`
       reset({
         ...nhanvien,
         // Đảm bảo rằng các trường như Ngày sinh được chuyển đổi đúng định dạng nếu cần
-        NgaySinh: nhanvien.NgaySinh ? new Date(nhanvien.NgaySinh) : null,
+        NgaySinh: nhanvien.NgaySinh ? dayjs(nhanvien.NgaySinh) : null,
         // Tương tự, bạn có thể điều chỉnh các trường khác để phù hợp với định dạng của form
       });
     } else {
@@ -91,16 +94,21 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         KhoaID: null,
       });
     }
-  }, [nhanvien, reset, open]);
-  
+  }, [nhanvien]);
+  useEffect(()=>{
+    console.log("nhanvien Thongtinform",nhanvien)
+  })
   const onSubmitData = (data) => {
     console.log("data form",data);
-    const nhanvien = {
+    const nhanvienUpdate = {
       ...data,
       KhoaID:data.KhoaID._id,
       NgaySinh:data.NgaySinh.toISOString(),
     }
-    dispatch(insertOneNhanVien(nhanvien))
+    console.log('nhanvien dispatch',nhanvienUpdate)
+    if(nhanvien && nhanvien._id) dispatch(updateOneNhanVien(nhanvienUpdate))
+      else
+    dispatch(insertOneNhanVien(nhanvienUpdate))
   };
   return (
     <Dialog

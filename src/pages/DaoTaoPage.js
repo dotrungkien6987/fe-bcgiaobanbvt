@@ -17,12 +17,13 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import DaoTao_ThongTinCanBo from "../features/Daotao/DaoTao_ThongTinCanBo";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  fn_GetDanhSachCanBo,
-  fn_getDanhSachKhoa,
-} from "../features/Daotao/daotaoSlice";
-import MyReactTable from "./tables/react-table/MyReactTable";
-import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
+
+import NhanVienTable from "./tables/react-table/NhanVienTable";
+import { getAllNhanVien, setIsOpenUpdateNhanVien } from "features/NhanVien/nhanvienSlice";
+import { IndeterminateCheckbox } from "components/third-party/ReactTable";
+import UpdateNhanVienButton from "features/Daotao/UpdateNhanVienButton";
+import DeleteNhanVienButton from "features/Daotao/DeleteNhanVienButton";
+import ThongTinNhanVien from "features/Daotao/ThongTinNhanVien";
 function DaoTaoPage() {
   const columns = useMemo(
     () => [
@@ -129,25 +130,19 @@ function DaoTaoPage() {
         disableGroupBy: true
       },
     
+     
     ],
     []
   );
-  const init = {
-    filters: [{ id: 'status', value: '' }],
-    hiddenColumns: ['id', 'role', 'contact', 'country', 'fatherName'],
-    columnOrder: ['selection', 'avatar', 'lastName', 'firstName', 'email', 'age', 'visits', 'status', 'progress'],
-    pageIndex: 0,
-    pageSize: 5,
-  }
+ 
   const dispatch = useDispatch();
-  const danhSachCanBo = useSelector((state) => state.daotao.danhsachcanbo);
-  console.log(danhSachCanBo);
+ 
   useEffect(() => {
     // Gọi hàm để lấy danh sách cán bộ khi component được tạo
     dispatch(getAllNhanVien());
     
   }, [dispatch]);
-
+  const { nhanvienCurent,isOpenDeleteNhanVien,isOpenUpdateNhanVien } = useSelector((state) => state.nhanvien);
   const {nhanviens} = useSelector((state)=>state.nhanvien)
   const data = useMemo(() => nhanviens, [nhanviens]);
   return (
@@ -185,9 +180,10 @@ function DaoTaoPage() {
         </AccordionSummary>
         <AccordionDetails>
           {/* <DaoTao_ThongTinCanBo /> */}
-          <MyReactTable data ={data} columns={columns} initialState={init}/>
+          <NhanVienTable data ={data} columns={columns}/>
         </AccordionDetails>
       </Accordion>
+      
     </Stack>
   );
 }

@@ -5,6 +5,10 @@ import { toast } from "react-toastify";
 const initialState = {
   isLoading: false,
   error: null,
+  isOpenDeleteNhanVien:false,
+  isOpenUpdateNhanVien:false,
+  nhanvienCurrent:{},
+
   nhanviens: [],
 };
 
@@ -18,6 +22,17 @@ const slice = createSlice({
     hasError(state, action) {
       state.isLoading = false;
       state.error = action.payload;
+    },
+    setNhanVienCurentSuccess(state,action) {
+      console.log('nhanvien action payload',action.payload)
+      state.isLoading = false;
+      state.error = null;
+      state.nhanvienCurrent= action.payload;
+    },
+    setIsOpenUpdateNhanVienSuccess(state,action) {
+      state.isLoading = false;
+      state.error = null;
+      state.isOpenUpdateNhanVien= action.payload;
     },
     getAllNhanVienSuccess(state, action) {
       state.isLoading = false;
@@ -84,9 +99,32 @@ export const deleteOneNhanVien = (nhanvienID) => async (dispatch) => {
 export const updateOneNhanVien = (nhanvien) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
+    
     const response = await apiService.put(`/nhanvien`,nhanvien );
     dispatch(slice.actions.updateOneNhanVienSuccess(response.data.nhanviens));
     toast.success("Cập nhật  thành công");
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+export const setNhanVienCurent = (nhanvien) =>  async(dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    
+    dispatch(slice.actions.setNhanVienCurentSuccess(nhanvien));
+   
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+export const setIsOpenUpdateNhanVien = (open) =>  async(dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    
+    dispatch(slice.actions.setIsOpenUpdateNhanVienSuccess(open));
+   
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
