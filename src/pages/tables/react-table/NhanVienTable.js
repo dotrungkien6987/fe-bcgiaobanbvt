@@ -52,7 +52,6 @@ import Avatar from "components/@extended/Avatar";
 import ScrollX from "components/ScrollX";
 import LinearWithLabel from "components/@extended/progress/LinearWithLabel";
 
-import makeData from "data/react-table";
 import SyntaxHighlight from "utils/SyntaxHighlight";
 
 import {
@@ -89,17 +88,16 @@ import {
   Maximize1,
   Send,
 } from "iconsax-react";
-import { useDispatch, useSelector } from "react-redux";
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { values } from "lodash";
 import ActionSuco from "features/BaoCaoSuCo/ActionSuco";
 import ActionSucoForReactTable from "features/BaoCaoSuCo/ActionSucoForReactTable";
 import { getBaoCaoSuCoForDataGrid } from "features/BaoCaoSuCo/baocaosucoSlice";
 import AddNhanVienButton from "features/Daotao/AddNhanVienButton";
-import { setIsOpenUpdateNhanVien, setNhanVienCurent } from "features/NhanVien/nhanvienSlice";
 
 import UpdateNhanVienButton from "features/Daotao/UpdateNhanVienButton";
 import DeleteNhanVienButton from "features/Daotao/DeleteNhanVienButton";
-import ThongTinNhanVien from "features/Daotao/ThongTinNhanVien";
+import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 
 const avatarImage = require.context("assets/images/users", true);
 const TableWrapper = styled("div")(() => ({
@@ -113,6 +111,9 @@ const TableWrapper = styled("div")(() => ({
     zIndex: "5 !important",
   },
 }));
+
+// Customize data and columns 
+
 // ==============================|| REACT TABLE ||============================== //
 
 const EditableRow = ({
@@ -339,12 +340,12 @@ const EditableRow = ({
   return element;
 };
 
-function ReactTable({ columns, data}) {
+function ReactTable({ columns, data,initialState}) {
   const theme = useTheme();
   const filterTypes = useMemo(() => renderFilterTypes, []);
   const [editableRowIndex, setEditableRowIndex] = useState(null);
   const dispatch = useDispatch();
-  const { nhanvienCurent,isOpenDeleteNhanVien,isOpenUpdateNhanVien } = useSelector((state) => state.nhanvien);
+  
   const defaultColumn = useMemo(
     () => ({
       Filter: DefaultColumnFilter,
@@ -353,26 +354,7 @@ function ReactTable({ columns, data}) {
     []
   );
 
-  const initialState = useMemo(
-    () => ({
-      filters: [{ id: "status", value: "" }],
-      hiddenColumns: ["_id"],
-      columnOrder: [
-        "Ten",
-        "MaNhanVien",
-        "GioiTinh",
-        "NgaySinh",
-        "Loai",
-        "TenKhoa",
-        "TrinhDoChuyenMon",
-        "SoDienThoai",
-        "Email",
-      ],
-      pageIndex: 0,
-      pageSize: 5,
-    }),
-    []
-  );
+  
 
   const {
     getTableProps,
@@ -434,7 +416,7 @@ function ReactTable({ columns, data}) {
           Cell: ({ row, setEditableRowIndex, editableRowIndex }) => (
             <Stack direction="row" alignItems="center" justifyContent="center" spacing={0}>
           <UpdateNhanVienButton nhanvien={row.original}/>
-          <DeleteNhanVienButton nhanvienid = {row.original._id}/>
+          <DeleteNhanVienButton nhanvienID = {row.original._id}/>
           </Stack>
           ),
         },
@@ -475,10 +457,7 @@ function ReactTable({ columns, data}) {
     }
     return item;
   });
-  const handleThemMoi = () => {
-    console.log("them moi");
-  };
-
+  
   return (
     <>
       
@@ -731,8 +710,155 @@ ReactTable.propTypes = {
 
 // ==============================|| REACT TABLE - UMBRELLA ||============================== //
 
-const NhanVienTable = ({ data, columns }) => {
+const NhanVienTable = () => {
+
+  const columns = useMemo(
+    () => [
+      // {
+      //   title: 'Row Selection',
+      //   id: 'selection',
+      //   Header: ({ getToggleAllPageRowsSelectedProps }) => <IndeterminateCheckbox indeterminate {...getToggleAllPageRowsSelectedProps()} />,
+      //   Footer: '#',
+      //   accessor: 'selection',
+      //   groupByBoundary: true,
+      //   Cell: ({ row }) => <IndeterminateCheckbox {...row.getToggleRowSelectedProps()} />,
+      //   disableSortBy: true,
+      //   disableFilters: true,
+      //   disableGroupBy: true,
+      //   Aggregated: () => null
+      // },
+      {
+        Header: '_id',
+        Footer: '_id',
+        accessor: '_id',
+        className: 'cell-center',
+        sticky:'left',
+        width: 50,
+        disableFilters: true,
+        disableGroupBy: true
+      },
+      {
+        Header: 'Mã NV',
+        Footer: 'Mã NV',
+        accessor: 'MaNhanVien',
+        className: 'cell-center',
+        sticky:'left',
+        width: 50,
+        disableSortBy: false,
+        disableFilters: false,
+        disableGroupBy: true,
+        // Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarIma(`./avatar-${!value ? 1 : value}.png`)} />
+      },
+      {
+        Header: 'Họ Tên',
+        Footer: 'Họ Tên',
+        accessor: 'Ten',
+        dataType: 'text',
+        // disableGroupBy: true,
+        aggregate: 'count',
+        Aggregated: ({ value }) => `${value} nhân viên`
+      },
+      {
+        Header: 'Giới tính',
+        Footer: 'Giới tính',
+        accessor: 'GioiTinh',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true,
+        // Cell:({value})=> new Date(value).toDateString()
+      },
+      {
+        Header: 'Ngày sinh',
+        Footer: 'Ngày sinh',
+        accessor: 'NgaySinh',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true,
+        Cell:({value})=> new Date(value).toDateString()
+      },
+      {
+        Header: 'Phân loại',
+        Footer: 'Phân loại',
+        accessor: 'Loai',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Khoa',
+        Footer: 'Khoa',
+        accessor: 'KhoaID',
+        dataType: 'TenKhoa',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Trình độ chuyên môn',
+        Footer: 'Trình độ chuyên môn',
+        accessor: 'TrinhDoChuyenMon',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Điện thoại',
+        Footer: 'Điện thoại',
+        accessor: 'SoDienThoai',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
+        Header: 'Email',
+        Footer: 'Email',
+        accessor: 'Email',
+        dataType: 'text',
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+    
+     
+    ],
+    []
+  );
+  const [localData, setLocalData] = useState([]);
+ 
+  const dispatch = useDispatch();
+ 
+  useEffect(() => {
+    // Gọi hàm để lấy danh sách cán bộ khi component được tạo
+    dispatch(getAllNhanVien());
+    
+  }, [dispatch]);
+  
+  const {nhanviens} = useSelector((state)=>state.nhanvien,shallowEqual)
+  useEffect(() => {
+    setLocalData(nhanviens);
+  }, [nhanviens]);
+
+  const data = useMemo(() => localData, [localData]);
+  const initialState = useMemo(
+    () => ({
+      filters: [{ id: "status", value: "" }],
+      hiddenColumns: ["_id"],
+      columnOrder: [
+        "Ten",
+        "MaNhanVien",
+        "GioiTinh",
+        "NgaySinh",
+        "Loai",
+        "TenKhoa",
+        "TrinhDoChuyenMon",
+        "SoDienThoai",
+        "Email",
+      ],
+      pageIndex: 0,
+      pageSize: 5,
+    }),
+    []
+  );
   return (
+    
     <MainCard
       title="Umbrella Table"
       subheader="This page consist combination of most possible features of react-table in to one table. Sorting, grouping, row selection, hidden row, filter, search, pagination, footer row available in below table."
@@ -741,7 +867,7 @@ const NhanVienTable = ({ data, columns }) => {
       <ScrollX sx={{ height: 500 }}>
         <TableWrapper>
           <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
-            <ReactTable columns={columns} data={data} />
+            <ReactTable columns={columns} data={data} initialState={initialState}/>
             
             <DragPreview />
           </DndProvider>

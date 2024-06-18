@@ -38,11 +38,12 @@ const yupSchema = Yup.object().shape({
 
 function ThongTinNhanVien({ nhanvien, open, handleClose }) {
   
+  const { khoas } = useSelector((state) => state.baocaongay);
   const dispatch = useDispatch();
   useEffect(() => {
+    // if(khoas&& khoas.length>0) return;
     dispatch(getKhoas());
   }, []);
-  const { khoas } = useSelector((state) => state.baocaongay);
   const methods = useForm({
     resolver: yupResolver(yupSchema),
     defaultValues: {

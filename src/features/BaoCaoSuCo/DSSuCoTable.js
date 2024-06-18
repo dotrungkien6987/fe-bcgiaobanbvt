@@ -22,7 +22,7 @@ import { fDate } from "../../utils/formatTime";
 import { useNavigate } from "react-router-dom";
 import { UpdateTrangThaiSuCo, deleteOneSuCo, getBaoCaoSuCoForDataGrid } from "./baocaosucoSlice";
 import MyReactTable from "../../components/MyAble-Component/MyReactTable";
-import Basic from "pages/tables/react-table/basic";
+import Basic from "pages/tables/react-table/TableBasic";
 import UmbrellaTable from "pages/tables/react-table/umbrella";
 import Avatar from "components/@extended/Avatar";
 

@@ -54,7 +54,7 @@ const slice = createSlice({
     updateOneNhanVienSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.nhanviens.map((nhanvien) =>
+     state.nhanviens = state.nhanviens.map((nhanvien) =>
         nhanvien._id === action.payload._id ? action.payload : nhanvien
       );
     },
@@ -88,7 +88,7 @@ export const insertOneNhanVien = (nhanvien) => async (dispatch) => {
 export const deleteOneNhanVien = (nhanvienID) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
-    const response = await apiService.delete(`/nhanvien`, nhanvienID);
+    const response = await apiService.delete(`/nhanvien/${nhanvienID}`);
     dispatch(slice.actions.deleteOneNhanVienSuccess(nhanvienID));
     toast.success("Xoá thành công");
   } catch (error) {
@@ -99,9 +99,10 @@ export const deleteOneNhanVien = (nhanvienID) => async (dispatch) => {
 export const updateOneNhanVien = (nhanvien) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
-    
-    const response = await apiService.put(`/nhanvien`,nhanvien );
-    dispatch(slice.actions.updateOneNhanVienSuccess(response.data.nhanviens));
+   
+    const response = await apiService.put(`/nhanvien`,{nhanvien} );
+    console.log('nhanvien in update',response.data)
+    dispatch(slice.actions.updateOneNhanVienSuccess(response.data.data));
     toast.success("Cập nhật  thành công");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
