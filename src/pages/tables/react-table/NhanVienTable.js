@@ -55,13 +55,13 @@ import LinearWithLabel from "components/@extended/progress/LinearWithLabel";
 import SyntaxHighlight from "utils/SyntaxHighlight";
 
 import {
-  DraggableHeader,
+  // DraggableHeader,
   DragPreview,
   HidingSelect,
   HeaderSort,
   IndeterminateCheckbox,
   TablePagination,
-  TableRowSelection,
+  // TableRowSelection,
   CSVExport,
   EmptyTable,
 } from "components/third-party/ReactTable";
@@ -341,6 +341,7 @@ const EditableRow = ({
 };
 
 function ReactTable({ columns, data,initialState}) {
+  console.log("ReactTable data:", data);
   const theme = useTheme();
   const filterTypes = useMemo(() => renderFilterTypes, []);
   const [editableRowIndex, setEditableRowIndex] = useState(null);
@@ -461,7 +462,7 @@ function ReactTable({ columns, data,initialState}) {
   return (
     <>
       
-      <TableRowSelection selected={Object.keys(selectedRowIds).length} />
+      {/* <TableRowSelection selected={Object.keys(selectedRowIds).length} /> */}
       <Stack spacing={2}>
         <Stack
           direction="row"
@@ -515,7 +516,7 @@ function ReactTable({ columns, data,initialState}) {
                           { className: column.className },
                         ])}
                       >
-                        <DraggableHeader
+                        {/* <DraggableHeader
                           reorder={reorder}
                           key={column.id}
                           column={column}
@@ -542,7 +543,7 @@ function ReactTable({ columns, data,initialState}) {
                             ) : null}
                             <HeaderSort column={column} sort />
                           </Stack>
-                        </DraggableHeader>
+                        </DraggableHeader> */}
                       </TableCell>
                     );
                   })}
@@ -831,12 +832,9 @@ const NhanVienTable = () => {
     
   }, [dispatch]);
   
-  const {nhanviens} = useSelector((state)=>state.nhanvien,shallowEqual)
-  useEffect(() => {
-    setLocalData(nhanviens);
-  }, [nhanviens]);
-
-  const data = useMemo(() => localData, [localData]);
+  const {nhanviens} = useSelector((state)=>state.nhanvien)
+  
+  const data = useMemo(() => nhanviens, [nhanviens]);
   const initialState = useMemo(
     () => ({
       filters: [{ id: "status", value: "" }],
