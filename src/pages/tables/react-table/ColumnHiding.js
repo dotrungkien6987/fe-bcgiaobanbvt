@@ -92,79 +92,8 @@ ReactTable.propTypes = {
 
 // ==============================|| REACT TABLE - COLUMN HIDING ||============================== //
 
-const ColumnHiding = () => {
-  const columns = useMemo(
-    () => [
-      {
-        Header: '#',
-        accessor: 'id',
-        className: 'cell-center'
-      },
-      {
-        Header: 'Avatar',
-        accessor: 'avatar',
-        className: 'cell-center',
-        Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarImage(`./avatar-${value}.png`)} />
-      },
-      {
-        Header: 'First Name',
-        accessor: 'firstName'
-      },
-      {
-        Header: 'Last Name',
-        accessor: 'lastName'
-      },
-      {
-        Header: 'Email',
-        accessor: 'email'
-      },
-      {
-        Header: 'Age',
-        accessor: 'age',
-        className: 'cell-right'
-      },
-      {
-        Header: 'Role',
-        accessor: 'role'
-      },
-      {
-        Header: 'Contact',
-        accessor: 'contact'
-      },
-      {
-        Header: 'Country',
-        accessor: 'country'
-      },
-      {
-        Header: 'Visits',
-        accessor: 'visits',
-        className: 'cell-right'
-      },
-      {
-        Header: 'Status',
-        accessor: 'status',
-        Cell: ({ value }) => {
-          switch (value) {
-            case 'Complicated':
-              return <Chip color="error" label="Complicated" size="small" variant="light" />;
-            case 'Relationship':
-              return <Chip color="success" label="Relationship" size="small" variant="light" />;
-            case 'Single':
-            default:
-              return <Chip color="info" label="Single" size="small" variant="light" />;
-          }
-        }
-      },
-      {
-        Header: 'Profile Progress',
-        accessor: 'progress',
-        Cell: ({ value }) => <LinearWithLabel value={value} sx={{ minWidth: 75 }} />
-      }
-    ],
-    []
-  );
-
-  const data = useMemo(() => makeData(15), []);
+const ColumnHiding = ({data,columns}) => {
+  
 
   return (
     <MainCard content={false}>

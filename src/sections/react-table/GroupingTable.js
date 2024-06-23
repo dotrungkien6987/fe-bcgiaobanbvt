@@ -24,7 +24,7 @@ function ReactTable({ columns, data }) {
     {
       columns,
       data,
-      initialState: { groupBy: ['age'] }
+      // initialState: { groupBy: ['GioiTinh'] }
     },
     useGroupBy,
     useExpanded
@@ -160,68 +160,8 @@ function Legend() {
 
 // ==============================|| REACT TABLE - GROUPING TABLE ||============================== //
 
-function GroupingTable({ data }) {
-  const columns = useMemo(
-    () => [
-      {
-        Header: 'First Name',
-        accessor: 'firstName',
-        aggregate: 'count',
-        Aggregated: ({ value }) => `${value} Person`,
-        disableGroupBy: true
-      },
-      {
-        Header: 'Last Name',
-        accessor: 'lastName',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Email',
-        accessor: 'email',
-        disableGroupBy: true
-      },
-      {
-        Header: 'Age',
-        accessor: 'age',
-        className: 'cell-right',
-        aggregate: 'average',
-        Aggregated: ({ value }) => `${Math.round(value * 100) / 100} (avg)`
-      },
-      {
-        Header: 'Visits',
-        accessor: 'visits',
-        className: 'cell-right',
-        aggregate: 'sum',
-        Aggregated: ({ value }) => `${value} (total)`,
-        disableGroupBy: true
-      },
-      {
-        Header: 'Status',
-        accessor: 'status',
-        Cell: ({ value }) => {
-          switch (value) {
-            case 'Complicated':
-              return <Chip color="error" label="Complicated" size="small" variant="light" />;
-            case 'Relationship':
-              return <Chip color="success" label="Relationship" size="small" variant="light" />;
-            case 'Single':
-            default:
-              return <Chip color="info" label="Single" size="small" variant="light" />;
-          }
-        }
-      },
-      {
-        Header: 'Profile Progress',
-        accessor: 'progress',
-        aggregate: roundedMedian,
-        Aggregated: ({ value }) => `${value} (med)`,
-        disableGroupBy: true,
-        Cell: ({ value }) => <LinearWithLabel value={value} sx={{ minWidth: 75 }} />
-      }
-    ],
-    []
-  );
-
+function GroupingTable({ data,columns }) {
+ 
   return <ReactTable columns={columns} data={data} />;
 }
 

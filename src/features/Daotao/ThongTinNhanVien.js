@@ -72,7 +72,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
   useEffect(() => {
     
     // Kiểm tra xem `nhanvien` có tồn tại và form đang ở chế độ cập nhật không
-    if (nhanvien && nhanvien._id) {
+    if (nhanvien && nhanvien._id&&nhanvien._id!==0) {
       // Cập nhật giá trị mặc định cho form bằng thông tin của `nhanvien`
       reset({
         ...nhanvien,

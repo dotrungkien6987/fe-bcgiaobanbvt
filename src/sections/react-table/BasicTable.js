@@ -23,7 +23,11 @@ function ReactTable({ columns, data, striped }) {
     columns,
     data
   });
-
+// console.log('getTableProps',getTableProps)
+console.log('getTableBodyProps',{...getTableBodyProps()})
+// console.log('headerGroups',headerGroups)
+console.log('rows',rows)
+// console.log('prepareRow',prepareRow)
   return (
     <Table {...getTableProps()}>
       <TableHead>
@@ -40,6 +44,7 @@ function ReactTable({ columns, data, striped }) {
       <TableBody {...getTableBodyProps()} {...(striped && { className: 'striped' })}>
         {rows.map((row) => {
           prepareRow(row);
+          console.log('prepareRow', prepareRow(row))
           return (
             <TableRow key={row} {...row.getRowProps()}>
               {row.cells.map((cell) => (
@@ -62,51 +67,8 @@ ReactTable.propTypes = {
 
 // ==============================|| REACT TABLE - BASIC ||============================== //
 
-const BasicTable = ({ data, striped, title }) => {
-  const columns = useMemo(
-    () => [
-      {
-        Header: 'First Name',
-        accessor: 'firstName'
-      },
-      {
-        Header: 'Last Name',
-        accessor: 'lastName'
-      },
-      {
-        Header: 'Age',
-        accessor: 'age',
-        className: 'cell-right'
-      },
-      {
-        Header: 'Visits',
-        accessor: 'visits',
-        className: 'cell-right'
-      },
-      {
-        Header: 'Status',
-        accessor: 'status',
-        Cell: ({ value }) => {
-          switch (value) {
-            case 'Complicated':
-              return <Chip color="error" label="Complicated" size="small" variant="light" />;
-            case 'Relationship':
-              return <Chip color="success" label="Relationship" size="small" variant="light" />;
-            case 'Single':
-            default:
-              return <Chip color="info" label="Single" size="small" variant="light" />;
-          }
-        }
-      },
-      {
-        Header: 'Profile Progress',
-        accessor: 'progress',
-        Cell: ({ value }) => <LinearWithLabel value={value} sx={{ minWidth: 75 }} />
-      }
-    ],
-    []
-  );
-
+const BasicTable = ({ data, striped, title,columns }) => {
+  
   return (
     <MainCard
       content={false}

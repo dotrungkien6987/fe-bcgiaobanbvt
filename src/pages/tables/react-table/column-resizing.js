@@ -90,64 +90,8 @@ ReactTable.propTypes = {
 
 // ==============================|| REACT TABLE - COLUMN RESIZING ||============================== //
 
-const ColumnResizing = () => {
-  const data = useMemo(() => makeData(40), []);
-
-  const columns = useMemo(
-    () => [
-      {
-        Header: 'First Name',
-        accessor: 'firstName'
-      },
-      {
-        Header: 'Last Name',
-        accessor: 'lastName'
-      },
-      {
-        Header: 'Email',
-        accessor: 'email'
-      },
-      {
-        Header: 'Age',
-        accessor: 'age'
-      },
-      {
-        Header: 'Role',
-        accessor: 'role'
-      },
-      {
-        Header: 'Visits',
-        accessor: 'visits'
-      },
-      {
-        Header: 'country',
-        accessor: 'country'
-      },
-      {
-        Header: 'Status',
-        accessor: 'status',
-        Cell: ({ value }) => {
-          switch (value) {
-            case 'Complicated':
-              return <Chip color="error" label="Complicated" size="small" variant="light" />;
-            case 'Relationship':
-              return <Chip color="success" label="Relationship" size="small" variant="light" />;
-            case 'Single':
-            default:
-              return <Chip color="info" label="Single" size="small" variant="light" />;
-          }
-        }
-      },
-      {
-        Header: 'Progress',
-        Footer: 'Progress',
-        accessor: 'progress',
-        Cell: ({ value }) => <LinearWithLabel value={value} sx={{ minWidth: 75 }} />
-      }
-    ],
-    []
-  );
-
+const ColumnResizing = ({columns,data}) => {
+ 
   return (
     <MainCard title="Column Resizing" content={false} secondary={<CSVExport data={data} filename={'resizing-column-table.csv'} />}>
       <ScrollX>

@@ -92,56 +92,8 @@ ReactTable.propTypes = {
 
 // ==============================|| REACT TABLE - PAGINATION ||============================== //
 
-const PaginationTable = () => {
-  const data = useMemo(() => makeData(2000), []);
-  const columns = useMemo(
-    () => [
-      {
-        Header: 'First Name',
-        accessor: 'firstName'
-      },
-      {
-        Header: 'Last Name',
-        accessor: 'lastName'
-      },
-      {
-        Header: 'Email',
-        accessor: 'email'
-      },
-      {
-        Header: 'Age',
-        accessor: 'age',
-        className: 'cell-right'
-      },
-      {
-        Header: 'Visits',
-        accessor: 'visits',
-        className: 'cell-right'
-      },
-      {
-        Header: 'Status',
-        accessor: 'status',
-        Cell: ({ value }) => {
-          switch (value) {
-            case 'Complicated':
-              return <Chip color="error" label="Complicated" size="small" variant="light" />;
-            case 'Relationship':
-              return <Chip color="success" label="Relationship" size="small" variant="light" />;
-            case 'Single':
-            default:
-              return <Chip color="info" label="Single" size="small" variant="light" />;
-          }
-        }
-      },
-      {
-        Header: 'Profile Progress',
-        accessor: 'progress',
-        Cell: ({ value }) => <LinearWithLabel value={value} sx={{ minWidth: 75 }} />
-      }
-    ],
-    []
-  );
-
+const PaginationTable = ({columns,data}) => {
+  
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>

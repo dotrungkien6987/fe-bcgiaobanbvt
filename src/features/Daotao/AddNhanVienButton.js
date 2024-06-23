@@ -11,6 +11,7 @@ function AddNhanVienButton() {
   const handCloseFormNhanVien = ()=>{
     setOpenNhanVien(false)
   }
+  const nhanvien= {_id:0}
   return (
     <div>
       <Button
@@ -24,6 +25,7 @@ function AddNhanVienButton() {
       <ThongTinNhanVien
       open ={openNhanVien}
       handleClose={handCloseFormNhanVien}
+      nhanvien={nhanvien}
       />
     </div>
   );

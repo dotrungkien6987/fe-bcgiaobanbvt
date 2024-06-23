@@ -27,6 +27,7 @@ import DashboardRequire from "./DashboardRequire";
 import SupperAdminPage from "../pages/SupperAdminPage";
 import DaoTaoPage from "../pages/DaoTaoPage";
 import NavLayOut from "layouts/NavLayOut";
+import Test from "pages/Test";
 function Router() {
   return (
     <div>
@@ -80,6 +81,7 @@ function Router() {
           <Route path="/baocaosuco" element={<BaoCaoSuCoYKhoaPage />} />
           <Route path="/kienadmin" element={<SupperAdminPage />} />
           <Route path="/daotao" element={<DaoTaoPage />} />
+          <Route path="/test" element={<Test />} />
         </Route>
 
         <Route element={<BlankLayout />}>

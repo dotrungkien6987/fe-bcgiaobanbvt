@@ -5,21 +5,22 @@ import { Grid } from '@mui/material';
 
 // project-imports
 import makeData from 'data/react-table';
-import GroupingTable from 'sections/tables/react-table/GroupingTable';
-import GroupingColumnTable from 'sections/tables/react-table/GroupingColumnTable';
+import GroupingTable from 'sections/react-table/GroupingTable';
+import GroupingColumnTable from 'sections/react-table/GroupingColumnTable';
+
+
 
 // ==============================|| REACT TABLE - GROUPING ||============================== //
 
-const Grouping = () => {
-  const data = useMemo(() => makeData(1000), []);
-
+const Grouping = ({ data,columns }) => {
+  
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
-        <GroupingTable data={data} />
+        <GroupingTable data={data}  columns={columns}/>
       </Grid>
       <Grid item xs={12}>
-        <GroupingColumnTable data={data} />
+        <GroupingColumnTable data={data} columns={columns}/>
       </Grid>
     </Grid>
   );

@@ -403,24 +403,24 @@ function ReactTable({ columns, data,initialState}) {
     (hooks) => {
       hooks.allColumns.push((columns) => [
         ...columns,
-        {
-          accessor: "update",
-          id: "update",
-          Footer: "Action3",
-          Header: "Action3",
-          sticky: "right",
-          width: 50,
-          disableFilters: true,
-          disableSortBy: true,
-          disableGroupBy: true,
-          groupByBoundary: true,
-          Cell: ({ row, setEditableRowIndex, editableRowIndex }) => (
-            <Stack direction="row" alignItems="center" justifyContent="center" spacing={0}>
-          <UpdateNhanVienButton nhanvien={row.original}/>
-          <DeleteNhanVienButton nhanvienID = {row.original._id}/>
-          </Stack>
-          ),
-        },
+        // {
+        //   accessor: "update",
+        //   id: "update",
+        //   Footer: "Action3",
+        //   Header: "Action3",
+        //   sticky: "right",
+        //   width: 50,
+        //   disableFilters: true,
+        //   disableSortBy: true,
+        //   disableGroupBy: true,
+        //   groupByBoundary: true,
+        //   Cell: ({ row, setEditableRowIndex, editableRowIndex }) => (
+        //     <Stack direction="row" alignItems="center" justifyContent="center" spacing={0}>
+        //   <UpdateNhanVienButton nhanvien={row.original}/>
+        //   <DeleteNhanVienButton nhanvienID = {row.original._id}/>
+        //   </Stack>
+        //   ),
+        // },
         
       ]);
     }
@@ -730,13 +730,15 @@ const NhanVienTable = () => {
       // },
       {
         Header: '_id',
-        Footer: '_id',
+      
         accessor: '_id',
-        className: 'cell-center',
-        sticky:'left',
-        width: 50,
-        disableFilters: true,
-        disableGroupBy: true
+       Cell:({row})=>(
+        <Stack direction="row" alignItems="center" justifyContent="center" spacing={0}>
+      <UpdateNhanVienButton nhanvien={row.original}/>
+      <DeleteNhanVienButton nhanvienID = {row.original._id}/>
+      </Stack>
+      ),
+      
       },
       {
         Header: 'Mã NV',

@@ -47,9 +47,9 @@ export function GlobalFilter({
         setValue(e.target.value);
         onChange(e.target.value);
       }}
-      placeholder={`Search ${count} records...`}
+      placeholder={`Tìm kiếm trong ${count} dòng...`}
       id="start-adornment-email"
-      startAdornment={<SearchNormal1 size={18} />}
+      startAdornment={<SearchNormal1 size={15} />}
       {...other}
     />
   );
