@@ -28,6 +28,7 @@ import SupperAdminPage from "../pages/SupperAdminPage";
 import DaoTaoPage from "../pages/DaoTaoPage";
 import NavLayOut from "layouts/NavLayOut";
 import Test from "pages/Test";
+import QuanLyHocVienPage from "pages/QuanLyHocVienPage";
 function Router() {
   return (
     <div>
@@ -82,6 +83,7 @@ function Router() {
           <Route path="/kienadmin" element={<SupperAdminPage />} />
           <Route path="/daotao" element={<DaoTaoPage />} />
           <Route path="/test" element={<Test />} />
+          <Route path="/hocvien" element={<QuanLyHocVienPage />} />
         </Route>
 
         <Route element={<BlankLayout />}>

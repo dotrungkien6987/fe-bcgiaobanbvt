@@ -24,6 +24,7 @@ import StickyTableData from './sticky';
 import Sticky from './sticky';
 import StickyTable from 'sections/react-table/StickyTable';
 import PaginationTable from './pagination';
+import MyReactTable from 'components/MyAble-Component/MyReactTable';
 
 // ==============================|| REACT TABLE - BASIC ||============================== //
 
@@ -133,14 +134,14 @@ const TableBasic = () => {
         <SortingTable title="SortingTable Table" data={data} columns={columns}/>
       </Grid>
        */}
-      <Grid item xs={12} lg={12}>
+      {/* <Grid item xs={12} lg={12}>
         <FilteringTable title="FilteringTable Table" data={data} columns={columns}/>
       </Grid>
-      
+       */}
       {/* <Grid item xs={12} lg={12}>
         <Grouping title="Grouping Table" data={data} columns={columns}/>
       </Grid> */}
-      <Grid item xs={12} lg={12}>
+      {/* <Grid item xs={12} lg={12}>
         <ColumnHiding title="ColumnHiding Table" data={data} columns={columns}/>
       </Grid>
       
@@ -155,6 +156,11 @@ const TableBasic = () => {
       <Grid item xs={12} lg={12}>
         <PaginationTable title="PaginationTable Table" data={data} columns={columns}/>
       </Grid>
+       */}
+      <Grid item xs={12} lg={12}>
+        <MyReactTable title="MyReactTable Table" data={data} columns={columns}/>
+      </Grid>
+      
       
     </Grid>
   );

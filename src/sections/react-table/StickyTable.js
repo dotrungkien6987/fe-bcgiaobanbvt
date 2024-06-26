@@ -20,6 +20,8 @@ import {
   useGlobalFilter,
   useFilters,
   usePagination,
+  useResizeColumns,
+  useBlockLayout,
 } from "react-table";
 import { useSticky } from "react-table-sticky";
 
@@ -38,6 +40,7 @@ import {
   GlobalFilter,
   renderFilterTypes,
 } from "utils/react-table";
+import AddNhanVienButton from "features/Daotao/AddNhanVienButton";
 // import { ThemeMode } from 'config';
 
 // ==============================|| REACT TABLE ||============================== //
@@ -131,7 +134,9 @@ function ReactTable({ columns, data, getHeaderProps, title }) {
     useGlobalFilter,
     useSticky,
     useSortBy,
-    usePagination
+    usePagination,
+    // useBlockLayout,
+    // useResizeColumns,
   );
   let headers = [];
   allColumns.map((item) => {
@@ -184,6 +189,7 @@ function ReactTable({ columns, data, getHeaderProps, title }) {
                 : "sticky-column-table.csv"
             }
           />
+           <AddNhanVienButton />
       </Stack>
 
     
