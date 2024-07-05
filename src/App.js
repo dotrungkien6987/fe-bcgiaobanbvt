@@ -3,14 +3,18 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import Router from "./routes";
 import ThemeProvider from "./theme";
+import ThemeCustomization from "theme/index1";
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <ThemeProvider>
+        {/* <ThemeProvider> */}
+        {/* <ThemeCustomization> */}
+
           <Router />
-        </ThemeProvider>
+        {/* </ThemeCustomization> */}
+        {/* </ThemeProvider> */}
       </BrowserRouter>
     </AuthProvider>
   );

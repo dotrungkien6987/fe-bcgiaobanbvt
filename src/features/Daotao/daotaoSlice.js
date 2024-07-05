@@ -7,6 +7,7 @@ const initialState = {
   error: null,
   danhsachcanbo: [],
   danhsachkhoa: [],
+  datafix:{},
 };
 
 const slice = createSlice({
@@ -92,3 +93,4 @@ export const fn_getDanhSachKhoa = () => async (dispatch) => {
     toast.error(error.message);
   }
 };
+

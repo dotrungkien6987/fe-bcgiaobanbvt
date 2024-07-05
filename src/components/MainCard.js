@@ -60,7 +60,7 @@ const MainCard = forwardRef(
           borderRadius: 1.5,
           borderColor: theme.palette.divider,
           ...(((themeContrast && boxShadow) || shadow) && {
-            boxShadow: shadow ? shadow : theme.customShadows.z1,
+            boxShadow: shadow ,
           }),
           ...(codeHighlight && {
             "& pre": {

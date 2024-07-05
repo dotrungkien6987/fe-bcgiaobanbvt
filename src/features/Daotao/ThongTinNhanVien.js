@@ -96,9 +96,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
       });
     }
   }, [nhanvien]);
-  useEffect(()=>{
-    console.log("nhanvien Thongtinform",nhanvien)
-  })
+  
   const onSubmitData = (data) => {
     console.log("data form",data);
     const nhanvienUpdate = {

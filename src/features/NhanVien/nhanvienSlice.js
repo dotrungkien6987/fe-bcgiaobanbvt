@@ -10,6 +10,7 @@ const initialState = {
   nhanvienCurrent:{},
 
   nhanviens: [],
+  datafix:{}
 };
 
 const slice = createSlice({
@@ -57,6 +58,11 @@ const slice = createSlice({
      state.nhanviens = state.nhanviens.map((nhanvien) =>
         nhanvien._id === action.payload._id ? action.payload : nhanvien
       );
+    },
+    getDataFixSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+     state.datafix = action.payload;
     },
   },
 });
@@ -131,3 +137,15 @@ export const setIsOpenUpdateNhanVien = (open) =>  async(dispatch) => {
     toast.error(error.message);
   }
 };
+export const getDataFix = ()=> async (dispatch) =>{
+  dispatch(slice.actions.startLoading)
+  try {
+
+    const response = await apiService.get("/datafix/getAll")
+   
+    dispatch(slice.actions.getDataFixSuccess(response.data.data.datafix[0]));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message))
+    toast.error(error.message)
+  }
+}

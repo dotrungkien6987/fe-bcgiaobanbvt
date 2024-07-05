@@ -6,7 +6,7 @@ import { styled } from '@mui/material/styles';
 
 const StyledList = styled('div')(({ theme }) => ({
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 290,
     backgroundColor: theme.palette.background.paper,
 }));
 

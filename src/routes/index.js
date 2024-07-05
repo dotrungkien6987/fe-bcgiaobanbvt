@@ -1,6 +1,7 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
+
 import HomePage from "../pages/HomePage";
 import AcountPage from "../pages/AccountPage";
 
@@ -29,6 +30,10 @@ import DaoTaoPage from "../pages/DaoTaoPage";
 import NavLayOut from "layouts/NavLayOut";
 import Test from "pages/Test";
 import QuanLyHocVienPage from "pages/QuanLyHocVienPage";
+import MainLayoutAble from "layout/MainLayout";
+
+import ThemeProvider from "theme";
+import ThemeCustomization from "theme/index1";
 function Router() {
   return (
     <div>
@@ -37,7 +42,9 @@ function Router() {
           path="/"
           element={
             <AuthRequire>
-              <MainLayout />
+              <ThemeProvider>
+                <MainLayout />
+              </ThemeProvider>
             </AuthRequire>
           }
         >
@@ -82,7 +89,7 @@ function Router() {
           <Route path="/baocaosuco" element={<BaoCaoSuCoYKhoaPage />} />
           <Route path="/kienadmin" element={<SupperAdminPage />} />
           <Route path="/daotao" element={<DaoTaoPage />} />
-          <Route path="/test" element={<Test />} />
+
           <Route path="/hocvien" element={<QuanLyHocVienPage />} />
         </Route>
 
@@ -92,13 +99,20 @@ function Router() {
           <Route path="*" element={<NotFoundPage />} />
         </Route>
 
-
-        <Route element={<AuthRequire> <NavLayOut /> </AuthRequire>}>
+        {/* <Route element={<AuthRequire> <NavLayOut /> </AuthRequire>}> */}
+        <Route
+          element={
+            <AuthRequire>
+              <ThemeCustomization>
+                <MainLayoutAble />
+              </ThemeCustomization>
+            </AuthRequire>
+          }
+        >
           <Route path="/dev" element={<SupperAdminPage />} />
-
+          <Route path="/test" element={<Test />} />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
-
       </Routes>
     </div>
   );
