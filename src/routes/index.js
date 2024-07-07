@@ -89,7 +89,7 @@ function Router() {
           <Route path="/baocaosuco" element={<BaoCaoSuCoYKhoaPage />} />
           <Route path="/kienadmin" element={<SupperAdminPage />} />
           <Route path="/daotao" element={<DaoTaoPage />} />
-
+          <Route path="/test" element={<Test />} />
           <Route path="/hocvien" element={<QuanLyHocVienPage />} />
         </Route>
 
@@ -105,12 +105,13 @@ function Router() {
             <AuthRequire>
               <ThemeCustomization>
                 <MainLayoutAble />
+                
               </ThemeCustomization>
             </AuthRequire>
           }
         >
           <Route path="/dev" element={<SupperAdminPage />} />
-          <Route path="/test" element={<Test />} />
+     
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
       </Routes>

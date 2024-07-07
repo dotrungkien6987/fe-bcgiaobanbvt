@@ -53,7 +53,7 @@ const TableBasic = () => {
         accessor: 'MaNhanVien',
         className: 'cell-center',
         disableGroupBy: true,
-        sticky: 'left',
+        // sticky: 'left',
         // Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarIma(`./avatar-${!value ? 1 : value}.png`)} />
       },
       {

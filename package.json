@@ -27,7 +27,7 @@
     "file-saver": "^2.0.5",
     "formic": "^0.0.10",
     "formik": "^2.4.6",
-    "framer-motion": "^11.2.12",
+    "framer-motion": "^11.2.13",
     "iconsax-react": "^0.0.8",
     "immutability-helper": "^3.1.1",
     "jwt-decode": "^3.1.2",
