@@ -103,173 +103,6 @@ const TableWrapper = styled('div')(() => ({
 }));
 // ==============================|| REACT TABLE ||============================== //
 
-const EditableRow = ({ value: initialValue, row: { index }, column: { id, dataType }, editableRowIndex }) => {
-  const [value, setValue] = useState(initialValue);
-  const theme = useTheme();
-  const onChange = (e) => {
-    setValue(e.target.value);
-  };
-
-  const ShowStatus = (value) => {
-    switch (value) {
-      case 'Complicated':
-        return <Chip color="error" label="Complicated" size="small" variant="light" />;
-      case 'Relationship':
-        return <Chip color="success" label="Relationship" size="small" variant="light" />;
-      case 'Single':
-      default:
-        return <Chip color="info" label="Single" size="small" variant="light" />;
-    }
-  };
-const ShowTenKhoa = (value)=>{
-  return value.TenKhoa
-}
-  let element;
-  let userInfoSchema;
-
-  switch (id) {
-    case 'email':
-      userInfoSchema = Yup.object().shape({
-        userInfo: Yup.string().email('Enter valid email ').required('Email is a required field')
-      });
-      break;
-    case 'age':
-      userInfoSchema = Yup.object().shape({
-        userInfo: Yup.number()
-          .required('Age is required')
-          .typeError('Age must be number')
-          .min(18, 'You must be at least 18 years')
-          .max(100, 'You must be at most 60 years')
-      });
-      break;
-    case 'visits':
-      userInfoSchema = Yup.object().shape({
-        userInfo: Yup.number().typeError('Visits must be number').required('Required')
-      });
-      break;
-    default:
-      userInfoSchema = Yup.object().shape({
-        userInfo: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Name is Required')
-      });
-      break;
-  }
-
-  let IsEditAble = index === editableRowIndex;
-
-  switch (dataType) {
-    case 'text':
-      element = (
-        <>
-          {IsEditAble ? (
-            <>
-              <Formik
-                initialValues={{
-                  userInfo: value
-                }}
-                enableReinitialize
-                validationSchema={userInfoSchema}
-                onSubmit={() => {}}
-              >
-                {({ values, handleChange, handleBlur, errors, touched }) => (
-                  <Form>
-                    <TextField
-                      value={values.userInfo}
-                      id={`${index}-${id}`}
-                      name="userInfo"
-                      onChange={(e) => {
-                        handleChange(e);
-                        onChange(e);
-                      }}
-                      onBlur={handleBlur}
-                      error={touched.userInfo && Boolean(errors.userInfo)}
-                      helperText={touched.userInfo && errors.userInfo && errors.userInfo}
-                      sx={{
-                        '& .MuiOutlinedInput-input': {
-                          py: 0.75,
-                          px: 1,
-                          backgroundColor: theme.palette.mode === ThemeMode.DARK ? 'inherit' : 'common.white'
-                        }
-                      }}
-                    />
-                  </Form>
-                )}
-              </Formik>
-            </>
-          ) : (
-            value
-          )}
-        </>
-      );
-      break;
-    case 'select':
-      element = (
-        <>
-          {IsEditAble ? (
-            <Select
-              labelId="demo-simple-select-label"
-              sx={{
-                '& .MuiOutlinedInput-input': {
-                  py: 0.75,
-                  px: 1,
-                  backgroundColor: theme.palette.mode === ThemeMode.DARK ? 'inherit' : 'common.white'
-                }
-              }}
-              id="demo-simple-select"
-              value={value}
-              onChange={onChange}
-            >
-              <MenuItem value={'Complicated'}>
-                <Chip color="error" label="Complicated" size="small" variant="light" />
-              </MenuItem>
-              <MenuItem value={'Relationship'}>
-                <Chip color="success" label="Relationship" size="small" variant="light" />
-              </MenuItem>
-              <MenuItem value={'Single'}>
-                <Chip color="info" label="Single" size="small" variant="light" />
-              </MenuItem>
-            </Select>
-          ) : (
-            ShowStatus(value)
-          )}
-        </>
-      );
-      break;
-    case 'progress':
-      element = (
-        <>
-          {IsEditAble ? (
-            <>
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ pl: 1, minWidth: 120 }}>
-                <Slider
-                  value={value}
-                  min={0}
-                  max={100}
-                  step={1}
-                  onChange={(event, newValue) => {
-                    setValue(newValue);
-                  }}
-                  valueLabelDisplay="auto"
-                  aria-labelledby="non-linear-slider"
-                />
-              </Stack>
-            </>
-          ) : (
-            <div>
-              <LinearWithLabel value={value} sx={{ minWidth: 75 }} />
-            </div>
-          )}
-        </>
-      );
-      break;
-      case 'TenKhoa': element = (ShowTenKhoa(value))
-      break
-    default:
-      element = <span>{value}</span>;
-      break;
-  }
-  return element;
-};
-
 function ReactTable({ columns, data, init }) {
   const theme = useTheme();
   const filterTypes = useMemo(() => renderFilterTypes, []);
@@ -278,7 +111,7 @@ function ReactTable({ columns, data, init }) {
   const defaultColumn = useMemo(
     () => ({
       Filter: DefaultColumnFilter,
-      Cell: EditableRow
+     
     }),
     []
   );
@@ -324,74 +157,7 @@ function ReactTable({ columns, data, init }) {
     usePagination,
     useRowSelect,
     useSticky,
-    (hooks) => {
-      hooks.allColumns.push((columns) => [
-        ...columns,
-        // {
-        //   accessor: 'edit',
-        //   id: 'edit',
-        //   Footer: 'Edit',
-        //   Header: 'Edit',
-        //   disableFilters: true,
-        //   disableSortBy: true,
-        //   disableGroupBy: true,
-        //   groupByBoundary: true,
-        //   Cell: ({ row, setEditableRowIndex, editableRowIndex }) => (
-        //     <>
-        //       <Stack direction="row" alignItems="center" justifyContent="center" spacing={0}>
-        //         <Tooltip title={editableRowIndex !== row.index ? 'Edit' : 'Save'}>
-        //           <IconButton
-        //             color={editableRowIndex !== row.index ? 'primary' : 'success'}
-        //             onClick={(e) => {
-        //               e.stopPropagation();
-        //               const currentIndex = row.index;
-        //               if (editableRowIndex !== currentIndex) {
-        //                 // row requested for edit access
-        //                 setEditableRowIndex(currentIndex);
-        //               } else {
-        //                 // request for saving the updated row
-        //                 setEditableRowIndex(null);
-        //               }
-        //             }}
-        //           >
-        //             {editableRowIndex !== row.index ? <Edit /> : <Send />}
-        //           </IconButton>
-        //         </Tooltip>
-        //       </Stack>
-        //     </>
-        //   )
-        // },
-        {
-          accessor: 'action',
-          id: 'action',
-          Footer: 'Action',
-          Header: 'Action',
-          sticky:'right',
-        width: 50,
-          disableFilters: true,
-          disableSortBy: true,
-          disableGroupBy: true,
-          groupByBoundary: true,
-          Cell: ({ row, setEditableRowIndex, editableRowIndex }) => (<Button variant="contained" onClick={()=>console.log('row',row)} >action</Button>
-          )
-        },
-        {
-          accessor: 'action1',
-          id: 'action1',
-          Footer: 'Action1',
-          Header: 'Action1',
-          sticky:'right',
-        width: 50,
-          disableFilters: true,
-          disableSortBy: true,
-          disableGroupBy: true,
-          groupByBoundary: true,
-          Cell: ({ row, setEditableRowIndex, editableRowIndex }) => (
-          <ActionSucoForReactTable params = {row.original}/>
-          )
-        }
-      ]);
-    }
+   
   );
 
   const reorder = (item, newIndex) => {
@@ -556,7 +322,7 @@ const handleThemMoi = ()=>{
         <Box sx={{ p: 2, py: 0 }}>
           <TablePagination gotoPage={gotoPage} rows={rows} setPageSize={setPageSize} pageIndex={pageIndex} pageSize={pageSize} />
         </Box>
-
+{/* 
         <SyntaxHighlight>
           {JSON.stringify(
             {
@@ -566,7 +332,7 @@ const handleThemMoi = ()=>{
             null,
             2
           )}
-        </SyntaxHighlight>
+        </SyntaxHighlight> */}
       </Stack>
     </>
   );
@@ -595,11 +361,11 @@ const UmbrellaTable = ({data,columns}) => {
   
   return (
     <MainCard
-      title="Umbrella Table"
+      title="Quản lý cán bộ"
       subheader="This page consist combination of most possible features of react-table in to one table. Sorting, grouping, row selection, hidden row, filter, search, pagination, footer row available in below table."
       content={false}
     >
-      <ScrollX sx ={{height:500}}>
+      <ScrollX sx ={{height:650}}>
         <TableWrapper>
         <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
           <ReactTable columns={columns} data={data} />

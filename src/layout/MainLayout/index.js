@@ -18,6 +18,7 @@ import useConfig from 'hooks/useConfig';
 import { MenuOrientation } from 'configAble';
 import { useDispatch } from 'react-redux';
 import { openDrawer } from 'features/Menu/menuSlice';
+import AlertMsg from 'components/AlertMsg';
 // import { dispatch } from 'store';
 // import { openDrawer } from 'store/reducers/menu';
 // import { MenuOrientation } from 'config';
@@ -61,6 +62,7 @@ const MainLayoutAble = () => {
           }}
         >
           {/* <Breadcrumbs navigation={navigation} title titleBottom card={false} divider={false} /> */}
+          <AlertMsg/>
           <Outlet />
           <Footer />
         </Container>
