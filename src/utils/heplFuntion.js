@@ -862,13 +862,28 @@ export function calculateKPIWithDifferences(KPI, KPI_NgayChenhLech) {
 
 export function ConvertDoanhThuCanLamSang(canlamsang, canlamsang_ngaychenhlech) {
   const order = [
-    "MRI30", "MRI15", "CLVT128", "CLVT32", "XQ", "XN", "SA", "NS", "DT", "DN", "MDLX", "CNHH", "khac",
+    "MRI30", "MRI15", "CLVT128", "CLVT32", "XQ", "XN", "SA", "NS", "DT", "DN", "MDLX", "CNHH",'AntiXa',
+    'PhatHienKhangDong','KhangDinhKhangDong','MauNoiSinh','MauNgoaiSinh','MauTieuCau','KhangTheKhangNhan',
+    'KhangTheKhangDNA','AntiCCP','DienDi','HongCauLuoi','HuyetDo',"khac"
   ];
 
   const nameMapping = {
     MRI30: "MRI 3.0", MRI15: "MRI 1.5", CLVT128: "CT 128 dãy", CLVT32: "CT 1-32 dãy", XQ: "XQuang", 
     XN: "Xét nghiệm", SA: "Siêu âm", NS: "Nội soi", DT: "Điện tim", DN: "Điện não", MDLX: "Mật độ loãng xương", 
-    CNHH: "Chức năng hô hấp", khac: "Khác",
+    CNHH: "Chức năng hô hấp",
+    AntiXa: "Định lượng Anti Xa",
+PhatHienKhangDong: "Phát hiện kháng đông lupus",
+KhangDinhKhangDong: "Khẳng định kháng đông lupus",
+MauNoiSinh: "Đo độ đàn hồi cục máu nội sinh",
+MauNgoaiSinh:"Đo độ đàn hồi cục máu ngoại sinh",
+MauTieuCau:"Đo độ đàn hổi cục máu ức chế tiểu cầu",
+KhangTheKhangNhan:"Kháng thể kháng nhân", 
+KhangTheKhangDNA: "Kháng thể kháng dsDNA",
+AntiCCP: "Định lượng Anti CCP",
+DienDi:"Điện di huyết sắc tố",
+HongCauLuoi:"Xét nghiệm hồng cầu lưới",
+HuyetDo: "Huyết đồ",
+khac: "Khác",
   };
 
   // Chuẩn bị map dữ liệu để dễ dàng truy xuất và tính toán

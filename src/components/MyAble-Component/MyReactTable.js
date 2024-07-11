@@ -43,6 +43,7 @@ import {
   renderFilterTypes,
 } from "utils/react-table";
 import AddNhanVienButton from "features/Daotao/AddNhanVienButton";
+import ExcelButton from "components/ExcelButton";
 // import { ThemeMode } from 'config';
 
 // ==============================|| REACT TABLE ||============================== //
@@ -185,6 +186,7 @@ function ReactTable({ columns, data, getHeaderProps, title }) {
           </Grid>
           <Grid item xs={12} sm={12} md={1}>
             <AddNhanVienButton />
+            <ExcelButton/>
           </Grid>
         </Grid>
       </Stack>
