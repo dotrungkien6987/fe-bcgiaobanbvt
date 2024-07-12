@@ -103,7 +103,7 @@ const TableWrapper = styled('div')(() => ({
 }));
 // ==============================|| REACT TABLE ||============================== //
 
-function ReactTable({ columns, data, init }) {
+function ReactTable({ columns, data, init,additionalComponent }) {
   const theme = useTheme();
   const filterTypes = useMemo(() => renderFilterTypes, []);
   const [editableRowIndex, setEditableRowIndex] = useState(null);
@@ -185,9 +185,6 @@ function ReactTable({ columns, data, init }) {
     }
     return item;
   });
-const handleThemMoi = ()=>{
-  console.log("them moi")
-}
 
   return (
     <>
@@ -207,7 +204,7 @@ const handleThemMoi = ()=>{
               filename={'umbrella-table.csv'}
               headers={headers}
             />
-             <AddNhanVienButton/>
+             {additionalComponent && additionalComponent}
           </Stack>
         </Stack>
 
@@ -357,7 +354,7 @@ ReactTable.propTypes = {
 // ==============================|| REACT TABLE - UMBRELLA ||============================== //
 
 
-const UmbrellaTable = ({data,columns}) => {
+const CommonTable = ({data,columns,additionalComponent}) => {
   
   return (
     // <MainCard
@@ -368,7 +365,7 @@ const UmbrellaTable = ({data,columns}) => {
       <ScrollX sx ={{height:650}}>
         <TableWrapper>
         <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
-          <ReactTable columns={columns} data={data} />
+          <ReactTable columns={columns} data={data} additionalComponent={additionalComponent}/>
           <DragPreview />
         </DndProvider>
         </TableWrapper>
@@ -378,7 +375,7 @@ const UmbrellaTable = ({data,columns}) => {
   );
 };
 
-UmbrellaTable.propTypes = {
+CommonTable.propTypes = {
   row: PropTypes.object,
   setEditableRowIndex: PropTypes.func,
   editableRowIndex: PropTypes.string,
@@ -395,4 +392,4 @@ UmbrellaTable.propTypes = {
   value: PropTypes.string
 };
 
-export default UmbrellaTable;
+export default CommonTable;

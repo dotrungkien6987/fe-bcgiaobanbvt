@@ -64,6 +64,11 @@ const slice = createSlice({
       state.error = null;
      state.datafix = action.payload;
     },
+    importNhanViensSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+     
+    },
   },
 });
 
@@ -149,3 +154,15 @@ export const getDataFix = ()=> async (dispatch) =>{
     toast.error(error.message)
   }
 }
+export const importNhanViens = (jsonData) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    const response = await apiService.post(`/nhanvien/import`, {jsonData});
+    dispatch(slice.actions.importNhanViensSuccess(response.data.data));
+    dispatch(getAllNhanVien());
+    toast.success("Import thành công");
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};

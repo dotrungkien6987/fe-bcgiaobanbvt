@@ -1,10 +1,16 @@
 import React from 'react';
 import { Button, Container } from '@mui/material';
 import * as XLSX from 'xlsx';
+import { useDispatch } from 'react-redux';
+import { importNhanViens } from 'features/NhanVien/nhanvienSlice';
 
 const ExcelButton = () => {
+  const dispatch = useDispatch();
   const handleFileChange = (event) => {
     const file = event.target.files[0];
+    if (!file) {
+      return;
+    } 
     const reader = new FileReader();
 
     reader.onload = (e) => {
@@ -13,10 +19,11 @@ const ExcelButton = () => {
       const sheetName = workbook.SheetNames[0];
       const sheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(sheet);
-    //   console.log(jsonData);
-      jsonData.forEach((item) => {
-        console.log(item);
-      });
+      dispatch(importNhanViens(jsonData))
+      console.log(jsonData);
+      // jsonData.forEach((item) => {
+      //   console.log(item);
+      // });
     };
 
     reader.readAsBinaryString(file);

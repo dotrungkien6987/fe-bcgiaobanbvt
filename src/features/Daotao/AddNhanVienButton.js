@@ -19,7 +19,7 @@ function AddNhanVienButton() {
         startIcon={<AddIcon />}
         onClick={handleThemMoi}
       >
-        Thêm mới
+        Thêm 
       </Button>
 
       <ThongTinNhanVien
