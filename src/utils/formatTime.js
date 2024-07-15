@@ -22,6 +22,7 @@ export function fToNow(date) {
     addSuffix: true,
   });
 }
+
 export function formatDateTime(isoString) {
   const dateTime = new Date(isoString);
 
@@ -46,6 +47,7 @@ export function formatDateTime(isoString) {
 function addLeadingZero(value) {
   return value < 10 ? `0${value}` : value;
 }
+
 export  function formatTimeFromISOString(isoString) {
   const dateObject = new Date(isoString);
   const hours = addLeadingZero(dateObject.getHours());
@@ -64,3 +66,4 @@ export function formatDate_getDate(inputDate) {
   // Kết hợp lại theo format ngày/tháng/năm
   return `${day}/${month}/${year}`;
 }
+
