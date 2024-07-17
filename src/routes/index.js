@@ -35,6 +35,8 @@ import MainLayoutAble from "layout/MainLayout";
 import ThemeProvider from "theme";
 import ThemeCustomization from "theme/index1";
 import NhanVienList from "features/Daotao/NhanVienList";
+import DataFixTable from "features/Daotao/DataFixTable";
+import NhomHinhThucTable from "features/Daotao/NhomHinhThucTable";
 function Router() {
   return (
     <div>
@@ -89,7 +91,7 @@ function Router() {
           <Route path="/datagrid" element={<DanhSachSuCoDataGridPage />} />
           <Route path="/baocaosuco" element={<BaoCaoSuCoYKhoaPage />} />
           <Route path="/kienadmin" element={<SupperAdminPage />} />
-          <Route path="/daotao" element={<DaoTaoPage />} />
+          <Route path="/daotao" element={<DataFixTable />} />
           
           <Route path="/hocvien" element={<QuanLyHocVienPage />} />
         </Route>
@@ -114,6 +116,8 @@ function Router() {
           <Route path="/dev" element={<SupperAdminPage />} />
           <Route path="/test" element={<Test />} />
           <Route path="/nhanvien" element={<NhanVienList />} />
+          <Route path="/datafix/:field" element={<DataFixTable />} />
+          <Route path="/nhomhinhthuc" element={<NhomHinhThucTable />} />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
       </Routes>

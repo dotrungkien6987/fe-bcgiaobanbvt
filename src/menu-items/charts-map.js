@@ -19,19 +19,19 @@ const chartsMap = {
   type: 'group',
   children: [
     {
-      id: 'react-chart',
+      id: 'daotaonoivien',
       title: 'Đào tạo nội viện',
       type: 'collapse',
       icon: icons.chart,
       children: [
         {
-          id: 'apexchart',
+          id: 'danhsachnoivien',
           title: 'Danh sách cán bộ',
           type: 'item',
           url: '/nhanvien'
         },
         {
-          id: 'org-chart',
+          id: 'khoadaotaonoivien',
           title: 'Khóa đào tạo',
           type: 'item',
           url: '/test'
@@ -39,19 +39,19 @@ const chartsMap = {
       ]
     },
     {
-      id: 'react-chart',
+      id: 'daotaongoaivien',
       title: 'Đào tạo ngoại viện',
       type: 'collapse',
       icon: icons.chart,
       children: [
         {
-          id: 'apexchart',
+          id: 'hocvienngoaivien',
           title: 'Danh sách học viên',
           type: 'item',
           url: '/charts/apexchart'
         },
         {
-          id: 'org-chart',
+          id: '123',
           title: 'FormattedMessage',
           type: 'item',
           url: '/charts/org-chart'
@@ -59,28 +59,64 @@ const chartsMap = {
       ]
     },
     {
-      id: 'react-chart',
+      id: 'danhmucdaotao',
       title: 'Cấu hình danh mục đào tạo',
       type: 'collapse',
       icon: icons.chart,
       children: [
         {
-          id: 'apexchart',
-          title: 'Đơn vị quy đổi',
-          type: 'item',
-          url: '/charts/apexchart'
-        },
-        {
-          id: 'org-chart',
-          title: 'Vai trò',
-          type: 'item',
-          url: '/charts/org-chart'
-        },
-        {
-          id: 'org-chart',
+          id: 'NhomHinhThuc',
           title: 'Nhóm hình thức cập nhật',
           type: 'item',
-          url: '/charts/org-chart'
+          url: '/nhomhinhthuc'
+        },
+        {
+          id: 'HinhThucCapNhat',
+          title: 'Hình thức cập nhật',
+          type: 'item',
+          url: '/hinhthuc'
+        },
+        {
+          id: 'DonVi',
+          title: 'Đơn vị quy đổi',
+          type: 'item',
+          url: '/datafix/DonVi'
+        },
+        {
+          id: 'VaiTro',
+          title: 'Vai trò',
+          type: 'item',
+          url: '/datafix/VaiTro'
+        },
+        {
+          id: 'ChucDanh',
+          title: 'Chức danh',
+          type: 'item',
+          url: '/datafix/ChucDanh'
+        },
+        {
+          id: 'ChucVu',
+          title: 'Chức vụ',
+          type: 'item',
+          url: '/datafix/ChucVu'
+        },
+        {
+          id: 'TrinhDoChuyenMon',
+          title: 'Trình độ chuyên môn',
+          type: 'item',
+          url: '/datafix/TrinhDoChuyenMon'
+        },
+        {
+          id: 'NguonKinhPhi',
+          title: 'Nguồn kinh phí',
+          type: 'item',
+          url: '/datafix/NguonKinhPhi'
+        },
+        {
+          id: 'NoiDaoTao',
+          title: 'Nơi đào tạo',
+          type: 'item',
+          url: '/datafix/NoiDaoTao'
         },
       ]
     }

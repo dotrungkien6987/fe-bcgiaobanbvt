@@ -60,6 +60,7 @@ function UserInsertForm({ open, handleClose, handleSave, user, handleChange }) {
   const [isEditing, setIsEditing] = useState(false); // Biến để xác định form đang ở chế độ thêm mới hay chỉnh sửa
 
   useEffect(() => {
+    console.log("userKien", user);
     if (user && user._id) {
       setIsEditing(true); // Nếu có user._id, chúng ta đang chỉnh sửa
     } else {

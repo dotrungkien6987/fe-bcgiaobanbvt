@@ -10,7 +10,16 @@ const initialState = {
   nhanvienCurrent:{},
 
   nhanviens: [],
-  datafix:{}
+  datafix:{},
+  VaiTro: [],
+  ChucDanh:[],
+  ChucVu:[],
+  TrinhDoChuyenMon:[],  
+  NguonKinhPhi:[],
+  NoiDaoTao:[],
+  DonVi:[],
+  NhomHinhThucCapNhat:[],
+  HinhThucCapNhat:[],
 };
 
 const slice = createSlice({
@@ -63,6 +72,29 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
      state.datafix = action.payload;
+     state.VaiTro = action.payload.VaiTro;
+     state.DonVi = action.payload.DonVi;
+     state.ChucDanh = action.payload.ChucDanh;
+     state.ChucVu = action.payload.ChucVu;
+     state.TrinhDoChuyenMon = action.payload.TrinhDoChuyenMon;
+     state.NguonKinhPhi = action.payload.NguonKinhPhi;
+     state.NoiDaoTao = action.payload.NoiDaoTao;
+     state.NhomHinhThucCapNhat = action.payload.NhomHinhThucCapNhat;
+     state.HinhThucCapNhat = action.payload.NhomHinhThucCapNhat;
+    },
+    updateOrInsertDatafixSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+     state.datafix = action.payload;
+     state.VaiTro = action.payload.VaiTro;
+     state.DonVi = action.payload.DonVi;
+     state.ChucDanh = action.payload.ChucDanh;
+     state.ChucVu = action.payload.ChucVu;
+     state.TrinhDoChuyenMon = action.payload.TrinhDoChuyenMon;
+     state.NguonKinhPhi = action.payload.NguonKinhPhi;
+     state.NoiDaoTao = action.payload.NoiDaoTao;
+     state.NhomHinhThucCapNhat = action.payload.NhomHinhThucCapNhat;
+     state.HinhThucCapNhat = action.payload.NhomHinhThucCapNhat;
     },
     importNhanViensSuccess(state, action) {
       state.isLoading = false;
@@ -161,6 +193,20 @@ export const importNhanViens = (jsonData) => async (dispatch) => {
     dispatch(slice.actions.importNhanViensSuccess(response.data.data));
     dispatch(getAllNhanVien());
     toast.success("Import thành công");
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+export const updateOrInsertDatafix = (datafix) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+   
+    const response = await apiService.post(`datafix/insertOrUpdate`,{datafix} );
+    // console.log('datafix in update',response.data.data.datafixUpdate)
+    dispatch(slice.actions.updateOrInsertDatafixSuccess(response.data.data.datafixUpdate));
+    toast.success("Cập nhật  thành công");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);

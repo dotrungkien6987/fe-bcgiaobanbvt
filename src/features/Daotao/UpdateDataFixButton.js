@@ -6,15 +6,12 @@ import { Edit } from "iconsax-react";
 import { Delete } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { setIsOpenUpdateNhanVien, setNhanVienCurent } from "features/NhanVien/nhanvienSlice";
-function UpdateNhanVienButton({nhanvien}) {
+import DataFixForm from "./DataFixForm";
+function UpdateDataFixButton({datafixField="DonVi",datafixTitle='Đơn vị',index}) {
   
   const [openForm,setOpenForm] =useState(false)
   const handleUpdate = () => {
-    // dispatch(setNhanVienCurent(nhanvien))
-    // dispatch(setIsOpenUpdateNhanVien(true))
-    
-    // console.log('nhanvien update buttton',nhanvien)
-    // console.log('nhanvien update curent buttton',nhanvienCurrent)
+   
 setOpenForm(true)
   };
   return (
@@ -24,13 +21,15 @@ setOpenForm(true)
           <Edit />
         </IconButton>
       </Tooltip>
-      <ThongTinNhanVien
-        open={openForm}
-        handleClose={()=>setOpenForm(false)}
-        nhanvien={nhanvien}
+      <DataFixForm
+      open ={openForm}
+      handleClose={()=>setOpenForm(false)}
+      datafixField={datafixField}
+      datafixTitle={datafixTitle}
+      index={index}
       />
     </div>
   );
 }
 
-export default UpdateNhanVienButton;
+export default UpdateDataFixButton;

@@ -26,6 +26,7 @@ import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 import dayjs from "dayjs";
 
+
 const yupSchema = Yup.object().shape({
   Ten: Yup.string().required("Bắt buộc nhập UserName"),
   TinChiBanDau:Yup.number().typeError("Bạn phải nhập 1 số"),
@@ -41,7 +42,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
   const { khoas } = useSelector((state) => state.baocaongay);
   const dispatch = useDispatch();
   useEffect(() => {
-    // if(khoas&& khoas.length>0) return;
+    if(khoas&& khoas.length>0) return;
     dispatch(getKhoas());
   }, []);
   const methods = useForm({
@@ -70,7 +71,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
   } = methods;
 
   useEffect(() => {
-    
+    console.log('nhanvien',nhanvien)
     // Kiểm tra xem `nhanvien` có tồn tại và form đang ở chế độ cập nhật không
     if (nhanvien && nhanvien._id&&nhanvien._id!==0) {
       // Cập nhật giá trị mặc định cho form bằng thông tin của `nhanvien`
@@ -130,7 +131,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
     >
       <DialogTitle id="form-dialog-title">Thông tin cán bộ</DialogTitle>
       <DialogContent>
-        <Card>
+        <Card sx={{ p: 3 }}>
           <FormProvider methods={methods} onSubmit={handleSubmit(onSubmitData)}>
             <Stack spacing={1}>
               <FAutocomplete
