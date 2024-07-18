@@ -9,6 +9,7 @@ import themeslice from "../features/Theme/themeslice";
 import daotaoSlice from "../features/Daotao/daotaoSlice";
 import nhanvienSlice from "features/NhanVien/nhanvienSlice";
 import menuSlice from "features/Menu/menuSlice";
+import hinhthuccapnhatSlice from "../features/NhanVien/hinhthuccapnhatSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -21,6 +22,7 @@ const rootReducer = {
   mytheme: themeslice,
   daotao: daotaoSlice,
   nhanvien:nhanvienSlice,
+  hinhthuccapnhat:hinhthuccapnhatSlice,
   menu:menuSlice,
 };
 

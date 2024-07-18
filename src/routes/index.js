@@ -37,6 +37,7 @@ import ThemeCustomization from "theme/index1";
 import NhanVienList from "features/Daotao/NhanVienList";
 import DataFixTable from "features/Daotao/DataFixTable";
 import NhomHinhThucTable from "features/Daotao/NhomHinhThucTable";
+import HinhThucTable from "features/Daotao/HinhThucTable";
 function Router() {
   return (
     <div>
@@ -118,6 +119,7 @@ function Router() {
           <Route path="/nhanvien" element={<NhanVienList />} />
           <Route path="/datafix/:field" element={<DataFixTable />} />
           <Route path="/nhomhinhthuc" element={<NhomHinhThucTable />} />
+          <Route path="/hinhthuc" element={<HinhThucTable />} />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
       </Routes>

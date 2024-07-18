@@ -80,7 +80,7 @@ const slice = createSlice({
      state.NguonKinhPhi = action.payload.NguonKinhPhi;
      state.NoiDaoTao = action.payload.NoiDaoTao;
      state.NhomHinhThucCapNhat = action.payload.NhomHinhThucCapNhat;
-     state.HinhThucCapNhat = action.payload.NhomHinhThucCapNhat;
+     
     },
     updateOrInsertDatafixSuccess(state, action) {
       state.isLoading = false;
@@ -94,7 +94,7 @@ const slice = createSlice({
      state.NguonKinhPhi = action.payload.NguonKinhPhi;
      state.NoiDaoTao = action.payload.NoiDaoTao;
      state.NhomHinhThucCapNhat = action.payload.NhomHinhThucCapNhat;
-     state.HinhThucCapNhat = action.payload.NhomHinhThucCapNhat;
+     
     },
     importNhanViensSuccess(state, action) {
       state.isLoading = false;
