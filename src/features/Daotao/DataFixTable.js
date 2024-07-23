@@ -22,6 +22,7 @@ import AddDataFixButton from "./AddDataFixButton";
 import DeleteDataFixButton from "./DeleteDataFixButton";
 import UpdateDataFixButton from "./UpdateDataFixButton";
 import { useParams } from "react-router-dom";
+import { el } from "date-fns/locale";
 
 function DataFixTable() {
   const params = useParams();
@@ -39,6 +40,9 @@ function DataFixTable() {
     NguonKinhPhi,
     NoiDaoTao,
     DonVi,
+    HinhThucDaoTao,
+DanToc,
+PhamViHanhNghe,
   } = useSelector((state) => state.nhanvien);
 
   const data = useMemo(() => {
@@ -56,7 +60,14 @@ function DataFixTable() {
       return NguonKinhPhi;
     } else if (name === "NoiDaoTao") {
       return NoiDaoTao;
+    } else if (name === "HinhThucDaoTao") {
+      return HinhThucDaoTao;
+    } else if (name === "DanToc") {
+      return DanToc;
+    } else if (name === "PhamViHanhNghe") {
+      return PhamViHanhNghe;
     }
+
     // Thêm các điều kiện khác nếu cần
     else {
       return []; // Trả về mảng rỗng hoặc giá trị mặc định nếu không khớp
@@ -69,6 +80,9 @@ function DataFixTable() {
     NguonKinhPhi,
     NoiDaoTao,
     DonVi,
+    HinhThucDaoTao,
+    DanToc,
+    PhamViHanhNghe,
     name,
   ]); // Thêm name vào mảng phụ thuộc
 
@@ -87,7 +101,13 @@ function DataFixTable() {
       return "Nguồn kinh phí";
     } else if (type === "NoiDaoTao") {
       return "Nơi đào tạo";
-    }
+    } else if (type === "HinhThucDaoTao") {
+      return "Hình thức đào tạo";
+    } else if (type === "DanToc") {
+      return "Dân tộc";
+    } else if (type === "PhamViHanhNghe") {
+      return "Phạm vi hành nghề";
+    } 
     // Thêm các điều kiện khác nếu cần
     else {
       return ""; // Trả về mảng rỗng hoặc giá trị mặc định nếu không khớp

@@ -34,7 +34,7 @@ const chartsMap = {
           id: 'khoadaotaonoivien',
           title: 'Khóa đào tạo',
           type: 'item',
-          url: '/test'
+          url: '/lopdaotaos'
         }
       ]
     },
@@ -117,6 +117,24 @@ const chartsMap = {
           title: 'Nơi đào tạo',
           type: 'item',
           url: '/datafix/NoiDaoTao'
+        },
+        {
+          id: 'HinhThucDaoTao',
+          title: 'Hình thức đào tạo',
+          type: 'item',
+          url: '/datafix/HinhThucDaoTao'
+        },
+        {
+          id: 'DanToc',
+          title: 'Dân tộc',
+          type: 'item',
+          url: '/datafix/DanToc'
+        },
+        {
+          id: 'PhamViHanhNghe',
+          title: 'Phạm Vi Hành Nghề',
+          type: 'item',
+          url: '/datafix/PhamViHanhNghe'
         },
       ]
     }

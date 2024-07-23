@@ -5,9 +5,8 @@ import { toast } from "react-toastify";
 const initialState = {
   isLoading: false,
   error: null,
-  danhsachcanbo: [],
-  danhsachkhoa: [],
-  datafix:{},
+  LopDaoTaos: [],
+ lopdaotaoCurrent:{},
 };
 
 const slice = createSlice({
@@ -17,80 +16,60 @@ const slice = createSlice({
     startLoading(state) {
       state.isLoading = true;
     },
-    endLoading(state) {
-      state.isLoading = false;
-    },
+    
     hasError(state, action) {
       state.isLoading = false;
       state.error = action.payload;
     },
-    getDanhSachCanBo(state, action) {
+    insertOneLopDaoTaoSuccess(state, action) {
       state.isLoading = false;
-      state.error = null;
-      state.danhsachcanbo = [...action.payload];
+      state.error = action.payload;
+      state.LopDaoTaos.unshift(action.payload);
     },
-    themCanBo(state, action) {
-      state.danhsachcanbo.push(action.payload);
-    },
-    suaCanBo(state, action) {
+   
+    getAllLopDaoTaoSuccess(state, action) {
       state.isLoading = false;
-      state.error = null;
-      state.danhsachcanbo = [
-        ...state.danhsachcanbo.filter(
-          (item) => item.MaCanBo !== action.payload.MaCanBo
-        ),
-        action.payload,
-      ];
+      state.error = action.payload;
+      state.LopDaoTaos= action.payload
     },
-    xoaCanBo(state, action) {
-      state.isLoading = false;
-      state.error = null;
-      state.danhsachcanbo = [
-        ...state.danhsachcanbo.filter(
-          (item) => item.MaCanBo !== action.payload.MaCanBo
-        ),
-      ];
-    },
-    getDanhSachKhoa(state, action) {
-      state.isLoading = false;
-      state.error = null;
-      state.danhsachkhoa = [...action.payload];
-    },
+   
   },
 });
 export default slice.reducer;
 
-export const fn_AddCanBo = (data) => async (dispatch) => {
-  try {
-    const response = await apiService.post("/daotao/thongtincanbo/add", data);
-    console.log(response.data);
-  } catch (error) {
-    dispatch(slice.hasError(error));
-    console.log(error);
-  }
-};
-
-export const fn_GetDanhSachCanBo = () => async (dispatch) => {
+export const insertOneLopDaoTao = (lopdaotao) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
-    const response = await apiService.get("/daotao/thongtincanbo");
-    dispatch(slice.actions.getDanhSachCanBo(response.data.data.data));
-    console.log(response.data.data.data);
+    const response = await apiService.post(`/lopdaotao`, lopdaotao);
+    
+    dispatch(slice.actions.insertOneLopDaoTaoSuccess(response.data.data));
+    toast.success("Thêm mới thành công");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
   }
 };
 
-export const fn_getDanhSachKhoa = () => async (dispatch) => {
+export const updateOneLopDaoTao = (lopdaotao) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
-    const response = await apiService.get("/khoa");
-    dispatch(slice.actions.getDanhSachKhoa(response.data.data.khoas));
-    console.log(response.data.data.khoas);
+    const response = await apiService.post(`/lopdaotao`, lopdaotao);
+    dispatch(slice.actions.insertOneLopDaoTaoSuccess(response.data.data));
+    toast.success("Thêm mới thành công");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
   }
 };
 
+export const getAllLopDaoTao = () => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    const response = await apiService.get("/lopdaotao");
+    console.log("LopDaoTaos",response.data)
+    dispatch(slice.actions.getAllLopDaoTaoSuccess(response.data.data.lopdaotaos));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};

@@ -129,7 +129,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         },
       }}
     >
-      <DialogTitle id="form-dialog-title">Thông tin cán bộ</DialogTitle>
+      <DialogTitle id="form-dialog-title">Thông tin lớp đào tạo</DialogTitle>
       <DialogContent>
         <Card sx={{ p: 3 }}>
           <FormProvider methods={methods} onSubmit={handleSubmit(onSubmitData)}>

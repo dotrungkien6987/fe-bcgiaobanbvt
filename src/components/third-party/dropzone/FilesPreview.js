@@ -5,7 +5,7 @@ import { useTheme } from '@mui/material/styles';
 import { List, ListItemText, ListItem } from '@mui/material';
 
 // project-imports
-import { DropzopType } from 'config';
+import { DropzopType } from 'configAble';
 import IconButton from 'components/@extended/IconButton';
 
 // utils

@@ -8,7 +8,7 @@ import { Box, Button, Stack } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 
 // project-imports
-import { DropzopType } from 'config';
+import { DropzopType } from 'configAble';
 import RejectionFiles from './RejectionFiles';
 import PlaceholderContent from './PlaceholderContent';
 import FilesPreview from './FilesPreview';

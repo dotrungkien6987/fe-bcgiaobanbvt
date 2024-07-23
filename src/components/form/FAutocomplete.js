@@ -11,7 +11,7 @@ function FAutocomplete({ name, children,options,displayField,label, ...other }) 
     render={({ field: { onChange, value }, fieldState: { error } }) => (
       <Autocomplete
         options={options}
-        getOptionLabel={(option) => option[displayField]}
+        getOptionLabel={(option) => displayField?option[displayField]:option}
         value={value}
         onChange={(event, newValue) => {
           onChange(newValue);

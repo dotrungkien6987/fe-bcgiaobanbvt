@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { Typography, Stack, CardMedia } from '@mui/material';
 
 // project-import
-import { DropzopType } from 'config';
+import { DropzopType } from 'configAble';
 
 // assets
 import { Camera } from 'iconsax-react';

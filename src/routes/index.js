@@ -38,6 +38,8 @@ import NhanVienList from "features/Daotao/NhanVienList";
 import DataFixTable from "features/Daotao/DataFixTable";
 import NhomHinhThucTable from "features/Daotao/NhomHinhThucTable";
 import HinhThucTable from "features/Daotao/HinhThucTable";
+import LopDaoTaoTable from "features/Daotao/LopDaoTaoTable";
+import LopDaoTaoForm from "features/Daotao/LopDaoTaoForm";
 function Router() {
   return (
     <div>
@@ -120,6 +122,8 @@ function Router() {
           <Route path="/datafix/:field" element={<DataFixTable />} />
           <Route path="/nhomhinhthuc" element={<NhomHinhThucTable />} />
           <Route path="/hinhthuc" element={<HinhThucTable />} />
+          <Route path="/lopdaotaos" element={<LopDaoTaoTable />} />
+          <Route path="/addlopdaotao" element={<LopDaoTaoForm />} />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
       </Routes>

@@ -67,6 +67,13 @@ function HinhThucTable() {
         disableGroupBy: true,
       },
       {
+        Header: "Loại",
+        Footer: "Loại",
+
+        accessor: "Loai",
+        disableGroupBy: true,
+      },
+      {
         Header: "Mã Hình thức cập nhật",
         Footer: "Mã Hình thức cập nhật",
 
