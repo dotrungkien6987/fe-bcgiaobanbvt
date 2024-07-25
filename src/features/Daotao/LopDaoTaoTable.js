@@ -11,6 +11,9 @@ import AddNhanVienButton from "./AddNhanVienButton";
 import ExcelButton from "components/ExcelButton";
 import { getAllLopDaoTao } from "./daotaoSlice";
 import AddLopDaoTao from "./AddLopDaoTao";
+import { Delete } from "@mui/icons-material";
+import DeleteLopDaoTaoButton from "./DeleteLopDaoTaoButton";
+import UpdateLopDaoTaoButton from "./UpdateLopDaoTaoButton";
 
 function LopDaoTaoTable() {
   const columns = useMemo(
@@ -28,8 +31,8 @@ function LopDaoTaoTable() {
             justifyContent="center"
             spacing={0}
           >
-            <UpdateNhanVienButton nhanvien={row.original} />
-            <DeleteNhanVienButton nhanvienID={row.original._id} />
+            <UpdateLopDaoTaoButton lopdaotaoID={row.original._id} />
+            <DeleteLopDaoTaoButton lopdaotaoID={row.original._id} />
           </Stack>
         ),
       },

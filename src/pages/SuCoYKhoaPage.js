@@ -5,12 +5,11 @@ import {
   FormControl,
   InputLabel,
   Stack,
-  Link,
+
   Card,
   Container,
   Grid,
-  TextField,
-  FormHelperText,
+  
   CardHeader,
   Typography,
   Box,
@@ -20,12 +19,12 @@ import {
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { Link as RouterLink, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
-  getDataBCNgay,
+ 
   getKhoas,
 } from "../features/BaoCaoNgay/baocaongaySlice";
 import useAuth from "../hooks/useAuth";
@@ -77,6 +76,7 @@ function SuCoYKhoaPage() {
   }, [dispatch]);
 
   useEffect(() => {
+    console.log("chay get One by ID",sucoId)
     dispatch(getOneById(sucoId));
   }, []);
   useEffect(() => {
@@ -214,9 +214,7 @@ function SuCoYKhoaPage() {
 
   const handleCapNhatDuLieu = (data) => {
     console.log("data", data);
-    console.log("ngayBC", ngayBaoCao);
-    console.log("ngaysinh", ngaySinh);
-    console.log("ngaysuco", ngaySuCo);
+    
     const baocaosuco = {
       ...baocaosucoCurent,
       ...data,

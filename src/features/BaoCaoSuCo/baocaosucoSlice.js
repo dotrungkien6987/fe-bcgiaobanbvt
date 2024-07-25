@@ -280,7 +280,7 @@ export const getOneById = (sucoId) => async (dispatch) => {
   if (sucoId) {
     dispatch(slice.actions.startLoading);
     try {
-      console.log("sucoid", sucoId);
+      console.log("sucoid in getonebyId in redux", sucoId);
       const response = await apiService.get(`/baocaosuco/${sucoId}`);
 
       dispatch(slice.actions.getOneByIdSuccess(response.data.data));

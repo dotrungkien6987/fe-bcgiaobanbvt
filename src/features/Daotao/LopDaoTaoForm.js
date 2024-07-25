@@ -26,12 +26,18 @@ import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 import dayjs from "dayjs";
 import MainCard from "components/MainCard";
-import { insertOneLopDaoTao, updateOneLopDaoTao } from "./daotaoSlice";
+import {
+  getOneLopDaoTaoByID,
+  insertOneLopDaoTao,
+  resetLopDaoTaoCurrent,
+  updateOneLopDaoTao,
+} from "./daotaoSlice";
 import MultiFileUpload from "components/third-party/dropzone/MultiFile";
 import DropzonePage from "forms/plugins/dropzone";
 import NhanVienList from "./NhanVienList";
 import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
+import { useParams } from "react-router-dom";
 
 const yupSchema = Yup.object().shape({
   MaHinhThucCapNhat: Yup.object({
@@ -40,17 +46,25 @@ const yupSchema = Yup.object().shape({
   Ten: Yup.string().required("Bắt buộc nhập tên lớp"),
   SoLuong: Yup.number().typeError("Bạn phải nhập 1 số"),
 
-  NgayBatDau: Yup.date().nullable().required("Bắt buộc chọn ngày sinh"),
-  NgayKetThuc: Yup.date().nullable().required("Bắt buộc chọn ngày sinh"),
+  NgayBatDau: Yup.date().nullable().required("Bắt buộc chọn ngày bắt đầu"),
+  NgayKetThuc: Yup.date().nullable().required("Bắt buộc chọn ngày kết thúc"),
 });
 
 function LopDaoTaoForm() {
+  const params = useParams();
+  const lopdaotaoID = params.lopdaotaoID;
   const { lopdaotaoCurrent } = useSelector((state) => state.daotao);
   const { HinhThucCapNhat } = useSelector((state) => state.hinhthuccapnhat);
   const { NoiDaoTao, NguonKinhPhi, HinhThucDaoTao } = useSelector(
     (state) => state.nhanvien
   );
-
+  const dispatch = useDispatch();
+  useEffect(() => {
+    if(lopdaotaoID)
+    
+    dispatch(getOneLopDaoTaoByID(lopdaotaoID))
+  //  else dispatch(resetLopDaoTaoCurrent())
+  },[]);
   useEffect(() => {
     if (HinhThucCapNhat.length === 0) {
       dispatch(getAllHinhThucCapNhat());
@@ -59,7 +73,6 @@ function LopDaoTaoForm() {
       dispatch(getDataFix());
     }
   }, []);
-  const dispatch = useDispatch();
 
   const methods = useForm({
     resolver: yupResolver(yupSchema),
@@ -93,9 +106,12 @@ function LopDaoTaoForm() {
       lopdaotaoCurrent._id &&
       lopdaotaoCurrent._id !== 0
     ) {
+      const hinhthuccapnhatCurent = HinhThucCapNhat.find(item=>item.Ma===lopdaotaoCurrent.MaHinhThucCapNhat)
+      
       // Cập nhật giá trị mặc định cho form bằng thông tin của `lopdaotaoCurrent`
       reset({
         ...lopdaotaoCurrent,
+        MaHinhThucCapNhat:hinhthuccapnhatCurent,
         // Đảm bảo rằng các trường như Ngày sinh được chuyển đổi đúng định dạng nếu cần
         NgayBatDau: lopdaotaoCurrent.NgayBatDau
           ? dayjs(lopdaotaoCurrent.NgayBatDau)
@@ -121,19 +137,22 @@ function LopDaoTaoForm() {
         NgayKetThuc: null,
       });
     }
-  }, [lopdaotaoCurrent]);
+  }, [lopdaotaoCurrent,HinhThucCapNhat]);
 
   const onSubmitData = (data) => {
     console.log("data form", data);
     const lopdaotaoData = {
+      ...lopdaotaoCurrent,
       ...data,
+      MaHinhThucCapNhat: data.MaHinhThucCapNhat.Ma,
       NgayBatDau: data.NgayBatDau ? data.NgayBatDau.toISOString() : null,
       NgayKetThuc: data.NgayKetThuc ? data.NgayKetThuc.toISOString() : null,
     };
-    if (lopdaotaoCurrent && lopdaotaoCurrent._id) {
-      dispatch(updateOneLopDaoTao(lopdaotaoCurrent._id, lopdaotaoData));
+    if (lopdaotaoData && lopdaotaoData._id) {
+      dispatch(updateOneLopDaoTao(lopdaotaoData));
     } else {
-      dispatch(insertOneLopDaoTao(lopdaotaoData));}
+      dispatch(insertOneLopDaoTao(lopdaotaoData));
+    }
   };
   return (
     <MainCard title="Thông tin lớp đào tạo">
@@ -213,12 +232,11 @@ function LopDaoTaoForm() {
               </Grid>
             </Grid>
           </Grid>
-          <Grid item xs={12} md={7}>
-            <DropzonePage />
-          </Grid>
+          <Grid item xs={12} md={7}></Grid>
         </Grid>
       </FormProvider>
-      <NhanVienList />
+      <DropzonePage />
+      {/* <NhanVienList /> */}
     </MainCard>
   );
 }

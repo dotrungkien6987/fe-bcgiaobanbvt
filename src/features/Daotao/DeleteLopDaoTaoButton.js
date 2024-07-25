@@ -1,25 +1,16 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Stack, Tooltip } from "@mui/material";
 import React, { useState } from "react";
-import AddIcon from "@mui/icons-material/Add";
-import ThongTinNhanVien from "./ThongTinNhanVien";
 
 import { Delete } from "@mui/icons-material";
-import { useDispatch, useSelector } from "react-redux";
-import { deleteOneNhanVien, updateOrInsertDatafix } from "features/NhanVien/nhanvienSlice";
-function DeleteDataFixButton({datafixField="DonVi",datafixTitle='Đơn vị',index}) {
-  const {datafix} =useSelector((state)=>state.nhanvien)
+import { useDispatch } from "react-redux";
+import { deleteOneLopDaoTao } from "./daotaoSlice";
+
+function DeleteLopDaoTaoButton({lopdaotaoID}) {
   const [openDelete, setOpenDelete] = useState(false);
 const dispatch =useDispatch()
-  const handleDeleteDataFixOnDB = () => {
-    
-    const updatedArray = datafix[datafixField].filter((item, idx) => item.index !== index);
-
-    const datafixUpdate = {
-      ...datafix,
-      [datafixField]: updatedArray,
-    };
-
-    dispatch(updateOrInsertDatafix(datafixUpdate));
+  const handleDeleteSuCoOnDB = () => {
+   
+dispatch(deleteOneLopDaoTao(lopdaotaoID))
 setOpenDelete(false)
     console.log("delete");
   };
@@ -42,7 +33,7 @@ setOpenDelete(false)
         <DialogTitle id="alert-dialog-title">{"Cảnh báo!"}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-           {`Bạn có chắc muốn xóa ${datafixTitle} này?`}
+            Bạn có chắc muốn xóa học viên này?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -55,7 +46,7 @@ setOpenDelete(false)
           </Button>
           <Button
             variant="contained"
-            onClick={handleDeleteDataFixOnDB}
+            onClick={handleDeleteSuCoOnDB}
             color="error"
             autoFocus
           >
@@ -67,4 +58,4 @@ setOpenDelete(false)
   );
 }
 
-export default DeleteDataFixButton;
+export default DeleteLopDaoTaoButton;

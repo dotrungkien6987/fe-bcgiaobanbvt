@@ -123,7 +123,8 @@ function Router() {
           <Route path="/nhomhinhthuc" element={<NhomHinhThucTable />} />
           <Route path="/hinhthuc" element={<HinhThucTable />} />
           <Route path="/lopdaotaos" element={<LopDaoTaoTable />} />
-          <Route path="/addlopdaotao" element={<LopDaoTaoForm />} />
+          <Route path="/lopdaotao/:lopdaotaoID" element={<LopDaoTaoForm />} />
+          <Route path="/lopdaotao" element={<LopDaoTaoForm />} />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
       </Routes>
