@@ -9,39 +9,19 @@ import {
   TableHead,
   TableRow,
   Stack,
-  Box,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 
 // third-party
-import {
-  useTable,
-  useSortBy,
-  useGlobalFilter,
-  useFilters,
-  usePagination,
-  useResizeColumns,
-  useBlockLayout,
-} from "react-table";
+import { useTable, useSortBy, useGlobalFilter } from "react-table";
 import { useSticky } from "react-table-sticky";
 
 // project-imports
 import MainCard from "components/MainCard";
 import ScrollX from "components/ScrollX";
-import {
-  CSVExport,
-  HeaderSort,
-  HidingSelect,
-  TablePagination,
-} from "components/third-party/ReactTable";
+import { CSVExport, HeaderSort, HidingSelect } from "components/third-party/ReactTable";
 import { ThemeMode } from "configAble";
-import {
-  DefaultColumnFilter,
-  GlobalFilter,
-  renderFilterTypes,
-} from "utils/react-table";
-import AddNhanVienButton from "features/Daotao/AddNhanVienButton";
-// import { ThemeMode } from 'config';
+import { GlobalFilter } from "utils/react-table";
 
 // ==============================|| REACT TABLE ||============================== //
 
@@ -49,67 +29,32 @@ import AddNhanVienButton from "features/Daotao/AddNhanVienButton";
 const TableWrapper = styled("div")(() => ({
   ".header": {
     position: "sticky",
-    zIndex: 3,
+    zIndex: 1,
     width: "fit-content",
-  },
-  ".filter": {
-    position: "sticky",
-    zIndex: 3,
-    width: "fit-content",
-    top: 56, // Adjust the value of 'top' as needed to match the height of the header
   },
   "& th[data-sticky-td]": {
     position: "sticky",
-    zIndex: "2 !important",
-  },
-  "& td[data-sticky-td]": {
-    position: "sticky",
-    zIndex: "1 !important",
+    zIndex: "5 !important",
   },
 }));
 
-function ReactTable({ columns, data, getHeaderProps, title }) {
-  const filterTypes = useMemo(() => renderFilterTypes, []);
+function ReactTable({ columns, data, getHeaderProps, title,additionalComponent }) {
   const defaultColumn = useMemo(
     () => ({
       minWidth: 50,
       width: 100,
       maxWidth: 400,
-      Filter: DefaultColumnFilter,
+      
     }),
     []
   );
-  const initialState = useMemo(
-    () => ({
-      filters: [{ id: "status", value: "" }],
-      hiddenColumns: ["SoDienThoai"],
-      // columnOrder: [
-      //   "selection",
-      //   "avatar",
-      //   "lastName",
-      //   "firstName",
-      //   "email",
-      //   "age",
-      //   "visits",
-      //   "status",
-      //   "progress",
-      // ],
-      pageIndex: 0,
-      pageSize: 10,
-    }),
-    []
-  );
-
   const theme = useTheme();
   const {
     getTableProps,
     getTableBodyProps,
     headerGroups,
     rows,
-    page,
     prepareRow,
-    gotoPage,
-    setPageSize,
     setHiddenColumns,
     allColumns,
     state: {
@@ -122,29 +67,18 @@ function ReactTable({ columns, data, getHeaderProps, title }) {
     },
     preGlobalFilteredRows,
     setGlobalFilter,
+    selectedFlatRows,
   } = useTable(
     {
       columns,
       data,
       defaultColumn,
-      initialState,
-      filterTypes,
+      
     },
-    useFilters,
     useGlobalFilter,
-    useSticky,
     useSortBy,
-    usePagination,
-    // useBlockLayout,
-    // useResizeColumns,
+    useSticky
   );
-  let headers = [];
-  allColumns.map((item) => {
-    if (!hiddenColumns?.includes(item.id)) {
-      headers.push({ label: item.Header, key: item.id });
-    }
-    return item;
-  });
 
   const sortingRow = rows.slice(0, 19);
   let sortedData = sortingRow.map((d) => d.original);
@@ -152,36 +86,20 @@ function ReactTable({ columns, data, getHeaderProps, title }) {
     (key) =>
       sortedData[Number(key)] === undefined && delete sortedData[Number(key)]
   );
-
+  let headers = [];
+  allColumns.map((item) => {
+    if (!hiddenColumns?.includes(item.id) && item.id !== 'selection' && item.id !== 'edit') {
+      headers.push({ label: typeof item.Header === 'string' ? item.Header : '#', key: item.id });
+    }
+    return item;
+  });
   return (
-    <Stack spacing={1}>
-      <Stack
-        direction="row"
-        justifyContent="flex-end"
-        sx={{ p: 1, pb: 0 }}
-      >
-        <GlobalFilter
-          preGlobalFilteredRows={preGlobalFilteredRows}
-          globalFilter={globalFilter}
-          setGlobalFilter={setGlobalFilter}
-        />
-
-        <Box sx={{ p: 2 }}>
-          <TablePagination
-            gotoPage={gotoPage}
-            rows={rows}
-            setPageSize={setPageSize}
-            pageIndex={pageIndex}
-            pageSize={pageSize}
-          />
-        </Box>
-
-        <HidingSelect
-          hiddenColumns={hiddenColumns}
-          setHiddenColumns={setHiddenColumns}
-          allColumns={allColumns}
-        />
-         <CSVExport
+    <Stack spacing={10}>
+      <MainCard
+        title={title}
+        content={false}
+        secondary={
+          <CSVExport
             data={sortedData}
             filename={
               title === "Sticky Header"
@@ -189,60 +107,57 @@ function ReactTable({ columns, data, getHeaderProps, title }) {
                 : "sticky-column-table.csv"
             }
           />
-           <AddNhanVienButton />
-      </Stack>
-
-    
+        }
+      >
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          sx={{ p: 2, pb: 0 }}
+        >
+          <GlobalFilter
+            preGlobalFilteredRows={preGlobalFilteredRows}
+            globalFilter={globalFilter}
+            setGlobalFilter={setGlobalFilter}
+            size="small"
+          />
+          <Stack direction="row" spacing={2}>
+            {/* <HidingSelect
+              hiddenColumns={hiddenColumns}
+              setHiddenColumns={setHiddenColumns}
+              allColumns={allColumns}
+            /> */}
+            {/* <CSVExport
+              data={
+                selectedFlatRows.length > 0
+                  ? selectedFlatRows.map((d) => d.original)
+                  : data
+              }
+              filename={"umbrella-table.csv"}
+              headers={headers}
+            /> */}
+            {additionalComponent && additionalComponent}
+          </Stack>
+        </Stack>
         <ScrollX sx={{ height: 500 }}>
           <TableWrapper>
             <Table {...getTableProps()} stickyHeader>
-              <TableHead sx={{ borderTopWidth: 2 }}>
+              <TableHead>
                 {headerGroups.map((headerGroup) => (
                   <TableRow
-                    key={headerGroup.id}
+                    key={headerGroup}
                     {...headerGroup.getHeaderGroupProps()}
                   >
                     {headerGroup.headers.map((column) => {
-                      const stickyLeft =
-                        column.sticky === "left"
-                          ? { position: "sticky", left: 0, zIndex: 2 }
-                          : {};
                       return (
                         <TableCell
-                          key={column.id}
-                          sx={{ ...stickyLeft, top: 0 }}
+                          key={column}
+                          sx={{ position: "sticky !important" }}
                           {...column.getHeaderProps([
                             { className: column.className },
                             getHeaderProps(column),
                           ])}
                         >
                           <HeaderSort column={column} />
-                          {/* {column.render("Header")} */}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-                {headerGroups.map((group) => (
-                  <TableRow
-                    key={group.id}
-                    className="filter"
-                    {...group.getHeaderGroupProps()}
-                  >
-                    {group.headers.map((column) => {
-                      const stickyLeft =
-                        column.sticky === "left"
-                          ? { position: "sticky", left: 0, zIndex: 2 }
-                          : {};
-                      return (
-                        <TableCell
-                          key={column.id}
-                          sx={{ ...stickyLeft, top: 56, zIndex: 3 }} // Adjust the value of 'top' as needed
-                          {...column.getHeaderProps([
-                            { className: column.className },
-                          ])}
-                        >
-                          {column.canFilter ? column.render("Filter") : null}
                         </TableCell>
                       );
                     })}
@@ -250,20 +165,15 @@ function ReactTable({ columns, data, getHeaderProps, title }) {
                 ))}
               </TableHead>
               <TableBody {...getTableBodyProps()}>
-                {page.map((row) => {
+                {sortingRow.map((row) => {
                   prepareRow(row);
                   return (
-                    <TableRow key={row.id} {...row.getRowProps()}>
+                    <TableRow key={row} {...row.getRowProps()}>
                       {row.cells.map((cell) => {
-                        const stickyLeft =
-                          cell.column.sticky === "left"
-                            ? { position: "sticky", left: 0, zIndex: 1 }
-                            : {};
                         return (
                           <TableCell
-                            key={cell.id}
+                            key={cell}
                             sx={{
-                              ...stickyLeft,
                               bgcolor:
                                 theme.palette.mode === ThemeMode.DARK
                                   ? "secondary.100"
@@ -284,7 +194,7 @@ function ReactTable({ columns, data, getHeaderProps, title }) {
             </Table>
           </TableWrapper>
         </ScrollX>
-      
+      </MainCard>
     </Stack>
   );
 }
@@ -298,12 +208,13 @@ ReactTable.propTypes = {
 
 // ==============================|| REACT TABLE - STICKY ||============================== //
 
-const StickyTable = ({ columns, data, title }) => {
+const StickyTable = ({ columns, data, title,additionalComponent }) => {
   return (
     <ReactTable
       columns={columns}
       data={data}
       title={title}
+      additionalComponent={additionalComponent}
       getHeaderProps={(column) => column.getSortByToggleProps()}
     />
   );

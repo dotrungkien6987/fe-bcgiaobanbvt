@@ -2,13 +2,17 @@ import { createSlice } from "@reduxjs/toolkit";
 import apiService from "../../app/apiService";
 import { toast } from "react-toastify";
 import QuanLyHocVienPage from "pages/QuanLyHocVienPage";
+import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
 
 const initialState = {
   isLoading: false,
   error: null,
   LopDaoTaos: [],
   lopdaotaoCurrent: {},
-  hocvienCurrents:[],
+  vaitroquydoiCurents: [],
+  hocvienCurrents: [],
+  vaitroCurrent: {},
+  lopdaotaonhanvienCurrent: [],
 };
 
 const slice = createSlice({
@@ -26,17 +30,20 @@ const slice = createSlice({
     insertOneLopDaoTaoSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.LopDaoTaos.unshift(action.payload);
-      state.lopdaotaoCurrent = action.payload;
-      
+      state.LopDaoTaos.unshift(action.payload.data);
+      state.lopdaotaoCurrent = action.payload.data;
+      state.vaitroquydoiCurents = action.payload.vaitroquydoi;
+      state.vaitroCurrent = state.vaitroquydoiCurents[0]?.VaiTro || {};
     },
     updateOneLopDaoTaoSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
       state.LopDaoTaos = state.LopDaoTaos.map((item) =>
-        item._id === action.payload._id ? action.payload : item
+        item._id === action.payload.data._id ? action.payload.data : item
       );
-      state.lopdaotaoCurrent = action.payload;
+      state.lopdaotaoCurrent = action.payload.data;
+      state.vaitroquydoiCurents = action.payload.vaitroquydoi;
+      state.vaitroCurrent = state.vaitroquydoiCurents[0]?.VaiTro || {};
     },
     deleteOneLopDaoTaoSuccess(state, action) {
       state.isLoading = false;
@@ -59,36 +66,76 @@ const slice = createSlice({
     getOneLopDaoTaoByIDSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.lopdaotaoCurrent = action.payload;
+      state.lopdaotaoCurrent = action.payload.data;
+      state.vaitroquydoiCurents = action.payload.HinhThucCapNhat.find(
+        (item) => item.Ma === state.lopdaotaoCurrent.MaHinhThucCapNhat
+      )?.VaiTroQuyDoi || [];
+      state.vaitroCurrent = state.vaitroquydoiCurents[0]?.VaiTro || {};
+    },
+    setVaiTroCurrentSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.vaitroCurrent = action.payload;
+    },
+    addselectedHocVienSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      const hocviens = action.payload.map((item) => ({...item, VaiTro: state.vaitroCurrent?state.vaitroCurrent:''}));
+      state.hocvienCurrents = state.hocvienCurrents.concat(hocviens);
+    },
+    removeHocVienFromHocVienCurrentsSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.hocvienCurrents = state.hocvienCurrents.filter(item=>item._id !== action.payload);
+    },
+    insertOrUpdateLopDaoTaoNhanVienSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      
     },
   },
 });
 export default slice.reducer;
 
-export const insertOneLopDaoTao = (lopdaotao) => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
-  try {
-    const response = await apiService.post(`/lopdaotao`, lopdaotao);
-    console.log("response kien", response.data.data);
-    dispatch(slice.actions.insertOneLopDaoTaoSuccess(response.data.data));
-    toast.success("Thêm mới thành công");
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message);
-  }
-};
+export const insertOneLopDaoTao =
+  ({ lopdaotaoData, vaitroquydoi }) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      const response = await apiService.post(`/lopdaotao`, { lopdaotaoData });
+   
+      dispatch(
+        slice.actions.insertOneLopDaoTaoSuccess({
+          data: response.data.data,
+          vaitroquydoi,
+        })
+      );
+      toast.success("Thêm mới thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
 
-export const updateOneLopDaoTao = (lopdaotao) => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
-  try {
-    const response = await apiService.put(`/lopdaotao`, { lopdaotao });
-    dispatch(slice.actions.updateOneLopDaoTaoSuccess(response.data.data));
-    toast.success("Cập nhật thành công");
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message);
-  }
-};
+export const updateOneLopDaoTao =
+  ({ lopdaotaoData, vaitroquydoi }) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      
+      const response = await apiService.put(`/lopdaotao`, lopdaotaoData);
+      dispatch(
+        slice.actions.updateOneLopDaoTaoSuccess({
+          data: response.data.data,
+          vaitroquydoi,
+        })
+      );
+      toast.success("Cập nhật thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
 
 export const deleteOneLopDaoTao = (lopdaotaoID) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
@@ -102,18 +149,28 @@ export const deleteOneLopDaoTao = (lopdaotaoID) => async (dispatch) => {
   }
 };
 
-export const getOneLopDaoTaoByID = (lopdaotaoID) => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
-  try {
-    const response = await apiService.get(`/lopdaotao/${lopdaotaoID}`);
-
-    dispatch(slice.actions.getOneLopDaoTaoByIDSuccess(response.data.data));
-
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message);
-  }
-};
+export const getOneLopDaoTaoByID =
+  (lopdaotaoID) => async (dispatch, getState) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      await Promise.all([
+        dispatch(getAllHinhThucCapNhat()), // Gọi hành động để lấy tất cả HinhThucCapNhat
+        apiService.get(`/lopdaotao/${lopdaotaoID}`) // Gọi API để lấy thông tin LopDaoTao
+      ]);
+      const response = await apiService.get(`/lopdaotao/${lopdaotaoID}`);
+      const HinhThucCapNhat = await getState().hinhthuccapnhat.HinhThucCapNhat;
+      console.log("HinhThucCapNhat", HinhThucCapNhat);
+      dispatch(
+        slice.actions.getOneLopDaoTaoByIDSuccess({
+          data: response.data.data,
+          HinhThucCapNhat,
+        })
+      );
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
 export const resetLopDaoTaoCurrent = () => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
@@ -137,3 +194,50 @@ export const getAllLopDaoTao = () => async (dispatch) => {
     toast.error(error.message);
   }
 };
+
+export const setVaiTroCurrent = (vaitro) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    dispatch(slice.actions.setVaiTroCurrentSuccess(vaitro));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+export const addselectedHocVien = (hocviens) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    dispatch(slice.actions.addselectedHocVienSuccess(hocviens));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+export const removeHocVienFromHocVienCurrents = (id) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    dispatch(slice.actions.removeHocVienFromHocVienCurrentsSuccess(id));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+export const insertOrUpdateLopDaoTaoNhanVien =
+  ({ lopdaotaonhanvienData,lopdaotaoID}) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      const response = await apiService.post(`/lopdaotaonhanvien`, { lopdaotaonhanvienData,lopdaotaoID });
+   
+      dispatch(
+        slice.actions.insertOrUpdateLopDaoTaoNhanVienSuccess({
+          data: response.data.data,
+         
+        })
+      );
+      toast.success("Thêm mới thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };

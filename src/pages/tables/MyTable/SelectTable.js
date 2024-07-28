@@ -104,6 +104,12 @@ const TableWrapper = styled('div')(() => ({
 // ==============================|| REACT TABLE ||============================== //
 
 function ReactTable({ columns, data, init,additionalComponent,onSelectedRowsChange }) {
+  
+  // Hàm để lấy thông tin hàng dựa trên ID
+  const getRowById = (id) => {
+    return data[id];
+  };
+
   const theme = useTheme();
   const filterTypes = useMemo(() => renderFilterTypes, []);
   const [editableRowIndex, setEditableRowIndex] = useState(null);
@@ -185,15 +191,28 @@ function ReactTable({ columns, data, init,additionalComponent,onSelectedRowsChan
     }
     return item;
   });
+  // Lấy thông tin các hàng đã chọn dựa trên selectedRowIds
+  const selectedRows = useMemo(() => {
+    // Chuyển đổi selectedRowIds thành mảng các ID
+    const selectedIdsArray = Object.keys(selectedRowIds);
+    return selectedIdsArray.map(id => getRowById(id)).filter(row => row !== undefined);
+  }, [selectedRowIds, data]);
   useEffect(() => {
     if (onSelectedRowsChange) {
-      onSelectedRowsChange(selectedFlatRows.map(row => row.original));
+      const selectedIdsArray = Object.keys(selectedRowIds);
+      onSelectedRowsChange(selectedIdsArray.map(id => getRowById(id)).filter(row => row !== undefined));
     }
-  }, [selectedFlatRows, onSelectedRowsChange]);
+  }, [selectedRows, onSelectedRowsChange]);
+  const handleKien = () => {
+    const selectedIdsArray = Object.keys(selectedRowIds);
+    console.log("selectedIdsArray",selectedIdsArray)
+const rows = selectedIdsArray.map(id => getRowById(id)).filter(row => row !== undefined);
+console.log("rows",rows)
+  }
   return (
     <>
-     
-      <Typography variant="h6" component="div">{`rowid:${Object.keys(selectedRowIds).length}  flatrows: ${selectedFlatRows.length}`}</Typography>
+      <TableRowSelection selected={Object.keys(selectedRowIds).length} />
+      <Typography variant="h6" component="div">{`rowid:${Object.keys(selectedRowIds).length}  flatrows: ${selectedRows.length}`}</Typography>
       <Stack spacing={2}>
         <Stack direction="row" justifyContent="space-between" sx={{ p: 2, pb: 0 }}>
           <GlobalFilter
@@ -203,7 +222,10 @@ function ReactTable({ columns, data, init,additionalComponent,onSelectedRowsChan
             size="small"
           />
           <Stack direction="row" spacing={2}>
-            
+            <Button variant="contained" color="primary" size="small" startIcon={<AddIcon />} onClick={handleKien
+            }>
+            Kien
+            </Button>
             <HidingSelect hiddenColumns={hiddenColumns} setHiddenColumns={setHiddenColumns} allColumns={allColumns} />
             <CSVExport
               data={selectedFlatRows.length > 0 ? selectedFlatRows.map((d) => d.original) : data}
@@ -360,7 +382,7 @@ ReactTable.propTypes = {
 // ==============================|| REACT TABLE - UMBRELLA ||============================== //
 
 
-const CommonTable = ({data,columns,additionalComponent,onSelectedRowsChange}) => {
+const SelectTable = ({data,columns,additionalComponent,onSelectedRowsChange}) => {
   
   return (
     // <MainCard
@@ -381,7 +403,7 @@ const CommonTable = ({data,columns,additionalComponent,onSelectedRowsChange}) =>
   );
 };
 
-CommonTable.propTypes = {
+SelectTable.propTypes = {
   row: PropTypes.object,
   setEditableRowIndex: PropTypes.func,
   editableRowIndex: PropTypes.string,
@@ -398,4 +420,4 @@ CommonTable.propTypes = {
   value: PropTypes.string
 };
 
-export default CommonTable;
+export default SelectTable;

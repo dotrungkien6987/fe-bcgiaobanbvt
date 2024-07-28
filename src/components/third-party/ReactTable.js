@@ -218,7 +218,7 @@ export const TableRowSelection = ({ selected }) => (
     {selected > 0 && (
       <Chip
         size="small"
-        label={`${selected} row(s) selected`}
+        label={`${selected} người đã chọn`}
         color="secondary"
         variant="light"
         sx={{

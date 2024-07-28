@@ -23,6 +23,7 @@ const initialState = {
   DanToc:[],
   PhamViHanhNghe:[],
   
+ 
 };
 
 const slice = createSlice({
