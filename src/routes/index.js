@@ -40,6 +40,7 @@ import NhomHinhThucTable from "features/Daotao/NhomHinhThucTable";
 import HinhThucTable from "features/Daotao/HinhThucTable";
 import LopDaoTaoTable from "features/Daotao/LopDaoTaoTable";
 import LopDaoTaoForm from "features/Daotao/LopDaoTaoForm";
+import DiemDanhLopDaoTaoForm from "features/Daotao/DiemDanhLopDaoTaoForm";
 function Router() {
   return (
     <div>
@@ -124,6 +125,7 @@ function Router() {
           <Route path="/hinhthuc" element={<HinhThucTable />} />
           <Route path="/lopdaotaos" element={<LopDaoTaoTable />} />
           <Route path="/lopdaotao/:lopdaotaoID" element={<LopDaoTaoForm />} />
+          <Route path="/diemdanh/:lopdaotaoID" element={<DiemDanhLopDaoTaoForm />} />
           <Route path="/lopdaotao" element={<LopDaoTaoForm />} />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>

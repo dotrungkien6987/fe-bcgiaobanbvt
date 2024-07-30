@@ -8,43 +8,20 @@ import {
   Typography,
 } from "@mui/material";
 import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
-import UmbrellaTable from "pages/tables/react-table/umbrella";
+
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import UpdateNhanVienButton from "../UpdateNhanVienButton";
-import DeleteNhanVienButton from "../DeleteNhanVienButton";
-import MainCard from "components/MainCard";
-import CommonTable from "pages/tables/MyTable/CommonTable";
-import AddNhanVienButton from "../AddNhanVienButton";
-import ExcelButton from "components/ExcelButton";
+
 import StickyTable from "sections/react-table/StickyTable";
-import AddHocVienToLop from "../AddHocVienToLop";
-import SelectHocVienForm from "./SelectHocVienForm";
-import SelectVaiTro from "./SelectVaiTro";
-import RemoveHocVienTrongLop from "./RemoveHocVienTrongLop";
+
+
 import SaveIcon from "@mui/icons-material/Save";
-import AddIcon from "@mui/icons-material/Add";
-import { insertOrUpdateLopDaoTaoNhanVien } from "../daotaoSlice";
-function HocVienLopTable({ setSelectedRows }) {
+
+
+function DiemDanhLopDaoTaoTable() {
   const columns = useMemo(
     () => [
-      {
-        Header: "_id",
-        Footer: "Action",
-        accessor: "_id",
-        disableGroupBy: true,
-        sticky: "left",
-        Cell: ({ row }) => (
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="center"
-            spacing={0}
-          >
-            <RemoveHocVienTrongLop nhanvienID={row.original._id} />
-          </Stack>
-        ),
-      },
+      
       {
         Header: "Vai trò",
         Footer: "Vai trò",
@@ -115,8 +92,8 @@ function HocVienLopTable({ setSelectedRows }) {
         VaiTro: hv.VaiTro,
       
       }));
+      console.log("lopdaotaonhanvien", lopdaotaonhanvienData);
       
-      dispatch(insertOrUpdateLopDaoTaoNhanVien({lopdaotaonhanvienData,lopdaotaoID:lopdaotaoCurrent._id}));
   } else {
       // Hiển thị thông báo cho người dùng
       alert("Vui lòng cập nhật thông tin lớp đào tạo hợp lệ trước.");
@@ -144,16 +121,10 @@ function HocVienLopTable({ setSelectedRows }) {
       <StickyTable
         data={data}
         columns={columns}
-        setSelectedRows={setSelectedRows}
-        additionalComponent={
-          <div style={{ display: "flex", alignItems: "flex-end" }}>
-            <SelectHocVienForm />
-            <SelectVaiTro />
-          </div>
-        }
+      
       />
     </Card>
   );
 }
 
-export default HocVienLopTable;
+export default DiemDanhLopDaoTaoTable;

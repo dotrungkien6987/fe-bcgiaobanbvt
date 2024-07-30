@@ -66,11 +66,17 @@ const slice = createSlice({
     getOneLopDaoTaoByIDSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.lopdaotaoCurrent = action.payload.data;
-      state.vaitroquydoiCurents = action.payload.HinhThucCapNhat.find(
-        (item) => item.Ma === state.lopdaotaoCurrent.MaHinhThucCapNhat
-      )?.VaiTroQuyDoi || [];
+      state.lopdaotaoCurrent = action.payload.lopdaotao;
+      state.vaitroquydoiCurents =
+        action.payload.HinhThucCapNhat.find(
+          (item) => item.Ma === state.lopdaotaoCurrent.MaHinhThucCapNhat
+        )?.VaiTroQuyDoi || [];
       state.vaitroCurrent = state.vaitroquydoiCurents[0]?.VaiTro || {};
+      state.hocvienCurrents = action.payload.lopdaotaonhanvien.map((item) => ({
+        ...item,
+        ...item.NhanVienID,
+        NhanVienID: item.NhanVienID._id,
+      }));
     },
     setVaiTroCurrentSuccess(state, action) {
       state.isLoading = false;
@@ -80,18 +86,22 @@ const slice = createSlice({
     addselectedHocVienSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      const hocviens = action.payload.map((item) => ({...item, VaiTro: state.vaitroCurrent?state.vaitroCurrent:''}));
+      const hocviens = action.payload.map((item) => ({
+        ...item,
+        VaiTro: state.vaitroCurrent ? state.vaitroCurrent : "",
+      }));
       state.hocvienCurrents = state.hocvienCurrents.concat(hocviens);
     },
     removeHocVienFromHocVienCurrentsSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.hocvienCurrents = state.hocvienCurrents.filter(item=>item._id !== action.payload);
+      state.hocvienCurrents = state.hocvienCurrents.filter(
+        (item) => item._id !== action.payload
+      );
     },
     insertOrUpdateLopDaoTaoNhanVienSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      
     },
   },
 });
@@ -103,7 +113,7 @@ export const insertOneLopDaoTao =
     dispatch(slice.actions.startLoading);
     try {
       const response = await apiService.post(`/lopdaotao`, { lopdaotaoData });
-   
+
       dispatch(
         slice.actions.insertOneLopDaoTaoSuccess({
           data: response.data.data,
@@ -122,7 +132,6 @@ export const updateOneLopDaoTao =
   async (dispatch) => {
     dispatch(slice.actions.startLoading);
     try {
-      
       const response = await apiService.put(`/lopdaotao`, lopdaotaoData);
       dispatch(
         slice.actions.updateOneLopDaoTaoSuccess({
@@ -155,14 +164,16 @@ export const getOneLopDaoTaoByID =
     try {
       await Promise.all([
         dispatch(getAllHinhThucCapNhat()), // Gọi hành động để lấy tất cả HinhThucCapNhat
-        apiService.get(`/lopdaotao/${lopdaotaoID}`) // Gọi API để lấy thông tin LopDaoTao
+        apiService.get(`/lopdaotao/${lopdaotaoID}`), // Gọi API để lấy thông tin LopDaoTao
       ]);
       const response = await apiService.get(`/lopdaotao/${lopdaotaoID}`);
       const HinhThucCapNhat = await getState().hinhthuccapnhat.HinhThucCapNhat;
-      console.log("HinhThucCapNhat", HinhThucCapNhat);
+      console.log("lopdaotaonhanvie", response.data.data);
+
       dispatch(
         slice.actions.getOneLopDaoTaoByIDSuccess({
-          data: response.data.data,
+          lopdaotao: response.data.data.lopdaotao,
+          lopdaotaonhanvien: response.data.data.lopdaotaonhanvien,
           HinhThucCapNhat,
         })
       );
@@ -223,16 +234,18 @@ export const removeHocVienFromHocVienCurrents = (id) => async (dispatch) => {
   }
 };
 export const insertOrUpdateLopDaoTaoNhanVien =
-  ({ lopdaotaonhanvienData,lopdaotaoID}) =>
+  ({ lopdaotaonhanvienData, lopdaotaoID }) =>
   async (dispatch) => {
     dispatch(slice.actions.startLoading);
     try {
-      const response = await apiService.post(`/lopdaotaonhanvien`, { lopdaotaonhanvienData,lopdaotaoID });
-   
+      const response = await apiService.post(`/lopdaotaonhanvien`, {
+        lopdaotaonhanvienData,
+        lopdaotaoID,
+      });
+
       dispatch(
         slice.actions.insertOrUpdateLopDaoTaoNhanVienSuccess({
           data: response.data.data,
-         
         })
       );
       toast.success("Thêm mới thành công");

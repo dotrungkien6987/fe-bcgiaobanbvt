@@ -14,6 +14,7 @@ import AddLopDaoTao from "./AddLopDaoTao";
 import { Delete } from "@mui/icons-material";
 import DeleteLopDaoTaoButton from "./DeleteLopDaoTaoButton";
 import UpdateLopDaoTaoButton from "./UpdateLopDaoTaoButton";
+import DiemDanhLopDaoTaoButton from "./DiemDanhLopDaoTaoButton";
 
 function LopDaoTaoTable() {
   const columns = useMemo(
@@ -31,8 +32,9 @@ function LopDaoTaoTable() {
             justifyContent="center"
             spacing={0}
           >
-            <UpdateLopDaoTaoButton lopdaotaoID={row.original._id} />
             <DeleteLopDaoTaoButton lopdaotaoID={row.original._id} />
+            <UpdateLopDaoTaoButton lopdaotaoID={row.original._id} />
+            <DiemDanhLopDaoTaoButton lopdaotaoID={row.original._id} />
           </Stack>
         ),
       },

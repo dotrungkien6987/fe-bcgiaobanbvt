@@ -6,17 +6,17 @@ import { Edit } from "iconsax-react";
 
 import { useNavigate } from "react-router-dom";
 
-function UpdateLopDaoTaoButton({lopdaotaoID}) {
+function DiemDanhLopDaoTaoButton({lopdaotaoID}) {
   const navigate = useNavigate();
   
   const handleUpdate = () => {
-    navigate(`/lopdaotao/${lopdaotaoID}`)
+    navigate(`/diemdanh/${lopdaotaoID}`)
   };
   return (
     <div>
-      <Tooltip title="Sửa">
+      <Tooltip title="Điểm danh">
         <IconButton color="primary" onClick={handleUpdate}>
-          <Edit />
+          <CalendarMonthIcon />
         </IconButton>
       </Tooltip>
      
@@ -24,4 +24,4 @@ function UpdateLopDaoTaoButton({lopdaotaoID}) {
   );
 }
 
-export default UpdateLopDaoTaoButton;
+export default DiemDanhLopDaoTaoButton;

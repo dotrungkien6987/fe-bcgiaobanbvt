@@ -203,16 +203,11 @@ function ReactTable({ columns, data, init,additionalComponent,onSelectedRowsChan
       onSelectedRowsChange(selectedIdsArray.map(id => getRowById(id)).filter(row => row !== undefined));
     }
   }, [selectedRows, onSelectedRowsChange]);
-  const handleKien = () => {
-    const selectedIdsArray = Object.keys(selectedRowIds);
-    console.log("selectedIdsArray",selectedIdsArray)
-const rows = selectedIdsArray.map(id => getRowById(id)).filter(row => row !== undefined);
-console.log("rows",rows)
-  }
+  
   return (
     <>
       <TableRowSelection selected={Object.keys(selectedRowIds).length} />
-      <Typography variant="h6" component="div">{`rowid:${Object.keys(selectedRowIds).length}  flatrows: ${selectedRows.length}`}</Typography>
+      
       <Stack spacing={2}>
         <Stack direction="row" justifyContent="space-between" sx={{ p: 2, pb: 0 }}>
           <GlobalFilter
@@ -222,10 +217,7 @@ console.log("rows",rows)
             size="small"
           />
           <Stack direction="row" spacing={2}>
-            <Button variant="contained" color="primary" size="small" startIcon={<AddIcon />} onClick={handleKien
-            }>
-            Kien
-            </Button>
+          
             <HidingSelect hiddenColumns={hiddenColumns} setHiddenColumns={setHiddenColumns} allColumns={allColumns} />
             <CSVExport
               data={selectedFlatRows.length > 0 ? selectedFlatRows.map((d) => d.original) : data}
@@ -390,7 +382,7 @@ const SelectTable = ({data,columns,additionalComponent,onSelectedRowsChange}) =>
     //   subheader="This page consist combination of most possible features of react-table in to one table. Sorting, grouping, row selection, hidden row, filter, search, pagination, footer row available in below table."
     //   content={false}
     // >
-      <ScrollX sx ={{height:650}}>
+      <ScrollX sx ={{height:750}}>
         <TableWrapper>
         <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
           <ReactTable columns={columns} data={data} additionalComponent={additionalComponent} onSelectedRowsChange={onSelectedRowsChange}/>
