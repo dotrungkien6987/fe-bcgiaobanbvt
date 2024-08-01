@@ -72,11 +72,26 @@ const slice = createSlice({
           (item) => item.Ma === state.lopdaotaoCurrent.MaHinhThucCapNhat
         )?.VaiTroQuyDoi || [];
       state.vaitroCurrent = state.vaitroquydoiCurents[0]?.VaiTro || {};
-      state.hocvienCurrents = action.payload.lopdaotaonhanvien.map((item) => ({
-        ...item,
-        ...item.NhanVienID,
-        NhanVienID: item.NhanVienID._id,
-      }));
+
+      state.hocvienCurrents = action.payload.lopdaotaonhanvien.map((item) => {
+        const diemdanhSections = item.DiemDanh.reduce((acc, diemdanh, index) => {
+          acc[`section ${index + 1}`] = diemdanh;
+          return acc;
+        }, {});
+    const vaitroquydoi = state.vaitroquydoiCurents.find((vtqd) => vtqd.VaiTro === item.VaiTro);
+    const soluong = item.DiemDanh.filter((item) => item === true).length;
+    const tinhtudong = vaitroquydoi.QuyDoi * soluong;
+        return {
+          ...item.NhanVienID,
+          ...item,
+          NhanVienID: item.NhanVienID._id,
+          DonVi:vaitroquydoi.DonVi,
+          QuyDoi: vaitroquydoi.QuyDoi,
+          SoLuong:soluong,
+          TuDong:tinhtudong,
+          ...diemdanhSections
+        };
+      });
     },
     setVaiTroCurrentSuccess(state, action) {
       state.isLoading = false;
@@ -100,6 +115,10 @@ const slice = createSlice({
       );
     },
     insertOrUpdateLopDaoTaoNhanVienSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+    },
+    updateLopDaoTaoNhanVienDiemDanhSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
     },
@@ -249,6 +268,28 @@ export const insertOrUpdateLopDaoTaoNhanVien =
         })
       );
       toast.success("Thêm mới thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
+  
+export const updateLopDaoTaoNhanVienDiemDanh =
+  (lopdaotaonhanvienDiemDanhData) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      const response = await apiService.put(`/lopdaotaonhanvien`, {
+        lopdaotaonhanvienDiemDanhData,
+       
+      });
+
+      dispatch(
+        slice.actions.updateLopDaoTaoNhanVienDiemDanhSuccess({
+          data: response.data.data,
+        })
+      );
+      toast.success("Cập nhật thành công");
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);

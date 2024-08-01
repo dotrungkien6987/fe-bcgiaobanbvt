@@ -1,7 +1,7 @@
-import { Grid, Stack } from "@mui/material";
+import { Grid, IconButton, Stack, Tooltip, useTheme } from "@mui/material";
 import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 import UmbrellaTable from "pages/tables/react-table/umbrella";
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import UpdateNhanVienButton from "./UpdateNhanVienButton";
 import DeleteNhanVienButton from "./DeleteNhanVienButton";
@@ -15,8 +15,12 @@ import { Delete } from "@mui/icons-material";
 import DeleteLopDaoTaoButton from "./DeleteLopDaoTaoButton";
 import UpdateLopDaoTaoButton from "./UpdateLopDaoTaoButton";
 import DiemDanhLopDaoTaoButton from "./DiemDanhLopDaoTaoButton";
-
+import LopDaoTaoView from "features/NhanVien/LopDaoTaoView";
+import { Add,  Eye } from 'iconsax-react';
+import { ThemeMode } from 'configAble';
 function LopDaoTaoTable() {
+  const theme = useTheme();
+  const mode = theme.palette.mode;
   const columns = useMemo(
     () => [
       {
@@ -25,18 +29,51 @@ function LopDaoTaoTable() {
         accessor: "_id",
         disableGroupBy: true,
         sticky: "left",
-        Cell: ({ row }) => (
-          <Stack
-            direction="row"
-            alignItems="center"
-            justifyContent="center"
-            spacing={0}
-          >
-            <DeleteLopDaoTaoButton lopdaotaoID={row.original._id} />
-            <UpdateLopDaoTaoButton lopdaotaoID={row.original._id} />
-            <DiemDanhLopDaoTaoButton lopdaotaoID={row.original._id} />
-          </Stack>
-        ),
+        Cell: ({ row }) => {
+          const collapseIcon = row.isExpanded ? (
+            <Add
+              style={{
+                // color: theme.palette.error.main,
+                transform: "rotate(45deg)",
+              }}
+            />
+          ) : (
+            <Eye />
+          );
+return (
+  <Stack
+    direction="row"
+    alignItems="center"
+    justifyContent="center"
+    spacing={0}
+  >
+    <DeleteLopDaoTaoButton lopdaotaoID={row.original._id} />
+    <UpdateLopDaoTaoButton lopdaotaoID={row.original._id} />
+    <DiemDanhLopDaoTaoButton lopdaotaoID={row.original._id} />
+    <Tooltip
+        componentsProps={{
+          tooltip: {
+            sx: {
+              backgroundColor: mode === ThemeMode.DARK ? theme.palette.grey[50] : theme.palette.grey[700],
+              opacity: 0.9,
+            },
+          },
+        }}
+        title="View"
+      >
+        <IconButton
+          color="secondary"
+          onClick={(e) => {
+            e.stopPropagation();
+            row.toggleRowExpanded();
+          }}
+        >
+          {collapseIcon}
+        </IconButton>
+      </Tooltip>
+  </Stack>
+)
+        }
       },
       {
         Header: "Mã hình thức",
@@ -109,6 +146,7 @@ function LopDaoTaoTable() {
   const { LopDaoTaos } = useSelector((state) => state.daotao);
 
   const data = useMemo(() => LopDaoTaos, [LopDaoTaos]);
+  const renderRowSubComponent = useCallback(({ row }) => <LopDaoTaoView data={data[Number(row.id)]} />, [data]);
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
@@ -116,6 +154,7 @@ function LopDaoTaoTable() {
           <CommonTable
             data={data}
             columns={columns}
+            renderRowSubComponent={renderRowSubComponent}
             additionalComponent={
               <div style={{ display: 'flex', alignItems: 'flex-end' }}>
               

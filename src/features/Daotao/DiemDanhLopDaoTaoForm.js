@@ -40,6 +40,7 @@ import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import { useParams } from "react-router-dom";
 import HocVienLopTable from "./ChonHocVien/HocVienLopTable";
 import DiemDanhLopDaoTaoTable from "./DiemDanhLopDaoTaoTable";
+import LopDaoTaoView1 from "features/NhanVien/LopDaoTaoView1";
 
 const yupSchema = Yup.object().shape({
   MaHinhThucCapNhat: Yup.object({
@@ -162,84 +163,14 @@ function DiemDanhLopDaoTaoForm() {
     }
   };
   return (
-    <MainCard title="Thông tin lớp đào tạo">
+    <MainCard title="Quá trình điểm danh">
       <Grid container spacing={2}>
-        <Grid item xs={12} md={4}>
-          <Card variant="outlined" sx={{ p: 1 }}>
-         
-            <FormProvider
-              methods={methods}
-              onSubmit={handleSubmit(onSubmitData)}
-            >
-                <Stack direction="row" mb={2.2}>
-                <Typography fontSize={18} fontWeight={'bold'}> Thông tin lớp đào tạo</Typography>
-                <Box  sx={{ flexGrow: 1 }}></Box>
-                <LoadingButton
-                type="submit"
-                variant="contained"
-                startIcon={<SaveIcon />}
-                size="small"
-                loading={isSubmitting}
-              >
-                Lưu thông tin lớp
-              </LoadingButton>
-                </Stack>
-              <Card variant="outlined" sx={{ p: 1 }}>
-               <Stack spacing={2}>
-            
-
-              <FAutocomplete
-                name="MaHinhThucCapNhat"
-                options={HinhThucCapNhat}
-                displayField="Ma"
-                label="Mã hình thức cập nhật"
-              />
-
-              <FAutocomplete
-                name="MaHinhThucCapNhat"
-                options={HinhThucCapNhat}
-                displayField="Ten"
-                label="Hình thức cập nhật"
-              />
-
-              <FTextField name="Ten" multiline label="Tên lớp" fullWidth />
-
-              <FTextField name="QuyetDinh" label="Quyết định" fullWidth />
-
-              <FAutocomplete
-                name="NoiDaoTao"
-                options={NoiDaoTao.map((item) => item.NoiDaoTao)}
-                label="Nơi đào tạo"
-              />
-
-              <FAutocomplete
-                name="NguonKinhPhi"
-                options={NguonKinhPhi.map((item) => item.NguonKinhPhi)}
-                label="Nguồn kinh phí"
-              />
-
-              <FAutocomplete
-                name="HinhThucDaoTao"
-                options={HinhThucDaoTao.map((item) => item.HinhThucDaoTao)}
-                label="Hình thức đào tạo"
-              />
-
-              <FTextField name="GhiChu" label="Ghi chú" fullWidth />
-
-              <FTextField name="SoLuong" label="Số lượng" fullWidth />
-
-              <FDatePicker name="NgayBatDau" label="Ngày bắt đầu" fullWidth />
-
-              <FDatePicker name="NgayKetThuc" label="Ngày kết thúc" fullWidth />
-            
-              </Stack>
-              </Card>
-            </FormProvider>
-          </Card>
+       
+        <Grid item xs={12} md={12}>
+          <LopDaoTaoView1 data = {lopdaotaoCurrent}/>
         </Grid>
-
-        <Grid item xs={12} md={8}>
-          <DiemDanhLopDaoTaoTable />
+        <Grid item xs={12} md={12}>
+          <DiemDanhLopDaoTaoTable numSections={lopdaotaoCurrent.SoLuong}/>
         </Grid>
       </Grid>
 

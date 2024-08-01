@@ -19,30 +19,43 @@ import FAutocomplete from "components/form/FAutocomplete";
 import FDatePicker from "components/form/FDatePicker";
 import FKRadioGroup from "components/form/FKRadioGroup";
 import { getKhoas } from "features/BaoCaoNgay/baocaongaySlice";
-import { insertOneNhanVien, updateOneNhanVien } from "features/NhanVien/nhanvienSlice";
+import {
+  getDataFix,
+  insertOneNhanVien,
+  updateOneNhanVien,
+} from "features/NhanVien/nhanvienSlice";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 import dayjs from "dayjs";
-
+import MainCard from "components/MainCard";
 
 const yupSchema = Yup.object().shape({
   Ten: Yup.string().required("Bắt buộc nhập UserName"),
-  TinChiBanDau:Yup.number().typeError("Bạn phải nhập 1 số"),
+  TinChiBanDau: Yup.number().typeError("Bạn phải nhập 1 số"),
   NgaySinh: Yup.date().nullable().required("Bắt buộc chọn ngày sinh"),
-  
+
   KhoaID: Yup.object({
     TenKhoa: Yup.string().required("Bắt buộc chọn khoa"),
   }).required("Bắt buộc chọn khoa"),
 });
 
 function ThongTinNhanVien({ nhanvien, open, handleClose }) {
-  
   const { khoas } = useSelector((state) => state.baocaongay);
+  const { TrinhDoChuyenMon, DanToc, PhamViHanhNghe,ChucDanh,ChucVu } = useSelector(
+    (state) => state.nhanvien
+  );
   const dispatch = useDispatch();
   useEffect(() => {
-    if(khoas&& khoas.length>0) return;
+   
+    if (PhamViHanhNghe.length === 0) {
+      dispatch(getDataFix());
+    }
+  }, []);
+
+  useEffect(() => {
+    if (khoas && khoas.length > 0) return;
     dispatch(getKhoas());
   }, []);
   const methods = useForm({
@@ -53,16 +66,20 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
       Ten: "",
       Loai: 0,
       NgaySinh: null,
-      TrinhDoChuyenMon: "",
+      TrinhDoChuyenMon: null,
+      ChucDanh: null,
+      ChucVu: null,
+      DanToc: null,
+      PhamViHanhNghe: null,
       SoDienThoai: "",
       Email: "",
-      GioiTinh:0,
-      
+      CMND: "",
+      GioiTinh: 0,
+
       KhoaID: null,
     },
   });
 
-  
   const {
     handleSubmit,
     reset,
@@ -71,9 +88,9 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
   } = methods;
 
   useEffect(() => {
-    console.log('nhanvien',nhanvien)
+    console.log("nhanvien", nhanvien);
     // Kiểm tra xem `nhanvien` có tồn tại và form đang ở chế độ cập nhật không
-    if (nhanvien && nhanvien._id&&nhanvien._id!==0) {
+    if (nhanvien && nhanvien._id && nhanvien._id !== 0) {
       // Cập nhật giá trị mặc định cho form bằng thông tin của `nhanvien`
       reset({
         ...nhanvien,
@@ -89,26 +106,30 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         Ten: "",
         Loai: 0,
         NgaySinh: null,
-        TrinhDoChuyenMon: "",
+        TrinhDoChuyenMon: null,
+        ChucDanh: null,
+        ChucVu: null,
+        DanToc: null,
+        PhamViHanhNghe: null,
         SoDienThoai: "",
         Email: "",
+        CMND: "",
         GioiTinh: 0,
         KhoaID: null,
       });
     }
   }, [nhanvien]);
-  
+
   const onSubmitData = (data) => {
-    console.log("data form",data);
+    console.log("data form", data);
     const nhanvienUpdate = {
       ...data,
-      KhoaID:data.KhoaID._id,
-      NgaySinh:data.NgaySinh.toISOString(),
-    }
-    console.log('nhanvien dispatch',nhanvienUpdate)
-    if(nhanvien && nhanvien._id) dispatch(updateOneNhanVien(nhanvienUpdate))
-      else
-    dispatch(insertOneNhanVien(nhanvienUpdate))
+      KhoaID: data.KhoaID._id,
+      NgaySinh: data.NgaySinh.toISOString(),
+    };
+    console.log("nhanvien dispatch", nhanvienUpdate);
+    if (nhanvien && nhanvien._id) dispatch(updateOneNhanVien(nhanvienUpdate));
+    else dispatch(insertOneNhanVien(nhanvienUpdate));
   };
   return (
     <Dialog
@@ -129,9 +150,9 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         },
       }}
     >
-      <DialogTitle id="form-dialog-title">Thông tin lớp đào tạo</DialogTitle>
+      {/* <DialogTitle id="form-dialog-title">Thông tin lớp đào tạo</DialogTitle> */}
       <DialogContent>
-        <Card sx={{ p: 3 }}>
+        <MainCard title={"Thông tin nhân viên"}>
           <FormProvider methods={methods} onSubmit={handleSubmit(onSubmitData)}>
             <Stack spacing={1}>
               <FAutocomplete
@@ -140,56 +161,99 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
                 displayField="TenKhoa"
                 label="Chọn khoa"
               />
-             
-              
-              <Grid container spacing={1}>
-              <Grid item xs={12} sm={12} md={8}>
-              <FTextField name="MaNhanVien" label="Mã học viên" />
-              </Grid>
-              <Grid item xs={12} sm={12} md={4}>
-                <FKRadioGroup
-                row={true}
-                name='Loai'
-                label="Phân loại"
-                options={[
-                  {value:0, label:"Nhân viên"},
-                  {value:1, label:"Sinh viên"},
-                ]}
-                />
-              </Grid>
-              </Grid>
 
               <Grid container spacing={1}>
-              <Grid item xs={12} sm={12} md={4}>
-              <FTextField name="Ten" label="Họ tên" />
-              </Grid>
-              <Grid item xs={12} sm={12} md={4}>
-              <FDatePicker name="NgaySinh" label="Ngày sinh"/>
-              </Grid>
-              <Grid item xs={12} sm={12} md={4}>
-                <FKRadioGroup
-                row={true}
-                name='GioiTinh'
-                label="Giới tính"
-                options={[
-                  {value:0, label:"Nam"},
-                  {value:1, label:"Nữ"},
-                ]}
-                />
-              </Grid>
-              </Grid>
-
-
-              <Grid container spacing={1}>
-                <Grid item xs={12} sm={12} md={6}>
-                <FTextField name="TrinhDoChuyenMon" label="Trình độ chuyên môn" />
+                <Grid item xs={12} sm={12} md={8}>
+                  <FTextField name="MaNhanVien" label="Mã học viên" />
                 </Grid>
+                <Grid item xs={12} sm={12} md={4}>
+                  <FKRadioGroup
+                    row={true}
+                    name="Loai"
+                    label="Phân loại"
+                    options={[
+                      { value: 0, label: "Nhân viên" },
+                      { value: 1, label: "Sinh viên" },
+                      { value: 2, label: "Học viên" },
+                    ]}
+                  />
+                </Grid>
+              </Grid>
+
+              <Grid container spacing={1}>
+                <Grid item xs={12} sm={12} md={4}>
+                  <FTextField name="Ten" label="Họ tên" />
+                </Grid>
+                <Grid item xs={12} sm={12} md={4}>
+                  <FDatePicker name="NgaySinh" label="Ngày sinh" />
+                </Grid>
+                <Grid item xs={12} sm={12} md={4}>
+                  <FKRadioGroup
+                    row={true}
+                    name="GioiTinh"
+                    label="Giới tính"
+                    options={[
+                      { value: 0, label: "Nam" },
+                      { value: 1, label: "Nữ" },
+                    ]}
+                  />
+                </Grid>
+              </Grid>
+
+              <Grid container spacing={1}>
                 <Grid item xs={12} sm={12} md={6}>
+                  <FAutocomplete
+                    name="TrinhDoChuyenMon"
+                    options={TrinhDoChuyenMon.map((item) => item.TrinhDoChuyenMon)}
+                   
+                    label="Trình độ chuyên môn"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={12} md={3}>
                   <FTextField name="TinChiBanDau" label="Tín chỉ ban đầu" />
                 </Grid>
+                <Grid item xs={12} sm={12} md={3}>
+                  <FTextField name="CMND" label="CMND/CCCD" />
+                </Grid>
               </Grid>
 
-             
+              <Grid container spacing={1}>
+                <Grid item xs={12} sm={12} md={6}>
+                  <FAutocomplete
+                    name="ChucDanh"
+                    options={ChucDanh.map((item) => item.ChucDanh)}
+                    
+                    label="Chức danh"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={12} md={6}>
+                  <FAutocomplete
+                    name="ChucVu"
+                    options={ChucVu.map((item) => item.ChucVu)}
+                    
+                    label="Chức vụ"
+                  />
+                </Grid>
+              </Grid>
+
+              <Grid container spacing={1}>
+                <Grid item xs={12} sm={12} md={6}>
+                  <FAutocomplete
+                    name="DanToc"
+                    options={DanToc.map((item) => item.DanToc)}
+                    
+                    label="Dân tộc"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={12} md={6}>
+                  <FAutocomplete
+                    name="PhamViHanhNghe"
+                    options={PhamViHanhNghe.map((item) => item.PhamViHanhNghe)}
+                    
+                    label="Phạm vi hành nghề"
+                  />
+                </Grid>
+              </Grid>
 
               <Grid container spacing={1}>
                 <Grid item xs={12} sm={12} md={6}>
@@ -217,8 +281,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
               </DialogActions>
             </Card>
           </FormProvider>
-
-        </Card>
+        </MainCard>
       </DialogContent>
     </Dialog>
   );
