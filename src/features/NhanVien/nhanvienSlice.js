@@ -8,6 +8,9 @@ const initialState = {
   isOpenDeleteNhanVien:false,
   isOpenUpdateNhanVien:false,
   nhanvienCurrent:{},
+  lopdaotaotheoNhanVienCurrents: [],
+  nghiencuukhoahoctheoNhanVienCurrents: [],
+  tinchitichluyCurrents: [],
 
   nhanviens: [],
   datafix:{},
@@ -42,6 +45,15 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.nhanvienCurrent= action.payload;
+    },
+    getOneNhanVienByIDSuccess(state,action) {
+     
+      state.isLoading = false;
+      state.error = null;
+      state.nhanvienCurrent= action.payload.nhanvien;
+      state.lopdaotaotheoNhanVienCurrents= action.payload.daotaos;
+      state.nghiencuukhoahoctheoNhanVienCurrents= action.payload.nghiencuukhoahocs;
+      state.tinchitichluyCurrents= action.payload.TinChiTichLuys;
     },
     setIsOpenUpdateNhanVienSuccess(state,action) {
       state.isLoading = false;
@@ -127,6 +139,19 @@ export const getAllNhanVien = () => async (dispatch) => {
     toast.error(error.message);
   }
 };
+export const getOneNhanVienByID = (nhanvienID) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    
+    const response = await apiService.get(`/nhanvien/${nhanvienID}`);
+    console.log("data nhanvien get one",response.data.data)
+    dispatch(slice.actions.getOneNhanVienByIDSuccess(response.data.data));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
 export const insertOneNhanVien = (nhanvien) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {

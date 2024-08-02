@@ -219,8 +219,7 @@ export const getOneLopDaoTaoByID =
       ]);
       const response = await apiService.get(`/lopdaotao/${lopdaotaoID}`);
       const HinhThucCapNhat = await getState().hinhthuccapnhat.HinhThucCapNhat;
-      console.log("lopdaotaonhanvie", response.data.data);
-
+      
       dispatch(
         slice.actions.getOneLopDaoTaoByIDSuccess({
           lopdaotao: response.data.data.lopdaotao,

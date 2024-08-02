@@ -15,6 +15,7 @@ import { Add,  Eye } from 'iconsax-react';
 import { ThemeMode } from 'configAble';
 import NhanVienView from "features/NhanVien/NhanVienView";
 import { formatDate_getDate } from "utils/formatTime";
+import QuaTrinhDaoTaoNhanVienButon from "features/NhanVien/QuaTrinhDaoTaoNhanVienButon";
 function NhanVienList() {
   const theme = useTheme();
   const mode = theme.palette.mode;
@@ -46,6 +47,7 @@ function NhanVienList() {
             >
               <UpdateNhanVienButton nhanvien={row.original} />
               <DeleteNhanVienButton nhanvienID={row.original._id} />
+              <QuaTrinhDaoTaoNhanVienButon nhanvienID={row.original._id}/>
               <Tooltip
                 componentsProps={{
                   tooltip: {
@@ -55,7 +57,7 @@ function NhanVienList() {
                     },
                   },
                 }}
-                title="View"
+                title="Xem nhanh"
               >
                 <IconButton
                   color="secondary"
