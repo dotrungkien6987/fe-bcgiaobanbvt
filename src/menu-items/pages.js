@@ -18,7 +18,7 @@ const icons = {
 
 const pages = {
   id: 'group-pages',
-  title: "pages",
+  title: "Quản lý nghiên cứu khoa học",
   type: 'group',
   icon: icons.page,
   children: [

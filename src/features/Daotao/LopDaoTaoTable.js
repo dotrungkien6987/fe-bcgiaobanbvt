@@ -18,6 +18,8 @@ import DiemDanhLopDaoTaoButton from "./DiemDanhLopDaoTaoButton";
 import LopDaoTaoView from "features/NhanVien/LopDaoTaoView";
 import { Add,  Eye } from 'iconsax-react';
 import { ThemeMode } from 'configAble';
+import TrangThaiLopDaoTao from "./TrangThaiLopDaoTao";
+import { formatDate_getDate } from "utils/formatTime";
 function LopDaoTaoTable() {
   const theme = useTheme();
   const mode = theme.palette.mode;
@@ -92,6 +94,17 @@ return (
         disableGroupBy: true,
       },
       {
+        Header: "Trạng thái",
+        Footer: "Trạng thái",
+
+        accessor: "TrangThai",
+        disableGroupBy: true,
+        Cell: ({ value }) => {
+          if(value === true) return <TrangThaiLopDaoTao trangthai={true} title ={"Đã hoàn thành"}/>
+          else return <TrangThaiLopDaoTao trangthai={false} title ={"Chưa hoàn thành"}/>;
+        },
+      },
+      {
         Header: "Quyết định",
         Footer: "Quyết định",
 
@@ -114,7 +127,7 @@ return (
         accessor: "NgayBatDau",
 
         disableGroupBy: true,
-        Cell: ({ value }) => new Date(value).toDateString(),
+        Cell: ({ value }) => formatDate_getDate(value),
       },
       {
         Header: "Ngày kết thúc",
@@ -123,7 +136,7 @@ return (
         accessor: "NgayKetThuc",
 
         disableGroupBy: true,
-        Cell: ({ value }) => new Date(value).toDateString(),
+        Cell: ({ value }) => formatDate_getDate(value),
       },
       {
         Header: "Số section",

@@ -2,12 +2,13 @@
 
 
 // assets
-import { Graph, Chart21 } from 'iconsax-react';
+import { Building3, Chart21,Hospital,Element } from 'iconsax-react';
 
 // icons
 const icons = {
-  charts: Chart21,
-  chart: Graph
+  charts: Building3,
+  chart: Hospital,
+  chart1: Element,
 };
 
 // ==============================|| MENU ITEMS - CHARTS & MAPS ||============================== //
@@ -42,19 +43,19 @@ const chartsMap = {
       id: 'daotaongoaivien',
       title: 'Đào tạo ngoại viện',
       type: 'collapse',
-      icon: icons.chart,
+      icon: icons.charts,
       children: [
         {
           id: 'hocvienngoaivien',
           title: 'Danh sách học viên',
           type: 'item',
-          url: '/charts/apexchart'
+          url:'/nhanvien',
         },
         {
           id: '123',
-          title: 'FormattedMessage',
+          title: 'Khóa đào tạo',
           type: 'item',
-          url: '/charts/org-chart'
+          url: '/lopdaotaos',
         }
       ]
     },
@@ -62,7 +63,7 @@ const chartsMap = {
       id: 'danhmucdaotao',
       title: 'Cấu hình danh mục đào tạo',
       type: 'collapse',
-      icon: icons.chart,
+      icon: icons.chart1,
       children: [
         {
           id: 'NhomHinhThuc',

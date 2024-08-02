@@ -51,7 +51,8 @@ const slice = createSlice({
     getAllNhanVienSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.nhanviens = action.payload;
+      state.nhanviens = action.payload.map((nhanvien) => ({...nhanvien,TenKhoa:nhanvien.KhoaID.TenKhoa}));
+
     },
     insertOneNhanVienSuccess(state, action) {
       state.isLoading = false;

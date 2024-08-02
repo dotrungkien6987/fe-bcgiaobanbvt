@@ -45,6 +45,17 @@ const slice = createSlice({
       state.vaitroquydoiCurents = action.payload.vaitroquydoi;
       state.vaitroCurrent = state.vaitroquydoiCurents[0]?.VaiTro || {};
     },
+    updateTrangThaiLopDaoTaoSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.LopDaoTaos = state.LopDaoTaos.map((item) =>
+        item._id === action.payload.lopdaotaoID ? {
+          ...item,
+          TrangThai: action.payload.TrangThai
+        } : item
+      );
+      state.lopdaotaoCurrent.TrangThai = action.payload.TrangThai;
+    },
     deleteOneLopDaoTaoSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
@@ -61,7 +72,12 @@ const slice = createSlice({
     resetLopDaoTaoCurrentSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
+      console.log("resetLopDaoTaoCurrentSuccess");
       state.lopdaotaoCurrent = {};
+      state.hocvienCurrents = [];
+      state.vaitroquydoiCurents = [];
+      state.lopdaotaonhanvienCurrent = [];
+      state.vaitroCurrent = {};
     },
     getOneLopDaoTaoByIDSuccess(state, action) {
       state.isLoading = false;
@@ -165,6 +181,22 @@ export const updateOneLopDaoTao =
     }
   };
 
+export const updateTrangThaiLopDaoTao =
+  ({ TrangThai, lopdaotaoID }) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      const response = await apiService.put(`/lopdaotao/trangthai`, { TrangThai, lopdaotaoID });
+      dispatch(
+        slice.actions.updateTrangThaiLopDaoTaoSuccess({ TrangThai, lopdaotaoID })
+      );
+      toast.success("Cập nhật thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
+
 export const deleteOneLopDaoTao = (lopdaotaoID) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
@@ -205,9 +237,11 @@ export const resetLopDaoTaoCurrent = () => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
     dispatch(slice.actions.resetLopDaoTaoCurrentSuccess());
+    return Promise.resolve(); // Đảm bảo trả về một Promise
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
+    return Promise.reject(error);
   }
 };
 

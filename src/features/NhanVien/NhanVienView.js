@@ -44,7 +44,7 @@ console.log("datanhanvien",data);
       <TableCell colSpan={11} sx={{ p: 2.5, overflow: 'hidden' }}>
         <Transitions type="slide" direction="down" in={true}>
           <Grid container spacing={2.5} sx={{ pl: { xs: 0, sm: 5, md: 6, lg: 10, xl: 12 } }}>
-            <Grid item xs={12} sm={4.5} >
+            <Grid item xs={12} sm={5} >
             <Grid container spacing={2.5}  sx={{ pl: { xs: 0, sm: 5, md: 6, lg: 10, xl: 12 } }}>
               <Grid item xs={12} >
               <MainCard>
@@ -153,7 +153,7 @@ console.log("datanhanvien",data);
               
             
             </Grid>
-            <Grid item xs={12} sm={7.5} >
+            <Grid item xs={12} sm={7} >
               <Stack spacing={2.5}>
                 <MainCard title="Thông tin cá nhân">
                   <List sx={{ py: 0 }}>

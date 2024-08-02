@@ -14,6 +14,7 @@ import IconButton from "components/@extended/IconButton";
 import { Add,  Eye } from 'iconsax-react';
 import { ThemeMode } from 'configAble';
 import NhanVienView from "features/NhanVien/NhanVienView";
+import { formatDate_getDate } from "utils/formatTime";
 function NhanVienList() {
   const theme = useTheme();
   const mode = theme.palette.mode;
@@ -80,8 +81,8 @@ function NhanVienList() {
         // Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarIma(`./avatar-${!value ? 1 : value}.png`)} />
       },
       {
-        Header: "Họ Tên",
-        Footer: "Họ Tên",
+        Header: "Họ và Tên",
+        Footer: "Họ và Tên",
 
         accessor: "Ten",
         disableGroupBy: true,
@@ -101,7 +102,7 @@ function NhanVienList() {
         accessor: "NgaySinh",
 
         disableGroupBy: true,
-        Cell: ({ value }) => new Date(value).toDateString(),
+        Cell: ({ value }) => formatDate_getDate(value),
       },
       {
         Header: "Phân loại",
@@ -110,14 +111,14 @@ function NhanVienList() {
         accessor: "Loai",
         disableGroupBy: true,
       },
-      // {
-      //   Header: 'Khoa',
-      //   Footer: 'Khoa',
-      //   accessor: 'KhoaID',
-      //   dataType: 'TenKhoa',
-      //   filter: 'fuzzyText',
-      //   disableGroupBy: true
-      // },
+      {
+        Header: 'Khoa công tác',
+        Footer: 'Khoa',
+        accessor: 'TenKhoa',
+        minWidth: 200,
+        // filter: 'fuzzyText',
+        disableGroupBy: true
+      },
       {
         Header: "Trình độ chuyên môn",
         Footer: "Trình độ chuyên môn",

@@ -107,6 +107,7 @@ const TableWrapper = styled("div")(() => ({
     position: "sticky",
     zIndex: "5 !important",
   },
+  
 }));
 // ==============================|| REACT TABLE ||============================== //
 

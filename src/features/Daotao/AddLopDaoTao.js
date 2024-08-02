@@ -6,15 +6,14 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { resetLopDaoTaoCurrent } from "./daotaoSlice";
 
-
 function AddLopDaoTao() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const handleThemMoi = () => {
-dispatch(resetLopDaoTaoCurrent())
-    navigate("/lopdaotao/")
+  const handleThemMoi = async () => {
+    await dispatch(resetLopDaoTaoCurrent());
+    navigate("/lopdaotao/");
   };
-  
+
   return (
     <div>
       <Button
@@ -22,9 +21,8 @@ dispatch(resetLopDaoTaoCurrent())
         startIcon={<AddIcon />}
         onClick={handleThemMoi}
       >
-        Thêm 
+        Thêm
       </Button>
-
     </div>
   );
 }
