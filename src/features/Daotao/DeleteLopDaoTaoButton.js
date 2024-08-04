@@ -1,7 +1,7 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Stack, Tooltip } from "@mui/material";
 import React, { useState } from "react";
 
-import { Delete } from "@mui/icons-material";
+import {Trash} from "iconsax-react"
 import { useDispatch } from "react-redux";
 import { deleteOneLopDaoTao } from "./daotaoSlice";
 
@@ -20,8 +20,8 @@ setOpenDelete(false)
   return (
     <div>
       <Tooltip title="Xóa">
-        <IconButton color="primary" onClick={()=>setOpenDelete(true)}>
-          <Delete />
+        <IconButton color="error" onClick={()=>setOpenDelete(true)}>
+          <Trash />
         </IconButton>
       </Tooltip>
       <Dialog

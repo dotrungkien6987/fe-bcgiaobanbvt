@@ -25,6 +25,7 @@ import RemoveHocVienTrongLop from "./RemoveHocVienTrongLop";
 import SaveIcon from "@mui/icons-material/Save";
 import AddIcon from "@mui/icons-material/Add";
 import { insertOrUpdateLopDaoTaoNhanVien } from "../daotaoSlice";
+import ScrollX from "components/ScrollX";
 function HocVienLopTable({ setSelectedRows }) {
   const columns = useMemo(
     () => [
@@ -68,6 +69,13 @@ function HocVienLopTable({ setSelectedRows }) {
         Footer: "Họ Tên",
 
         accessor: "Ten",
+        disableGroupBy: true,
+      },
+      {
+        Header: "Tên khoa",
+        Footer: "Tên khoa",
+
+        accessor: "TenKhoa",
         disableGroupBy: true,
       },
       {
@@ -141,15 +149,17 @@ function HocVienLopTable({ setSelectedRows }) {
           Lưu thành viên tham gia
         </Button>
       </Stack>
+      
       <StickyTable
         data={data}
         columns={columns}
         setSelectedRows={setSelectedRows}
+        sx={{ height: 598 }}
         additionalComponent={
-          <div style={{ display: "flex", alignItems: "flex-end" }}>
+          <Stack direction="row">
             <SelectHocVienForm />
             <SelectVaiTro />
-          </div>
+          </Stack>
         }
       />
     </Card>

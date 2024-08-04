@@ -76,14 +76,14 @@ function SeLectHocVienTable({onSelectedRowsChange}) {
         accessor: "Loai",
         disableGroupBy: true,
       },
-      // {
-      //   Header: 'Khoa',
-      //   Footer: 'Khoa',
-      //   accessor: 'KhoaID',
-      //   dataType: 'TenKhoa',
-      //   filter: 'fuzzyText',
-      //   disableGroupBy: true
-      // },
+      {
+        Header: 'Khoa',
+        Footer: 'Khoa',
+        accessor: 'TenKhoa',
+        
+        filter: 'fuzzyText',
+        disableGroupBy: true
+      },
       {
         Header: "Trình độ chuyên môn",
         Footer: "Trình độ chuyên môn",
@@ -128,7 +128,7 @@ function SeLectHocVienTable({onSelectedRowsChange}) {
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
-        <MainCard title="Quản lý cán bộ">
+        <MainCard title="Danh sách cán bộ">
           <SelectTable data={data} columns={columns} onSelectedRowsChange={onSelectedRowsChange}/>
         </MainCard>
       </Grid>

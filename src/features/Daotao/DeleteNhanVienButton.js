@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import ThongTinNhanVien from "./ThongTinNhanVien";
 
-import { Delete } from "@mui/icons-material";
+import {Trash} from "iconsax-react"
 import { useDispatch } from "react-redux";
 import { deleteOneNhanVien } from "features/NhanVien/nhanvienSlice";
 function DeleteNhanVienButton({nhanvienID}) {
@@ -21,8 +21,8 @@ setOpenDelete(false)
   return (
     <div>
       <Tooltip title="Xóa">
-        <IconButton color="primary" onClick={()=>setOpenDelete(true)}>
-          <Delete />
+        <IconButton color="error" onClick={()=>setOpenDelete(true)}>
+          <Trash />
         </IconButton>
       </Tooltip>
       <Dialog

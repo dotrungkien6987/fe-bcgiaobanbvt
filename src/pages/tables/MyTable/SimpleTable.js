@@ -103,7 +103,7 @@ const TableWrapper = styled('div')(() => ({
 }));
 // ==============================|| REACT TABLE ||============================== //
 
-function ReactTable({ columns, data, init,additionalComponent }) {
+function ReactTable({ columns, data, init,additionalComponent,sx }) {
   const theme = useTheme();
   const filterTypes = useMemo(() => renderFilterTypes, []);
   const [editableRowIndex, setEditableRowIndex] = useState(null);
@@ -344,7 +344,7 @@ ReactTable.propTypes = {
 // ==============================|| REACT TABLE - UMBRELLA ||============================== //
 
 
-const SimpleTable = ({data,columns,additionalComponent}) => {
+const SimpleTable = ({data,columns,additionalComponent,sx}) => {
   
   return (
     // <MainCard
@@ -352,15 +352,15 @@ const SimpleTable = ({data,columns,additionalComponent}) => {
     //   subheader="This page consist combination of most possible features of react-table in to one table. Sorting, grouping, row selection, hidden row, filter, search, pagination, footer row available in below table."
     //   content={false}
     // >
-      <ScrollX sx ={{height:650}}>
+      // <ScrollX sx ={{...sx}}>
         <TableWrapper>
         <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
-          <ReactTable columns={columns} data={data} additionalComponent={additionalComponent}/>
+          <ReactTable columns={columns} data={data} additionalComponent={additionalComponent} />
           <DragPreview />
         </DndProvider>
         </TableWrapper>
         
-      </ScrollX>
+      // </ScrollX>
     // </MainCard>
   );
 };

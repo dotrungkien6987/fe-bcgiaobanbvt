@@ -36,6 +36,12 @@ const chartsMap = {
           title: 'Khóa đào tạo',
           type: 'item',
           url: '/lopdaotaos'
+        },
+        {
+          id: 'taomoilopdaotaonoivien',
+          title: 'Tạo mới lớp đào tạo',
+          type: 'item',
+          url: '/lopdaotao',
         }
       ]
     },
@@ -56,6 +62,12 @@ const chartsMap = {
           title: 'Khóa đào tạo',
           type: 'item',
           url: '/lopdaotaos',
+        },
+        {
+          id: 'taomoilopdaotao',
+          title: 'Tạo mới lớp đào tạo',
+          type: 'item',
+          url: '/lopdaotao',
         }
       ]
     },

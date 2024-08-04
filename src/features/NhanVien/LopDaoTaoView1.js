@@ -58,9 +58,9 @@ const LopDaoTaoView1 = ({ data }) => {
               <TrangThaiLopDaoTao trangthai={data.TrangThai} title={'Chưa hoàn thành'}/>
             )}
 
-            <Grid container spacing={3.3} mt={2}>
+            <Grid container spacing={2.9} mt={2}>
               <Grid item xs={12}>
-                <Stack spacing={2.5} alignItems="center">
+                <Stack spacing={2} alignItems="center">
                   <Stack spacing={0.5} alignItems="center">
                     <Typography variant="h4">
                       Lớp đào tạo: {data.Ten || ""}
@@ -125,7 +125,7 @@ const LopDaoTaoView1 = ({ data }) => {
                   startIcon={<SaveIcon />}
                   onClick={handleClickDuyet}
                 >
-                  Duyệt hoàn thành
+                 {data.TrangThai ? 'Gỡ duyệt hoàn thành' : 'Duyệt hoàn thành'}
                 </Button>
               </Grid>
             </Grid>

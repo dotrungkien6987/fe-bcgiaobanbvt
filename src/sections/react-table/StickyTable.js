@@ -9,17 +9,18 @@ import {
   TableHead,
   TableRow,
   Stack,
+  Box,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
 
 // third-party
-import { useTable, useSortBy, useGlobalFilter } from "react-table";
+import { useTable, useSortBy, useGlobalFilter, usePagination } from "react-table";
 import { useSticky } from "react-table-sticky";
 
 // project-imports
 import MainCard from "components/MainCard";
 import ScrollX from "components/ScrollX";
-import { CSVExport, HeaderSort, HidingSelect } from "components/third-party/ReactTable";
+import { CSVExport, HeaderSort, HidingSelect, TablePagination } from "components/third-party/ReactTable";
 import { ThemeMode } from "configAble";
 import { GlobalFilter } from "utils/react-table";
 
@@ -38,7 +39,7 @@ const TableWrapper = styled("div")(() => ({
   },
 }));
 
-function ReactTable({ columns, data, getHeaderProps, title,additionalComponent }) {
+function ReactTable({ columns, data, getHeaderProps, title,additionalComponent, sx }) {
   const defaultColumn = useMemo(
     () => ({
       minWidth: 50,
@@ -54,7 +55,10 @@ function ReactTable({ columns, data, getHeaderProps, title,additionalComponent }
     getTableBodyProps,
     headerGroups,
     rows,
+    page,
     prepareRow,
+    gotoPage,
+    setPageSize,
     setHiddenColumns,
     allColumns,
     state: {
@@ -77,6 +81,7 @@ function ReactTable({ columns, data, getHeaderProps, title,additionalComponent }
     },
     useGlobalFilter,
     useSortBy,
+    usePagination,
     useSticky
   );
 
@@ -121,11 +126,11 @@ function ReactTable({ columns, data, getHeaderProps, title,additionalComponent }
             size="small"
           />
           <Stack direction="row" spacing={2}>
-            {/* <HidingSelect
+            <HidingSelect
               hiddenColumns={hiddenColumns}
               setHiddenColumns={setHiddenColumns}
               allColumns={allColumns}
-            /> */}
+            />
             {/* <CSVExport
               data={
                 selectedFlatRows.length > 0
@@ -138,7 +143,16 @@ function ReactTable({ columns, data, getHeaderProps, title,additionalComponent }
             {additionalComponent && additionalComponent}
           </Stack>
         </Stack>
-        <ScrollX sx={{ height: 500 }}>
+        <Box sx={{ p: 2, py: 0 }}>
+          <TablePagination
+            gotoPage={gotoPage}
+            rows={rows}
+            setPageSize={setPageSize}
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+          />
+        </Box>
+        <ScrollX sx={sx}>
           <TableWrapper>
             <Table {...getTableProps()} stickyHeader>
               <TableHead>
@@ -165,7 +179,7 @@ function ReactTable({ columns, data, getHeaderProps, title,additionalComponent }
                 ))}
               </TableHead>
               <TableBody {...getTableBodyProps()}>
-                {sortingRow.map((row) => {
+                {page.map((row) => {
                   prepareRow(row);
                   return (
                     <TableRow key={row} {...row.getRowProps()}>
@@ -208,7 +222,7 @@ ReactTable.propTypes = {
 
 // ==============================|| REACT TABLE - STICKY ||============================== //
 
-const StickyTable = ({ columns, data, title,additionalComponent }) => {
+const StickyTable = ({ columns, data, title,additionalComponent,sx }) => {
   return (
     <ReactTable
       columns={columns}
@@ -216,6 +230,7 @@ const StickyTable = ({ columns, data, title,additionalComponent }) => {
       title={title}
       additionalComponent={additionalComponent}
       getHeaderProps={(column) => column.getSortByToggleProps()}
+      sx={sx}
     />
   );
 };

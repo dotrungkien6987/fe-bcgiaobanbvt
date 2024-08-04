@@ -1,11 +1,11 @@
 import PropTypes from "prop-types";
-import { Fragment, useEffect, useMemo, useState } from "react";
-import AddIcon from "@mui/icons-material/Add";
+import { Fragment,  useMemo, useState } from "react";
+
 // material-ui
 import { styled, alpha, useTheme } from "@mui/material/styles";
 import {
   Box,
-  Chip,
+
   Stack,
   Table,
   TableBody,
@@ -13,22 +13,14 @@ import {
   TableFooter,
   TableHead,
   TableRow,
-  Typography,
-  TextField,
-  Select,
-  MenuItem,
-  Slider,
-  Tooltip,
-  IconButton,
-  Button,
+  
 } from "@mui/material";
 
 // third-party
-import { Formik, Form } from "formik";
-import * as Yup from "yup";
+
 import update from "immutability-helper";
 import { useSticky } from "react-table-sticky";
-import { NumericFormat } from "react-number-format";
+
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
@@ -45,15 +37,6 @@ import {
   useSortBy,
   useTable,
 } from "react-table";
-
-// project-imports
-import MainCard from "components/MainCard";
-import Avatar from "components/@extended/Avatar";
-import ScrollX from "components/ScrollX";
-import LinearWithLabel from "components/@extended/progress/LinearWithLabel";
-
-import makeData from "data/react-table";
-import SyntaxHighlight from "utils/SyntaxHighlight";
 
 import {
   DraggableHeader,
@@ -89,14 +72,7 @@ import {
   Maximize1,
   Send,
 } from "iconsax-react";
-import { useDispatch, useSelector } from "react-redux";
-import { values } from "lodash";
-import ActionSuco from "features/BaoCaoSuCo/ActionSuco";
-import ActionSucoForReactTable from "features/BaoCaoSuCo/ActionSucoForReactTable";
-import { getBaoCaoSuCoForDataGrid } from "features/BaoCaoSuCo/baocaosucoSlice";
-import AddNhanVienButton from "features/Daotao/AddNhanVienButton";
 
-const avatarImage = require.context("assets/images/users", true);
 const TableWrapper = styled("div")(() => ({
   ".header": {
     position: "sticky",
@@ -244,7 +220,15 @@ function ReactTable({
             {additionalComponent && additionalComponent}
           </Stack>
         </Stack>
-
+        <Box sx={{ p: 2, py: 0 }}>
+          <TablePagination
+            gotoPage={gotoPage}
+            rows={rows}
+            setPageSize={setPageSize}
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+          />
+        </Box>
         <Box sx={{ width: "100%", overflowX: "auto", display: "block" }}>
           <Table {...getTableProps()} stickyHeader>
             <TableHead sx={{ borderTopWidth: 2 }}>
@@ -429,15 +413,7 @@ function ReactTable({
             </TableFooter>
           </Table>
         </Box>
-        <Box sx={{ p: 2, py: 0 }}>
-          <TablePagination
-            gotoPage={gotoPage}
-            rows={rows}
-            setPageSize={setPageSize}
-            pageIndex={pageIndex}
-            pageSize={pageSize}
-          />
-        </Box>
+       
         {/* 
         <SyntaxHighlight>
           {JSON.stringify(
@@ -478,6 +454,7 @@ const CommonTable = ({
   additionalComponent,
   onSelectedRowsChange,
   renderRowSubComponent,
+  sx,
 }) => {
   return (
     // <MainCard
@@ -485,7 +462,7 @@ const CommonTable = ({
     //   subheader="This page consist combination of most possible features of react-table in to one table. Sorting, grouping, row selection, hidden row, filter, search, pagination, footer row available in below table."
     //   content={false}
     // >
-    <ScrollX sx={{ height: 650 }}>
+    // <ScrollX sx={{ ...sx }}>
       <TableWrapper>
         <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
           <ReactTable
@@ -498,7 +475,7 @@ const CommonTable = ({
           <DragPreview />
         </DndProvider>
       </TableWrapper>
-    </ScrollX>
+    // </ScrollX>
     // </MainCard>
   );
 };

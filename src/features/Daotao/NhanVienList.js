@@ -16,6 +16,7 @@ import { ThemeMode } from 'configAble';
 import NhanVienView from "features/NhanVien/NhanVienView";
 import { formatDate_getDate } from "utils/formatTime";
 import QuaTrinhDaoTaoNhanVienButon from "features/NhanVien/QuaTrinhDaoTaoNhanVienButon";
+import ScrollX from "components/ScrollX";
 function NhanVienList() {
   const theme = useTheme();
   const mode = theme.palette.mode;
@@ -95,7 +96,7 @@ function NhanVienList() {
 
         accessor: "GioiTinh",
         aggregate: "count",
-        // disableGroupBy: true,
+        disableGroupBy: true,
       },
       {
         Header: "Ngày sinh",
@@ -106,20 +107,20 @@ function NhanVienList() {
         disableGroupBy: true,
         Cell: ({ value }) => formatDate_getDate(value),
       },
-      {
-        Header: "Phân loại",
-        Footer: "Phân loại",
+      // {
+      //   Header: "Phân loại",
+      //   Footer: "Phân loại",
 
-        accessor: "Loai",
-        disableGroupBy: true,
-      },
+      //   accessor: "Loai",
+      //   disableGroupBy: true,
+      // },
       {
         Header: 'Khoa công tác',
         Footer: 'Khoa',
         accessor: 'TenKhoa',
         minWidth: 200,
         // filter: 'fuzzyText',
-        disableGroupBy: true
+        // disableGroupBy: true
       },
       {
         Header: "Trình độ chuyên môn",
@@ -202,6 +203,7 @@ function NhanVienList() {
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
         <MainCard title="Quản lý cán bộ">
+          <ScrollX sx ={{height:670}}>
           <CommonTable
             data={data}
             columns={columns}
@@ -213,6 +215,7 @@ function NhanVienList() {
               </div>
             }
           />
+        </ScrollX>
         </MainCard>
       </Grid>
     </Grid>

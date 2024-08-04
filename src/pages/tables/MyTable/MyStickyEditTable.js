@@ -19,18 +19,30 @@ import {
   IconButton,
 } from "@mui/material";
 import { styled, useTheme } from "@mui/material/styles";
-import { Formik, Form } from 'formik';
+import { Formik, Form } from "formik";
 // third-party
-import { useTable, useSortBy, useGlobalFilter, useFilters } from "react-table";
+import {
+  useTable,
+  useSortBy,
+  useGlobalFilter,
+  useFilters,
+  usePagination,
+} from "react-table";
 import { useSticky } from "react-table-sticky";
-import { TickSquare } from 'iconsax-react';
+import { TickSquare } from "iconsax-react";
 // project-imports
 import MainCard from "components/MainCard";
 import ScrollX from "components/ScrollX";
-import { CSVExport, HeaderSort, HidingSelect } from "components/third-party/ReactTable";
+import {
+  CSVExport,
+  EmptyTable,
+  HeaderSort,
+  HidingSelect,
+  TablePagination,
+} from "components/third-party/ReactTable";
 import { ThemeMode } from "configAble";
 import { DefaultColumnFilter, GlobalFilter } from "utils/react-table";
-import * as Yup from 'yup';
+import * as Yup from "yup";
 import LinearWithLabel from "components/@extended/progress/LinearWithLabel";
 // ==============================|| REACT TABLE ||============================== //
 
@@ -47,7 +59,12 @@ const TableWrapper = styled("div")(() => ({
   },
 }));
 
-const CellEdit = ({ value: initialValue, row: { index }, column: { id, dataType,editable }, updateData }) => {
+const CellEdit = ({
+  value: initialValue,
+  row: { index },
+  column: { id, dataType, editable },
+  updateData,
+}) => {
   const [value, setValue] = useState(initialValue);
   const [showSelect, setShowSelect] = useState(false);
 
@@ -68,54 +85,61 @@ const CellEdit = ({ value: initialValue, row: { index }, column: { id, dataType,
     // console.log('initialValue', initialValue);
     setValue(initialValue);
   }, [initialValue]);
-// Nếu cột không thể chỉnh sửa, chỉ hiển thị giá trị
-if (!editable) {
-  return <span>{value}</span>;
-}
+  // Nếu cột không thể chỉnh sửa, chỉ hiển thị giá trị
+  if (!editable) {
+    return <span>{value}</span>;
+  }
   let element;
   let userInfoSchema;
   switch (id) {
-    case 'email':
+    case "email":
       userInfoSchema = Yup.object().shape({
-        userInfo: Yup.string().email('Enter valid email ').required('Email is a required field')
+        userInfo: Yup.string()
+          .email("Enter valid email ")
+          .required("Email is a required field"),
       });
       break;
-    case 'age':
+    case "age":
       userInfoSchema = Yup.object().shape({
         userInfo: Yup.number()
-          .required('Age is required')
-          .typeError('Age must be number')
-          .min(18, 'You must be at least 18 years')
-          .max(100, 'You must be at most 60 years')
+          .required("Age is required")
+          .typeError("Age must be number")
+          .min(18, "You must be at least 18 years")
+          .max(100, "You must be at most 60 years"),
       });
       break;
-    case 'visits':
+    case "visits":
       userInfoSchema = Yup.object().shape({
-        userInfo: Yup.number().typeError('Visits must be number').required('Required')
+        userInfo: Yup.number()
+          .typeError("Visits must be number")
+          .required("Required"),
       });
       break;
     default:
       userInfoSchema = Yup.object().shape({
-        userInfo: Yup.string().min(2, 'Too Short!').max(50, 'Too Long!').required('Name is Required')
+        userInfo: Yup.string()
+          .min(2, "Too Short!")
+          .max(50, "Too Long!")
+          .required("Name is Required"),
       });
       break;
   }
 
   switch (dataType) {
-    case 'checkbox': 
-    element = (
-      <input
-        type="checkbox"
-        checked={value}
-        onChange={(e) => {
-          setValue(e.target.checked);
-          updateData(index, id, e.target.checked);
-        }}
-        // onChange={onchange}
-        // onBlur={onBlur}
-      />
-    );
-    break;
+    case "checkbox":
+      element = (
+        <input
+          type="checkbox"
+          checked={value}
+          onChange={(e) => {
+            setValue(e.target.checked);
+            updateData(index, id, e.target.checked);
+          }}
+          // onChange={onchange}
+          // onBlur={onBlur}
+        />
+      );
+      break;
     // case 'text':
     //   element = (
     //     <>
@@ -151,32 +175,53 @@ if (!editable) {
     //     </>
     //   );
     //   break;
-    case 'text':
+    case "text":
       element = (
         <TextField
           value={value}
           onChange={onChange}
           onBlur={onBlur}
-          sx={{ '& .MuiOutlinedInput-input': { py: 0.75, px: 1, width: id === 'email' ? 150 : 80 }, '& .MuiOutlinedInput-notchedOutline': { border: 'none' } }}
+          sx={{
+            "& .MuiOutlinedInput-input": {
+              py: 0.75,
+              px: 1,
+              width: id === "email" ? 150 : 80,
+            },
+            "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+          }}
         />
       );
       break;
-    case 'select':
+    case "select":
       element = (
         <>
           <Select
             labelId="editable-select-status-label"
-            sx={{ boxShadow: 'none', '.MuiOutlinedInput-notchedOutline': { border: 0 }, svg: { display: 'none' } }}
+            sx={{
+              boxShadow: "none",
+              ".MuiOutlinedInput-notchedOutline": { border: 0 },
+              svg: { display: "none" },
+            }}
             id="editable-select-status"
             value={value}
             onChange={onChange}
             onBlur={onBlur}
           >
             <MenuItem value="Complicated">
-              <Chip color="error" label="Complicated" size="small" variant="light" />
+              <Chip
+                color="error"
+                label="Complicated"
+                size="small"
+                variant="light"
+              />
             </MenuItem>
             <MenuItem value="Relationship">
-              <Chip color="success" label="Relationship" size="small" variant="light" />
+              <Chip
+                color="success"
+                label="Relationship"
+                size="small"
+                variant="light"
+              />
             </MenuItem>
             <MenuItem value="Single">
               <Chip color="info" label="Single" size="small" variant="light" />
@@ -185,7 +230,7 @@ if (!editable) {
         </>
       );
       break;
-    case 'progress':
+    case "progress":
       element = (
         <>
           {!showSelect ? (
@@ -194,7 +239,12 @@ if (!editable) {
             </Box>
           ) : (
             <>
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ pl: 1, minWidth: 120 }}>
+              <Stack
+                direction="row"
+                alignItems="center"
+                spacing={1}
+                sx={{ pl: 1, minWidth: 120 }}
+              >
                 <Slider
                   value={value}
                   min={0}
@@ -207,7 +257,7 @@ if (!editable) {
                   valueLabelDisplay="auto"
                   aria-labelledby="non-linear-slider"
                 />
-                <Tooltip title={'Submit'}>
+                <Tooltip title={"Submit"}>
                   <IconButton onClick={() => setShowSelect(false)}>
                     <TickSquare />
                   </IconButton>
@@ -225,24 +275,38 @@ if (!editable) {
   return element;
 };
 
-function ReactTable({ columns, data, getHeaderProps,updateData, skipPageReset, title,additionalComponent }) {
+function ReactTable({
+  init = { pageIndex: 0, pageSize: 5 },
+  columns,
+  data,
+  getHeaderProps,
+  updateData,
+  skipPageReset,
+  title,
+  additionalComponent,
+  sx,
+}) {
   const defaultColumn = useMemo(
     () => ({
       minWidth: 50,
       width: 100,
       maxWidth: 400,
       Filter: DefaultColumnFilter,
-      Cell: CellEdit
+      Cell: CellEdit,
     }),
     []
   );
+  const initialState = useMemo(() => ({ ...init }), []);
   const theme = useTheme();
   const {
     getTableProps,
     getTableBodyProps,
     headerGroups,
     rows,
+    page,
     prepareRow,
+    gotoPage,
+    setPageSize,
     setHiddenColumns,
     allColumns,
     state: {
@@ -261,12 +325,14 @@ function ReactTable({ columns, data, getHeaderProps,updateData, skipPageReset, t
       columns,
       data,
       defaultColumn,
+      initialState,
       autoResetPage: !skipPageReset,
-      updateData
+      updateData,
     },
     useFilters,
     useGlobalFilter,
     useSortBy,
+    usePagination,
     useSticky
   );
 
@@ -278,8 +344,15 @@ function ReactTable({ columns, data, getHeaderProps,updateData, skipPageReset, t
   );
   let headers = [];
   allColumns.map((item) => {
-    if (!hiddenColumns?.includes(item.id) && item.id !== 'selection' && item.id !== 'edit') {
-      headers.push({ label: typeof item.Header === 'string' ? item.Header : '#', key: item.id });
+    if (
+      !hiddenColumns?.includes(item.id) &&
+      item.id !== "selection" &&
+      item.id !== "edit"
+    ) {
+      headers.push({
+        label: typeof item.Header === "string" ? item.Header : "#",
+        key: item.id,
+      });
     }
     return item;
   });
@@ -328,7 +401,16 @@ function ReactTable({ columns, data, getHeaderProps,updateData, skipPageReset, t
             {additionalComponent && additionalComponent}
           </Stack>
         </Stack>
-        <ScrollX sx={{ height: 500 }}>
+        <Box sx={{ p: 2, py: 0 }}>
+          <TablePagination
+            gotoPage={gotoPage}
+            rows={rows}
+            setPageSize={setPageSize}
+            pageIndex={pageIndex}
+            pageSize={pageSize}
+          />
+        </Box>
+        <ScrollX sx={{ ...sx }}>
           <TableWrapper>
             <Table {...getTableProps()} stickyHeader>
               <TableHead>
@@ -355,31 +437,35 @@ function ReactTable({ columns, data, getHeaderProps,updateData, skipPageReset, t
                 ))}
               </TableHead>
               <TableBody {...getTableBodyProps()}>
-                {sortingRow.map((row) => {
-                  prepareRow(row);
-                  return (
-                    <TableRow key={row} {...row.getRowProps()}>
-                      {row.cells.map((cell) => {
-                        return (
-                          <TableCell
-                            key={cell}
-                            sx={{
-                              bgcolor:
-                                theme.palette.mode === ThemeMode.DARK
-                                  ? "secondary.100"
-                                  : "common.white",
-                            }}
-                            {...cell.getCellProps([
-                              { className: cell.column.className },
-                            ])}
-                          >
-                            {cell.render("Cell")}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  );
-                })}
+                {page.length ? (
+                  page.map((row) => {
+                    prepareRow(row);
+                    return (
+                      <TableRow key={row} {...row.getRowProps()}>
+                        {row.cells.map((cell) => {
+                          return (
+                            <TableCell
+                              key={cell}
+                              sx={{
+                                bgcolor:
+                                  theme.palette.mode === ThemeMode.DARK
+                                    ? "secondary.100"
+                                    : "common.white",
+                              }}
+                              {...cell.getCellProps([
+                                { className: cell.column.className },
+                              ])}
+                            >
+                              {cell.render("Cell")}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })
+                ) : (
+                  <EmptyTable msg="No Data" colSpan={9} />
+                )}
               </TableBody>
             </Table>
           </TableWrapper>
@@ -398,7 +484,15 @@ ReactTable.propTypes = {
 
 // ==============================|| REACT TABLE - STICKY ||============================== //
 
-const MyStickyEditTable = ({ columns, data, title,additionalComponent,updateData }) => {
+const MyStickyEditTable = ({
+  columns,
+  data,
+  title,
+  additionalComponent,
+  updateData,
+  sx,
+  skipPageReset,
+}) => {
   return (
     <ReactTable
       columns={columns}
@@ -407,6 +501,8 @@ const MyStickyEditTable = ({ columns, data, title,additionalComponent,updateData
       additionalComponent={additionalComponent}
       getHeaderProps={(column) => column.getSortByToggleProps()}
       updateData={updateData}
+      skipPageReset={true}
+      sx={sx}
     />
   );
 };

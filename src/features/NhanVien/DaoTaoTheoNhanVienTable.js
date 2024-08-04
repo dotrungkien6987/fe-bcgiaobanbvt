@@ -3,25 +3,22 @@ import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 import UmbrellaTable from "pages/tables/react-table/umbrella";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import UpdateNhanVienButton from "./UpdateNhanVienButton";
-import DeleteNhanVienButton from "./DeleteNhanVienButton";
+
 import MainCard from "components/MainCard";
 import CommonTable from "pages/tables/MyTable/CommonTable";
-import AddNhanVienButton from "./AddNhanVienButton";
-import ExcelButton from "components/ExcelButton";
-import { getAllLopDaoTao } from "./daotaoSlice";
-import AddLopDaoTao from "./AddLopDaoTao";
+
 import { Delete } from "@mui/icons-material";
-import DeleteLopDaoTaoButton from "./DeleteLopDaoTaoButton";
-import UpdateLopDaoTaoButton from "./UpdateLopDaoTaoButton";
-import DiemDanhLopDaoTaoButton from "./DiemDanhLopDaoTaoButton";
-import LopDaoTaoView from "features/NhanVien/LopDaoTaoView";
-import { Add,  Eye } from 'iconsax-react';
-import { ThemeMode } from 'configAble';
-import TrangThaiLopDaoTao from "./TrangThaiLopDaoTao";
+
+import { Add, Eye } from "iconsax-react";
+
+import TrangThaiLopDaoTao from "features/Daotao/TrangThaiLopDaoTao";
+import { ThemeMode } from "configAble";
+import DeleteLopDaoTaoButton from "features/Daotao/DeleteLopDaoTaoButton";
+import UpdateLopDaoTaoButton from "features/Daotao/UpdateLopDaoTaoButton";
+import DiemDanhLopDaoTaoButton from "features/Daotao/DiemDanhLopDaoTaoButton";
 import { formatDate_getDate } from "utils/formatTime";
-import ScrollX from "components/ScrollX";
-function LopDaoTaoTable() {
+import LopDaoTaoView from "./LopDaoTaoView";
+function DaoTaoTheoNhanVienTable({ LopDaoTaos }) {
   const theme = useTheme();
   const mode = theme.palette.mode;
   const columns = useMemo(
@@ -43,43 +40,42 @@ function LopDaoTaoTable() {
           ) : (
             <Eye />
           );
-return (
-  <Stack
-    direction="row"
-    alignItems="center"
-    justifyContent="center"
-    spacing={0}
-  >
-    <DeleteLopDaoTaoButton lopdaotaoID={row.original._id} />
-    {row.original.TrangThai === false && (
-
-    <UpdateLopDaoTaoButton lopdaotaoID={row.original._id} />
-    )}
-    <DiemDanhLopDaoTaoButton lopdaotaoID={row.original._id} />
-    <Tooltip
-        componentsProps={{
-          tooltip: {
-            sx: {
-              backgroundColor: mode === ThemeMode.DARK ? theme.palette.grey[50] : theme.palette.grey[700],
-              opacity: 0.9,
-            },
-          },
-        }}
-        title="View"
-      >
-        <IconButton
-          color="secondary"
-          onClick={(e) => {
-            e.stopPropagation();
-            row.toggleRowExpanded();
-          }}
-        >
-          {collapseIcon}
-        </IconButton>
-      </Tooltip>
-  </Stack>
-)
-        }
+          return (
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="center"
+              spacing={0}
+            >
+              
+              <DiemDanhLopDaoTaoButton lopdaotaoID={row.original._id} />
+              <Tooltip
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      backgroundColor:
+                        mode === ThemeMode.DARK
+                          ? theme.palette.grey[50]
+                          : theme.palette.grey[700],
+                      opacity: 0.9,
+                    },
+                  },
+                }}
+                title="View"
+              >
+                <IconButton
+                  color="secondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    row.toggleRowExpanded();
+                  }}
+                >
+                  {collapseIcon}
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          );
+        },
       },
       {
         Header: "Mã hình thức",
@@ -104,16 +100,38 @@ return (
         accessor: "TrangThai",
         disableGroupBy: true,
         Cell: ({ value }) => {
-          if(value === true) return <TrangThaiLopDaoTao trangthai={true} title ={"Đã hoàn thành"}/>
-          else return <TrangThaiLopDaoTao trangthai={false} title ={"Chưa hoàn thành"}/>;
+          if (value === true)
+            return (
+              <TrangThaiLopDaoTao trangthai={true} title={"Đã hoàn thành"} />
+            );
+          else
+            return (
+              <TrangThaiLopDaoTao trangthai={false} title={"Chưa hoàn thành"} />
+            );
         },
+      },
+      {
+        Header: "Vai trò",
+        Footer: "Vai trò",
+
+        accessor: "VaiTro",
+
+        disableGroupBy: true,
+      },
+      {
+        Header: "Tín chỉ",
+        Footer: "Tín chỉ",
+
+        accessor: "SoTinChiTichLuy",
+
+        disableGroupBy: true,
       },
       {
         Header: "Quyết định",
         Footer: "Quyết định",
 
         accessor: "QuyetDinh",
-        
+
         disableGroupBy: true,
       },
       {
@@ -121,7 +139,7 @@ return (
         Footer: "Hình thức đào tạo",
 
         accessor: "HinhThucDaoTao",
-        
+
         disableGroupBy: true,
       },
       {
@@ -149,42 +167,29 @@ return (
         accessor: "SoLuong",
         disableGroupBy: true,
       },
-      
     ],
     []
   );
 
-  const dispatch = useDispatch();
-  useEffect(() => {
-    // Gọi hàm để lấy danh sách cán bộ khi component được tạo
-    dispatch(getAllLopDaoTao());
-  }, [dispatch]);
-
-  const { LopDaoTaos } = useSelector((state) => state.daotao);
-
   const data = useMemo(() => LopDaoTaos, [LopDaoTaos]);
-  const renderRowSubComponent = useCallback(({ row }) => <LopDaoTaoView data={data[Number(row.id)]} />, [data]);
+  const renderRowSubComponent = useCallback(
+    ({ row }) => <LopDaoTaoView data={data[Number(row.id)]} />,
+    [data]
+  );
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
         <MainCard title="Quản lý lớp đào tạo">
-      <ScrollX sx ={{height:700}}>
           <CommonTable
             data={data}
             columns={columns}
             renderRowSubComponent={renderRowSubComponent}
-            additionalComponent={
-              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              
-              <AddLopDaoTao />
-            </div>
-          }
+           
           />
-          </ScrollX>
         </MainCard>
       </Grid>
     </Grid>
   );
 }
 
-export default LopDaoTaoTable;
+export default DaoTaoTheoNhanVienTable;

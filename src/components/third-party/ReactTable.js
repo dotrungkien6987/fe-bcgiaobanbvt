@@ -448,19 +448,19 @@ export const HidingSelect = ({
         renderValue={(selected) => {
           if (selected.length === 0) {
             return (
-              <Typography variant="subtitle1">All columns visible</Typography>
+              <Typography variant="subtitle1">Chọn cột hiển thị</Typography>
             );
           }
 
           if (selected.length > 0 && selected.length === allColumns.length) {
             return (
-              <Typography variant="subtitle1">All columns visible</Typography>
+              <Typography variant="subtitle1">Chọn cột hiển thị</Typography>
             );
           }
 
           return (
             <Typography variant="subtitle1">
-              {visible} column(s) visible
+              {visible} cột hiển thị
             </Typography>
           );
         }}

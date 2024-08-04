@@ -54,7 +54,7 @@ export default function SelectHocVienForm() {
   return (
     <>
     {lopdaotaoCurrent&&lopdaotaoCurrent._id && (
-      <Button variant="contained" startIcon={<AddIcon />} onClick={handleClickOpen}>
+      <Button variant="contained" startIcon={<AddIcon />} onClick={handleClickOpen} mb={2}>
         Thêm
       </Button>
     )}

@@ -150,7 +150,7 @@ lopdaotaonhanvienUpdate.SoTinChiTichLuy = item.SoTinChiTichLuy;
   }, [hocvienCurrents]);
 
   const [tableData, setTableData] = useState([...hocvienCurrents]);
-  
+  const [skipPageReset, setSkipPageReset] = useState(false);
   const updateData = (rowIndex, columnId, value) => {
     setTableData((old) =>
       old.map((row, index) => {
@@ -193,7 +193,9 @@ lopdaotaonhanvienUpdate.SoTinChiTichLuy = item.SoTinChiTichLuy;
       })
     );
   }
-
+  useEffect(() => {
+    setSkipPageReset(false);
+  }, [tableData]);
   return (
     <Card variant="outlined" sx={{ p: 1 }}>
       <Stack direction="row" mb={2}>
@@ -203,26 +205,34 @@ lopdaotaonhanvienUpdate.SoTinChiTichLuy = item.SoTinChiTichLuy;
         </Typography>
         <Box sx={{ flexGrow: 1 }}></Box>
         <Box sx={{ display: 'flex', gap: 2 }}> {/* Thêm khoảng cách giữa các nút */}
-          <Button
-            variant="contained"
-            startIcon={<CompareArrowsIcon />}
-            onClick={handleAutoCalculate}
-          >
-            Tự động tính tín chỉ tích lũy
-          </Button>
-          <Button
+          {!lopdaotaoCurrent.TrangThai && (
+             <Button
+             variant="contained"
+             startIcon={<CompareArrowsIcon />}
+             onClick={handleAutoCalculate}
+           >
+             Tự động tính tín chỉ tích lũy
+           </Button>
+          )}
+          {!lopdaotaoCurrent.TrangThai && (
+            <Button
             variant="contained"
             startIcon={<SaveIcon />}
             onClick={handleClickSave}
           >
             Lưu quá trình điểm danh
           </Button>
+          )}
+         
+         
         </Box>
       </Stack>
       <MyStickyEditTable
         data={tableData}
         columns={columns}
         updateData={updateData}
+        skipPageReset={skipPageReset}
+        sx={{ height: 700 }}
       />
     </Card>
   );

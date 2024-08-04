@@ -227,7 +227,9 @@ function ReactTable({ columns, data, init,additionalComponent,onSelectedRowsChan
              {additionalComponent && additionalComponent}
           </Stack>
         </Stack>
-
+        <Box sx={{ p: 2, py: 0 }}>
+          <TablePagination gotoPage={gotoPage} rows={rows} setPageSize={setPageSize} pageIndex={pageIndex} pageSize={pageSize} />
+        </Box>
         <Box sx={{ width: '100%', overflowX: 'auto', display: 'block' }}>
           <Table {...getTableProps()} stickyHeader>
             <TableHead sx={{ borderTopWidth: 2 }}>
@@ -336,20 +338,8 @@ function ReactTable({ columns, data, init,additionalComponent,onSelectedRowsChan
             </TableFooter>
           </Table>
         </Box>
-        <Box sx={{ p: 2, py: 0 }}>
-          <TablePagination gotoPage={gotoPage} rows={rows} setPageSize={setPageSize} pageIndex={pageIndex} pageSize={pageSize} />
-        </Box>
-{/* 
-        <SyntaxHighlight>
-          {JSON.stringify(
-            {
-              selectedRowIndices: selectedRowIds,
-              'selectedFlatRows[].original': selectedFlatRows.map((d) => d.original)
-            },
-            null,
-            2
-          )}
-        </SyntaxHighlight> */}
+       
+
       </Stack>
     </>
   );
@@ -382,7 +372,7 @@ const SelectTable = ({data,columns,additionalComponent,onSelectedRowsChange}) =>
     //   subheader="This page consist combination of most possible features of react-table in to one table. Sorting, grouping, row selection, hidden row, filter, search, pagination, footer row available in below table."
     //   content={false}
     // >
-      <ScrollX sx ={{height:750}}>
+      // <ScrollX sx ={{height:750}}>
         <TableWrapper>
         <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
           <ReactTable columns={columns} data={data} additionalComponent={additionalComponent} onSelectedRowsChange={onSelectedRowsChange}/>
@@ -390,7 +380,7 @@ const SelectTable = ({data,columns,additionalComponent,onSelectedRowsChange}) =>
         </DndProvider>
         </TableWrapper>
         
-      </ScrollX>
+      // </ScrollX>
     // </MainCard>
   );
 };

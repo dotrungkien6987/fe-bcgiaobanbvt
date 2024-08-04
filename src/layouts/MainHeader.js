@@ -176,7 +176,15 @@ function MainHeader() {
         Tổng hợp sự cố y khoa
       </MenuItem>
       <Divider sx={{ borderStyle: "dashed" }} />
-
+      <MenuItem
+        onClick={handleMenuClose}
+        to="/nhanvien"
+        component={RouterLink}
+        sx={{ mx: 1 }}
+      >
+        Nội bộ
+      </MenuItem>
+      <Divider sx={{ borderStyle: "dashed" }} />
       <MenuItem onClick={handleResetPass} component={RouterLink} sx={{ mx: 1 }}>
         Đổi mật khẩu
       </MenuItem>

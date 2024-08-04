@@ -100,7 +100,7 @@ function DiemDanhLopDaoTaoForm() {
   } = methods;
 
   useEffect(() => {
-    console.log("lopdaotaoCurrent", lopdaotaoCurrent);
+    
     // Kiểm tra xem `lopdaotaoCurrent` có tồn tại và form đang ở chế độ cập nhật không
     if (
       lopdaotaoCurrent &&

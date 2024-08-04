@@ -28,12 +28,13 @@ import Transitions from "components/@extended/Transitions";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import PhoneIcon from "@mui/icons-material/Phone";
 // assets
-import { Link2, Location, Mobile, Sms } from "iconsax-react";
+import { Link2, Location, CalendarTick, Sms } from "iconsax-react";
 import { formatDate_getDate } from "utils/formatTime";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { getOneNhanVienByID } from "./nhanvienSlice";
 import { useDispatch, useSelector } from "react-redux";
+import DaoTaoTheoNhanVienTable from "./DaoTaoTheoNhanVienTable";
 
 const avatarImage = require.context("assets/images/users", true);
 
@@ -43,7 +44,12 @@ const NhanVienView1 = () => {
   const params = useParams();
 
   const dispatch = useDispatch();
-  const { nhanvienCurrent } = useSelector((state) => state.nhanvien);
+  const {
+    nhanvienCurrent,
+    lopdaotaotheoNhanVienCurrents,
+    nghiencuukhoahoctheoNhanVienCurrents,
+    tinchitichluyCurrents,
+  } = useSelector((state) => state.nhanvien);
   useEffect(() => {
     dispatch(getOneNhanVienByID(params.nhanvienID));
   }, []);
@@ -51,7 +57,7 @@ const NhanVienView1 = () => {
   const matchDownMD = useMediaQuery(theme.breakpoints.down("md"));
   console.log("datanhanvien", nhanvienCurrent);
   return (
-    <MainCard>
+    <MainCard title ={`Quá trình cập nhật kiến thức y khoa liên tục của ${nhanvienCurrent.ChucDanh}:- ${nhanvienCurrent.Ten}`}>
       <Grid container spacing={2.5}>
         <Grid item xs={12} sm={4}>
           <Grid container spacing={1}>
@@ -68,7 +74,7 @@ const NhanVienView1 = () => {
                     fontSize: "0.675rem",
                   }}
                 />
-                <Grid container spacing={1}>
+                <Grid container spacing={2.2}>
                   <Grid item xs={12}>
                     <Stack spacing={2.5} alignItems="center">
                       <Avatar
@@ -80,6 +86,7 @@ const NhanVienView1 = () => {
                         <Typography variant="h5">
                           {nhanvienCurrent.Ten}
                         </Typography>
+                    
                         <Typography color="secondary">
                           {nhanvienCurrent.ChucVu}
                         </Typography>
@@ -99,12 +106,16 @@ const NhanVienView1 = () => {
                       alignItems="center"
                     >
                       <Stack spacing={0.5} alignItems="center">
-                        <Typography variant="h5">{5}</Typography>
+                        <Typography variant="h5">
+                          {lopdaotaotheoNhanVienCurrents.length}
+                        </Typography>
                         <Typography color="secondary">Khóa đào tạo</Typography>
                       </Stack>
                       <Divider orientation="vertical" flexItem />
                       <Stack spacing={0.5} alignItems="center">
-                        <Typography variant="h5">{2}</Typography>
+                        <Typography variant="h5">
+                          {nghiencuukhoahoctheoNhanVienCurrents.length}
+                        </Typography>
                         <Typography color="secondary">
                           Nghiên cứu khoa học
                         </Typography>
@@ -178,7 +189,7 @@ const NhanVienView1 = () => {
             <MainCard title="Thông tin cá nhân">
               <List sx={{ py: 0 }}>
                 <ListItem divider={!matchDownMD}>
-                  <Grid container spacing={3}>
+                  <Grid container spacing={2}>
                     <Grid item xs={12} md={6}>
                       <Stack spacing={0.5}>
                         <Typography color="secondary">Họ tên</Typography>
@@ -216,7 +227,7 @@ const NhanVienView1 = () => {
                 </ListItem>
 
                 <ListItem divider={!matchDownMD}>
-                  <Grid container spacing={3}>
+                  <Grid container spacing={2.5}>
                     <Grid item xs={12} md={6}>
                       <Stack spacing={0.5}>
                         <Typography color="secondary">
@@ -230,6 +241,45 @@ const NhanVienView1 = () => {
                     <Grid item xs={12} md={6}>
                       <Stack spacing={0.5}>
                         <Typography color="secondary">
+                          Chức danh
+                        </Typography>
+                        <Typography>
+                          {nhanvienCurrent.ChucDanh}
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                  </Grid>
+                </ListItem>
+
+                <ListItem divider={!matchDownMD}>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12} md={6}>
+                      <Stack spacing={0.5}>
+                        <Typography color="secondary">
+                          Số chứng chỉ hành nghề
+                        </Typography>
+                        <Typography>{nhanvienCurrent.SoCCHN || ""}</Typography>
+                      </Stack>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Stack spacing={0.5}>
+                        <Typography color="secondary">Ngày cấp CCHN</Typography>
+                        <Typography>
+                          {nhanvienCurrent.NgayCapCCHN
+                            ? formatDate_getDate(nhanvienCurrent.NgayCapCCHN)
+                            : ""}
+                        </Typography>
+                      </Stack>
+                    </Grid>
+                  </Grid>
+                </ListItem>
+
+                <ListItem divider={!matchDownMD}>
+                  <Grid container spacing={3}>
+                   
+                    <Grid item xs={12} md={6}>
+                      <Stack spacing={0.5}>
+                        <Typography color="secondary">
                           Phạm vi hành nghề
                         </Typography>
                         <Typography>
@@ -240,30 +290,49 @@ const NhanVienView1 = () => {
                   </Grid>
                 </ListItem>
 
-                {/* <ListItem>
-                      <Stack spacing={0.5}>
-                        <Typography color="secondary">Address</Typography>
-                        <Typography>{nhanvienCurrent.address}</Typography>
-                      </Stack>
-                    </ListItem> */}
               </List>
             </MainCard>
           </Stack>
         </Grid>
         <Grid item xs={2}>
           <MainCard title="Tín chỉ tích lũy">
-            <Typography color="secondary">...</Typography>
+            <List
+              aria-label="main mailbox folders"
+              sx={{
+                py: 0,
+                "& .MuiListItemIcon-root": { minWidth: 32 },
+              }}
+            >
+              {tinchitichluyCurrents.length > 0 &&
+                tinchitichluyCurrents.map((item, index) => (
+                  <ListItem key={index}>
+                    <ListItemIcon>
+                      <CalendarTick variant="Outline" size={23} />
+                      <Typography align="right" variant="h5">
+                        {item.Year}
+                      </Typography>
+                    </ListItemIcon>
+                    <ListItemSecondaryAction>
+                      <Typography align="right">
+                        <Typography align="right" variant="h5">
+                          {item.TongTinChi}
+                        </Typography>
+                      </Typography>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                ))}
+
+              <Divider />
+            </List>
           </MainCard>
         </Grid>
         <Grid item xs={12}>
-          <MainCard title="Quá trình đào tạo">
-            <Typography color="secondary">...</Typography>
-          </MainCard>
+          <DaoTaoTheoNhanVienTable LopDaoTaos={lopdaotaotheoNhanVienCurrents} />
         </Grid>
         <Grid item xs={12}>
-          <MainCard title="Quá trình nghiên cứu khoa học">
-            <Typography color="secondary">...</Typography>
-          </MainCard>
+          <DaoTaoTheoNhanVienTable
+            LopDaoTaos={nghiencuukhoahoctheoNhanVienCurrents}
+          />
         </Grid>
       </Grid>
     </MainCard>

@@ -4,6 +4,7 @@ import AddIcon from "@mui/icons-material/Add";
 import ThongTinNhanVien from "./ThongTinNhanVien";
 
 import { Delete } from "@mui/icons-material";
+import {Trash} from "iconsax-react"
 import { useDispatch, useSelector } from "react-redux";
 import { deleteOneNhanVien, updateOrInsertDatafix } from "features/NhanVien/nhanvienSlice";
 function DeleteDataFixButton({datafixField="DonVi",datafixTitle='Đơn vị',index}) {
@@ -29,8 +30,8 @@ setOpenDelete(false)
   return (
     <div>
       <Tooltip title="Xóa">
-        <IconButton color="primary" onClick={()=>setOpenDelete(true)}>
-          <Delete />
+        <IconButton color="error" onClick={()=>setOpenDelete(true)}>
+          <Trash />
         </IconButton>
       </Tooltip>
       <Dialog
