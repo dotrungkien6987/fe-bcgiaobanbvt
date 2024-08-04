@@ -23,8 +23,8 @@ function NhanVienList() {
   const columns = useMemo(
     () => [
       {
-        Header: "_id",
-        Footer: "Action",
+        Header: "Actions",
+        Footer: "Actions",
         accessor: "_id",
         disableGroupBy: true,
         sticky: "left",
@@ -94,7 +94,7 @@ function NhanVienList() {
         Header: "Giới tính",
         Footer: "Giới tính",
 
-        accessor: "GioiTinh",
+        accessor: "Sex",
         aggregate: "count",
         disableGroupBy: true,
       },

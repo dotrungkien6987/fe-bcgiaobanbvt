@@ -14,6 +14,7 @@ function FDatePicker({ name, label, ...other }) {
         control={control}
         render={({ field: { onChange, value }, fieldState: { error } }) => (
           <DatePicker
+          label={label}
             value={value}
             onChange={(date) => {
               onChange(date); // Ensure date is in correct format
@@ -21,7 +22,7 @@ function FDatePicker({ name, label, ...other }) {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label={"Ngày sinh"}
+                
                 variant="standard"
                 error={!!error}
                 helperText={error ? error.message : null}

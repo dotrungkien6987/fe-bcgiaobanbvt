@@ -5,7 +5,7 @@ import logoImg from "../logoBVTPT.png";
 function Logo({ disabledLink = false, sx,isIcon=true }) {
   const logo =!isIcon? (
     <Box sx={{ width: 20, height: 20, ...sx }}>
-      <img src={logoImg} alt="logo" width="40%" />
+      <img src={logoImg} alt="logo" width="30%" />
     </Box>
   ):(<Box sx={{ width: 40, height: 40, ...sx }}>
     <img src={logoImg} alt="logo" width="100%" />

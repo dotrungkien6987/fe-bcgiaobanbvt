@@ -5,7 +5,7 @@ const TrangThaiLopDaoTao = ({ trangthai,title,...other }) => {
   if (trangthai) {
     return (
       <Chip
-        label={title}
+        label={"Đã hoàn thành"}
           size="small"
         style={{
           backgroundColor: '#1939B7',
@@ -20,7 +20,7 @@ const TrangThaiLopDaoTao = ({ trangthai,title,...other }) => {
   } else {
     return (
       <Chip
-      label={title}
+      label={"Chưa hoàn thành"}
         size="small"
         style={{
         //   backgroundColor: '#d4aabf',

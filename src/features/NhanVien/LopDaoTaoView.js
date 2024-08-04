@@ -29,6 +29,8 @@ import Transitions from 'components/@extended/Transitions';
 // assets
 import { Link2, Location, Mobile, Sms } from 'iconsax-react';
 import { formatDate_getDate } from 'utils/formatTime';
+import TrangThaiLopDaoTao from 'features/Daotao/TrangThaiLopDaoTao';
+import { useSelector } from 'react-redux';
 
 const avatarImage = require.context('assets/images/users', true);
 
@@ -36,6 +38,8 @@ const avatarImage = require.context('assets/images/users', true);
 
 const LopDaoTaoView = ({ data }) => {
   const theme = useTheme();
+  const {HinhThucCapNhat} = useSelector((state) => state.hinhthuccapnhat); 
+  const loaihinhthuc = HinhThucCapNhat?.find((item) => item.Ma === data.MaHinhThucCapNhat)?.Loai || "";
   const matchDownMD = useMediaQuery(theme.breakpoints.down('md'));
 console.log("datanhanvien",data);
   return (
@@ -45,7 +49,8 @@ console.log("datanhanvien",data);
           <Grid container spacing={2.5} sx={{ pl: { xs: 0, sm: 5, md: 6, lg: 10, xl: 12 } }}>
             <Grid item xs={12} sm={5} >
               <MainCard>
-                <Chip
+                <TrangThaiLopDaoTao trangthai={data.TrangThai} />
+                {/* <Chip
                   label={"Đã hoàn thành"}
                   size="small"
                   color="primary"
@@ -56,15 +61,15 @@ console.log("datanhanvien",data);
                     fontSize: '0.8rem',
                     
                   }}
-                />
+                /> */}
                 
-                <Grid container spacing={4.5} mt={2}>
+                <Grid container spacing={4} mt={0.1}>
                   <Grid item xs={12}>
                     <Stack spacing={2.5} alignItems="center">
                       
                       <Stack spacing={0.5} alignItems="center">
-                        <Typography variant="h4">{data.Ten}</Typography>
-                        <Typography color="secondary">{"Đào tạo"}</Typography>
+                        <Typography variant="h4" textAlign={"center"}>{data.Ten}</Typography>
+                        <Typography color="secondary">{loaihinhthuc}</Typography>
                       </Stack>
                     </Stack>
                   </Grid>
@@ -79,7 +84,7 @@ console.log("datanhanvien",data);
                       </Stack>
                       <Divider orientation="vertical" flexItem />
                       <Stack spacing={0.5} alignItems="center">
-                        <Typography variant="h5">{"15"}</Typography>
+                        <Typography variant="h5">{data.SoThanhVien || 0}</Typography>
                         <Typography color="secondary">Thành viên</Typography>
                       </Stack>
                       

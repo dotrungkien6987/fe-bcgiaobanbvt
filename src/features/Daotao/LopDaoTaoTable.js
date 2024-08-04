@@ -27,9 +27,9 @@ function LopDaoTaoTable() {
   const columns = useMemo(
     () => [
       {
-        Header: "_id",
+        Header: "Action",
         Footer: "Action",
-        accessor: "_id",
+        accessor: "id",
         disableGroupBy: true,
         sticky: "left",
         Cell: ({ row }) => {

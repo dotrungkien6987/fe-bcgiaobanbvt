@@ -41,7 +41,7 @@ const NhanVienView = ({ data }) => {
 console.log("datanhanvien",data);
   return (
     <TableRow sx={{ '&:hover': { bgcolor: `transparent !important` }, overflow: 'hidden' }}>
-      <TableCell colSpan={11} sx={{ p: 2.5, overflow: 'hidden' }}>
+      <TableCell colSpan={8} sx={{ p: 2.5, overflow: 'hidden' }}>
         <Transitions type="slide" direction="down" in={true}>
           <Grid container spacing={2.5} sx={{ pl: { xs: 0, sm: 5, md: 6, lg: 10, xl: 12 } }}>
             <Grid item xs={12} sm={5} >
@@ -74,24 +74,7 @@ console.log("datanhanvien",data);
                   <Grid item xs={12}>
                     <Divider />
                   </Grid>
-                  <Grid item xs={12}>
-                    <Stack direction="row" justifyContent="space-around" alignItems="center">
-                      <Stack spacing={0.5} alignItems="center">
-                        <Typography variant="h5">{5}</Typography>
-                        <Typography color="secondary">Khóa đào tạo</Typography>
-                      </Stack>
-                      <Divider orientation="vertical" flexItem />
-                      <Stack spacing={0.5} alignItems="center">
-                        <Typography variant="h5">{2}</Typography>
-                        <Typography color="secondary">Nghiên cứu khoa học</Typography>
-                      </Stack>
-                      {/* <Divider orientation="vertical" flexItem /> */}
-                     
-                    </Stack>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Divider />
-                  </Grid>
+                
                   <Grid item xs={12}>
                     <List aria-label="main mailbox folders" sx={{ py: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
                      
@@ -140,25 +123,17 @@ console.log("datanhanvien",data);
                 </Grid>
               </MainCard>
               </Grid>
-              <Grid item xs={12} >
-              <MainCard title="Tín chỉ tích lũy theo năm">
-                  <Typography color="secondary">
-                  ...
-                  </Typography>
-                </MainCard>
-              </Grid>
-            
-
+             
             </Grid>
               
             
             </Grid>
             <Grid item xs={12} sm={7} >
-              <Stack spacing={2.5}>
-                <MainCard title="Thông tin cá nhân">
+              <Stack spacing={2}>
+                <MainCard >
                   <List sx={{ py: 0 }}>
                     <ListItem divider={!matchDownMD}>
-                      <Grid container spacing={3}>
+                      <Grid container spacing={1}>
                         <Grid item xs={12} md={6}>
                           <Stack spacing={0.5}>
                             <Typography color="secondary">Họ tên</Typography>
@@ -203,15 +178,47 @@ console.log("datanhanvien",data);
                         </Grid>
                         <Grid item xs={12} md={6}>
                           <Stack spacing={0.5}>
-                            <Typography color="secondary">Phạm vi hành nghề</Typography>
+                            <Typography color="secondary">Chức danh</Typography>
                             <Typography>
-                              {data.PhamViHanhNghe}
+                              {data.ChucDanh}
                             </Typography>
                           </Stack>
                         </Grid>
                       </Grid>
                     </ListItem>
                     
+                    <ListItem divider={!matchDownMD}>
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                          <Stack spacing={0.5}>
+                            <Typography color="secondary">Số chứng chỉ hành nghề</Typography>
+                            <Typography>{data.SoCCHN}</Typography>
+                          </Stack>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                          <Stack spacing={0.5}>
+                            <Typography color="secondary">Ngày cấp CCHN</Typography>
+                            <Typography>
+                              {formatDate_getDate(data.NgayCapCCHN)}
+                            </Typography>
+                          </Stack>
+                        </Grid>
+                      </Grid>
+                    </ListItem>
+                    
+                    <ListItem divider={!matchDownMD}>
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                          <Stack spacing={0.5}>
+                            <Typography color="secondary">Phạm vi hành nghể</Typography>
+                            <Typography>{data.PhamViHanhNghe}</Typography>
+                          </Stack>
+                        </Grid>
+                        
+                      </Grid>
+                    </ListItem>
+                    
+                   
                     {/* <ListItem>
                       <Stack spacing={0.5}>
                         <Typography color="secondary">Address</Typography>
@@ -220,17 +227,7 @@ console.log("datanhanvien",data);
                     </ListItem> */}
                   </List>
                 </MainCard>
-                <MainCard title="Quá trình đào tạo">
-                  <Typography color="secondary">
-                  ...
-                  </Typography>
-                </MainCard>
-
-                <MainCard title="Quá trình nghiên cứu khoa học">
-                  <Typography color="secondary">
-                  ...
-                  </Typography>
-                </MainCard>
+              
               </Stack>
             </Grid>
           </Grid>

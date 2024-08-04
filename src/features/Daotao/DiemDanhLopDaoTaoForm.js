@@ -15,7 +15,7 @@ import {
   Toolbar,
   Typography,
 } from "@mui/material";
-import SaveIcon from '@mui/icons-material/Save';
+import SaveIcon from "@mui/icons-material/Save";
 import { FTextField, FormProvider } from "components/form";
 import FAutocomplete from "components/form/FAutocomplete";
 import FDatePicker from "components/form/FDatePicker";
@@ -100,7 +100,6 @@ function DiemDanhLopDaoTaoForm() {
   } = methods;
 
   useEffect(() => {
-    
     // Kiểm tra xem `lopdaotaoCurrent` có tồn tại và form đang ở chế độ cập nhật không
     if (
       lopdaotaoCurrent &&
@@ -165,12 +164,14 @@ function DiemDanhLopDaoTaoForm() {
   return (
     <MainCard title="Quá trình điểm danh">
       <Grid container spacing={2}>
-       
         <Grid item xs={12} md={12}>
-          <LopDaoTaoView1 data = {lopdaotaoCurrent}/>
+          <LopDaoTaoView1
+            data={lopdaotaoCurrent}
+            
+          />
         </Grid>
         <Grid item xs={12} md={12}>
-          <DiemDanhLopDaoTaoTable numSections={lopdaotaoCurrent.SoLuong}/>
+          <DiemDanhLopDaoTaoTable numSections={lopdaotaoCurrent.SoLuong} />
         </Grid>
       </Grid>
 

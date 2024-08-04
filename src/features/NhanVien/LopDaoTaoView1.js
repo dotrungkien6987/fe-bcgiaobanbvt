@@ -31,7 +31,7 @@ import Transitions from "components/@extended/Transitions";
 import SaveIcon from "@mui/icons-material/Save";
 import { formatDate_getDate } from "utils/formatTime";
 import TrangThaiLopDaoTao from "features/Daotao/TrangThaiLopDaoTao";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { updateTrangThaiLopDaoTao } from "features/Daotao/daotaoSlice";
 
 const avatarImage = require.context("assets/images/users", true);
@@ -40,6 +40,8 @@ const avatarImage = require.context("assets/images/users", true);
 
 const LopDaoTaoView1 = ({ data }) => {
   const theme = useTheme();
+  const {HinhThucCapNhat} = useSelector((state) => state.hinhthuccapnhat); 
+  const loaihinhthuc = HinhThucCapNhat?.find((item) => item.Ma === data.MaHinhThucCapNhat)?.Loai || "";
   const matchDownMD = useMediaQuery(theme.breakpoints.down("md"));
   console.log("datanhanvien", data);
   const dispatch = useDispatch();
@@ -63,9 +65,9 @@ const LopDaoTaoView1 = ({ data }) => {
                 <Stack spacing={2} alignItems="center">
                   <Stack spacing={0.5} alignItems="center">
                     <Typography variant="h4">
-                      Lớp đào tạo: {data.Ten || ""}
+                     {data.Ten || ""}
                     </Typography>
-                    <Typography color="secondary">{"Đào tạo"}</Typography>
+                    <Typography color="secondary">{loaihinhthuc}</Typography>
                   </Stack>
                 </Stack>
               </Grid>
