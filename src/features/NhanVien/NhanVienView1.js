@@ -57,7 +57,9 @@ const NhanVienView1 = () => {
   const matchDownMD = useMediaQuery(theme.breakpoints.down("md"));
   console.log("datanhanvien", nhanvienCurrent);
   return (
-    <MainCard title ={`Quá trình cập nhật kiến thức y khoa liên tục của ${nhanvienCurrent.ChucDanh}:- ${nhanvienCurrent.Ten}`}>
+    <MainCard
+      title={`Quá trình cập nhật kiến thức y khoa liên tục của ${nhanvienCurrent.ChucDanh}:- ${nhanvienCurrent.Ten}`}
+    >
       <Grid container spacing={2.5}>
         <Grid item xs={12} sm={4}>
           <Grid container spacing={1}>
@@ -80,13 +82,17 @@ const NhanVienView1 = () => {
                       <Avatar
                         alt="Avatar 1"
                         size="xl"
-                        src={avatarImage(`./avatar-1.png`)}
+                        src={avatarImage(
+                          nhanvienCurrent.GioiTinh === 0
+                            ? `./avatar-1.png`
+                            : `./avatar-9.png`
+                        )}
                       />
                       <Stack spacing={0.5} alignItems="center">
                         <Typography variant="h5">
                           {nhanvienCurrent.Ten}
                         </Typography>
-                    
+
                         <Typography color="secondary">
                           {nhanvienCurrent.ChucVu}
                         </Typography>
@@ -240,12 +246,8 @@ const NhanVienView1 = () => {
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <Stack spacing={0.5}>
-                        <Typography color="secondary">
-                          Chức danh
-                        </Typography>
-                        <Typography>
-                          {nhanvienCurrent.ChucDanh}
-                        </Typography>
+                        <Typography color="secondary">Chức danh</Typography>
+                        <Typography>{nhanvienCurrent.ChucDanh}</Typography>
                       </Stack>
                     </Grid>
                   </Grid>
@@ -276,7 +278,6 @@ const NhanVienView1 = () => {
 
                 <ListItem divider={!matchDownMD}>
                   <Grid container spacing={3}>
-                   
                     <Grid item xs={12} md={6}>
                       <Stack spacing={0.5}>
                         <Typography color="secondary">
@@ -289,7 +290,6 @@ const NhanVienView1 = () => {
                     </Grid>
                   </Grid>
                 </ListItem>
-
               </List>
             </MainCard>
           </Stack>
@@ -327,11 +327,15 @@ const NhanVienView1 = () => {
           </MainCard>
         </Grid>
         <Grid item xs={12}>
-          <DaoTaoTheoNhanVienTable LopDaoTaos={lopdaotaotheoNhanVienCurrents} />
+          <DaoTaoTheoNhanVienTable
+            LopDaoTaos={lopdaotaotheoNhanVienCurrents}
+            title={"Quá trình đào tạo"}
+          />
         </Grid>
         <Grid item xs={12}>
           <DaoTaoTheoNhanVienTable
             LopDaoTaos={nghiencuukhoahoctheoNhanVienCurrents}
+            title={"Quá trình nghiên cứu khoa học"}
           />
         </Grid>
       </Grid>

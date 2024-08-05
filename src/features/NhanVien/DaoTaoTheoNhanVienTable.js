@@ -18,7 +18,7 @@ import UpdateLopDaoTaoButton from "features/Daotao/UpdateLopDaoTaoButton";
 import DiemDanhLopDaoTaoButton from "features/Daotao/DiemDanhLopDaoTaoButton";
 import { formatDate_getDate } from "utils/formatTime";
 import LopDaoTaoView from "./LopDaoTaoView";
-function DaoTaoTheoNhanVienTable({ LopDaoTaos }) {
+function DaoTaoTheoNhanVienTable({ LopDaoTaos,title }) {
   const theme = useTheme();
   const mode = theme.palette.mode;
   const columns = useMemo(
@@ -179,7 +179,7 @@ function DaoTaoTheoNhanVienTable({ LopDaoTaos }) {
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
-        <MainCard title="Quản lý lớp đào tạo">
+        <MainCard title={title}>
           <CommonTable
             data={data}
             columns={columns}

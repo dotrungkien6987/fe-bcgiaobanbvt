@@ -63,7 +63,8 @@ console.log("datanhanvien",data);
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
                     <Stack spacing={2.5} alignItems="center">
-                      <Avatar alt="Avatar 1" size="xl" src={avatarImage(`./avatar-1.png`)} />
+                      <Avatar alt="Avatar 1" size="xl" src={avatarImage(data.GioiTinh===0?`./avatar-1.png`: `./avatar-9.png`)} />
+                      
                       <Stack spacing={0.5} alignItems="center">
                         <Typography variant="h5">{data.Ten}</Typography>
                         <Typography color="secondary">{data.ChucVu}</Typography>

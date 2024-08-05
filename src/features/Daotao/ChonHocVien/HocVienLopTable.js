@@ -26,6 +26,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import AddIcon from "@mui/icons-material/Add";
 import { insertOrUpdateLopDaoTaoNhanVien } from "../daotaoSlice";
 import ScrollX from "components/ScrollX";
+import { formatDate_getDate } from "utils/formatTime";
 function HocVienLopTable({ setSelectedRows }) {
   const columns = useMemo(
     () => [
@@ -82,7 +83,7 @@ function HocVienLopTable({ setSelectedRows }) {
         Header: "Giới tính",
         Footer: "Giới tính",
 
-        accessor: "GioiTinh",
+        accessor: "Sex",
         aggregate: "count",
         // disableGroupBy: true,
       },
@@ -93,7 +94,7 @@ function HocVienLopTable({ setSelectedRows }) {
         accessor: "NgaySinh",
 
         disableGroupBy: true,
-        Cell: ({ value }) => new Date(value).toDateString(),
+        Cell: ({ value }) => formatDate_getDate(value),
       },
 
       // {
@@ -119,7 +120,7 @@ function HocVienLopTable({ setSelectedRows }) {
     if (lopdaotaoCurrent && lopdaotaoCurrent._id && lopdaotaoCurrent._id !== 0) {
       const lopdaotaonhanvienData = hocvienCurrents.map((hv) => ({
         LopDaoTaoID: lopdaotaoCurrent._id,
-        NhanVienID: hv._id,
+        NhanVienID: hv.NhanVienID,
         VaiTro: hv.VaiTro,
       
       }));

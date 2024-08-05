@@ -59,10 +59,11 @@ function LopDaoTaoForm() {
   const { NoiDaoTao, NguonKinhPhi, HinhThucDaoTao } = useSelector(
     (state) => state.nhanvien
   );
+
   const dispatch = useDispatch();
   useEffect(() => {
     if (lopdaotaoID) dispatch(getOneLopDaoTaoByID(lopdaotaoID));
-    //  else dispatch(resetLopDaoTaoCurrent())
+     else dispatch(resetLopDaoTaoCurrent())
   }, []);
   useEffect(() => {
     if (HinhThucCapNhat.length === 0) {

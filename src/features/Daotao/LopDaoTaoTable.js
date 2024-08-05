@@ -125,6 +125,14 @@ return (
         disableGroupBy: true,
       },
       {
+        Header: "Số thành viên",
+        Footer: "Số thành viên",
+
+        accessor: "SoThanhVien",
+        
+        disableGroupBy: true,
+      },
+      {
         Header: "Ngày bắt đầu",
         Footer: "Ngày bắt đầu",
 

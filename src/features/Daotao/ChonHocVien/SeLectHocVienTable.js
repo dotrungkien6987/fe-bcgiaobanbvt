@@ -11,6 +11,7 @@ import AddNhanVienButton from "../AddNhanVienButton";
 import ExcelButton from "components/ExcelButton";
 import { IndeterminateCheckbox } from "components/third-party/ReactTable";
 import SelectTable from "pages/tables/MyTable/SelectTable";
+import { formatDate_getDate } from "utils/formatTime";
 
 function SeLectHocVienTable({onSelectedRowsChange}) {
   const columns = useMemo(
@@ -67,7 +68,7 @@ function SeLectHocVienTable({onSelectedRowsChange}) {
         accessor: "NgaySinh",
 
         disableGroupBy: true,
-        Cell: ({ value }) => new Date(value).toDateString(),
+        Cell: ({ value }) => formatDate_getDate(value),
       },
       {
         Header: "Phân loại",
@@ -121,7 +122,7 @@ function SeLectHocVienTable({onSelectedRowsChange}) {
 
   const data = useMemo(() => 
     nhanviens.filter(nhanvien => 
-      !hocvienCurrents.some(hocvien => hocvien._id === nhanvien._id)
+      !hocvienCurrents.some(hocvien => hocvien.NhanVienID === nhanvien._id)
     ), 
     [nhanviens, hocvienCurrents]
   );
