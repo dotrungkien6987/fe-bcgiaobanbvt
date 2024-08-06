@@ -101,6 +101,8 @@ const slice = createSlice({
           ...item.NhanVienID,
           ...item,
           NhanVienID: item.NhanVienID._id,
+          TenKhoa:item.NhanVienID.KhoaID.TenKhoa,
+          Sex:item.NhanVienID.GioiTinh===0?"Nam":"Nữ",
           DonVi:vaitroquydoi.DonVi,
           QuyDoi: vaitroquydoi.QuyDoi,
           SoLuong:soluong,
@@ -119,7 +121,9 @@ const slice = createSlice({
       state.error = null;
       const hocviens = action.payload.map((item) => ({
         ...item,
+        NhanVienID: item._id,
         VaiTro: state.vaitroCurrent ? state.vaitroCurrent : "",
+     
       }));
       state.hocvienCurrents = state.hocvienCurrents.concat(hocviens);
     },

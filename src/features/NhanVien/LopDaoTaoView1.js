@@ -86,7 +86,7 @@ const LopDaoTaoView1 = ({ data }) => {
                   </Stack>
                   <Divider orientation="vertical" flexItem />
                   <Stack spacing={0.5} alignItems="center">
-                    <Typography variant="h5">{"15"}</Typography>
+                    <Typography variant="h5">{data.SoThanhVien}</Typography>
                     <Typography color="secondary">Thành viên</Typography>
                   </Stack>
                 </Stack>
