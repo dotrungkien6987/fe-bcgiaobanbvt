@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import apiService from "../../app/apiService";
 import { toast } from "react-toastify";
-import QuanLyHocVienPage from "pages/QuanLyHocVienPage";
+
 import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
 
 const initialState = {

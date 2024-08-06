@@ -50,16 +50,10 @@ function ResetPassForm({
   });
   const {
     handleSubmit,
-    reset,
+    
     setValue,
     formState: { isSubmitting },
   } = methods;
-
-  
-  const resetForm = () => {
-    reset();
-   
-  };
 
   const onSubmitData = (data) => {
     console.log("data", data);

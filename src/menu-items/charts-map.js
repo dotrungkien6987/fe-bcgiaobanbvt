@@ -2,7 +2,7 @@
 
 
 // assets
-import { Building3, Chart21,Hospital,Element } from 'iconsax-react';
+import { Building3, Hospital,Element } from 'iconsax-react';
 
 // icons
 const icons = {

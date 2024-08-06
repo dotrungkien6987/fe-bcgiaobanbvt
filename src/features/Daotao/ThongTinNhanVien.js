@@ -1,18 +1,18 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import { DataArrayRounded } from "@mui/icons-material";
+
 import { LoadingButton } from "@mui/lab";
 import {
-  AppBar,
+
   Box,
   Button,
   Card,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
+
   Grid,
   Stack,
-  Toolbar,
+
 } from "@mui/material";
 import { FTextField, FormProvider } from "components/form";
 import FAutocomplete from "components/form/FAutocomplete";
@@ -24,7 +24,7 @@ import {
   insertOneNhanVien,
   updateOneNhanVien,
 } from "features/NhanVien/nhanvienSlice";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
@@ -43,12 +43,10 @@ const yupSchema = Yup.object().shape({
 
 function ThongTinNhanVien({ nhanvien, open, handleClose }) {
   const { khoas } = useSelector((state) => state.baocaongay);
-  const { TrinhDoChuyenMon, DanToc, PhamViHanhNghe,ChucDanh,ChucVu } = useSelector(
-    (state) => state.nhanvien
-  );
+  const { TrinhDoChuyenMon, DanToc, PhamViHanhNghe, ChucDanh, ChucVu } =
+    useSelector((state) => state.nhanvien);
   const dispatch = useDispatch();
   useEffect(() => {
-   
     if (PhamViHanhNghe.length === 0) {
       dispatch(getDataFix());
     }
@@ -75,11 +73,12 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
       Email: "",
       CMND: "",
       GioiTinh: 0,
-
+      SoCCHN:"",
+      NgayCapCCHN:null,
       KhoaID: null,
     },
   });
-
+  
   const {
     handleSubmit,
     reset,
@@ -96,6 +95,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         ...nhanvien,
         // Đảm bảo rằng các trường như Ngày sinh được chuyển đổi đúng định dạng nếu cần
         NgaySinh: nhanvien.NgaySinh ? dayjs(nhanvien.NgaySinh) : null,
+        NgayCapCCHN: nhanvien.NgayCapCCHN ? dayjs(nhanvien.NgayCapCCHN) : null,
         // Tương tự, bạn có thể điều chỉnh các trường khác để phù hợp với định dạng của form
       });
     } else {
@@ -115,12 +115,15 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         Email: "",
         CMND: "",
         GioiTinh: 0,
+        SoCCHN:"",
+        NgayCapCCHN:null,
         KhoaID: null,
       });
     }
   }, [nhanvien]);
 
-  const onSubmitData = (data) => {
+  const onSubmitData = (data, e) => {
+    e.preventDefault();
     console.log("data form", data);
     const nhanvienUpdate = {
       ...data,
@@ -204,8 +207,9 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
                 <Grid item xs={12} sm={12} md={6}>
                   <FAutocomplete
                     name="TrinhDoChuyenMon"
-                    options={TrinhDoChuyenMon.map((item) => item.TrinhDoChuyenMon)}
-                   
+                    options={TrinhDoChuyenMon.map(
+                      (item) => item.TrinhDoChuyenMon
+                    )}
                     label="Trình độ chuyên môn"
                   />
                 </Grid>
@@ -222,7 +226,6 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
                   <FAutocomplete
                     name="ChucDanh"
                     options={ChucDanh.map((item) => item.ChucDanh)}
-                    
                     label="Chức danh"
                   />
                 </Grid>
@@ -230,7 +233,6 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
                   <FAutocomplete
                     name="ChucVu"
                     options={ChucVu.map((item) => item.ChucVu)}
-                    
                     label="Chức vụ"
                   />
                 </Grid>
@@ -241,7 +243,6 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
                   <FAutocomplete
                     name="DanToc"
                     options={DanToc.map((item) => item.DanToc)}
-                    
                     label="Dân tộc"
                   />
                 </Grid>
@@ -249,13 +250,19 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
                   <FAutocomplete
                     name="PhamViHanhNghe"
                     options={PhamViHanhNghe.map((item) => item.PhamViHanhNghe)}
-                    
                     label="Phạm vi hành nghề"
                   />
                 </Grid>
               </Grid>
 
               <Grid container spacing={1}>
+                <Grid item xs={12} sm={12} md={6}>
+                  <FTextField name="SoCCHN" label="Số chứng chỉ hành nghề" />
+                </Grid>
+
+                <Grid item xs={12} sm={12} md={6}>
+                  <FDatePicker name="NgayCapCCHN" label="Ngày cấp CCHN" />
+                </Grid>
                 <Grid item xs={12} sm={12} md={6}>
                   <FTextField name="SoDienThoai" label="Số điện thoại" />
                 </Grid>

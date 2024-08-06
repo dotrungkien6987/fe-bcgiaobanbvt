@@ -7,7 +7,7 @@ import {
   Grid,
   Chip,
   Divider,
-  Link,
+  
   List,
   ListItem,
   ListItemIcon,
@@ -18,8 +18,6 @@ import {
   Typography
 } from '@mui/material';
 
-// third-party
-import { PatternFormat } from 'react-number-format';
 
 // project-imports
 import MainCard from 'components/MainCard';
@@ -28,7 +26,7 @@ import Transitions from 'components/@extended/Transitions';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import PhoneIcon from '@mui/icons-material/Phone';
 // assets
-import { Link2, Location, Mobile, Sms } from 'iconsax-react';
+import { Sms } from 'iconsax-react';
 import { formatDate_getDate } from 'utils/formatTime';
 
 const avatarImage = require.context('assets/images/users', true);

@@ -5,27 +5,21 @@ import { useTheme } from "@mui/material/styles";
 import {
   useMediaQuery,
   Grid,
-  Chip,
+  
   Divider,
-  Link,
+  
   List,
   ListItem,
-  ListItemIcon,
-  ListItemSecondaryAction,
+  
   Stack,
-  TableCell,
-  TableRow,
+  
   Typography,
   Button,
 } from "@mui/material";
 
-// third-party
-import { PatternFormat } from "react-number-format";
 
 // project-imports
 import MainCard from "components/MainCard";
-import Avatar from "components/@extended/Avatar";
-import Transitions from "components/@extended/Transitions";
 
 // assets
 import SaveIcon from "@mui/icons-material/Save";
@@ -34,7 +28,7 @@ import TrangThaiLopDaoTao from "features/Daotao/TrangThaiLopDaoTao";
 import { useDispatch, useSelector } from "react-redux";
 import { updateTrangThaiLopDaoTao } from "features/Daotao/daotaoSlice";
 
-const avatarImage = require.context("assets/images/users", true);
+
 
 // ==============================|| CUSTOMER - VIEW ||============================== //
 

@@ -70,7 +70,12 @@ const slice = createSlice({
     insertOneNhanVienSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.nhanviens.unshift(action.payload);
+      const nhanvien = {
+        ...action.payload,
+        TenKhoa: action.payload.KhoaID.TenKhoa,
+        Sex: action.payload.GioiTinh === 0 ? "Nam" : "Nữ",
+      };
+      state.nhanviens.unshift(nhanvien);
     },
     deleteOneNhanVienSuccess(state, action) {
       state.isLoading = false;
@@ -83,7 +88,13 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.nhanviens = state.nhanviens.map((nhanvien) =>
-        nhanvien._id === action.payload._id ? action.payload : nhanvien
+        nhanvien._id === action.payload._id
+          ? {
+              ...action.payload,
+              TenKhoa: action.payload.KhoaID.TenKhoa,
+              Sex: action.payload.GioiTinh === 0 ? "Nam" : "Nữ",
+            }
+          : nhanvien
       );
     },
     getDataFixSuccess(state, action) {

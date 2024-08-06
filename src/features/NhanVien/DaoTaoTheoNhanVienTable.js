@@ -1,20 +1,16 @@
 import { Grid, IconButton, Stack, Tooltip, useTheme } from "@mui/material";
-import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
-import UmbrellaTable from "pages/tables/react-table/umbrella";
-import React, { useCallback, useEffect, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+
+import React, { useCallback,  useMemo } from "react";
+
 
 import MainCard from "components/MainCard";
 import CommonTable from "pages/tables/MyTable/CommonTable";
-
-import { Delete } from "@mui/icons-material";
 
 import { Add, Eye } from "iconsax-react";
 
 import TrangThaiLopDaoTao from "features/Daotao/TrangThaiLopDaoTao";
 import { ThemeMode } from "configAble";
-import DeleteLopDaoTaoButton from "features/Daotao/DeleteLopDaoTaoButton";
-import UpdateLopDaoTaoButton from "features/Daotao/UpdateLopDaoTaoButton";
+
 import DiemDanhLopDaoTaoButton from "features/Daotao/DiemDanhLopDaoTaoButton";
 import { formatDate_getDate } from "utils/formatTime";
 import LopDaoTaoView from "./LopDaoTaoView";

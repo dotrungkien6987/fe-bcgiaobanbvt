@@ -4,21 +4,17 @@ import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
-import AccountCircle from "@mui/icons-material/AccountCircle";
-import Switch from "@mui/material/Switch";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormGroup from "@mui/material/FormGroup";
+
 import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import PersonIcon from "@mui/icons-material/Person";
 import useAuth from "../hooks/useAuth";
 import Logo from "../components/form/Logo";
-import { Avatar, Divider, useMediaQuery } from "@mui/material";
+import {  Divider, useMediaQuery } from "@mui/material";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useTheme } from "@emotion/react";
 import { useState } from "react";
-import ResetPassForm from "../features/User/ResetPassForm";
+
 import UserResetPassForm from "../features/User/UserResetPassForm";
 import { useDispatch } from "react-redux";
 import { resetBaoCaoSuCoCurent } from "../features/BaoCaoSuCo/baocaosucoSlice";

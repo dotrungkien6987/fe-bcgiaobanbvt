@@ -1,7 +1,7 @@
 import { Grid, Stack, Tooltip, useTheme } from "@mui/material";
 
 import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
-import UmbrellaTable from "pages/tables/react-table/umbrella";
+
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import UpdateNhanVienButton from "./UpdateNhanVienButton";
@@ -11,8 +11,8 @@ import CommonTable from "pages/tables/MyTable/CommonTable";
 import AddNhanVienButton from "./AddNhanVienButton";
 import ExcelButton from "components/ExcelButton";
 import IconButton from "components/@extended/IconButton";
-import { Add,  Eye } from 'iconsax-react';
-import { ThemeMode } from 'configAble';
+import { Add, Eye } from "iconsax-react";
+import { ThemeMode } from "configAble";
 import NhanVienView from "features/NhanVien/NhanVienView";
 import { formatDate_getDate } from "utils/formatTime";
 import QuaTrinhDaoTaoNhanVienButon from "features/NhanVien/QuaTrinhDaoTaoNhanVienButon";
@@ -25,7 +25,7 @@ function NhanVienList() {
       {
         Header: "Actions",
         Footer: "Actions",
-        accessor: "_id",
+        accessor: "Actions",
         disableGroupBy: true,
         sticky: "left",
         Cell: ({ row }) => {
@@ -48,12 +48,15 @@ function NhanVienList() {
             >
               <UpdateNhanVienButton nhanvien={row.original} />
               <DeleteNhanVienButton nhanvienID={row.original._id} />
-              <QuaTrinhDaoTaoNhanVienButon nhanvienID={row.original._id}/>
+              <QuaTrinhDaoTaoNhanVienButon nhanvienID={row.original._id} />
               <Tooltip
                 componentsProps={{
                   tooltip: {
                     sx: {
-                      backgroundColor: mode === ThemeMode.DARK ? theme.palette.grey[50] : theme.palette.grey[700],
+                      backgroundColor:
+                        mode === ThemeMode.DARK
+                          ? theme.palette.grey[50]
+                          : theme.palette.grey[700],
                       opacity: 0.9,
                     },
                   },
@@ -115,9 +118,9 @@ function NhanVienList() {
       //   disableGroupBy: true,
       // },
       {
-        Header: 'Khoa công tác',
-        Footer: 'Khoa',
-        accessor: 'TenKhoa',
+        Header: "Khoa công tác",
+        Footer: "Khoa",
+        accessor: "TenKhoa",
         minWidth: 200,
         // filter: 'fuzzyText',
         // disableGroupBy: true
@@ -163,6 +166,23 @@ function NhanVienList() {
         disableGroupBy: true,
       },
       {
+        Header: "Số CCHN",
+        Footer: "Số CCHN",
+        accessor: "SoCCHN",
+        dataType: "text",
+        filter: "fuzzyText",
+        disableGroupBy: true,
+      },
+      {
+        Header: "Ngày cấp CCHN",
+        Footer: "Ngày cấp CCHN",
+
+        accessor: "NgayCapCCHN",
+
+        disableGroupBy: true,
+        Cell: ({ value }) => formatDate_getDate(value),
+      },
+      {
         Header: "Phạm vi hành nghề",
         Footer: "Phạm vi hành nghề",
         accessor: "PhamViHanhNghe",
@@ -184,6 +204,13 @@ function NhanVienList() {
         accessor: "Email",
         disableGroupBy: true,
       },
+      {
+        Header: "_id",
+        Footer: "_id",
+
+        accessor: "_id",
+        disableGroupBy: true,
+      },
     ],
     []
   );
@@ -191,31 +218,34 @@ function NhanVienList() {
   const dispatch = useDispatch();
   useEffect(() => {
     // Gọi hàm để lấy danh sách cán bộ khi component được tạo
-    dispatch(getAllNhanVien());
+    if (nhanviens.length === 0) dispatch(getAllNhanVien());
   }, [dispatch]);
 
   const { nhanviens } = useSelector((state) => state.nhanvien);
 
   const data = useMemo(() => nhanviens, [nhanviens]);
 
-  const renderRowSubComponent = useCallback(({ row }) => <NhanVienView data={data[Number(row.id)]} />, [data]);
+  const renderRowSubComponent = useCallback(
+    ({ row }) => <NhanVienView data={data[Number(row.id)]} />,
+    [data]
+  );
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
         <MainCard title="Quản lý cán bộ">
-          <ScrollX sx ={{height:670}}>
-          <CommonTable
-            data={data}
-            columns={columns}
-            renderRowSubComponent={renderRowSubComponent}
-            additionalComponent={
-              <div style={{ display: "flex", alignItems: "flex-end" }}>
-                <ExcelButton />
-                <AddNhanVienButton />
-              </div>
-            }
-          />
-        </ScrollX>
+          <ScrollX sx={{ height: 670 }}>
+            <CommonTable
+              data={data}
+              columns={columns}
+              renderRowSubComponent={renderRowSubComponent}
+              additionalComponent={
+                <div style={{ display: "flex", alignItems: "flex-end" }}>
+                  <ExcelButton />
+                  <AddNhanVienButton />
+                </div>
+              }
+            />
+          </ScrollX>
         </MainCard>
       </Grid>
     </Grid>

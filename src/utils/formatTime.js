@@ -57,6 +57,7 @@ export  function formatTimeFromISOString(isoString) {
 }
 
 export function formatDate_getDate(inputDate) {
+  if (!inputDate) return '';
   // Chuyển đổi chuỗi thời gian sang đối tượng Date
   const date = new Date(inputDate);
   // Lấy ngày, tháng, và năm

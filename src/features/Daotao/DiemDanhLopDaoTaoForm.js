@@ -1,26 +1,13 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import { DataArrayRounded } from "@mui/icons-material";
-import { LoadingButton } from "@mui/lab";
-import {
-  AppBar,
-  Box,
-  Button,
-  Card,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  Stack,
-  Toolbar,
-  Typography,
-} from "@mui/material";
-import SaveIcon from "@mui/icons-material/Save";
-import { FTextField, FormProvider } from "components/form";
-import FAutocomplete from "components/form/FAutocomplete";
-import FDatePicker from "components/form/FDatePicker";
 
-import React, { useEffect, useState } from "react";
+import {
+
+  Grid,
+
+} from "@mui/material";
+
+
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
@@ -29,16 +16,16 @@ import MainCard from "components/MainCard";
 import {
   getOneLopDaoTaoByID,
   insertOneLopDaoTao,
-  resetLopDaoTaoCurrent,
+  
   updateOneLopDaoTao,
 } from "./daotaoSlice";
-import MultiFileUpload from "components/third-party/dropzone/MultiFile";
+
 import DropzonePage from "forms/plugins/dropzone";
-import NhanVienList from "./NhanVienList";
+
 import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import { useParams } from "react-router-dom";
-import HocVienLopTable from "./ChonHocVien/HocVienLopTable";
+
 import DiemDanhLopDaoTaoTable from "./DiemDanhLopDaoTaoTable";
 import LopDaoTaoView1 from "features/NhanVien/LopDaoTaoView1";
 
@@ -58,7 +45,7 @@ function DiemDanhLopDaoTaoForm() {
   const lopdaotaoID = params.lopdaotaoID;
   const { lopdaotaoCurrent } = useSelector((state) => state.daotao);
   const { HinhThucCapNhat } = useSelector((state) => state.hinhthuccapnhat);
-  const { NoiDaoTao, NguonKinhPhi, HinhThucDaoTao } = useSelector(
+  const { NoiDaoTao } = useSelector(
     (state) => state.nhanvien
   );
   const dispatch = useDispatch();

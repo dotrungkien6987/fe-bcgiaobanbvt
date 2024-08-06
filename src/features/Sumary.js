@@ -59,7 +59,7 @@ function Sumary() {
     noiBNXinVes,
     noiBNNangs,
     noiBNCanThieps,
-    noiBNNgoaiGios,
+    
     noiBNNgoaiGiosKhongGomCLC,
 
     ngoaiBNTuvongs,
@@ -67,7 +67,7 @@ function Sumary() {
     ngoaiBNXinVes,
     ngoaiBNNangs,
     ngoaiBNPhauThuats,
-    ngoaiBNNgoaiGios,
+    
     ngoaiBNNgoaiGiosKhongGomCLC,
 
     bcGiaoBanCurent,

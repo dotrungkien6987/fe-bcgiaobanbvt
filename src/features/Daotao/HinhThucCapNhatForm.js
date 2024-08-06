@@ -1,8 +1,8 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import { DataArrayRounded } from "@mui/icons-material";
+
 import { LoadingButton } from "@mui/lab";
 import {
-  AppBar,
+
   Autocomplete,
   Box,
   Button,
@@ -19,13 +19,11 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Toolbar,
+  
 } from "@mui/material";
 import { FTextField, FormProvider } from "components/form";
 import FAutocomplete from "components/form/FAutocomplete";
-import FDatePicker from "components/form/FDatePicker";
-import FKRadioGroup from "components/form/FKRadioGroup";
-import { getKhoas } from "features/BaoCaoNgay/baocaongaySlice";
+
 import {
   insertOneHinhThucCapNhat,
   updateOneHinhThucCapNhat,

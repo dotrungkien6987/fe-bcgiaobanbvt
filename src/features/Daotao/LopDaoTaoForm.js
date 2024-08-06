@@ -1,18 +1,15 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import { DataArrayRounded } from "@mui/icons-material";
+
 import { LoadingButton } from "@mui/lab";
 import {
-  AppBar,
+
   Box,
-  Button,
+
   Card,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
+
   Grid,
   Stack,
-  Toolbar,
+
   Typography,
 } from "@mui/material";
 import SaveIcon from '@mui/icons-material/Save';
@@ -20,7 +17,7 @@ import { FTextField, FormProvider } from "components/form";
 import FAutocomplete from "components/form/FAutocomplete";
 import FDatePicker from "components/form/FDatePicker";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
@@ -32,9 +29,9 @@ import {
   resetLopDaoTaoCurrent,
   updateOneLopDaoTao,
 } from "./daotaoSlice";
-import MultiFileUpload from "components/third-party/dropzone/MultiFile";
+
 import DropzonePage from "forms/plugins/dropzone";
-import NhanVienList from "./NhanVienList";
+
 import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import { useParams } from "react-router-dom";

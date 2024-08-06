@@ -43,34 +43,31 @@ import {
   DragPreview,
   HidingSelect,
   HeaderSort,
-  IndeterminateCheckbox,
+  
   TablePagination,
-  TableRowSelection,
+  
   CSVExport,
   EmptyTable,
 } from "components/third-party/ReactTable";
 
 import {
-  roundedMedian,
+  
   renderFilterTypes,
-  filterGreaterThan,
+  
   GlobalFilter,
   DefaultColumnFilter,
-  SelectColumnFilter,
-  SliderColumnFilter,
-  NumberRangeColumnFilter,
-  DateColumnFilter,
+ 
 } from "utils/react-table";
-import { ThemeMode } from "configAble";
+
 
 // assets
 import {
   ArrowDown2,
   ArrowRight2,
-  Edit,
+
   LayoutMaximize,
   Maximize1,
-  Send,
+
 } from "iconsax-react";
 
 const TableWrapper = styled("div")(() => ({
@@ -92,7 +89,7 @@ function ReactTable({
   data,
   init,
   additionalComponent,
-  onSelectedRowsChange,
+  
   renderRowSubComponent,
 }) {
   const theme = useTheme();
@@ -128,7 +125,7 @@ function ReactTable({
       pageIndex,
       pageSize,
       columnOrder,
-      selectedRowIds,
+      
       expanded,
     },
     preGlobalFilteredRows,

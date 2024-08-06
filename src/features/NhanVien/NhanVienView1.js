@@ -7,28 +7,27 @@ import {
   Grid,
   Chip,
   Divider,
-  Link,
+  
   List,
   ListItem,
   ListItemIcon,
   ListItemSecondaryAction,
   Stack,
-  TableCell,
-  TableRow,
+  
   Typography,
 } from "@mui/material";
 
 // third-party
-import { PatternFormat } from "react-number-format";
+
 
 // project-imports
 import MainCard from "components/MainCard";
 import Avatar from "components/@extended/Avatar";
-import Transitions from "components/@extended/Transitions";
+
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import PhoneIcon from "@mui/icons-material/Phone";
 // assets
-import { Link2, Location, CalendarTick, Sms } from "iconsax-react";
+import {  CalendarTick, Sms } from "iconsax-react";
 import { formatDate_getDate } from "utils/formatTime";
 import { useParams } from "react-router-dom";
 import { useEffect } from "react";

@@ -1,17 +1,14 @@
 import { Grid, IconButton, Stack, Tooltip, useTheme } from "@mui/material";
-import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
-import UmbrellaTable from "pages/tables/react-table/umbrella";
+
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import UpdateNhanVienButton from "./UpdateNhanVienButton";
-import DeleteNhanVienButton from "./DeleteNhanVienButton";
+
 import MainCard from "components/MainCard";
 import CommonTable from "pages/tables/MyTable/CommonTable";
-import AddNhanVienButton from "./AddNhanVienButton";
-import ExcelButton from "components/ExcelButton";
+
 import { getAllLopDaoTao } from "./daotaoSlice";
 import AddLopDaoTao from "./AddLopDaoTao";
-import { Delete } from "@mui/icons-material";
+
 import DeleteLopDaoTaoButton from "./DeleteLopDaoTaoButton";
 import UpdateLopDaoTaoButton from "./UpdateLopDaoTaoButton";
 import DiemDanhLopDaoTaoButton from "./DiemDanhLopDaoTaoButton";
