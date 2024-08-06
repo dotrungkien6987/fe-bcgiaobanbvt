@@ -116,17 +116,32 @@ export function filterChiTietBenhNhansCLC(baocaongays, LoaiBN, MaKhoas) {
 
 export function findKhoasInBaocaongays(baocaongays, khoas) {
   // Tạo một Set để lưu trữ các _id của khoa đã xuất hiện trong baocaongays
-  console.log("bcngay in find", baocaongays);
-  console.log("khoas in find", khoas);
+  const khoaGiaoBan = khoas.filter(
+    (khoa) =>
+      khoa.LoaiKhoa === "noi" ||
+      khoa.LoaiKhoa === "ngoai" ||
+      khoa.LoaiKhoa === "pkyc" ||
+      khoa.LoaiKhoa === "xnhh" ||
+      khoa.LoaiKhoa === "kkb" ||
+      khoa.LoaiKhoa === "gmhs" ||
+      khoa.LoaiKhoa === "xnhs" ||
+      khoa.LoaiKhoa === "xnhh" ||
+      khoa.LoaiKhoa === "xnvs" ||
+      khoa.LoaiKhoa === "tdcn" ||
+      khoa.LoaiKhoa === "clc" ||
+      khoa.LoaiKhoa === "hhtm" ||
+      khoa.LoaiKhoa === "kkb" 
+  );
+  
   const khoaIdsInBaocaongays = new Set(
     baocaongays.map((baocaongay) => baocaongay.KhoaID._id)
   );
-  console.log("set", khoaIdsInBaocaongays);
+
   // Lọc ra các khoa có _id tồn tại trong baocaongays
-  const KhoaDaGuis = khoas.filter((khoa) => khoaIdsInBaocaongays.has(khoa._id));
+  const KhoaDaGuis = khoaGiaoBan.filter((khoa) => khoaIdsInBaocaongays.has(khoa._id));
 
   // Lọc ra các khoa có _id không tồn tại trong baocaongays
-  const KhoaChuaGuis = khoas.filter(
+  const KhoaChuaGuis = khoaGiaoBan.filter(
     (khoa) => !khoaIdsInBaocaongays.has(khoa._id)
   );
 
@@ -670,15 +685,19 @@ const khoaToDepartmentGroupMapping = [
 
 export function Get_KhoaID_By_MaKhoa(makhoa) {
   const result = khoaToDepartmentGroupMapping.find(
-    (item)=>item.MaKhoa ===makhoa
-  )
+    (item) => item.MaKhoa === makhoa
+  );
 
-  if (result) { return result.departmentgroupid}
-  else return 0
+  if (result) {
+    return result.departmentgroupid;
+  } else return 0;
 }
 
-
-export function calculateDoanhThuAdjusted(khuyencaokhoa, doanhthu_from_db, ngayhientai) {
+export function calculateDoanhThuAdjusted(
+  khuyencaokhoa,
+  doanhthu_from_db,
+  ngayhientai
+) {
   const mapping = new Map(
     khoaToDepartmentGroupMapping.map((item) => [
       item.departmentgroupid,
@@ -700,20 +719,31 @@ export function calculateDoanhThuAdjusted(khuyencaokhoa, doanhthu_from_db, ngayh
       BHYT = 0;
       MRI30 = 0;
     } else {
-      TongThu = item.thutructiep + item.dongchitra + item.bhyt +item.tienmri30;
-      ThuTrucTiep = item.thutructiep + item.dongchitra+item.tienmri30;
+      TongThu = item.thutructiep + item.dongchitra + item.bhyt + item.tienmri30;
+      ThuTrucTiep = item.thutructiep + item.dongchitra + item.tienmri30;
       BHYT = item.bhyt;
       MRI30 = item.tienmri30;
     }
 
-    const TyLe_BHYT_KC = BHYT_KC !== 0 ? parseFloat(((BHYT / BHYT_KC) * 100).toFixed(1)) : 0;
-    const TyLe_DoanhThu_KC = KC_DoanhThu !== 0 ? parseFloat(((TongThu / KC_DoanhThu) * 100).toFixed(1)) : 0;
+    const TyLe_BHYT_KC =
+      BHYT_KC !== 0 ? parseFloat(((BHYT / BHYT_KC) * 100).toFixed(1)) : 0;
+    const TyLe_DoanhThu_KC =
+      KC_DoanhThu !== 0
+        ? parseFloat(((TongThu / KC_DoanhThu) * 100).toFixed(1))
+        : 0;
     const ThuTrucTiep_KC = KC_DoanhThu - BHYT_KC;
-    const TyLe_ThuTrucTiep_KC = ThuTrucTiep_KC !== 0 ? parseFloat(((ThuTrucTiep / ThuTrucTiep_KC) * 100).toFixed(1)) : 0;
+    const TyLe_ThuTrucTiep_KC =
+      ThuTrucTiep_KC !== 0
+        ? parseFloat(((ThuTrucTiep / ThuTrucTiep_KC) * 100).toFixed(1))
+        : 0;
     const KC_TyLe_TTT_DT = 100 - TyLeBHYT;
-    const ThucTe_TyLe_TTT_DT = TongThu !== 0 ? parseFloat(((ThuTrucTiep / TongThu) * 100).toFixed(1)) : 0;
-    const ThucTe_TyLe_BHYT_DT = TongThu !== 0 ? parseFloat(((BHYT / TongThu) * 100).toFixed(1)) : 0;
-    
+    const ThucTe_TyLe_TTT_DT =
+      TongThu !== 0
+        ? parseFloat(((ThuTrucTiep / TongThu) * 100).toFixed(1))
+        : 0;
+    const ThucTe_TyLe_BHYT_DT =
+      TongThu !== 0 ? parseFloat(((BHYT / TongThu) * 100).toFixed(1)) : 0;
+
     return {
       STT: index + 1,
       TenKhoa: item.departmentgroupname,
@@ -734,7 +764,6 @@ export function calculateDoanhThuAdjusted(khuyencaokhoa, doanhthu_from_db, ngayh
     };
   });
 }
-
 
 export function calculateTotalsAndAverages(results) {
   const summary = {
@@ -860,40 +889,74 @@ export function calculateKPIWithDifferences(KPI, KPI_NgayChenhLech) {
   return KPIWithDifferences;
 }
 
-export function ConvertDoanhThuCanLamSang(canlamsang, canlamsang_ngaychenhlech) {
+export function ConvertDoanhThuCanLamSang(
+  canlamsang,
+  canlamsang_ngaychenhlech
+) {
   const order = [
-    "MRI30", "MRI15", "CLVT128", "CLVT32", "XQ", "XN", "SA", "NS", "DT", "DN", "MDLX", "CNHH",'AntiXa',
-    'PhatHienKhangDong','KhangDinhKhangDong','MauNoiSinh','MauNgoaiSinh','MauTieuCau','KhangTheKhangNhan',
-    'KhangTheKhangDNA','AntiCCP','DienDi','HongCauLuoi','HuyetDo',"khac"
+    "MRI30",
+    "MRI15",
+    "CLVT128",
+    "CLVT32",
+    "XQ",
+    "XN",
+    "SA",
+    "NS",
+    "DT",
+    "DN",
+    "MDLX",
+    "CNHH",
+    "AntiXa",
+    "PhatHienKhangDong",
+    "KhangDinhKhangDong",
+    "MauNoiSinh",
+    "MauNgoaiSinh",
+    "MauTieuCau",
+    "KhangTheKhangNhan",
+    "KhangTheKhangDNA",
+    "AntiCCP",
+    "DienDi",
+    "HongCauLuoi",
+    "HuyetDo",
+    "khac",
   ];
 
   const nameMapping = {
-    MRI30: "MRI 3.0", MRI15: "MRI 1.5", CLVT128: "CT 128 dãy", CLVT32: "CT 1-32 dãy", XQ: "XQuang", 
-    XN: "Xét nghiệm", SA: "Siêu âm", NS: "Nội soi", DT: "Điện tim", DN: "Điện não", MDLX: "Mật độ loãng xương", 
+    MRI30: "MRI 3.0",
+    MRI15: "MRI 1.5",
+    CLVT128: "CT 128 dãy",
+    CLVT32: "CT 1-32 dãy",
+    XQ: "XQuang",
+    XN: "Xét nghiệm",
+    SA: "Siêu âm",
+    NS: "Nội soi",
+    DT: "Điện tim",
+    DN: "Điện não",
+    MDLX: "Mật độ loãng xương",
     CNHH: "Chức năng hô hấp",
     AntiXa: "Định lượng Anti Xa",
-PhatHienKhangDong: "Phát hiện kháng đông lupus",
-KhangDinhKhangDong: "Khẳng định kháng đông lupus",
-MauNoiSinh: "Đo độ đàn hồi cục máu nội sinh",
-MauNgoaiSinh:"Đo độ đàn hồi cục máu ngoại sinh",
-MauTieuCau:"Đo độ đàn hổi cục máu ức chế tiểu cầu",
-KhangTheKhangNhan:"Kháng thể kháng nhân", 
-KhangTheKhangDNA: "Kháng thể kháng dsDNA",
-AntiCCP: "Định lượng Anti CCP",
-DienDi:"Điện di huyết sắc tố",
-HongCauLuoi:"Xét nghiệm hồng cầu lưới",
-HuyetDo: "Huyết đồ",
-khac: "Khác",
+    PhatHienKhangDong: "Phát hiện kháng đông lupus",
+    KhangDinhKhangDong: "Khẳng định kháng đông lupus",
+    MauNoiSinh: "Đo độ đàn hồi cục máu nội sinh",
+    MauNgoaiSinh: "Đo độ đàn hồi cục máu ngoại sinh",
+    MauTieuCau: "Đo độ đàn hổi cục máu ức chế tiểu cầu",
+    KhangTheKhangNhan: "Kháng thể kháng nhân",
+    KhangTheKhangDNA: "Kháng thể kháng dsDNA",
+    AntiCCP: "Định lượng Anti CCP",
+    DienDi: "Điện di huyết sắc tố",
+    HongCauLuoi: "Xét nghiệm hồng cầu lưới",
+    HuyetDo: "Huyết đồ",
+    khac: "Khác",
   };
 
   // Chuẩn bị map dữ liệu để dễ dàng truy xuất và tính toán
   let mapCanLamSang = new Map();
-  canlamsang?.forEach(item => {
+  canlamsang?.forEach((item) => {
     mapCanLamSang.set(item.canlamsangtype, item);
   });
 
   let mapCanLamSangChenhlech = new Map();
-  canlamsang_ngaychenhlech?.forEach(item => {
+  canlamsang_ngaychenhlech?.forEach((item) => {
     mapCanLamSangChenhlech.set(item.canlamsangtype, item);
   });
 
@@ -911,9 +974,21 @@ khac: "Khác",
     tongdoanhthu_chenhlech: [],
   };
 
-  order.forEach(type => {
-    const item = mapCanLamSang.get(type) || { soluong: 0, dongchitra: 0, bhyt: 0, thutructiep: 0, tongdoanhthu: 0 };
-    const itemChenhlech = mapCanLamSangChenhlech.get(type) || { soluong: 0, dongchitra: 0, bhyt: 0, thutructiep: 0, tongdoanhthu: 0 };
+  order.forEach((type) => {
+    const item = mapCanLamSang.get(type) || {
+      soluong: 0,
+      dongchitra: 0,
+      bhyt: 0,
+      thutructiep: 0,
+      tongdoanhthu: 0,
+    };
+    const itemChenhlech = mapCanLamSangChenhlech.get(type) || {
+      soluong: 0,
+      dongchitra: 0,
+      bhyt: 0,
+      thutructiep: 0,
+      tongdoanhthu: 0,
+    };
 
     result.soluong.push(item.soluong);
     result.dongchitra.push(item.dongchitra);
@@ -923,15 +998,25 @@ khac: "Khác",
     result.tongdoanhthu.push(item.dongchitra + item.bhyt + item.thutructiep);
 
     result.soluong_chenhlech.push(item.soluong - itemChenhlech.soluong);
-    result.dongchitra_chenhlech.push(item.dongchitra - itemChenhlech.dongchitra);
+    result.dongchitra_chenhlech.push(
+      item.dongchitra - itemChenhlech.dongchitra
+    );
     result.bhyt_chenhlech.push(item.bhyt - itemChenhlech.bhyt);
-    result.thutructiep_chenhlech.push(item.thutructiep - itemChenhlech.thutructiep);
-    result.tongdoanhthu_chenhlech.push((item.dongchitra + item.bhyt + item.thutructiep) - (itemChenhlech.dongchitra + itemChenhlech.bhyt + itemChenhlech.thutructiep));
+    result.thutructiep_chenhlech.push(
+      item.thutructiep - itemChenhlech.thutructiep
+    );
+    result.tongdoanhthu_chenhlech.push(
+      item.dongchitra +
+        item.bhyt +
+        item.thutructiep -
+        (itemChenhlech.dongchitra +
+          itemChenhlech.bhyt +
+          itemChenhlech.thutructiep)
+    );
   });
 
   return result;
 }
-
 
 export function TongHopSoLieuChoPieChartDoanhThu(doanhthu, canlamsang) {
   const tongtienMri30 = (
@@ -975,7 +1060,6 @@ export function TongHopSoLieuChoPieChartDoanhThuChenhLech(
   let dongChiTra_ngaychenhlech = 0;
   let tongBHYT_ngaychenhlech = 0;
 
-  
   doanhthu.forEach((obj) => {
     thuTrucTiep += obj.thutructiep;
     dongChiTra += obj.dongchitra;
@@ -1000,7 +1084,8 @@ export function TongHopSoLieuChoPieChartDoanhThuChenhLech(
 export function TongHopSoLieuChoRowTongDoanhThuKPI(
   doanhthu,
   doanhthu_ngaychenhlech,
-  khuyencaotoanvien,ngayhientai=0
+  khuyencaotoanvien,
+  ngayhientai = 0
 ) {
   let thuTrucTiep = 0;
   let dongChiTra = 0;
@@ -1012,18 +1097,16 @@ export function TongHopSoLieuChoRowTongDoanhThuKPI(
   let dongChiTra_ngaychenhlech = 0;
   let tongBHYT_ngaychenhlech = 0;
 
-
   if (ngayhientai === 1) {
     // Nếu là ngày hiện tại
     doanhthu_ngaychenhlech = doanhthu_ngaychenhlech.map((obj) => ({
       ...obj,
-      thutructiep : 0,
-      dongchitra : 0,
-      bhyt : 0,
-      tienmri30 : 0,
+      thutructiep: 0,
+      dongchitra: 0,
+      bhyt: 0,
+      tienmri30: 0,
     }));
   }
-
 
   doanhthu?.forEach((obj) => {
     thuTrucTiep += obj.thutructiep;
@@ -1039,24 +1122,31 @@ export function TongHopSoLieuChoRowTongDoanhThuKPI(
     tongtienMri30_ngaychenhlech += obj.tienmri30;
   });
 
-  const TongTien = thuTrucTiep + dongChiTra + tongBHYT+tongtienMri30;
+  const TongTien = thuTrucTiep + dongChiTra + tongBHYT + tongtienMri30;
   const TongTien_NgayChenhLech =
     thuTrucTiep_ngaychenhlech +
     dongChiTra_ngaychenhlech +
-    tongBHYT_ngaychenhlech +tongtienMri30_ngaychenhlech;
+    tongBHYT_ngaychenhlech +
+    tongtienMri30_ngaychenhlech;
 
-    const ThuTrucTiep = thuTrucTiep + dongChiTra+tongtienMri30
-    const ThuTrucTiep_NgayChenhLech = thuTrucTiep_ngaychenhlech + dongChiTra_ngaychenhlech+tongtienMri30_ngaychenhlech
+  const ThuTrucTiep = thuTrucTiep + dongChiTra + tongtienMri30;
+  const ThuTrucTiep_NgayChenhLech =
+    thuTrucTiep_ngaychenhlech +
+    dongChiTra_ngaychenhlech +
+    tongtienMri30_ngaychenhlech;
 
-    const TyLe_ThucTe_DoanhThu_KhuyenCao = TongTien/khuyencaotoanvien.DoanhThu
-    const TyLe_ThucTe_DoanhThu_KhuyenCao_NgayChenhLech = TongTien_NgayChenhLech/khuyencaotoanvien.DoanhThu
+  const TyLe_ThucTe_DoanhThu_KhuyenCao = TongTien / khuyencaotoanvien.DoanhThu;
+  const TyLe_ThucTe_DoanhThu_KhuyenCao_NgayChenhLech =
+    TongTien_NgayChenhLech / khuyencaotoanvien.DoanhThu;
 
-    const TyLe_ThucTe_BHYT_KhuyenCao = tongBHYT/khuyencaotoanvien.BHYT
-    const TyLe_ThucTe_BHYT_KhuyenCao_NgayChenhLech = tongBHYT_ngaychenhlech/khuyencaotoanvien.BHYT
+  const TyLe_ThucTe_BHYT_KhuyenCao = tongBHYT / khuyencaotoanvien.BHYT;
+  const TyLe_ThucTe_BHYT_KhuyenCao_NgayChenhLech =
+    tongBHYT_ngaychenhlech / khuyencaotoanvien.BHYT;
 
-    const TyLe_ThucTe_ThuTrucTiep_KhuyenCao = ThuTrucTiep/khuyencaotoanvien.ThuTrucTiep
-    const TyLe_ThucTe_ThuTrucTiep_KhuyenCao_NgayChenhLech = ThuTrucTiep_NgayChenhLech/khuyencaotoanvien.ThuTrucTiep
-
+  const TyLe_ThucTe_ThuTrucTiep_KhuyenCao =
+    ThuTrucTiep / khuyencaotoanvien.ThuTrucTiep;
+  const TyLe_ThucTe_ThuTrucTiep_KhuyenCao_NgayChenhLech =
+    ThuTrucTiep_NgayChenhLech / khuyencaotoanvien.ThuTrucTiep;
 
   return {
     TongTien: TongTien,
@@ -1065,26 +1155,50 @@ export function TongHopSoLieuChoRowTongDoanhThuKPI(
     ThuTrucTiep: ThuTrucTiep,
     ChenhLech_TongTien: TongTien - TongTien_NgayChenhLech,
     ChenhLech_BHYT: tongBHYT - tongBHYT_ngaychenhlech,
-    ChenhLech_ThuTrucTiep:ThuTrucTiep-ThuTrucTiep_NgayChenhLech,
-     
+    ChenhLech_ThuTrucTiep: ThuTrucTiep - ThuTrucTiep_NgayChenhLech,
+
     ChenhLech_MRI30: tongtienMri30 - tongtienMri30_ngaychenhlech,
 
-    ThucTe_TyLe_BHYT_DT: parseFloat((tongBHYT / TongTien)*100).toFixed(1),
-    ChenhLech_ThucTe_TyLe_BHYT_DT: parseFloat((tongBHYT / TongTien - tongBHYT_ngaychenhlech/TongTien_NgayChenhLech)*100).toFixed(1),
+    ThucTe_TyLe_BHYT_DT: parseFloat((tongBHYT / TongTien) * 100).toFixed(1),
+    ChenhLech_ThucTe_TyLe_BHYT_DT: parseFloat(
+      (tongBHYT / TongTien - tongBHYT_ngaychenhlech / TongTien_NgayChenhLech) *
+        100
+    ).toFixed(1),
 
-    ThucTe_TyLe_ThuTrucTiep_DT: parseFloat((ThuTrucTiep/TongTien)*100).toFixed(1),
-    ChenhLech_ThucTe_TyLe_ThuTrucTiep_DT: parseFloat((ThuTrucTiep/TongTien - ThuTrucTiep_NgayChenhLech/TongTien_NgayChenhLech)*100).toFixed(1),
+    ThucTe_TyLe_ThuTrucTiep_DT: parseFloat(
+      (ThuTrucTiep / TongTien) * 100
+    ).toFixed(1),
+    ChenhLech_ThucTe_TyLe_ThuTrucTiep_DT: parseFloat(
+      (ThuTrucTiep / TongTien -
+        ThuTrucTiep_NgayChenhLech / TongTien_NgayChenhLech) *
+        100
+    ).toFixed(1),
 
-    TyLe_ThucTe_DoanhThu_KhuyenCao: parseFloat((TyLe_ThucTe_DoanhThu_KhuyenCao)*100).toFixed(1),
-    TyLe_ThucTe_DoanhThu_KhuyenCao_ChenhLech: parseFloat((TyLe_ThucTe_DoanhThu_KhuyenCao - TyLe_ThucTe_DoanhThu_KhuyenCao_NgayChenhLech)*100).toFixed(1),
+    TyLe_ThucTe_DoanhThu_KhuyenCao: parseFloat(
+      TyLe_ThucTe_DoanhThu_KhuyenCao * 100
+    ).toFixed(1),
+    TyLe_ThucTe_DoanhThu_KhuyenCao_ChenhLech: parseFloat(
+      (TyLe_ThucTe_DoanhThu_KhuyenCao -
+        TyLe_ThucTe_DoanhThu_KhuyenCao_NgayChenhLech) *
+        100
+    ).toFixed(1),
 
-    TyLe_ThucTe_BHYT_KhuyenCao: parseFloat((TyLe_ThucTe_BHYT_KhuyenCao)*100).toFixed(1),
-    TyLe_ThucTe_BHYT_KhuyenCao_ChenhLech: parseFloat((TyLe_ThucTe_BHYT_KhuyenCao - TyLe_ThucTe_BHYT_KhuyenCao_NgayChenhLech)*100).toFixed(1),
+    TyLe_ThucTe_BHYT_KhuyenCao: parseFloat(
+      TyLe_ThucTe_BHYT_KhuyenCao * 100
+    ).toFixed(1),
+    TyLe_ThucTe_BHYT_KhuyenCao_ChenhLech: parseFloat(
+      (TyLe_ThucTe_BHYT_KhuyenCao - TyLe_ThucTe_BHYT_KhuyenCao_NgayChenhLech) *
+        100
+    ).toFixed(1),
 
-    TyLe_ThucTe_ThuTrucTiep_KhuyenCao: parseFloat((TyLe_ThucTe_ThuTrucTiep_KhuyenCao)*100).toFixed(1),
-    TyLe_ThucTe_ThuTrucTiep_KhuyenCao_ChenhLech: parseFloat((TyLe_ThucTe_ThuTrucTiep_KhuyenCao - TyLe_ThucTe_ThuTrucTiep_KhuyenCao_NgayChenhLech)*100).toFixed(1),
-
-
+    TyLe_ThucTe_ThuTrucTiep_KhuyenCao: parseFloat(
+      TyLe_ThucTe_ThuTrucTiep_KhuyenCao * 100
+    ).toFixed(1),
+    TyLe_ThucTe_ThuTrucTiep_KhuyenCao_ChenhLech: parseFloat(
+      (TyLe_ThucTe_ThuTrucTiep_KhuyenCao -
+        TyLe_ThucTe_ThuTrucTiep_KhuyenCao_NgayChenhLech) *
+        100
+    ).toFixed(1),
   };
 }
 
@@ -1150,43 +1264,43 @@ export function calculateKhuyenCaoToanVien(khuyencaokhoa) {
 }
 
 const mappingLoaiBNVip = [
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 15 , VipName: "Bí thư huyện"},
-  {dm_viptypeid: 19, VipName: "Bí Thư Thành ủy"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
-  {dm_viptypeid: 3, VipName: "Gây rối"},
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 15, VipName: "Bí thư huyện" },
+  { dm_viptypeid: 19, VipName: "Bí Thư Thành ủy" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
+  { dm_viptypeid: 3, VipName: "Gây rối" },
 ];
 export function themVipName(benhNhanVip) {
   // Tạo một object để tối ưu việc tra cứu VipName từ dm_viptypeid
   const vipNameMap = mappingLoaiBNVip.reduce((acc, cur) => {
-      acc[cur.dm_viptypeid] = cur.VipName;
-      return acc;
+    acc[cur.dm_viptypeid] = cur.VipName;
+    return acc;
   }, {});
-  
+
   // Lặp qua từng bệnh nhân và bổ sung VipName
-  benhNhanVip.forEach(benhNhan => {
-      // Kiểm tra và bổ sung VipName dựa trên dm_viptypeid tương ứng
-      if (benhNhan.dm_viptypeid in vipNameMap) {
-          benhNhan.VipName = vipNameMap[benhNhan.dm_viptypeid];
-      }
+  benhNhanVip.forEach((benhNhan) => {
+    // Kiểm tra và bổ sung VipName dựa trên dm_viptypeid tương ứng
+    if (benhNhan.dm_viptypeid in vipNameMap) {
+      benhNhan.VipName = vipNameMap[benhNhan.dm_viptypeid];
+    }
   });
 
   return benhNhanVip;
@@ -1195,14 +1309,20 @@ export function themVipName(benhNhanVip) {
 export function convertData_CanLamSang_PhongThucHien(dataArray) {
   const result = {};
 
-  dataArray.forEach(item => {
-    const { phongthuchien, departmenttype, loaidoituong, maubenhphamstatus, soluong } = item;
-    
+  dataArray.forEach((item) => {
+    const {
+      phongthuchien,
+      departmenttype,
+      loaidoituong,
+      maubenhphamstatus,
+      soluong,
+    } = item;
+
     if (!result[phongthuchien]) {
       result[phongthuchien] = { noitru: {}, ngoaitru: {} };
     }
-    
-    const deptKey = departmenttype === 2 ? 'ngoaitru' : 'noitru';
+
+    const deptKey = departmenttype === 2 ? "ngoaitru" : "noitru";
 
     if (!result[phongthuchien][deptKey][loaidoituong]) {
       result[phongthuchien][deptKey][loaidoituong] = {};
@@ -1215,12 +1335,12 @@ export function convertData_CanLamSang_PhongThucHien(dataArray) {
 }
 
 function initializeStructure(deptKey, obj) {
-  const statusKeys = ['ChiDinh', 'DaThucHien', 'DaTraKQ'];
-  const doiTuongKeys = ['BHYT', 'VP', 'YC', 'BHYTYC'];
+  const statusKeys = ["ChiDinh", "DaThucHien", "DaTraKQ"];
+  const doiTuongKeys = ["BHYT", "VP", "YC", "BHYTYC"];
 
-  doiTuongKeys.forEach(doiTuong => {
+  doiTuongKeys.forEach((doiTuong) => {
     obj[deptKey][doiTuong] = obj[deptKey][doiTuong] || {};
-    statusKeys.forEach(status => {
+    statusKeys.forEach((status) => {
       obj[deptKey][doiTuong][status] = obj[deptKey][doiTuong][status] || 0;
     });
   });
@@ -1228,42 +1348,52 @@ function initializeStructure(deptKey, obj) {
 
 export function convertDataWithTextKeys_CanLamSang_PhongThucHien(dataArray) {
   const departmentTypeMapping = {
-    2: 'ngoaitru',
-    3: 'noitru'
+    2: "ngoaitru",
+    3: "noitru",
   };
 
   const doiTuongMapping = {
-    0: 'BHYT',
-    1: 'VP',
-    3: 'YC',
-    4: 'BHYTYC'
+    0: "BHYT",
+    1: "VP",
+    3: "YC",
+    4: "BHYTYC",
   };
 
   const statusMapping = {
-    0: 'ChiDinh',
-    1: 'ChiDinh', // Assuming both 0 and 1 map to 'ChiDinh'
-    16: 'DaThucHien',
-    2: 'DaTraKQ'
+    0: "ChiDinh",
+    1: "ChiDinh", // Assuming both 0 and 1 map to 'ChiDinh'
+    16: "DaThucHien",
+    2: "DaTraKQ",
   };
 
   const result = [];
 
-  dataArray.forEach(item => {
-    const { phongthuchien, departmenttype, loaidoituong, maubenhphamstatus, soluong } = item;
-    let roomObj = result.find(room => room.phongthuchien === phongthuchien);
+  dataArray.forEach((item) => {
+    const {
+      phongthuchien,
+      departmenttype,
+      loaidoituong,
+      maubenhphamstatus,
+      soluong,
+    } = item;
+    let roomObj = result.find((room) => room.phongthuchien === phongthuchien);
 
     if (!roomObj) {
       roomObj = { phongthuchien, noitru: {}, ngoaitru: {} };
-      initializeStructure('noitru', roomObj);
-      initializeStructure('ngoaitru', roomObj);
+      initializeStructure("noitru", roomObj);
+      initializeStructure("ngoaitru", roomObj);
       result.push(roomObj);
     }
 
-    const deptKey = departmentTypeMapping[departmenttype] || 'unknown';
-    const doiTuongKey = doiTuongMapping[loaidoituong] || 'unknown';
-    const statusKey = statusMapping[maubenhphamstatus] || 'unknown';
+    const deptKey = departmentTypeMapping[departmenttype] || "unknown";
+    const doiTuongKey = doiTuongMapping[loaidoituong] || "unknown";
+    const statusKey = statusMapping[maubenhphamstatus] || "unknown";
 
-    if (deptKey !== 'unknown' && doiTuongKey !== 'unknown' && statusKey !== 'unknown') {
+    if (
+      deptKey !== "unknown" &&
+      doiTuongKey !== "unknown" &&
+      statusKey !== "unknown"
+    ) {
       roomObj[deptKey][doiTuongKey][statusKey] += soluong;
     }
   });
@@ -1271,50 +1401,50 @@ export function convertDataWithTextKeys_CanLamSang_PhongThucHien(dataArray) {
   return result;
 }
 
-
 export function calculateTotalForType(type, dataArray) {
   let total = 0;
 
   // Duyệt qua mỗi phần tử trong mảng
-  dataArray?.forEach(item => {
-      if (item.canlamsangtype === type) {
-          // Cộng dồn tổng của dongchitra, bhyt, và thutructiep nếu khớp với type
-          total += item.dongchitra + item.bhyt + item.thutructiep;
-      }
+  dataArray?.forEach((item) => {
+    if (item.canlamsangtype === type) {
+      // Cộng dồn tổng của dongchitra, bhyt, và thutructiep nếu khớp với type
+      total += item.dongchitra + item.bhyt + item.thutructiep;
+    }
   });
 
   // Trả về tổng tương ứng với canlamsangtype cần tìm
   return total;
 }
 
-
 export function ConvertDoanhThuBacSiKhoa(doanhThu) {
-
   if (!Array.isArray(doanhThu)) {
-    console.error('Lỗi: Đầu vào phải là một mảng');
-    return [];  // Trả về một mảng rỗng hoặc có thể là null tùy theo yêu cầu xử lý lỗi
-}
-let doanhthuBacSiKhoa=doanhThu.map(item=>({...item}))
+    console.error("Lỗi: Đầu vào phải là một mảng");
+    return []; // Trả về một mảng rỗng hoặc có thể là null tùy theo yêu cầu xử lý lỗi
+  }
+  let doanhthuBacSiKhoa = doanhThu.map((item) => ({ ...item }));
 
   // Khởi tạo đối tượng tổng cộng
   let tongCong = {
-      username: 'Tổng cộng',
-      dongchitra: 0,
-      bhyt: 0,
-      thutructiep: 0,
-      tongdoanhthu: 0,
-      tienmri30:0,
+    username: "Tổng cộng",
+    dongchitra: 0,
+    bhyt: 0,
+    thutructiep: 0,
+    tongdoanhthu: 0,
+    tienmri30: 0,
   };
 
   // Duyệt qua mỗi đối tượng trong mảng để thêm tongdoanhthu và tính tổng
-  doanhthuBacSiKhoa.forEach(item => {
-      item.tongdoanhthu = (item.bhyt || 0) + (item.dongchitra || 0) + (item.thutructiep || 0) +(item.tienmri30 || 0);
-      tongCong.dongchitra += item.dongchitra || 0;
-      tongCong.bhyt += item.bhyt || 0;
-      tongCong.thutructiep += item.thutructiep || 0;
-      tongCong.tongdoanhthu += item.tongdoanhthu;
-      tongCong.tienmri30 += item.tienmri30;
-      
+  doanhthuBacSiKhoa.forEach((item) => {
+    item.tongdoanhthu =
+      (item.bhyt || 0) +
+      (item.dongchitra || 0) +
+      (item.thutructiep || 0) +
+      (item.tienmri30 || 0);
+    tongCong.dongchitra += item.dongchitra || 0;
+    tongCong.bhyt += item.bhyt || 0;
+    tongCong.thutructiep += item.thutructiep || 0;
+    tongCong.tongdoanhthu += item.tongdoanhthu;
+    tongCong.tienmri30 += item.tienmri30;
   });
 
   // Thêm đối tượng tổng cộng vào đầu mảng
@@ -1325,13 +1455,13 @@ let doanhthuBacSiKhoa=doanhThu.map(item=>({...item}))
 export function tinhChenhLech_DoanhThu_BacSi(doanhThu, doanhThuNgayChenhLech) {
   // Tạo một đối tượng map để lưu trữ dữ liệu theo username từ doanhThu
   const mapDoanhThu = new Map();
-  doanhThu.forEach(item => mapDoanhThu.set(item.username, item));
+  doanhThu.forEach((item) => mapDoanhThu.set(item.username, item));
 
   // Mảng kết quả chứa chênh lệch
   const ketQuaChenhLech = [];
 
   // Duyệt qua mảng doanhThuNgayChenhLech và tính chênh lệch
-  doanhThuNgayChenhLech.forEach(item => {
+  doanhThuNgayChenhLech.forEach((item) => {
     const doanhThuCu = mapDoanhThu.get(item.username);
 
     // Kiểm tra xem có dữ liệu tương ứng trong doanhThu không
@@ -1342,7 +1472,7 @@ export function tinhChenhLech_DoanhThu_BacSi(doanhThu, doanhThuNgayChenhLech) {
         bhyt: item.bhyt - doanhThuCu.bhyt,
         thutructiep: item.thutructiep - doanhThuCu.thutructiep,
         tongdoanhthu: item.tongdoanhthu - doanhThuCu.tongdoanhthu,
-        tienmri30: item.tienmri30 - doanhThuCu.tienmri30
+        tienmri30: item.tienmri30 - doanhThuCu.tienmri30,
       };
       ketQuaChenhLech.push(chenhLech);
     } else {
@@ -1353,7 +1483,7 @@ export function tinhChenhLech_DoanhThu_BacSi(doanhThu, doanhThuNgayChenhLech) {
         bhyt: item.bhyt,
         thutructiep: item.thutructiep,
         tongdoanhthu: item.tongdoanhthu,
-        tienmri30: item.tienmri30
+        tienmri30: item.tienmri30,
       };
       ketQuaChenhLech.push(chenhLech);
     }
@@ -1366,51 +1496,48 @@ export function tinhChenhLech_DoanhThu_BacSi(doanhThu, doanhThuNgayChenhLech) {
 export function LocKhoaHienThiTheoUser(khoas, user) {
   // Mảng để lưu các khoa thỏa mãn điều kiện
   let filteredKhoas = [];
-console.log("user",user)
+  console.log("user", user);
   // Duyệt qua từng khoa trong khoas
-  khoas.forEach(khoa => {
-      // Kiểm tra nếu KhoaID của khoa bằng _id của user
-      if (khoa._id === user.KhoaID._id) {
-          filteredKhoas.push(khoa);
-      } else {
-          // Kiểm tra nếu MaKhoa của khoa có trong mảng KhoaTaiChinh của user
-          if (user.KhoaTaiChinh.includes(khoa.MaKhoa)) {
-              filteredKhoas.push(khoa);
-          }
+  khoas.forEach((khoa) => {
+    // Kiểm tra nếu KhoaID của khoa bằng _id của user
+    if (khoa._id === user.KhoaID._id) {
+      filteredKhoas.push(khoa);
+    } else {
+      // Kiểm tra nếu MaKhoa của khoa có trong mảng KhoaTaiChinh của user
+      if (user.KhoaTaiChinh.includes(khoa.MaKhoa)) {
+        filteredKhoas.push(khoa);
       }
+    }
   });
 
   return filteredKhoas;
 }
 
-export function ConvertDoanhThuKhoaThemTong(doanhThu,soluong) {
-
+export function ConvertDoanhThuKhoaThemTong(doanhThu, soluong) {
   if (!Array.isArray(doanhThu)) {
-    console.error('Lỗi: Đầu vào phải là một mảng');
-    return [];  // Trả về một mảng rỗng hoặc có thể là null tùy theo yêu cầu xử lý lỗi
-}
-let doanhthuBacSiKhoa=doanhThu.map(item=>({...item}))
+    console.error("Lỗi: Đầu vào phải là một mảng");
+    return []; // Trả về một mảng rỗng hoặc có thể là null tùy theo yêu cầu xử lý lỗi
+  }
+  let doanhthuBacSiKhoa = doanhThu.map((item) => ({ ...item }));
 
   // Khởi tạo đối tượng tổng cộng
   let tongCong = {
-      tenkhoa: 'Tổng cộng',
-      dongchitra: 0,
-      bhyt: 0,
-      thutructiep: 0,
-      tongtien: 0,
-      tienmri30:0,
-      soluong:soluong,
+    tenkhoa: "Tổng cộng",
+    dongchitra: 0,
+    bhyt: 0,
+    thutructiep: 0,
+    tongtien: 0,
+    tienmri30: 0,
+    soluong: soluong,
   };
 
   // Duyệt qua mỗi đối tượng trong mảng để thêm tongdoanhthu và tính tổng
-  doanhthuBacSiKhoa.forEach(item => {
-      
-      tongCong.dongchitra += item.dongchitra || 0;
-      tongCong.bhyt += item.bhyt || 0;
-      tongCong.thutructiep += item.thutructiep || 0;
-      tongCong.tongtien += item.tongtien;
-      tongCong.tienmri30 += item.tienmri30;
-      
+  doanhthuBacSiKhoa.forEach((item) => {
+    tongCong.dongchitra += item.dongchitra || 0;
+    tongCong.bhyt += item.bhyt || 0;
+    tongCong.thutructiep += item.thutructiep || 0;
+    tongCong.tongtien += item.tongtien;
+    tongCong.tienmri30 += item.tienmri30;
   });
 
   // Thêm đối tượng tổng cộng vào đầu mảng
@@ -1419,37 +1546,31 @@ let doanhthuBacSiKhoa=doanhThu.map(item=>({...item}))
   return doanhthuBacSiKhoa;
 }
 
-
-
 export function ConvertMangVienPhiThemTong(doanhThu) {
-
   if (!Array.isArray(doanhThu)) {
-    console.error('Lỗi: Đầu vào phải là một mảng');
-    return [];  // Trả về một mảng rỗng hoặc có thể là null tùy theo yêu cầu xử lý lỗi
-}
+    console.error("Lỗi: Đầu vào phải là một mảng");
+    return []; // Trả về một mảng rỗng hoặc có thể là null tùy theo yêu cầu xử lý lỗi
+  }
 
-let doanhthutheovienphi=doanhThu?.map(item=>({...item}))
+  let doanhthutheovienphi = doanhThu?.map((item) => ({ ...item }));
 
   // Khởi tạo đối tượng tổng cộng
   let tongCong = {
-      patientname: 'Tổng cộng',
-      dongchitra: 0,
-      bhyt: 0,
-      thutructiep: 0,
-      tongtien: 0,
-      tienmri30:0,
-      
+    patientname: "Tổng cộng",
+    dongchitra: 0,
+    bhyt: 0,
+    thutructiep: 0,
+    tongtien: 0,
+    tienmri30: 0,
   };
 
   // Duyệt qua mỗi đối tượng trong mảng để thêm tongdoanhthu và tính tổng
-  doanhthutheovienphi.forEach(item => {
-      
-      tongCong.dongchitra += item.dongchitra || 0;
-      tongCong.bhyt += item.bhyt || 0;
-      tongCong.thutructiep += item.thutructiep || 0;
-      tongCong.tongtien += item.tongtien;
-      tongCong.tienmri30 += item.tienmri30;
-      
+  doanhthutheovienphi.forEach((item) => {
+    tongCong.dongchitra += item.dongchitra || 0;
+    tongCong.bhyt += item.bhyt || 0;
+    tongCong.thutructiep += item.thutructiep || 0;
+    tongCong.tongtien += item.tongtien;
+    tongCong.tienmri30 += item.tienmri30;
   });
 
   // Thêm đối tượng tổng cộng vào đầu mảng
