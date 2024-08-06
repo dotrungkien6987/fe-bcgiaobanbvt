@@ -1,11 +1,4 @@
-import {
-  Box,
-  Button,
-  Card,
- 
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Card, Stack, Typography } from "@mui/material";
 import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 
 import React, { useEffect, useMemo } from "react";
@@ -109,23 +102,31 @@ function HocVienLopTable({ setSelectedRows }) {
     dispatch(getAllNhanVien());
   }, [dispatch]);
 
-  const { hocvienCurrents,lopdaotaoCurrent } = useSelector((state) => state.daotao);
+  const { hocvienCurrents, lopdaotaoCurrent } = useSelector(
+    (state) => state.daotao
+  );
   const handleClickSave = () => {
-    if (lopdaotaoCurrent && lopdaotaoCurrent._id && lopdaotaoCurrent._id !== 0) {
+    if (
+      lopdaotaoCurrent &&
+      lopdaotaoCurrent._id &&
+      lopdaotaoCurrent._id !== 0
+    ) {
       const lopdaotaonhanvienData = hocvienCurrents.map((hv) => ({
         LopDaoTaoID: lopdaotaoCurrent._id,
         NhanVienID: hv.NhanVienID,
         VaiTro: hv.VaiTro,
-      
       }));
-      
-      dispatch(insertOrUpdateLopDaoTaoNhanVien({lopdaotaonhanvienData,lopdaotaoID:lopdaotaoCurrent._id}));
-  } else {
+
+      dispatch(
+        insertOrUpdateLopDaoTaoNhanVien({
+          lopdaotaonhanvienData,
+          lopdaotaoID: lopdaotaoCurrent._id,
+        })
+      );
+    } else {
       // Hiển thị thông báo cho người dùng
       alert("Vui lòng cập nhật thông tin lớp đào tạo hợp lệ trước.");
-  }
-   
-    
+    }
   };
   const data = useMemo(() => hocvienCurrents, [hocvienCurrents]);
   return (
@@ -136,15 +137,19 @@ function HocVienLopTable({ setSelectedRows }) {
           Danh sách học viên trong lớp
         </Typography>
         <Box sx={{ flexGrow: 1 }}></Box>
-        <Button
-          variant="contained"
-          startIcon={<SaveIcon />}
-          onClick={handleClickSave}
-        >
-          Lưu thành viên tham gia
-        </Button>
+        {lopdaotaoCurrent &&
+          lopdaotaoCurrent._id &&
+          lopdaotaoCurrent._id !== 0 && (
+            <Button
+              variant="contained"
+              startIcon={<SaveIcon />}
+              onClick={handleClickSave}
+            >
+              Lưu thành viên tham gia
+            </Button>
+          )}
       </Stack>
-      
+
       <StickyTable
         data={data}
         columns={columns}

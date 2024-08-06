@@ -123,7 +123,7 @@ function NhanVienList() {
         accessor: "TenKhoa",
         minWidth: 200,
         // filter: 'fuzzyText',
-        // disableGroupBy: true
+        disableGroupBy: true
       },
       {
         Header: "Trình độ chuyên môn",

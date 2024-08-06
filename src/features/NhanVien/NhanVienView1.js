@@ -293,7 +293,7 @@ const NhanVienView1 = () => {
             </MainCard>
           </Stack>
         </Grid>
-        <Grid item xs={2}>
+        <Grid item xs={12} md={2}>
           <MainCard title="Tín chỉ tích lũy">
             <List
               aria-label="main mailbox folders"

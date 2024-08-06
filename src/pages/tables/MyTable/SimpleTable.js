@@ -82,14 +82,8 @@ import { ThemeMode } from 'configAble';
 
 // assets
 import { ArrowDown2, ArrowRight2, Edit, LayoutMaximize, Maximize1, Send } from 'iconsax-react';
-import { useDispatch, useSelector } from 'react-redux';
-import { values } from 'lodash';
-import ActionSuco from 'features/BaoCaoSuCo/ActionSuco';
-import ActionSucoForReactTable from 'features/BaoCaoSuCo/ActionSucoForReactTable';
-import { getBaoCaoSuCoForDataGrid } from 'features/BaoCaoSuCo/baocaosucoSlice';
-import AddNhanVienButton from 'features/Daotao/AddNhanVienButton';
 
-const avatarImage = require.context('assets/images/users', true);
+
 const TableWrapper = styled('div')(() => ({
   '.header': {
     position: 'sticky',
@@ -206,8 +200,11 @@ function ReactTable({ columns, data, init,additionalComponent,sx }) {
             />
              {additionalComponent && additionalComponent}
           </Stack>
+          
         </Stack>
-
+        <Box sx={{ p: 2, py: 0 }}>
+          <TablePagination gotoPage={gotoPage} rows={rows} setPageSize={setPageSize} pageIndex={pageIndex} pageSize={pageSize} />
+        </Box>
         <Box sx={{ width: '100%', overflowX: 'auto', display: 'block' }}>
           <Table {...getTableProps()} stickyHeader>
             <TableHead sx={{ borderTopWidth: 2 }}>
@@ -316,9 +313,7 @@ function ReactTable({ columns, data, init,additionalComponent,sx }) {
             </TableFooter>
           </Table>
         </Box>
-        <Box sx={{ p: 2, py: 0 }}>
-          <TablePagination gotoPage={gotoPage} rows={rows} setPageSize={setPageSize} pageIndex={pageIndex} pageSize={pageSize} />
-        </Box>
+        
 
       </Stack>
     </>

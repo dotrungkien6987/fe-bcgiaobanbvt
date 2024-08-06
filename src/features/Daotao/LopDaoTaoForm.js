@@ -1,18 +1,8 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 
 import { LoadingButton } from "@mui/lab";
-import {
-
-  Box,
-
-  Card,
-
-  Grid,
-  Stack,
-
-  Typography,
-} from "@mui/material";
-import SaveIcon from '@mui/icons-material/Save';
+import { Box, Card, Grid, Stack, Typography } from "@mui/material";
+import SaveIcon from "@mui/icons-material/Save";
 import { FTextField, FormProvider } from "components/form";
 import FAutocomplete from "components/form/FAutocomplete";
 import FDatePicker from "components/form/FDatePicker";
@@ -36,6 +26,7 @@ import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import { useParams } from "react-router-dom";
 import HocVienLopTable from "./ChonHocVien/HocVienLopTable";
+import DiemDanhLopDaoTaoButton from "./DiemDanhLopDaoTaoButton";
 
 const yupSchema = Yup.object().shape({
   MaHinhThucCapNhat: Yup.object({
@@ -60,7 +51,7 @@ function LopDaoTaoForm() {
   const dispatch = useDispatch();
   useEffect(() => {
     if (lopdaotaoID) dispatch(getOneLopDaoTaoByID(lopdaotaoID));
-     else dispatch(resetLopDaoTaoCurrent())
+    else dispatch(resetLopDaoTaoCurrent());
   }, []);
   useEffect(() => {
     if (HinhThucCapNhat.length === 0) {
@@ -163,73 +154,80 @@ function LopDaoTaoForm() {
       <Grid container spacing={2}>
         <Grid item xs={12} md={4}>
           <Card variant="outlined" sx={{ p: 1 }}>
-         
             <FormProvider
               methods={methods}
               onSubmit={handleSubmit(onSubmitData)}
             >
-                <Stack direction="row" mb={2.2}>
-                <Typography fontSize={18} fontWeight={'bold'}> Thông tin lớp đào tạo</Typography>
-                <Box  sx={{ flexGrow: 1 }}></Box>
+              <Stack direction="row" mb={2.2}>
+                <Typography fontSize={18} fontWeight={"bold"}>
+                  {" "}
+                  Thông tin lớp đào tạo
+                </Typography>
+                <Box sx={{ flexGrow: 1 }}></Box>
                 <LoadingButton
-                type="submit"
-                variant="contained"
-                startIcon={<SaveIcon />}
-                size="small"
-                loading={isSubmitting}
-              >
-                Lưu thông tin lớp
-              </LoadingButton>
-                </Stack>
-              <Card variant="outlined" sx={{ p: 1 }}>
-               <Stack spacing={2}>
-            
-
-              <FAutocomplete
-                name="MaHinhThucCapNhat"
-                options={HinhThucCapNhat}
-                displayField="Ma"
-                label="Mã hình thức cập nhật"
-              />
-
-              <FAutocomplete
-                name="MaHinhThucCapNhat"
-                options={HinhThucCapNhat}
-                displayField="Ten"
-                label="Hình thức cập nhật"
-              />
-
-              <FTextField name="Ten" multiline label="Tên lớp" fullWidth />
-
-              <FTextField name="QuyetDinh" label="Quyết định" fullWidth />
-
-              <FAutocomplete
-                name="NoiDaoTao"
-                options={NoiDaoTao.map((item) => item.NoiDaoTao)}
-                label="Nơi đào tạo"
-              />
-
-              <FAutocomplete
-                name="NguonKinhPhi"
-                options={NguonKinhPhi.map((item) => item.NguonKinhPhi)}
-                label="Nguồn kinh phí"
-              />
-
-              <FAutocomplete
-                name="HinhThucDaoTao"
-                options={HinhThucDaoTao.map((item) => item.HinhThucDaoTao)}
-                label="Hình thức đào tạo"
-              />
-
-              <FTextField name="GhiChu" label="Ghi chú" fullWidth />
-
-              <FTextField name="SoLuong" label="Số lượng" fullWidth />
-
-              <FDatePicker name="NgayBatDau" label="Ngày bắt đầu" fullWidth />
-
-              <FDatePicker name="NgayKetThuc" label="Ngày kết thúc" fullWidth />
-            
+                  type="submit"
+                  variant="contained"
+                  startIcon={<SaveIcon />}
+                  size="small"
+                  loading={isSubmitting}
+                >
+                  Lưu thông tin lớp
+                </LoadingButton>
               </Stack>
+              <Card variant="outlined" sx={{ p: 1 }}>
+                <Stack spacing={2}>
+                  <FAutocomplete
+                    name="MaHinhThucCapNhat"
+                    options={HinhThucCapNhat}
+                    displayField="Ma"
+                    label="Mã hình thức cập nhật"
+                  />
+
+                  <FAutocomplete
+                    name="MaHinhThucCapNhat"
+                    options={HinhThucCapNhat}
+                    displayField="Ten"
+                    label="Hình thức cập nhật"
+                  />
+
+                  <FTextField name="Ten" multiline label="Tên lớp" fullWidth />
+
+                  <FTextField name="QuyetDinh" label="Quyết định" fullWidth />
+
+                  <FAutocomplete
+                    name="NoiDaoTao"
+                    options={NoiDaoTao.map((item) => item.NoiDaoTao)}
+                    label="Nơi đào tạo"
+                  />
+
+                  <FAutocomplete
+                    name="NguonKinhPhi"
+                    options={NguonKinhPhi.map((item) => item.NguonKinhPhi)}
+                    label="Nguồn kinh phí"
+                  />
+
+                  <FAutocomplete
+                    name="HinhThucDaoTao"
+                    options={HinhThucDaoTao.map((item) => item.HinhThucDaoTao)}
+                    label="Hình thức đào tạo"
+                  />
+
+                  <FTextField name="GhiChu" label="Ghi chú" fullWidth />
+
+                  <FTextField name="SoLuong" label="Số lượng" fullWidth />
+
+                  <FDatePicker
+                    name="NgayBatDau"
+                    label="Ngày bắt đầu"
+                    fullWidth
+                  />
+
+                  <FDatePicker
+                    name="NgayKetThuc"
+                    label="Ngày kết thúc"
+                    fullWidth
+                  />
+                </Stack>
               </Card>
             </FormProvider>
           </Card>
@@ -239,7 +237,12 @@ function LopDaoTaoForm() {
           <HocVienLopTable />
         </Grid>
       </Grid>
-
+      <Stack direction="row" mb={2} mt={1}>
+        <Box sx={{ flexGrow: 1 }}></Box>
+        {lopdaotaoCurrent._id && (
+          <DiemDanhLopDaoTaoButton lopdaotaoID={lopdaotaoCurrent._id} isButton={true} />
+        )}
+      </Stack>
       <DropzonePage />
       {/* <NhanVienList /> */}
     </MainCard>
