@@ -32,7 +32,7 @@ import { updateTrangThaiLopDaoTao } from "features/Daotao/daotaoSlice";
 
 // ==============================|| CUSTOMER - VIEW ||============================== //
 
-const LopDaoTaoView1 = ({ data }) => {
+const LopDaoTaoView1 = ({ data,tam=false }) => {
   const theme = useTheme();
   const {HinhThucCapNhat} = useSelector((state) => state.hinhthuccapnhat); 
   const loaihinhthuc = HinhThucCapNhat?.find((item) => item.Ma === data.MaHinhThucCapNhat)?.Loai || "";
@@ -115,7 +115,8 @@ const LopDaoTaoView1 = ({ data }) => {
                 <Divider />
               </Grid>
               <Grid item xs={12}>
-                <Button
+                {!tam && (
+                  <Button
                   fullWidth
                   variant="contained"
                   startIcon={<SaveIcon />}
@@ -123,6 +124,8 @@ const LopDaoTaoView1 = ({ data }) => {
                 >
                  {data.TrangThai ? 'Gỡ duyệt hoàn thành' : 'Duyệt hoàn thành'}
                 </Button>
+                )}
+                
               </Grid>
             </Grid>
           </MainCard>
