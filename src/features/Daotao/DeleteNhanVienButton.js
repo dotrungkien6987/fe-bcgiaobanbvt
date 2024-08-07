@@ -32,7 +32,7 @@ setOpenDelete(false)
         <DialogTitle id="alert-dialog-title">{"Cảnh báo!"}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
-            Bạn có chắc muốn xóa học viên này?
+            Bạn có chắc muốn xóa nhân viên này?
           </DialogContentText>
         </DialogContent>
         <DialogActions>

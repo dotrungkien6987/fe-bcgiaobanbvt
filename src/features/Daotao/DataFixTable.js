@@ -1,13 +1,8 @@
 import {
-  Box,
+  
   Grid,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+ 
 } from "@mui/material";
 import MainCard from "components/MainCard";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
@@ -15,14 +10,11 @@ import SimpleTable from "pages/tables/MyTable/SimpleTable";
 
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import UpdateNhanVienButton from "./UpdateNhanVienButton";
-import DeleteNhanVienButton from "./DeleteNhanVienButton";
-import CommonTable from "pages/tables/MyTable/CommonTable";
+
 import AddDataFixButton from "./AddDataFixButton";
 import DeleteDataFixButton from "./DeleteDataFixButton";
 import UpdateDataFixButton from "./UpdateDataFixButton";
 import { useParams } from "react-router-dom";
-import { el } from "date-fns/locale";
 
 function DataFixTable() {
   const params = useParams();

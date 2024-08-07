@@ -20,6 +20,7 @@ import {
   
   updateLopDaoTaoNhanVienDiemDanh,
 } from "./daotaoSlice";
+import { formatDate_getDate } from "utils/formatTime";
 
 function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
   const columns = useMemo(() => {
@@ -43,7 +44,7 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
       {
         Header: "Giới tính",
         Footer: "Giới tính",
-        accessor: "GioiTinh",
+        accessor: "Sex",
         aggregate: "count",
       },
       {
@@ -51,7 +52,14 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
         Footer: "Ngày sinh",
         accessor: "NgaySinh",
         disableGroupBy: true,
-        Cell: ({ value }) => new Date(value).toDateString(),
+        Cell: ({ value }) => formatDate_getDate(value),
+      },
+      {
+        Header: "Khoa",
+        Footer: "Khoa",
+        accessor: "TenKhoa",
+        disableGroupBy: true,
+        
       },
       {
         Header: "Tín chỉ tích lũy",

@@ -55,6 +55,7 @@ function LoginPage() {
     try {
       
       await auth.login({ UserName, PassWord }, () => {
+        console.log(`isAuth after submit login:`, auth);
         navigate(from, { replace: true });
       });
       // console.log(`isAuth after submit login ${auth.isAuthenticated}`);

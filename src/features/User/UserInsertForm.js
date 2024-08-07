@@ -3,9 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import {
-  FRadioGroup,
+  
   FTextField,
-  FUploadImage,
+  
   FormProvider,
 } from "../../components/form";
 
@@ -37,7 +37,7 @@ import { LoadingButton } from "@mui/lab";
 import { useForm } from "react-hook-form";
 
 import { getKhoas } from "../BaoCaoNgay/baocaongaySlice";
-import { CreateUser, setKhoaTaiChinhCurent, updateUserProfile } from "./userSlice";
+import { CreateUser,  updateUserProfile } from "./userSlice";
 import ChonKhoaForm from "./ChonKhoaForm";
 import { useTheme } from "@emotion/react";
 
@@ -60,7 +60,7 @@ function UserInsertForm({ open, handleClose, handleSave, user, handleChange }) {
   const [isEditing, setIsEditing] = useState(false); // Biến để xác định form đang ở chế độ thêm mới hay chỉnh sửa
 
   useEffect(() => {
-    console.log("userKien", user);
+    
     if (user && user._id) {
       setIsEditing(true); // Nếu có user._id, chúng ta đang chỉnh sửa
     } else {
@@ -195,7 +195,7 @@ function UserInsertForm({ open, handleClose, handleSave, user, handleChange }) {
                 <FTextField multiline name="Email" label="Email" />
 
                 <Autocomplete
-                  options={["admin", "nomal", "manager"]}
+                  options={["admin", "nomal", "manager","daotao"]}
                   value={valueQuyen || "nomal"}
                   onChange={(event, newValue) => {
                     setValueQuyen(newValue || "nomal");

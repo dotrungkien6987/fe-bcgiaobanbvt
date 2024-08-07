@@ -18,6 +18,7 @@ import { ThemeMode } from 'configAble';
 import TrangThaiLopDaoTao from "./TrangThaiLopDaoTao";
 import { formatDate_getDate } from "utils/formatTime";
 import ScrollX from "components/ScrollX";
+import ThemHocVienTamButton from "./ThemHocVienTam/ThemHocVienTamButton";
 function LopDaoTaoTable() {
   const theme = useTheme();
   const mode = theme.palette.mode;
@@ -52,6 +53,7 @@ return (
 
     <UpdateLopDaoTaoButton lopdaotaoID={row.original._id} />
     )}
+    <ThemHocVienTamButton lopdaotaoID={row.original._id}/>
     <DiemDanhLopDaoTaoButton lopdaotaoID={row.original._id} />
     <Tooltip
         componentsProps={{
