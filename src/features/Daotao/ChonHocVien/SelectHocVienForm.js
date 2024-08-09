@@ -42,7 +42,7 @@ export default function SelectHocVienForm() {
     setOpen(false);
   };
   const handleSelect = () => {
-    console.log("selectedRows", selectedRows);
+    
     dispatch(addselectedHocVien(selectedRows));
     setOpen(false);
   };

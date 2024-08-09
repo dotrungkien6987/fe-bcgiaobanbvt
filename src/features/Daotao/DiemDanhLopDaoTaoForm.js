@@ -50,7 +50,7 @@ function DiemDanhLopDaoTaoForm() {
   );
   const dispatch = useDispatch();
   useEffect(() => {
-    if (lopdaotaoID) dispatch(getOneLopDaoTaoByID(lopdaotaoID));
+    if (lopdaotaoID) dispatch(getOneLopDaoTaoByID({lopdaotaoID,tam:false}));
     //  else dispatch(resetLopDaoTaoCurrent())
   }, []);
   useEffect(() => {

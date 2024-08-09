@@ -14,7 +14,8 @@ import SaveIcon from "@mui/icons-material/Save";
 import { insertOrUpdateLopDaoTaoNhanVien } from "../daotaoSlice";
 
 import { formatDate_getDate } from "utils/formatTime";
-function HocVienLopTable({ setSelectedRows }) {
+import useAuth from "hooks/useAuth";
+function HocVienLopTableTam({ setSelectedRows }) {
   const columns = useMemo(
     () => [
       {
@@ -97,6 +98,7 @@ function HocVienLopTable({ setSelectedRows }) {
   const { hocvienCurrents, lopdaotaoCurrent } = useSelector(
     (state) => state.daotao
   );
+  const {user} = useAuth()  ;
   const handleClickSave = () => {
     if (
       lopdaotaoCurrent &&
@@ -107,12 +109,17 @@ function HocVienLopTable({ setSelectedRows }) {
         LopDaoTaoID: lopdaotaoCurrent._id,
         NhanVienID: hv.NhanVienID,
         VaiTro: hv.VaiTro,
+        UserID: user._id,
+        UserName: user.UserName,
       }));
 
       dispatch(
         insertOrUpdateLopDaoTaoNhanVien({
           lopdaotaonhanvienData,
           lopdaotaoID: lopdaotaoCurrent._id,
+          tam: true,
+          userID: user._id,
+       
         })
       );
     } else {
@@ -126,7 +133,7 @@ function HocVienLopTable({ setSelectedRows }) {
       <Stack direction="row" mb={2}>
         <Typography fontSize={18} fontWeight={"bold"}>
           {" "}
-          Danh sách học viên trong lớp
+          Danh sách tạm
         </Typography>
         <Box sx={{ flexGrow: 1 }}></Box>
         {lopdaotaoCurrent &&
@@ -137,7 +144,7 @@ function HocVienLopTable({ setSelectedRows }) {
               startIcon={<SaveIcon />}
               onClick={handleClickSave}
             >
-              Lưu thành viên tham gia
+              Lưu thành viên tạm tham gia
             </Button>
           )}
       </Stack>
@@ -158,4 +165,4 @@ function HocVienLopTable({ setSelectedRows }) {
   );
 }
 
-export default HocVienLopTable;
+export default HocVienLopTableTam;

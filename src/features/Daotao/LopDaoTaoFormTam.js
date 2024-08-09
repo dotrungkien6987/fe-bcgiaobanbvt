@@ -1,23 +1,17 @@
-import { yupResolver } from "@hookform/resolvers/yup";
 
-import { LoadingButton } from "@mui/lab";
-import { Box, Card, Grid, Stack, Typography } from "@mui/material";
-import SaveIcon from "@mui/icons-material/Save";
-import { FTextField, FormProvider } from "components/form";
-import FAutocomplete from "components/form/FAutocomplete";
-import FDatePicker from "components/form/FDatePicker";
+import { Box,  Grid, Stack } from "@mui/material";
 
 import React, { useEffect } from "react";
-import { useForm } from "react-hook-form";
+
 import { useDispatch, useSelector } from "react-redux";
-import * as Yup from "yup";
-import dayjs from "dayjs";
+
+
 import MainCard from "components/MainCard";
 import {
   getOneLopDaoTaoByID,
-  insertOneLopDaoTao,
+  
   resetLopDaoTaoCurrent,
-  updateOneLopDaoTao,
+  
 } from "./daotaoSlice";
 
 import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
@@ -27,6 +21,7 @@ import HocVienLopTable from "./ChonHocVien/HocVienLopTable";
 import DiemDanhLopDaoTaoButton from "./DiemDanhLopDaoTaoButton";
 import LopDaoTaoView1 from "features/NhanVien/LopDaoTaoView1";
 import useAuth from "hooks/useAuth";
+import HocVienLopTableTam from "./ChonHocVien/HocVienLopTableTam";
 
 function LopDaoTaoFormTam() {
   const params = useParams();
@@ -34,13 +29,13 @@ function LopDaoTaoFormTam() {
   const {user} = useAuth()
   const { lopdaotaoCurrent } = useSelector((state) => state.daotao);
   const { HinhThucCapNhat } = useSelector((state) => state.hinhthuccapnhat);
-  const { NoiDaoTao, NguonKinhPhi, HinhThucDaoTao } = useSelector(
+  const { NoiDaoTao } = useSelector(
     (state) => state.nhanvien
   );
 
   const dispatch = useDispatch();
   useEffect(() => {
-    if (lopdaotaoID) dispatch(getOneLopDaoTaoByID(lopdaotaoID));
+    if (lopdaotaoID) dispatch(getOneLopDaoTaoByID({lopdaotaoID,tam:true,userID:user._id}));
     else dispatch(resetLopDaoTaoCurrent());
   }, []);
   useEffect(() => {
@@ -59,21 +54,15 @@ function LopDaoTaoFormTam() {
       <Grid item xs={12} md={12}>
           <LopDaoTaoView1
             data={lopdaotaoCurrent}
-            
+            tam={true}
           />
         </Grid>
 
         <Grid item xs={12} md={12}>
-          <HocVienLopTable />
+          <HocVienLopTableTam />
         </Grid>
       </Grid>
-      <Stack direction="row" mb={2} mt={1}>
-        <Box sx={{ flexGrow: 1 }}></Box>
-        {lopdaotaoCurrent._id && (
-          <DiemDanhLopDaoTaoButton lopdaotaoID={lopdaotaoCurrent._id} isButton={true} />
-        )}
-      </Stack>
-      
+    
     </MainCard>
   );
 }

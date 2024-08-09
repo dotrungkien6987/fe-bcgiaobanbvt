@@ -142,15 +142,14 @@ const LopDaoTaoView1 = ({ data,tam=false }) => {
                           Nhóm hình thức cập nhật
                         </Typography>
                         <Typography>
-                          Tham gia các khóa đào tạo, bồi dưỡng ngắn hạn, hội
-                          nghị, hội thảo về y khoa phù hợp với phạm vi hành nghề
+                        {data.TenNhomHinhThucCapNhat ||''}
                         </Typography>
                       </Stack>
                     </Grid>
                     <Grid item xs={12} md={3}>
                       <Stack spacing={0.5}>
                         <Typography color="secondary">Mã</Typography>
-                        <Typography>G1</Typography>
+                        <Typography> {data.MaNhomHinhThucCapNhat ||''}</Typography>
                       </Stack>
                     </Grid>
                   </Grid>
@@ -162,13 +161,13 @@ const LopDaoTaoView1 = ({ data,tam=false }) => {
                         <Typography color="secondary">
                           Hình thức cập nhật
                         </Typography>
-                        <Typography>Hội nghị, hội thảo chuyên môn</Typography>
+                        <Typography>{data.TenHinhThucCapNhat ||''}</Typography>
                       </Stack>
                     </Grid>
                     <Grid item xs={12} md={3}>
                       <Stack spacing={0.5}>
                         <Typography color="secondary">Mã</Typography>
-                        <Typography>ĐT02</Typography>
+                        <Typography> {data.MaHinhThucCapNhat ||''}</Typography>
                       </Stack>
                     </Grid>
                   </Grid>

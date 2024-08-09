@@ -12,7 +12,10 @@ const initialState = {
   vaitroquydoiCurents: [],
   hocvienCurrents: [],
   vaitroCurrent: {},
+
   lopdaotaonhanvienCurrent: [],
+
+  hocvientamCurrents: [],
 };
 
 const slice = createSlice({
@@ -89,27 +92,44 @@ const slice = createSlice({
         )?.VaiTroQuyDoi || [];
       state.vaitroCurrent = state.vaitroquydoiCurents[0]?.VaiTro || {};
 
-      state.hocvienCurrents = action.payload.lopdaotaonhanvien.map((item) => {
-        const diemdanhSections = item.DiemDanh.reduce((acc, diemdanh, index) => {
-          acc[`section ${index + 1}`] = diemdanh;
-          return acc;
-        }, {});
-    const vaitroquydoi = state.vaitroquydoiCurents.find((vtqd) => vtqd.VaiTro === item.VaiTro);
-    const soluong = item.DiemDanh.filter((item) => item === true).length;
-    const tinhtudong = vaitroquydoi.QuyDoi * soluong;
-        return {
-          ...item.NhanVienID,
-          ...item,
-          NhanVienID: item.NhanVienID._id,
-          TenKhoa:item.NhanVienID.KhoaID.TenKhoa,
-          Sex:item.NhanVienID.GioiTinh===0?"Nam":"Nữ",
-          DonVi:vaitroquydoi.DonVi,
-          QuyDoi: vaitroquydoi.QuyDoi,
-          SoLuong:soluong,
-          TuDong:tinhtudong,
-          ...diemdanhSections
-        };
-      });
+      if(!action.payload.tam) {
+
+        state.hocvienCurrents = action.payload.lopdaotaonhanvien.map((item) => {
+          const diemdanhSections = item.DiemDanh.reduce((acc, diemdanh, index) => {
+            acc[`section ${index + 1}`] = diemdanh;
+            return acc;
+          }, {});
+      const vaitroquydoi = state.vaitroquydoiCurents.find((vtqd) => vtqd.VaiTro === item.VaiTro);
+      const soluong = item.DiemDanh.filter((item) => item === true).length;
+      const tinhtudong = vaitroquydoi.QuyDoi * soluong;
+          return {
+            ...item.NhanVienID,
+  
+            ...item,
+            NhanVienID: item.NhanVienID._id,
+            TenKhoa:item.NhanVienID.KhoaID.TenKhoa,
+            Sex:item.NhanVienID.GioiTinh===0?"Nam":"Nữ",
+            DonVi:vaitroquydoi.DonVi,
+            QuyDoi: vaitroquydoi.QuyDoi,
+            SoLuong:soluong,
+            TuDong:tinhtudong,
+            ...diemdanhSections
+          };
+        });
+      } else {
+        state.hocvienCurrents = action.payload.lopdaotaonhanvien.map((item) => {
+      
+          return {
+            ...item.NhanVienID,
+  
+            ...item,
+            NhanVienID: item.NhanVienID._id,
+            TenKhoa:item.NhanVienID.KhoaID.TenKhoa,
+            Sex:item.NhanVienID.GioiTinh===0?"Nam":"Nữ",
+          
+          };
+        });
+      }
     },
     setVaiTroCurrentSuccess(state, action) {
       state.isLoading = false;
@@ -214,21 +234,24 @@ export const deleteOneLopDaoTao = (lopdaotaoID) => async (dispatch) => {
 };
 
 export const getOneLopDaoTaoByID =
-  (lopdaotaoID) => async (dispatch, getState) => {
+  ({lopdaotaoID,tam,userID}) => async (dispatch, getState) => {
     dispatch(slice.actions.startLoading);
+    const params = {lopdaotaoID,tam,userID}
     try {
-      await Promise.all([
-        dispatch(getAllHinhThucCapNhat()), // Gọi hành động để lấy tất cả HinhThucCapNhat
-        apiService.get(`/lopdaotao/${lopdaotaoID}`), // Gọi API để lấy thông tin LopDaoTao
-      ]);
-      const response = await apiService.get(`/lopdaotao/${lopdaotaoID}`);
-      const HinhThucCapNhat = await getState().hinhthuccapnhat.HinhThucCapNhat;
       
+     const [_,response] = await Promise.all([
+        dispatch(getAllHinhThucCapNhat()), // Gọi hành động để lấy tất cả HinhThucCapNhat
+        apiService.get(`/lopdaotao/getextra`,{params}), // Gọi API để lấy thông tin LopDaoTao
+      ]);
+      console.log("response getbylopdaotaoid", response.data.data);
+      const HinhThucCapNhat = await getState().hinhthuccapnhat.HinhThucCapNhat;
+      console.log("tam", tam);
       dispatch(
         slice.actions.getOneLopDaoTaoByIDSuccess({
           lopdaotao: response.data.data.lopdaotao,
           lopdaotaonhanvien: response.data.data.lopdaotaonhanvien,
           HinhThucCapNhat,
+          tam,
         })
       );
     } catch (error) {
@@ -290,15 +313,25 @@ export const removeHocVienFromHocVienCurrents = (id) => async (dispatch) => {
   }
 };
 export const insertOrUpdateLopDaoTaoNhanVien =
-  ({ lopdaotaonhanvienData, lopdaotaoID }) =>
+  ({ lopdaotaonhanvienData, lopdaotaoID,tam=false,userID }) =>
   async (dispatch) => {
     dispatch(slice.actions.startLoading);
+    let response;
     try {
-      const response = await apiService.post(`/lopdaotaonhanvien`, {
+      if(!tam){
+       response = await apiService.post(`/lopdaotaonhanvien`, {
         lopdaotaonhanvienData,
         lopdaotaoID,
+        
       });
-
+    } else {
+      response = await apiService.post(`/lopdaotaonhanvientam`, {
+        lopdaotaonhanvienData,
+        lopdaotaoID,
+        userID,
+       
+      });
+    }
       dispatch(
         slice.actions.insertOrUpdateLopDaoTaoNhanVienSuccess({
           data: response.data.data,
@@ -309,6 +342,7 @@ export const insertOrUpdateLopDaoTaoNhanVien =
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);
     }
+
   };
   
 export const updateLopDaoTaoNhanVienDiemDanh =

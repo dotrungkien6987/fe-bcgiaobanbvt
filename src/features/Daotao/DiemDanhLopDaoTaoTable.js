@@ -124,11 +124,7 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
     (state) => state.daotao
   );
   const dispatch = useDispatch();
-  // useEffect(() => {
-  //   if (!lopdaotaoCurrent._id)
-  //     console.log("lopdaotaoID", lopdaotaoID);
-  //   dispatch(getOneLopDaoTaoByID(lopdaotaoID));
-  // }, []);
+  
   const handleClickSave = () => {
     if (tableData?.length > 0) {
       const lopdaotaonhanvienDiemDanhData = tableData.map((item) => {
