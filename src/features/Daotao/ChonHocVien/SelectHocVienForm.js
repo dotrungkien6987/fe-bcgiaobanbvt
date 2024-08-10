@@ -2,11 +2,9 @@ import { forwardRef, useState } from "react";
 
 // material-ui
 import {
-  
   AppBar,
   Button,
   Dialog,
-  
   Slide,
   Toolbar,
   Typography,
@@ -33,7 +31,7 @@ export default function SelectHocVienForm() {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
-  const {lopdaotaoCurrent} =useSelector((state) => state.daotao);
+  const { lopdaotaoCurrent } = useSelector((state) => state.daotao);
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -42,18 +40,24 @@ export default function SelectHocVienForm() {
     setOpen(false);
   };
   const handleSelect = () => {
-    
     dispatch(addselectedHocVien(selectedRows));
     setOpen(false);
   };
   return (
-    <>
-    {lopdaotaoCurrent&&lopdaotaoCurrent._id && (
-      <Button variant="contained" startIcon={<AddIcon />} onClick={handleClickOpen} mb={2}>
-        Thêm
-      </Button>
-    )}
-      
+    <div>
+      {lopdaotaoCurrent && lopdaotaoCurrent._id && (
+        <Button
+          fullWidth
+          style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+          variant="contained"
+          startIcon={<Add />}
+          onClick={handleClickOpen}
+          // mb={2}
+        >
+          Thêm thành viên
+        </Button>
+      )}
+
       <Dialog
         fullScreen
         open={open}
@@ -80,6 +84,6 @@ export default function SelectHocVienForm() {
         </AppBar>
         <SeLectHocVienTable onSelectedRowsChange={setSelectedRows} />
       </Dialog>
-    </>
+    </div>
   );
 }

@@ -14,6 +14,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import { insertOrUpdateLopDaoTaoNhanVien } from "../daotaoSlice";
 
 import { formatDate_getDate } from "utils/formatTime";
+import DongBoHocViensTamButton from "./DongBoHocViensTamButton";
 function HocVienLopTable({ setSelectedRows }) {
   const columns = useMemo(
     () => [
@@ -148,7 +149,8 @@ function HocVienLopTable({ setSelectedRows }) {
         setSelectedRows={setSelectedRows}
         sx={{ height: 598 }}
         additionalComponent={
-          <Stack direction="row">
+          <Stack direction="row" spacing={1}>
+            <DongBoHocViensTamButton lopdaotaoID={lopdaotaoCurrent._id} />
             <SelectHocVienForm />
             <SelectVaiTro />
           </Stack>

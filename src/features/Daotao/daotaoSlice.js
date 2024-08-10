@@ -92,6 +92,7 @@ const slice = createSlice({
         )?.VaiTroQuyDoi || [];
       state.vaitroCurrent = state.vaitroquydoiCurents[0]?.VaiTro || {};
 
+      //load dữ liệu cho hocvienCurrents từ lopdaotaonhanvien khi tam=false, từ lopdaotaonhanvientam khi tam=true
       if(!action.payload.tam) {
 
         state.hocvienCurrents = action.payload.lopdaotaonhanvien.map((item) => {
@@ -161,6 +162,15 @@ const slice = createSlice({
     updateLopDaoTaoNhanVienDiemDanhSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
+    },
+    dongboThanhVienTamByLopDaoTaoIDSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.hocvienCurrents = action.payload.map((item) => ({
+        ...item,
+        NhanVienID: item._id,
+        VaiTro: state.vaitroCurrent ? state.vaitroCurrent : "",
+      }));
     },
   },
 });
@@ -361,6 +371,24 @@ export const updateLopDaoTaoNhanVienDiemDanh =
         })
       );
       toast.success("Cập nhật thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
+
+  export const dongboThanhVienTamByLopDaoTaoID =
+  ({lopdaotaoID}) => async (dispatch, getState) => {
+    dispatch(slice.actions.startLoading);
+    
+    try {
+     
+      const response = await apiService.get(`/lopdaotao/dongbothanhvientam/${lopdaotaoID}` );
+      console.log("response dongboThanhVienTamByLopDaoTaoID", response.data.data);
+      
+      dispatch(
+        slice.actions.dongboThanhVienTamByLopDaoTaoIDSuccess(response.data.data)
+      );
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);

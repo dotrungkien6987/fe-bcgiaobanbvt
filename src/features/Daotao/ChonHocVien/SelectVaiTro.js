@@ -19,6 +19,7 @@ dispatch(getAllHinhThucCapNhat)
     dispatch(setVaiTroCurrent(event.target.value));
   }
   return (
+    <div>
     <Select
       value={vaitroCurrent || ''}
       onChange={handleSelectChange}
@@ -30,6 +31,7 @@ dispatch(getAllHinhThucCapNhat)
         </MenuItem>
       ))}
     </Select>
+    </div>
   );
 };
 
