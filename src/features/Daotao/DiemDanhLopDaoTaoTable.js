@@ -55,8 +55,8 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
         Cell: ({ value }) => formatDate_getDate(value),
       },
       {
-        Header: "Khoa",
-        Footer: "Khoa",
+        Header: "Tên khoa",
+        Footer: "Tên khoa",
         accessor: "TenKhoa",
         disableGroupBy: true,
         

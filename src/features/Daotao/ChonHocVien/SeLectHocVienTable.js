@@ -76,8 +76,8 @@ function SeLectHocVienTable({onSelectedRowsChange}) {
         disableGroupBy: true,
       },
       {
-        Header: 'Khoa',
-        Footer: 'Khoa',
+        Header: 'Tên khoa',
+        Footer: 'Tên khoa',
         accessor: 'TenKhoa',
         
         filter: 'fuzzyText',

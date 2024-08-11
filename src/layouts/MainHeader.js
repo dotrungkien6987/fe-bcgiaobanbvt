@@ -175,7 +175,7 @@ function MainHeader() {
       {(user.PhanQuyen === "admin" || user.PhanQuyen === "daotao") && (
         <MenuItem
           onClick={handleMenuClose}
-          to="/nhanvien"
+          to="/lopdaotaos"
           component={RouterLink}
           sx={{ mx: 1 }}
         >

@@ -167,9 +167,11 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.hocvienCurrents = action.payload.map((item) => ({
+        ...item.NhanVienID,
         ...item,
-        NhanVienID: item._id,
-        VaiTro: state.vaitroCurrent ? state.vaitroCurrent : "",
+        NhanVienID: item.NhanVienID._id,
+        TenKhoa:item.NhanVienID.KhoaID.TenKhoa,
+        Sex:item.NhanVienID.GioiTinh===0?"Nam":"Nữ",
       }));
     },
   },

@@ -13,8 +13,8 @@ import DeleteLopDaoTaoButton from "./DeleteLopDaoTaoButton";
 import UpdateLopDaoTaoButton from "./UpdateLopDaoTaoButton";
 import DiemDanhLopDaoTaoButton from "./DiemDanhLopDaoTaoButton";
 import LopDaoTaoView from "features/NhanVien/LopDaoTaoView";
-import { Add,  Eye } from 'iconsax-react';
-import { ThemeMode } from 'configAble';
+import { Add, Eye } from "iconsax-react";
+import { ThemeMode } from "configAble";
 import TrangThaiLopDaoTao from "./TrangThaiLopDaoTao";
 import { formatDate_getDate } from "utils/formatTime";
 import ScrollX from "components/ScrollX";
@@ -41,44 +41,48 @@ function LopDaoTaoTable() {
           ) : (
             <Eye />
           );
-return (
-  <Stack
-    direction="row"
-    alignItems="center"
-    justifyContent="center"
-    spacing={0}
-  >
-    <DeleteLopDaoTaoButton lopdaotaoID={row.original._id} />
-    {row.original.TrangThai === false && (
-
-    <UpdateLopDaoTaoButton lopdaotaoID={row.original._id} />
-    )}
-    <ThemHocVienTamButton lopdaotaoID={row.original._id}/>
-    <DiemDanhLopDaoTaoButton lopdaotaoID={row.original._id} />
-    <Tooltip
-        componentsProps={{
-          tooltip: {
-            sx: {
-              backgroundColor: mode === ThemeMode.DARK ? theme.palette.grey[50] : theme.palette.grey[700],
-              opacity: 0.9,
-            },
-          },
-        }}
-        title="View"
-      >
-        <IconButton
-          color="secondary"
-          onClick={(e) => {
-            e.stopPropagation();
-            row.toggleRowExpanded();
-          }}
-        >
-          {collapseIcon}
-        </IconButton>
-      </Tooltip>
-  </Stack>
-)
-        }
+          return (
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="center"
+              spacing={0}
+            >
+              <DeleteLopDaoTaoButton lopdaotaoID={row.original._id} />
+              {row.original.TrangThai === false && (
+                <Stack direction={"row"}>
+                  <UpdateLopDaoTaoButton lopdaotaoID={row.original._id} />
+                  <ThemHocVienTamButton lopdaotaoID={row.original._id} />
+                </Stack>
+              )}
+              <DiemDanhLopDaoTaoButton lopdaotaoID={row.original._id} />
+              <Tooltip
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      backgroundColor:
+                        mode === ThemeMode.DARK
+                          ? theme.palette.grey[50]
+                          : theme.palette.grey[700],
+                      opacity: 0.9,
+                    },
+                  },
+                }}
+                title="View"
+              >
+                <IconButton
+                  color="secondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    row.toggleRowExpanded();
+                  }}
+                >
+                  {collapseIcon}
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          );
+        },
       },
       {
         Header: "Mã hình thức",
@@ -103,8 +107,14 @@ return (
         accessor: "TrangThai",
         disableGroupBy: true,
         Cell: ({ value }) => {
-          if(value === true) return <TrangThaiLopDaoTao trangthai={true} title ={"Đã hoàn thành"}/>
-          else return <TrangThaiLopDaoTao trangthai={false} title ={"Chưa hoàn thành"}/>;
+          if (value === true)
+            return (
+              <TrangThaiLopDaoTao trangthai={true} title={"Đã hoàn thành"} />
+            );
+          else
+            return (
+              <TrangThaiLopDaoTao trangthai={false} title={"Chưa hoàn thành"} />
+            );
         },
       },
       {
@@ -112,7 +122,7 @@ return (
         Footer: "Quyết định",
 
         accessor: "QuyetDinh",
-        
+
         disableGroupBy: true,
       },
       {
@@ -120,7 +130,7 @@ return (
         Footer: "Hình thức đào tạo",
 
         accessor: "HinhThucDaoTao",
-        
+
         disableGroupBy: true,
       },
       {
@@ -128,7 +138,7 @@ return (
         Footer: "Số thành viên",
 
         accessor: "SoThanhVien",
-        
+
         disableGroupBy: true,
       },
       {
@@ -156,7 +166,6 @@ return (
         accessor: "SoLuong",
         disableGroupBy: true,
       },
-      
     ],
     []
   );
@@ -170,23 +179,25 @@ return (
   const { LopDaoTaos } = useSelector((state) => state.daotao);
 
   const data = useMemo(() => LopDaoTaos, [LopDaoTaos]);
-  const renderRowSubComponent = useCallback(({ row }) => <LopDaoTaoView data={data[Number(row.id)]} />, [data]);
+  const renderRowSubComponent = useCallback(
+    ({ row }) => <LopDaoTaoView data={data[Number(row.id)]} />,
+    [data]
+  );
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
         <MainCard title="Quản lý lớp đào tạo">
-      <ScrollX sx ={{height:700}}>
-          <CommonTable
-            data={data}
-            columns={columns}
-            renderRowSubComponent={renderRowSubComponent}
-            additionalComponent={
-              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              
-              <AddLopDaoTao />
-            </div>
-          }
-          />
+          <ScrollX sx={{ height: 700 }}>
+            <CommonTable
+              data={data}
+              columns={columns}
+              renderRowSubComponent={renderRowSubComponent}
+              additionalComponent={
+                <div style={{ display: "flex", alignItems: "flex-end" }}>
+                  <AddLopDaoTao />
+                </div>
+              }
+            />
           </ScrollX>
         </MainCard>
       </Grid>

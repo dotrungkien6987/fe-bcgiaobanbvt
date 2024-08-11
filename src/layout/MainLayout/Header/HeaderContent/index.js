@@ -165,7 +165,7 @@ const HeaderContent = () => {
       <Divider sx={{ borderStyle: "dashed" }} />
       <MenuItem
         onClick={handleMenuClose}
-        to="/nhanvien"
+        to="/lopdaotaos"
         component={RouterLink}
         sx={{ mx: 1 }}
       >
