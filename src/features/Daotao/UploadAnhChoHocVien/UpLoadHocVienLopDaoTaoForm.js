@@ -49,7 +49,7 @@ function UpLoadHocVienLopDaoTaoForm({
     console.log("lopdaotaonhanvienID", lopdaotaonhanvienID);
     console.log("Saving files:", files);
     console.log("images", images);
-    dispatch(uploadImagesForOneLopDaoTaoNhanVien(lopdaotaonhanvienID, files));
+    dispatch(uploadImagesForOneLopDaoTaoNhanVien(lopdaotaonhanvienCurrent._id, files));
     // dispatch(updateBenhNhanToList(benhnhanUpdate, files)).then(() =>
     //   resetForm()
     // );

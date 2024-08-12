@@ -87,6 +87,13 @@ const slice = createSlice({
       state.error = null;
       state.openUploadLopDaoTaoNhanVien = action.payload;
     },
+    uploadImagesForOneLopDaoTaoNhanVienSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.hocvienCurrents = state.hocvienCurrents.map((item) =>(
+        item._id === action.payload._id ? action.payload : item
+      ));
+    },
 
 
     resetLopDaoTaoCurrentSuccess(state, action) {
@@ -425,38 +432,45 @@ export const getOneLopDaoTaoNhanVienByID =
         `/lopdaotaonhanvien/${lopdaotaonhanvienID}`
       );
       console.log("data lopdaotaotaonhanvie get one", response.data.data);
-      dispatch(slice.actions.getOneLopDaoTaoNhanVienByIDSuccess(response.data.data));
+      dispatch(
+        slice.actions.getOneLopDaoTaoNhanVienByIDSuccess(response.data.data)
+      );
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);
     }
   };
-export const setOpenUploadLopDaoTaoNhanVien =
-  (open) => async (dispatch) => {
-    dispatch(slice.actions.startLoading);
-    try {
-    
-      dispatch(slice.actions.setOpenUploadLopDaoTaoNhanVienSuccess(open));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error.message));
-      toast.error(error.message);
-    }
-  };
-  export const uploadImagesForOneLopDaoTaoNhanVien = (lopdaotaonhanvienID, images) => async (dispatch) => {
+export const setOpenUploadLopDaoTaoNhanVien = (open) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    dispatch(slice.actions.setOpenUploadLopDaoTaoNhanVienSuccess(open));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+export const uploadImagesForOneLopDaoTaoNhanVien =
+  (lopdaotaonhanvienID, images) => async (dispatch) => {
     try {
       if (images.length > 0)
         try {
-          console.log("images truyen", images);
-          const newImages = await uploadImagesToCloudinary(images);
-          console.log("newImages upload", newImages);
         
-const response = await apiService.put( `/lopdaotaonhanvien/upload`,{lopdaotaonhanvienID:lopdaotaonhanvienID,Images:newImages});
-console.log("response upload images",response.data.data);
+          const newImages = await uploadImagesToCloudinary(images);
+          // console.log("newImages upload", newImages);
+
+          const response = await apiService.put(`/lopdaotaonhanvien/upload`, {
+            lopdaotaonhanvienID: lopdaotaonhanvienID,
+            Images: newImages,
+          });
+          console.log("response upload images", response.data.data);
+          dispatch(slice.actions.uploadImagesForOneLopDaoTaoNhanVienSuccess(response.data.data));
+          toast.success("Cập nhật thành công");
         } catch (error) {
           dispatch(slice.actions.hasError(error.message));
+          toast.error(error.message);
         }
-     
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
     }
   };
