@@ -18,9 +18,13 @@ import SaveIcon from "@mui/icons-material/Save";
 import MyStickyEditTable from "pages/tables/MyTable/MyStickyEditTable";
 import {
   
+  setOpenUploadLopDaoTaoNhanVien,
   updateLopDaoTaoNhanVienDiemDanh,
 } from "./daotaoSlice";
 import { formatDate_getDate } from "utils/formatTime";
+import UploadLopDaoTaoNhanVienButton from "./UploadAnhChoHocVien/UploadLopDaoTaoNhanVienButton";
+import { original } from "@reduxjs/toolkit";
+import UpLoadHocVienLopDaoTaoForm from "./UploadAnhChoHocVien/UpLoadHocVienLopDaoTaoForm";
 
 function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
   const columns = useMemo(() => {
@@ -61,6 +65,16 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
         disableGroupBy: true,
         
       },
+      {
+        Header: "Upload",
+        Footer: "Upload",
+        accessor: "Upload",
+        disableGroupBy: true,
+        Cell: ({ row }) => (
+          <UploadLopDaoTaoNhanVienButton lopdaotaonhanvienID={row.original._id} />
+        ),
+      },
+      
       {
         Header: "Tín chỉ tích lũy",
         Footer: "Tín chỉ tích lũy",
@@ -120,7 +134,7 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
     return [...baseColumns, ...dynamicColumns];
   }, [numSections]);
 
-  const { hocvienCurrents, lopdaotaoCurrent } = useSelector(
+  const { hocvienCurrents, lopdaotaoCurrent,openUploadLopDaoTaoNhanVien } = useSelector(
     (state) => state.daotao
   );
   const dispatch = useDispatch();
@@ -199,6 +213,10 @@ lopdaotaonhanvienUpdate.SoTinChiTichLuy = item.SoTinChiTichLuy;
   useEffect(() => {
     setSkipPageReset(false);
   }, [tableData]);
+
+  const handleCloseUpload = () => {
+    dispatch(setOpenUploadLopDaoTaoNhanVien(false));
+  }
   return (
     <Card variant="outlined" sx={{ p: 1 }}>
       <Stack direction="row" mb={2}>
@@ -229,6 +247,11 @@ lopdaotaonhanvienUpdate.SoTinChiTichLuy = item.SoTinChiTichLuy;
          
          
         </Box>
+          <UpLoadHocVienLopDaoTaoForm
+      open ={openUploadLopDaoTaoNhanVien}
+      handleClose={handleCloseUpload}
+      // lopdaotaonhanvienID={lopdaotaonhanvienID}
+      />
       </Stack>
       <MyStickyEditTable
         data={tableData}
