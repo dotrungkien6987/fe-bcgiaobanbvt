@@ -94,8 +94,8 @@ function LopDaoTaoTable() {
         // Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarIma(`./avatar-${!value ? 1 : value}.png`)} />
       },
       {
-        Header: "Tên",
-        Footer: "Tên",
+        Header: "Tên lớp đào tạo",
+        Footer: "Tên lớp đào tạo",
 
         accessor: "Ten",
         disableGroupBy: true,

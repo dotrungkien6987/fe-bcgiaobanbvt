@@ -1,23 +1,12 @@
-import {
-  Box,
-  Button,
-  Card,
-  
-  Stack,
-  
-  Typography,
-} from "@mui/material";
-
+import { Box, Button, Card, Stack, Typography } from "@mui/material";
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-
-import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
+import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import SaveIcon from "@mui/icons-material/Save";
 import MyStickyEditTable from "pages/tables/MyTable/MyStickyEditTable";
 import {
-  
   setOpenUploadLopDaoTaoNhanVien,
   updateLopDaoTaoNhanVienDiemDanh,
 } from "./daotaoSlice";
@@ -25,6 +14,7 @@ import { formatDate_getDate } from "utils/formatTime";
 import UploadLopDaoTaoNhanVienButton from "./UploadAnhChoHocVien/UploadLopDaoTaoNhanVienButton";
 import { original } from "@reduxjs/toolkit";
 import UpLoadHocVienLopDaoTaoForm from "./UploadAnhChoHocVien/UpLoadHocVienLopDaoTaoForm";
+import ImagesUploadChip from "./UploadAnhChoHocVien/ImagesUploadChip";
 
 function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
   const columns = useMemo(() => {
@@ -63,7 +53,6 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
         Footer: "Tên khoa",
         accessor: "TenKhoa",
         disableGroupBy: true,
-        
       },
       {
         Header: "Upload",
@@ -71,10 +60,23 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
         accessor: "Upload",
         disableGroupBy: true,
         Cell: ({ row }) => (
-          <UploadLopDaoTaoNhanVienButton lopdaotaonhanvienID={row.original._id} />
+          <UploadLopDaoTaoNhanVienButton
+            lopdaotaonhanvienID={row.original._id}
+          />
         ),
       },
-      
+
+      {
+        Header: "Ảnh",
+        Footer: "Ảnh",
+        accessor: "Images",
+        disableGroupBy: true,
+        Cell: ({ value }) =>
+          value && value.length > 0 ? (
+            <ImagesUploadChip imageUrls={value} />
+          ) : null,
+      },
+
       {
         Header: "Tín chỉ tích lũy",
         Footer: "Tín chỉ tích lũy",
@@ -134,11 +136,10 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
     return [...baseColumns, ...dynamicColumns];
   }, [numSections]);
 
-  const { hocvienCurrents, lopdaotaoCurrent,openUploadLopDaoTaoNhanVien } = useSelector(
-    (state) => state.daotao
-  );
+  const { hocvienCurrents, lopdaotaoCurrent, openUploadLopDaoTaoNhanVien } =
+    useSelector((state) => state.daotao);
   const dispatch = useDispatch();
-  
+
   const handleClickSave = () => {
     if (tableData?.length > 0) {
       const lopdaotaonhanvienDiemDanhData = tableData.map((item) => {
@@ -149,13 +150,10 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
           updatedDiemDanh.push(item[`section ${i}`]);
         }
         lopdaotaonhanvienUpdate.DiemDanh = updatedDiemDanh;
-lopdaotaonhanvienUpdate.SoTinChiTichLuy = item.SoTinChiTichLuy;
+        lopdaotaonhanvienUpdate.SoTinChiTichLuy = item.SoTinChiTichLuy;
         return lopdaotaonhanvienUpdate;
       });
-      console.log(
-        "lopdaotaonhanvienDiemDanhData",
-        tableData
-      );
+      console.log("lopdaotaonhanvienDiemDanhData", tableData);
       dispatch(updateLopDaoTaoNhanVienDiemDanh(lopdaotaonhanvienDiemDanhData));
     } else {
       // Hiển thị thông báo cho người dùng
@@ -174,7 +172,7 @@ lopdaotaonhanvienUpdate.SoTinChiTichLuy = item.SoTinChiTichLuy;
         if (index === rowIndex) {
           const updatedRow = {
             ...old[rowIndex],
-            [columnId]: value
+            [columnId]: value,
           };
 
           // Tính toán lại SoLuong
@@ -191,7 +189,7 @@ lopdaotaonhanvienUpdate.SoTinChiTichLuy = item.SoTinChiTichLuy;
           return {
             ...updatedRow,
             SoLuong: soluong,
-            TuDong: tuDong
+            TuDong: tuDong,
           };
         }
         return row;
@@ -201,22 +199,20 @@ lopdaotaonhanvienUpdate.SoTinChiTichLuy = item.SoTinChiTichLuy;
   const handleAutoCalculate = () => {
     setTableData((old) =>
       old.map((row) => {
-      
         return {
           ...row,
           SoTinChiTichLuy: row.TuDong,
-         
         };
       })
     );
-  }
+  };
   useEffect(() => {
     setSkipPageReset(false);
   }, [tableData]);
 
   const handleCloseUpload = () => {
     dispatch(setOpenUploadLopDaoTaoNhanVien(false));
-  }
+  };
   return (
     <Card variant="outlined" sx={{ p: 1 }}>
       <Stack direction="row" mb={2}>
@@ -225,33 +221,33 @@ lopdaotaonhanvienUpdate.SoTinChiTichLuy = item.SoTinChiTichLuy;
           Danh sách học viên trong lớp
         </Typography>
         <Box sx={{ flexGrow: 1 }}></Box>
-        <Box sx={{ display: 'flex', gap: 2 }}> {/* Thêm khoảng cách giữa các nút */}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          {" "}
+          {/* Thêm khoảng cách giữa các nút */}
           {!lopdaotaoCurrent.TrangThai && (
-             <Button
-             variant="contained"
-             startIcon={<CompareArrowsIcon />}
-             onClick={handleAutoCalculate}
-           >
-             Tự động tính tín chỉ tích lũy
-           </Button>
+            <Button
+              variant="contained"
+              startIcon={<CompareArrowsIcon />}
+              onClick={handleAutoCalculate}
+            >
+              Tự động tính tín chỉ tích lũy
+            </Button>
           )}
           {!lopdaotaoCurrent.TrangThai && (
             <Button
-            variant="contained"
-            startIcon={<SaveIcon />}
-            onClick={handleClickSave}
-          >
-            Lưu quá trình điểm danh
-          </Button>
+              variant="contained"
+              startIcon={<SaveIcon />}
+              onClick={handleClickSave}
+            >
+              Lưu quá trình điểm danh
+            </Button>
           )}
-         
-         
         </Box>
-          <UpLoadHocVienLopDaoTaoForm
-      open ={openUploadLopDaoTaoNhanVien}
-      handleClose={handleCloseUpload}
-      // lopdaotaonhanvienID={lopdaotaonhanvienID}
-      />
+        <UpLoadHocVienLopDaoTaoForm
+          open={openUploadLopDaoTaoNhanVien}
+          handleClose={handleCloseUpload}
+          
+        />
       </Stack>
       <MyStickyEditTable
         data={tableData}

@@ -95,7 +95,7 @@ function MainHeader() {
         Home
       </MenuItem>
       {(user.PhanQuyen === "admin" || user.PhanQuyen === "manager") && (
-        <>
+        <div>
           <MenuItem
             onClick={handleMenuClose}
             to="/dashboard"
@@ -113,7 +113,7 @@ function MainHeader() {
           >
             Khuyến cáo khoa
           </MenuItem>
-        </>
+        </div>
       )}
       {user.PhanQuyen === "admin" && (
         <MenuItem

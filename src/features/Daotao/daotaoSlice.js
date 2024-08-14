@@ -90,11 +90,13 @@ const slice = createSlice({
     uploadImagesForOneLopDaoTaoNhanVienSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.hocvienCurrents = state.hocvienCurrents.map((item) =>(
-        item._id === action.payload._id ? action.payload : item
-      ));
+      state.lopdaotaonhanvienCurrent = action.payload;
+      state.hocvienCurrents = state.hocvienCurrents.map((item) =>
+        item._id === action.payload._id
+          ? { ...item, Images: action.payload.Images }
+          : item
+      );
     },
-
 
     resetLopDaoTaoCurrentSuccess(state, action) {
       state.isLoading = false;
@@ -450,25 +452,31 @@ export const setOpenUploadLopDaoTaoNhanVien = (open) => async (dispatch) => {
   }
 };
 export const uploadImagesForOneLopDaoTaoNhanVien =
-  (lopdaotaonhanvienID, images) => async (dispatch) => {
+  (lopdaotaonhanvien, images) => async (dispatch) => {
     try {
+      //Nếu có ảnh mới thì upload lên cloudinary
       if (images.length > 0)
-        try {
-        
+      {
           const newImages = await uploadImagesToCloudinary(images);
           // console.log("newImages upload", newImages);
-
-          const response = await apiService.put(`/lopdaotaonhanvien/upload`, {
-            lopdaotaonhanvienID: lopdaotaonhanvienID,
-            Images: newImages,
-          });
-          console.log("response upload images", response.data.data);
-          dispatch(slice.actions.uploadImagesForOneLopDaoTaoNhanVienSuccess(response.data.data));
-          toast.success("Cập nhật thành công");
-        } catch (error) {
-          dispatch(slice.actions.hasError(error.message));
-          toast.error(error.message);
-        }
+          lopdaotaonhanvien.Images = [
+            ...lopdaotaonhanvien.Images,
+            ...newImages,
+          ];
+         
+        } 
+        const response = await apiService.put(`/lopdaotaonhanvien/upload`, {
+          lopdaotaonhanvienID: lopdaotaonhanvien._id,
+          Images: lopdaotaonhanvien.Images,
+        });
+        console.log("response upload images", response.data.data);
+        dispatch(
+          slice.actions.uploadImagesForOneLopDaoTaoNhanVienSuccess(
+            response.data.data
+          )
+        );
+        dispatch()
+        toast.success("Cập nhật thành công");
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);

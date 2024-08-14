@@ -12,6 +12,9 @@ const initialState = {
   nghiencuukhoahoctheoNhanVienCurrents: [],
   tinchitichluyCurrents: [],
 
+  //tổng hợp tín chỉ tích lũy
+  tonghoptinchitichluys: [],
+
   nhanviens: [],
   datafix: {},
   VaiTro: [],
@@ -132,6 +135,16 @@ const slice = createSlice({
     importNhanViensSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
+    },
+    getTongHopTinChiTichLuySuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.tonghoptinchitichluys = action.payload.map((item) => ({
+        ...item,
+        ...item.nhanVien,
+        TenKhoa: item.nhanVien.KhoaID.TenKhoa,
+        
+      }));
     },
   },
 });
@@ -255,3 +268,21 @@ export const updateOrInsertDatafix = (datafix) => async (dispatch) => {
     toast.error(error.message);
   }
 };
+export const getTongHopTinChiTichLuy =
+  (fromdate, todate) => async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      const params = { FromDate: fromdate, ToDate: todate };
+
+      const response = await apiService.get(`/nhanvien/tichluytinchi`, {
+        params,
+      });
+      console.log("response for get tong hop theo khoa", response.data.data);
+      dispatch(
+        slice.actions.getTongHopTinChiTichLuySuccess(response.data.data)
+      );
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+      toast.error(error.message);
+    }
+  };

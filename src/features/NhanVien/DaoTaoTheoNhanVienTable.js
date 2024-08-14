@@ -14,6 +14,11 @@ import { ThemeMode } from "configAble";
 import DiemDanhLopDaoTaoButton from "features/Daotao/DiemDanhLopDaoTaoButton";
 import { formatDate_getDate } from "utils/formatTime";
 import LopDaoTaoView from "./LopDaoTaoView";
+import UploadLopDaoTaoNhanVienButton from "features/Daotao/UploadAnhChoHocVien/UploadLopDaoTaoNhanVienButton";
+import ImagesUploadChip from "features/Daotao/UploadAnhChoHocVien/ImagesUploadChip";
+
+import { useDispatch, useSelector } from "react-redux";
+import { setOpenUploadLopDaoTaoNhanVien } from "features/Daotao/daotaoSlice";
 function DaoTaoTheoNhanVienTable({ LopDaoTaos,title }) {
   const theme = useTheme();
   const mode = theme.palette.mode;
@@ -83,8 +88,8 @@ function DaoTaoTheoNhanVienTable({ LopDaoTaos,title }) {
         // Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarIma(`./avatar-${!value ? 1 : value}.png`)} />
       },
       {
-        Header: "Tên",
-        Footer: "Tên",
+        Header: "Tên lớp đào tạo",
+        Footer: "Tên lớp đào tạo",
 
         accessor: "Ten",
         disableGroupBy: true,
@@ -106,6 +111,18 @@ function DaoTaoTheoNhanVienTable({ LopDaoTaos,title }) {
             );
         },
       },
+
+      {
+        Header: "Ảnh",
+        Footer: "Ảnh",
+        accessor: "Images",
+        disableGroupBy: true,
+        Cell: ({ value }) =>
+          value && value.length > 0 ? (
+            <ImagesUploadChip imageUrls={value} />
+          ) : null,
+      },
+
       {
         Header: "Vai trò",
         Footer: "Vai trò",
@@ -168,6 +185,7 @@ function DaoTaoTheoNhanVienTable({ LopDaoTaos,title }) {
   );
 
   const data = useMemo(() => LopDaoTaos, [LopDaoTaos]);
+  
   const renderRowSubComponent = useCallback(
     ({ row }) => <LopDaoTaoView data={data[Number(row.id)]} />,
     [data]
@@ -182,6 +200,7 @@ function DaoTaoTheoNhanVienTable({ LopDaoTaos,title }) {
             renderRowSubComponent={renderRowSubComponent}
            
           />
+          
         </MainCard>
       </Grid>
     </Grid>

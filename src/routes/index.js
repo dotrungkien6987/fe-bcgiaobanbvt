@@ -43,6 +43,7 @@ import LopDaoTaoForm from "features/Daotao/LopDaoTaoForm";
 import DiemDanhLopDaoTaoForm from "features/Daotao/DiemDanhLopDaoTaoForm";
 import NhanVienView1 from "features/NhanVien/NhanVienView1";
 import LopDaoTaoFormTam from "features/Daotao/LopDaoTaoFormTam";
+import TinChiTichLuyNhanVien from "features/Daotao/BaoCaoTongHopDaoTao/TinChiTichLuyNhanVien";
 function Router() {
   return (
     <div>
@@ -130,6 +131,7 @@ function Router() {
           <Route path="/diemdanh/:lopdaotaoID" element={<DiemDanhLopDaoTaoForm />} />
           <Route path="/quatrinhdaotao/:nhanvienID" element={<NhanVienView1 />} />
           <Route path="/lopdaotao" element={<LopDaoTaoForm />} />
+          <Route path="/tonghopdaotao" element={<TinChiTichLuyNhanVien />} />
 
           <Route path="/lopdaotaotam/:lopdaotaoID" element={<LopDaoTaoFormTam />} />
           {/* <Route path="*" element={<NotFoundPage />} /> */}

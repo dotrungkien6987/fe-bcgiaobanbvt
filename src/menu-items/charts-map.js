@@ -42,6 +42,12 @@ const chartsMap = {
           title: 'Tạo mới lớp đào tạo',
           type: 'item',
           url: '/lopdaotao',
+        },
+        {
+          id: 'tonghopdaotaonoivien',
+          title: 'Tổng hợp tín chỉ tích lũy',
+          type: 'item',
+          url: '/tonghopdaotao',
         }
       ]
     },

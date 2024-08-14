@@ -12,12 +12,12 @@ import {
   Card,
   Divider,
 } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
+
 
 import ImageUploader from "components/form/ImageUploader";
 import ImageListDisplay from "components/form/ImageListDisplay";
-import { getOneLopDaoTaoNhanVienByID, uploadImagesForOneLopDaoTaoNhanVien } from "../daotaoSlice";
-import { set } from "lodash";
+import {  uploadImagesForOneLopDaoTaoNhanVien } from "../daotaoSlice";
+
 
 function UpLoadHocVienLopDaoTaoForm({
   open,
@@ -38,10 +38,10 @@ function UpLoadHocVienLopDaoTaoForm({
 
   const { lopdaotaonhanvienCurrent } = useSelector((state) => state.daotao);
 
-  const onSubmitData = (data) => {
-    console.log("data", data);
-    const benhnhanUpdate = {
-      ...data,
+  const onSubmitData = () => {
+    
+    const lopdaotaonhanvienUpdate = {
+      ...lopdaotaonhanvienCurrent,
 
       Images: images,
     };
@@ -49,7 +49,7 @@ function UpLoadHocVienLopDaoTaoForm({
     console.log("lopdaotaonhanvienID", lopdaotaonhanvienID);
     console.log("Saving files:", files);
     console.log("images", images);
-    dispatch(uploadImagesForOneLopDaoTaoNhanVien(lopdaotaonhanvienCurrent._id, files));
+    dispatch(uploadImagesForOneLopDaoTaoNhanVien(lopdaotaonhanvienUpdate, files)).then(() =>resetForm());
     // dispatch(updateBenhNhanToList(benhnhanUpdate, files)).then(() =>
     //   resetForm()
     // );
@@ -65,24 +65,7 @@ function UpLoadHocVienLopDaoTaoForm({
       setImages(lopdaotaonhanvienCurrent.Images || []);
     }
   }, [lopdaotaonhanvienCurrent]);
-  // useEffect(() => {
-  //   if (benhnhan) {
-  //     // Khi prop benhnhan thay đổi, cập nhật lại dữ liệu trong form
-
-  //     // setImages(benhnhan.Images || []);
-  //   }
-  //   // const fetchImages = async () => {
-  //   // Fetch or receive the images from props
-  //   const InitImage = benhnhan.Images;
-  //   // console.log("initimages", InitImage);
-  //   // const storedImages = InitImage || [];
-  //   setImages(InitImage);
-  //   console.log("benhnhan in edit", benhnhan);
-  //   // };
-
-  //   // fetchImages();
-  // }, [open]);
-
+  
   const handleDropNew = (acceptedFiles) => {
     console.log("acceptedfile", acceptedFiles);
     const newLocalImages = acceptedFiles.map((file) =>
