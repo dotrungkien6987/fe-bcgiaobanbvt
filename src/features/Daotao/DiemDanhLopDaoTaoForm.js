@@ -162,7 +162,7 @@ function DiemDanhLopDaoTaoForm() {
         </Grid>
       </Grid>
 
-      <DropzonePage />
+      {/* <DropzonePage /> */}
       {/* <NhanVienList /> */}
     </MainCard>
   );

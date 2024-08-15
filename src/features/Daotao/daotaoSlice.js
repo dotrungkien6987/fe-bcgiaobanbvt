@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 
 import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
 import { uploadImagesToCloudinary } from "utils/cloudinary";
+import { formatDate_getDate } from "utils/formatTime";
 
 const initialState = {
   openUploadLopDaoTaoNhanVien: false,
@@ -35,7 +36,11 @@ const slice = createSlice({
     insertOneLopDaoTaoSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.LopDaoTaos.unshift(action.payload.data);
+      state.LopDaoTaos.unshift({
+        ...action.payload.data,
+        NgayBatDauFormat: formatDate_getDate(action.payload.data.NgayBatDau),
+        NgayKetThucFormat: formatDate_getDate(action.payload.data.NgayKetThuc),
+      });
       state.lopdaotaoCurrent = action.payload.data;
       state.vaitroquydoiCurents = action.payload.vaitroquydoi;
       state.vaitroCurrent = state.vaitroquydoiCurents[0]?.VaiTro || {};
@@ -44,7 +49,11 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.LopDaoTaos = state.LopDaoTaos.map((item) =>
-        item._id === action.payload.data._id ? action.payload.data : item
+        item._id === action.payload.data._id ? {
+          ...action.payload.data,
+          NgayBatDauFormat: formatDate_getDate(action.payload.data.NgayBatDau),
+          NgayKetThucFormat: formatDate_getDate(action.payload.data.NgayKetThuc),
+        } : item
       );
       state.lopdaotaoCurrent = action.payload.data;
       state.vaitroquydoiCurents = action.payload.vaitroquydoi;
@@ -74,7 +83,11 @@ const slice = createSlice({
     getAllLopDaoTaoSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.LopDaoTaos = action.payload;
+      state.LopDaoTaos = action.payload.map((item) => ({
+        ...item,
+        NgayBatDauFormat: formatDate_getDate(item.NgayBatDau),
+        NgayKetThucFormat: formatDate_getDate(item.NgayKetThuc),
+      }));
     },
 
     getOneLopDaoTaoNhanVienByIDSuccess(state, action) {
@@ -320,7 +333,7 @@ export const getAllLopDaoTao = () => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
     const response = await apiService.get("/lopdaotao");
-    console.log("LopDaoTaos", response.data);
+    
     dispatch(
       slice.actions.getAllLopDaoTaoSuccess(response.data.data.lopdaotaos)
     );
@@ -455,28 +468,23 @@ export const uploadImagesForOneLopDaoTaoNhanVien =
   (lopdaotaonhanvien, images) => async (dispatch) => {
     try {
       //Nếu có ảnh mới thì upload lên cloudinary
-      if (images.length > 0)
-      {
-          const newImages = await uploadImagesToCloudinary(images);
-          // console.log("newImages upload", newImages);
-          lopdaotaonhanvien.Images = [
-            ...lopdaotaonhanvien.Images,
-            ...newImages,
-          ];
-         
-        } 
-        const response = await apiService.put(`/lopdaotaonhanvien/upload`, {
-          lopdaotaonhanvienID: lopdaotaonhanvien._id,
-          Images: lopdaotaonhanvien.Images,
-        });
-        console.log("response upload images", response.data.data);
-        dispatch(
-          slice.actions.uploadImagesForOneLopDaoTaoNhanVienSuccess(
-            response.data.data
-          )
-        );
-        dispatch()
-        toast.success("Cập nhật thành công");
+      if (images.length > 0) {
+        const newImages = await uploadImagesToCloudinary(images);
+        // console.log("newImages upload", newImages);
+        lopdaotaonhanvien.Images = [...lopdaotaonhanvien.Images, ...newImages];
+      }
+      const response = await apiService.put(`/lopdaotaonhanvien/upload`, {
+        lopdaotaonhanvienID: lopdaotaonhanvien._id,
+        Images: lopdaotaonhanvien.Images,
+      });
+      console.log("response upload images", response.data.data);
+      dispatch(
+        slice.actions.uploadImagesForOneLopDaoTaoNhanVienSuccess(
+          response.data.data
+        )
+      );
+
+      toast.success("Cập nhật thành công");
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);

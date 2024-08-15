@@ -19,6 +19,7 @@ import TrangThaiLopDaoTao from "./TrangThaiLopDaoTao";
 import { formatDate_getDate } from "utils/formatTime";
 import ScrollX from "components/ScrollX";
 import ThemHocVienTamButton from "./ThemHocVienTam/ThemHocVienTamButton";
+import { DateColumnFilter } from "utils/react-table";
 function LopDaoTaoTable() {
   const theme = useTheme();
   const mode = theme.palette.mode;
@@ -144,20 +145,20 @@ function LopDaoTaoTable() {
       {
         Header: "Ngày bắt đầu",
         Footer: "Ngày bắt đầu",
-
-        accessor: "NgayBatDau",
+// Filter:DateColumnFilter,
+        accessor: "NgayBatDauFormat",
 
         disableGroupBy: true,
-        Cell: ({ value }) => formatDate_getDate(value),
+        // Cell: ({ value }) => formatDate_getDate(value),
       },
       {
         Header: "Ngày kết thúc",
         Footer: "Ngày kết thúc",
 
-        accessor: "NgayKetThuc",
+        accessor: "NgayKetThucFormat",
 
         disableGroupBy: true,
-        Cell: ({ value }) => formatDate_getDate(value),
+        // Cell: ({ value }) => formatDate_getDate(value),
       },
       {
         Header: "Số section",

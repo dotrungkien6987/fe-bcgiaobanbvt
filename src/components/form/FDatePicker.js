@@ -30,6 +30,7 @@ function FDatePicker({ name, label, ...other }) {
               />
             )}
             {...other}
+             format="DD/MM/YYYY"
           />
         )}
       />

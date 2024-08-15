@@ -150,7 +150,10 @@ function HocVienLopTable({ setSelectedRows }) {
         sx={{ height: 598 }}
         additionalComponent={
           <Stack direction="row" spacing={1}>
+            {lopdaotaoCurrent && lopdaotaoCurrent._id && (
+
             <DongBoHocViensTamButton lopdaotaoID={lopdaotaoCurrent._id} />
+            )}
             <SelectHocVienForm />
             <SelectVaiTro />
           </Stack>
@@ -161,3 +164,4 @@ function HocVienLopTable({ setSelectedRows }) {
 }
 
 export default HocVienLopTable;
+

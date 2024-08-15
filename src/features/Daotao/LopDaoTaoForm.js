@@ -243,7 +243,7 @@ function LopDaoTaoForm() {
           <DiemDanhLopDaoTaoButton lopdaotaoID={lopdaotaoCurrent._id} isButton={true} />
         )}
       </Stack>
-      <DropzonePage />
+      {/* <DropzonePage /> */}
       {/* <NhanVienList /> */}
     </MainCard>
   );
