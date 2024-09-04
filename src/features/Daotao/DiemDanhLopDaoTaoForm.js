@@ -1,11 +1,6 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 
-import {
-
-  Grid,
-
-} from "@mui/material";
-
+import { Grid } from "@mui/material";
 
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -16,7 +11,6 @@ import MainCard from "components/MainCard";
 import {
   getOneLopDaoTaoByID,
   insertOneLopDaoTao,
-  
   updateOneLopDaoTao,
 } from "./daotaoSlice";
 
@@ -28,6 +22,7 @@ import { useParams } from "react-router-dom";
 
 import DiemDanhLopDaoTaoTable from "./DiemDanhLopDaoTaoTable";
 import LopDaoTaoView1 from "features/NhanVien/LopDaoTaoView1";
+import QuaTrinhTichLuyDT06Table from "./DT06/QuaTrinhTichLuyDT06Table";
 
 const yupSchema = Yup.object().shape({
   MaHinhThucCapNhat: Yup.object({
@@ -45,12 +40,10 @@ function DiemDanhLopDaoTaoForm() {
   const lopdaotaoID = params.lopdaotaoID;
   const { lopdaotaoCurrent } = useSelector((state) => state.daotao);
   const { HinhThucCapNhat } = useSelector((state) => state.hinhthuccapnhat);
-  const { NoiDaoTao } = useSelector(
-    (state) => state.nhanvien
-  );
+  const { NoiDaoTao } = useSelector((state) => state.nhanvien);
   const dispatch = useDispatch();
   useEffect(() => {
-    if (lopdaotaoID) dispatch(getOneLopDaoTaoByID({lopdaotaoID,tam:false}));
+    if (lopdaotaoID) dispatch(getOneLopDaoTaoByID({ lopdaotaoID, tam: false }));
     //  else dispatch(resetLopDaoTaoCurrent())
   }, []);
   useEffect(() => {
@@ -152,13 +145,15 @@ function DiemDanhLopDaoTaoForm() {
     <MainCard title="Quá trình điểm danh">
       <Grid container spacing={2}>
         <Grid item xs={12} md={12}>
-          <LopDaoTaoView1
-            data={lopdaotaoCurrent}
-            
-          />
+          <LopDaoTaoView1 data={lopdaotaoCurrent} />
         </Grid>
+
         <Grid item xs={12} md={12}>
-          <DiemDanhLopDaoTaoTable numSections={lopdaotaoCurrent.SoLuong} />
+          {lopdaotaoCurrent.MaHinhThucCapNhat === "ĐT06" ? (
+            <QuaTrinhTichLuyDT06Table />
+          ) : (
+            <DiemDanhLopDaoTaoTable numSections={lopdaotaoCurrent.SoLuong} />
+          )}
         </Grid>
       </Grid>
 

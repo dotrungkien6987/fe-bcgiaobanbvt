@@ -84,7 +84,6 @@ function HocVienLopTable({ setSelectedRows }) {
         disableGroupBy: true,
         Cell: ({ value }) => formatDate_getDate(value),
       },
-
     ],
     []
   );
@@ -99,6 +98,13 @@ function HocVienLopTable({ setSelectedRows }) {
     (state) => state.daotao
   );
   const handleClickSave = () => {
+    if (
+      lopdaotaoCurrent.MaHinhThucCapNhat === "ĐT06" &&
+      hocvienCurrents.length > 1
+    ) {
+      alert("Lớp đào tạo nhóm DDT06 chỉ được phép có một học viên .");
+      return;
+    }
     if (
       lopdaotaoCurrent &&
       lopdaotaoCurrent._id &&
@@ -151,8 +157,7 @@ function HocVienLopTable({ setSelectedRows }) {
         additionalComponent={
           <Stack direction="row" spacing={1}>
             {lopdaotaoCurrent && lopdaotaoCurrent._id && (
-
-            <DongBoHocViensTamButton lopdaotaoID={lopdaotaoCurrent._id} />
+              <DongBoHocViensTamButton lopdaotaoID={lopdaotaoCurrent._id} />
             )}
             <SelectHocVienForm />
             <SelectVaiTro />
@@ -164,4 +169,3 @@ function HocVienLopTable({ setSelectedRows }) {
 }
 
 export default HocVienLopTable;
-

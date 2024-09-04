@@ -99,13 +99,21 @@ function TongHopTinChiTable() {
         disableGroupBy: true,
         Cell: ({ value }) => formatDate_getDate(value),
       },
-      // {
-      //   Header: "Phân loại",
-      //   Footer: "Phân loại",
+     
+      {
+        Header: "Dân tộc",
+        Footer: "Dân tộc",
 
-      //   accessor: "Loai",
-      //   disableGroupBy: true,
-      // },
+        accessor: "DanToc",
+        disableGroupBy: true,
+      },
+       {
+        Header: "Phạm vi hành nghề",
+        Footer: "Phạm vi hành nghề",
+
+        accessor: "PhamViHanhNghe",
+        disableGroupBy: true,
+      },
       {
         Header: "Khoa công tác",
         Footer: "Khoa",
@@ -175,10 +183,10 @@ function TongHopTinChiTable() {
   );
 
   const dispatch = useDispatch();
-  useEffect(() => {
-    // Gọi hàm để lấy danh sách cán bộ khi component được tạo
-    if (tonghoptinchitichluys.length === 0) dispatch(getAllNhanVien());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   // Gọi hàm để lấy danh sách cán bộ khi component được tạo
+  //   if (tonghoptinchitichluys.length === 0) dispatch(getAllNhanVien());
+  // }, [dispatch]);
 
   const { tonghoptinchitichluys } = useSelector((state) => state.nhanvien);
 

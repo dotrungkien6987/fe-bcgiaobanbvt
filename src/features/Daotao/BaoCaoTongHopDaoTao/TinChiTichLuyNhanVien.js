@@ -30,7 +30,7 @@ import TongHopTinChiTable from "./TongHopTinChiTable";
     const [fromdate, setFromdate] = useState(dayjs('2024-01-01').startOf('day'));
     const handleTodateChange = (newDate) => {
       // Chuyển đổi về múi giờ VN, kiểm tra đầu vào
-      console.log("Chay day khong");
+      
       if (newDate instanceof Date) {
         //   newDate.setHours(7, 0, 0, 0);
         setTodate(new Date(newDate));

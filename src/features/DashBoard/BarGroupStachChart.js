@@ -53,6 +53,18 @@ const BarGroupStachChart = ({ series, categories, formatter, yaxis,type }) => {
           "#1939B7",
           "#1939B7",
           "#1939B7",
+          "#1939B7",
+          "#1939B7",
+          "#1939B7",
+          "#1939B7",
+          "#1939B7",
+          "#1939B7",
+          "#1939B7",
+          "#1939B7",
+          "#1939B7",
+          "#1939B7",
+          "#1939B7",
+          "#1939B7",
                  ], // Màu sắc của text
         fontSize: "13px", // Cỡ chữ của text
         // fontFamily: 'Helvetica, Arial, sans-serif', // Phông chữ
@@ -92,7 +104,7 @@ const BarGroupStachChart = ({ series, categories, formatter, yaxis,type }) => {
         options={options}
         series={series}
         type="bar"
-        height={900}
+        height={1200}
       />
     </div>
   );

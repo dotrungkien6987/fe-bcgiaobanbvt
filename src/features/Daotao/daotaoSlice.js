@@ -19,6 +19,10 @@ const initialState = {
 
   lopdaotaonhanvienCurrent: {},
   hocvientamCurrents: [],
+
+  //Qua trinh tich luy DT06
+  quatrinhdt06: [],
+  hocviendt06Current: {},
 };
 
 const slice = createSlice({
@@ -33,6 +37,7 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = action.payload;
     },
+
     insertOneLopDaoTaoSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
@@ -49,11 +54,17 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.LopDaoTaos = state.LopDaoTaos.map((item) =>
-        item._id === action.payload.data._id ? {
-          ...action.payload.data,
-          NgayBatDauFormat: formatDate_getDate(action.payload.data.NgayBatDau),
-          NgayKetThucFormat: formatDate_getDate(action.payload.data.NgayKetThuc),
-        } : item
+        item._id === action.payload.data._id
+          ? {
+              ...action.payload.data,
+              NgayBatDauFormat: formatDate_getDate(
+                action.payload.data.NgayBatDau
+              ),
+              NgayKetThucFormat: formatDate_getDate(
+                action.payload.data.NgayKetThuc
+              ),
+            }
+          : item
       );
       state.lopdaotaoCurrent = action.payload.data;
       state.vaitroquydoiCurents = action.payload.vaitroquydoi;
@@ -130,6 +141,10 @@ const slice = createSlice({
           (item) => item.Ma === state.lopdaotaoCurrent.MaHinhThucCapNhat
         )?.VaiTroQuyDoi || [];
       state.vaitroCurrent = state.vaitroquydoiCurents[0]?.VaiTro || {};
+
+      //set dư lieu cho lopdao tao DT06
+      state.quatrinhdt06 = action.payload.lopdaotaonhanvienDT06;
+      state.hocviendt06Current = action.payload.lopdaotaonhanvien[0] || {};
 
       //load dữ liệu cho hocvienCurrents từ lopdaotaonhanvien khi tam=false, từ lopdaotaonhanvientam khi tam=true
       if (!action.payload.tam) {
@@ -213,6 +228,13 @@ const slice = createSlice({
         TenKhoa: item.NhanVienID.KhoaID.TenKhoa,
         Sex: item.NhanVienID.GioiTinh === 0 ? "Nam" : "Nữ",
       }));
+    },
+
+    //them moi qua trinh tich luy DT06
+    insertOneQuaTrinhDT06Success(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.quatrinhdt06.unshift(action.payload);
     },
   },
 });
@@ -308,6 +330,7 @@ export const getOneLopDaoTaoByID =
         slice.actions.getOneLopDaoTaoByIDSuccess({
           lopdaotao: response.data.data.lopdaotao,
           lopdaotaonhanvien: response.data.data.lopdaotaonhanvien,
+          lopdaotaonhanvienDT06: response.data.data.lopdaotaonhanvienDT06,
           HinhThucCapNhat,
           tam,
         })
@@ -333,7 +356,7 @@ export const getAllLopDaoTao = () => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
     const response = await apiService.get("/lopdaotao");
-    
+
     dispatch(
       slice.actions.getAllLopDaoTaoSuccess(response.data.data.lopdaotaos)
     );
@@ -393,7 +416,7 @@ export const insertOrUpdateLopDaoTaoNhanVien =
           data: response.data.data,
         })
       );
-      toast.success("Thêm mới thành công");
+      toast.success("Cập nhật thành viên thành công");
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);
@@ -484,6 +507,38 @@ export const uploadImagesForOneLopDaoTaoNhanVien =
         )
       );
 
+      toast.success("Cập nhật thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
+
+export const insertOneQuaTrinhDT06 =
+  (lopdaotaonhanvienDT06Data) => async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      const response = await apiService.post(
+        `/lopdaotaonhanviendt06`,
+        lopdaotaonhanvienDT06Data
+      );
+      dispatch(slice.actions.insertOneQuaTrinhDT06Success(response.data.data));
+      toast.success("Thêm mới thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
+
+export const updateOneQuaTrinhDT06 =
+  (lopdaotaonhanvienDT06Data) => async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      const response = await apiService.put(
+        `/lopdaotaonhanviendt06`,
+        lopdaotaonhanvienDT06Data
+      );
+      dispatch(slice.actions.updateOneQuaTrinhDT06Success(response.data.data));
       toast.success("Cập nhật thành công");
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
