@@ -14,11 +14,14 @@ import {
 // project-imports
 import Highlighter from "./third-party/Highlighter";
 import useConfig from "../hooks/useConfig";
+import { color } from "framer-motion";
 
 // header style
 const headerSX = {
   p: 2.5,
   "& .MuiCardHeader-action": { m: "0px auto", alignSelf: "center" },
+  color:'white',
+  backgroundColor: '#1939B7',
 };
 
 // ==============================|| CUSTOM - MAIN CARD ||============================== //

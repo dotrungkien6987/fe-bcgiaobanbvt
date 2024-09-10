@@ -1,11 +1,10 @@
 import PropTypes from "prop-types";
-import { Fragment,  useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 
 // material-ui
 import { styled, alpha, useTheme } from "@mui/material/styles";
 import {
   Box,
-
   Stack,
   Table,
   TableBody,
@@ -13,11 +12,9 @@ import {
   TableFooter,
   TableHead,
   TableRow,
-  
 } from "@mui/material";
 
 // third-party
-
 import update from "immutability-helper";
 import { useSticky } from "react-table-sticky";
 
@@ -43,31 +40,23 @@ import {
   DragPreview,
   HidingSelect,
   HeaderSort,
-  
   TablePagination,
-  
   CSVExport,
   EmptyTable,
 } from "components/third-party/ReactTable";
 
 import {
-  
   renderFilterTypes,
-  
   GlobalFilter,
   DefaultColumnFilter,
- 
 } from "utils/react-table";
-
 
 // assets
 import {
   ArrowDown2,
   ArrowRight2,
-
   LayoutMaximize,
   Maximize1,
-
 } from "iconsax-react";
 
 const TableWrapper = styled("div")(() => ({
@@ -80,8 +69,8 @@ const TableWrapper = styled("div")(() => ({
     position: "sticky",
     zIndex: "5 !important",
   },
-  
 }));
+
 // ==============================|| REACT TABLE ||============================== //
 
 function ReactTable({
@@ -89,7 +78,6 @@ function ReactTable({
   data,
   init,
   additionalComponent,
-  
   renderRowSubComponent,
 }) {
   const theme = useTheme();
@@ -125,7 +113,6 @@ function ReactTable({
       pageIndex,
       pageSize,
       columnOrder,
-      
       expanded,
     },
     preGlobalFilteredRows,
@@ -185,16 +172,13 @@ function ReactTable({
     return item;
   });
 
-  const getCellTextColor = (cell) => {
+  const getCellTextColor = (value) => {
     // Tùy chỉnh logic để xác định màu sắc dựa trên giá trị của cell
-    if (cell.column.id === "totalSoTinChiTichLuy") {
-
-      if (cell.value >= 24) return "green";
-      if (cell.value < 24) return "red";
-    }
+    if (value > 50) return "green";
+    if (value < 20) return "red";
     return "black";
   };
-  
+
   return (
     <>
       <Stack spacing={2}>
@@ -334,7 +318,6 @@ function ReactTable({
                           if (cell.isGrouped) bgcolor = "success.lighter";
                           if (cell.isAggregated) bgcolor = "warning.lighter";
                           if (cell.isPlaceholder) bgcolor = "error.lighter";
-                          if (cell.isPlaceholder) bgcolor = "error.lighter";
                           if (row.isSelected)
                             bgcolor = alpha(
                               theme.palette.primary.lighter,
@@ -353,7 +336,7 @@ function ReactTable({
                                 { className: cell.column.className },
                                 {
                                   style: {
-                                    color: getCellTextColor(cell),
+                                    color: getCellTextColor(cell.value),
                                   },
                                 },
                               ])}
@@ -361,152 +344,4 @@ function ReactTable({
                             >
                               {cell.isGrouped ? (
                                 <Stack
-                                  direction="row"
-                                  spacing={1}
-                                  alignItems="center"
-                                  sx={{ display: "inline-flex" }}
-                                >
-                                  <Box
-                                    sx={{
-                                      pr: 1.25,
-                                      fontSize: "0.75rem",
-                                      color: "text.secondary",
-                                    }}
-                                    onClick={(e) => {
-                                      row.toggleRowExpanded();
-                                      e.stopPropagation();
-                                    }}
-                                  >
-                                    {collapseIcon}
-                                  </Box>
-                                  {cell.render("Cell")} ({row.subRows.length})
-                                </Stack>
-                              ) : cell.isAggregated ? (
-                                cell.render("Aggregated")
-                              ) : cell.isPlaceholder ? null : (
-                                cell.render("Cell")
-                              )}
-                            </TableCell>
-                          );
-                        })}
-                      </TableRow>
-                      {renderRowSubComponent &&
-                        row.isExpanded &&
-                        renderRowSubComponent({
-                          row,
-                          rowProps,
-                          visibleColumns,
-                          expanded,
-                        })}
-                    </Fragment>
-                  );
-                })
-              ) : (
-                <EmptyTable msg="No Data" colSpan={9} />
-              )}
-            </TableBody>
-
-            {/* footer table */}
-            <TableFooter sx={{ borderBottomWidth: 2 }}>
-              {footerGroups.map((group) => (
-                <TableRow key={group} {...group.getFooterGroupProps()}>
-                  {group.headers.map((column) => (
-                    <TableCell
-                      key={column}
-                      {...column.getFooterProps([
-                        { className: column.className },
-                      ])}
-                    >
-                      {column.render("Footer")}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableFooter>
-          </Table>
-        </Box>
-       
-        {/* 
-        <SyntaxHighlight>
-          {JSON.stringify(
-            {
-              selectedRowIndices: selectedRowIds,
-              'selectedFlatRows[].original': selectedFlatRows.map((d) => d.original)
-            },
-            null,
-            2
-          )}
-        </SyntaxHighlight> */}
-      </Stack>
-    </>
-  );
-}
-
-ReactTable.propTypes = {
-  columns: PropTypes.array,
-  data: PropTypes.array,
-  row: PropTypes.object,
-  index: PropTypes.string,
-  getRowProps: PropTypes.func,
-  setEditableRowIndex: PropTypes.func,
-  editableRowIndex: PropTypes.func,
-  toggleRowSelected: PropTypes.func,
-  isSelected: PropTypes.bool,
-  isExpanded: PropTypes.bool,
-  toggleRowExpanded: PropTypes.func,
-  subRows: PropTypes.object,
-  length: PropTypes.string,
-};
-
-// ==============================|| REACT TABLE - UMBRELLA ||============================== //
-
-const CommonTable = ({
-  data,
-  columns,
-  additionalComponent,
-  onSelectedRowsChange,
-  renderRowSubComponent,
-  sx,
-}) => {
-  return (
-    // <MainCard
-    //   title="Quản lý cán bộ"
-    //   subheader="This page consist combination of most possible features of react-table in to one table. Sorting, grouping, row selection, hidden row, filter, search, pagination, footer row available in below table."
-    //   content={false}
-    // >
-    // <ScrollX sx={{ ...sx }}>
-      <TableWrapper>
-        <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
-          <ReactTable
-            columns={columns}
-            data={data}
-            additionalComponent={additionalComponent}
-            onSelectedRowsChange={onSelectedRowsChange}
-            renderRowSubComponent={renderRowSubComponent}
-          />
-          <DragPreview />
-        </DndProvider>
-      </TableWrapper>
-    // </ScrollX>
-    // </MainCard>
-  );
-};
-
-CommonTable.propTypes = {
-  row: PropTypes.object,
-  setEditableRowIndex: PropTypes.func,
-  editableRowIndex: PropTypes.string,
-  index: PropTypes.string,
-  getRowProps: PropTypes.func,
-  toggleRowSelected: PropTypes.func,
-  isSelected: PropTypes.bool,
-  isExpanded: PropTypes.bool,
-  toggleRowExpanded: PropTypes.func,
-  subRows: PropTypes.object,
-  length: PropTypes.string,
-  getToggleAllPageRowsSelectedProps: PropTypes.func,
-  getToggleRowSelectedProps: PropTypes.func,
-  value: PropTypes.string,
-};
-
-export default CommonTable;
+                                  direction

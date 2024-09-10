@@ -74,6 +74,14 @@ function TongHopTinChiTable() {
         },
       },
       {
+        Header: "Khoa công tác",
+        Footer: "Khoa",
+        accessor: "TenKhoa",
+        minWidth: 200,
+        // filter: 'fuzzyText',
+        disableGroupBy: true
+      },
+      {
         Header: "Mã NV",
         Footer: "Mã NV",
         accessor: "MaNhanVien",
@@ -114,14 +122,7 @@ function TongHopTinChiTable() {
         accessor: "PhamViHanhNghe",
         disableGroupBy: true,
       },
-      {
-        Header: "Khoa công tác",
-        Footer: "Khoa",
-        accessor: "TenKhoa",
-        minWidth: 200,
-        // filter: 'fuzzyText',
-        disableGroupBy: true
-      },
+    
       {
         Header: "Trình độ chuyên môn",
         Footer: "Trình độ chuyên môn",

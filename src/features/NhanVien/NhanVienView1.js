@@ -306,14 +306,14 @@ const NhanVienView1 = () => {
                 tinchitichluyCurrents.map((item, index) => (
                   <ListItem key={index}>
                     <ListItemIcon>
-                      <CalendarTick variant="Outline" size={23} />
-                      <Typography align="right" variant="h5">
+                      <CalendarTick variant="Outline" size={24} />
+                      <Typography align="right" variant="h4">
                         {item.Year}
                       </Typography>
                     </ListItemIcon>
                     <ListItemSecondaryAction>
                       <Typography align="right">
-                        <Typography align="right" variant="h5">
+                        <Typography align="right" variant="h3" color={item.TongTinChi >=24 ? '#1939B7':`red`}>
                           {item.TongTinChi}
                         </Typography>
                       </Typography>

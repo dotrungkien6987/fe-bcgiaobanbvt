@@ -167,7 +167,7 @@ function LopDaoTaoForm() {
                   Thông tin lớp đào tạo
                 </Typography>
                 <Box sx={{ flexGrow: 1 }}></Box>
-                {user?._id === lopdaotaoCurrent.UserIDCreated && (
+                {((user?._id === lopdaotaoCurrent.UserIDCreated) ||(!lopdaotaoCurrent._id)) && (
                   <LoadingButton
                     type="submit"
                     variant="contained"
