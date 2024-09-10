@@ -6,17 +6,21 @@ import { useDispatch, useSelector } from "react-redux";
 
 import StickyTable from "sections/react-table/StickyTable";
 
-import SelectHocVienForm from "./SelectHocVienForm";
-import SelectVaiTro from "./SelectVaiTro";
-import RemoveHocVienTrongLop from "./RemoveHocVienTrongLop";
+
+
+
 import SaveIcon from "@mui/icons-material/Save";
 
 import { insertOrUpdateLopDaoTaoNhanVien } from "../daotaoSlice";
 
 import { formatDate_getDate } from "utils/formatTime";
-import DongBoHocViensTamButton from "./DongBoHocViensTamButton";
+
 import useAuth from "hooks/useAuth";
-function HocVienLopTable({ setSelectedRows }) {
+import DongBoHocViensTamButton from "../ChonHocVien/DongBoHocViensTamButton";
+import SelectHocVienForm from "../ChonHocVien/SelectHocVienForm";
+import SelectVaiTro from "../ChonHocVien/SelectVaiTro";
+import RemoveHocVienTrongLop from "../ChonHocVien/RemoveHocVienTrongLop";
+function ThanhVienHoiDongTable({ setSelectedRows }) {
   const {user} = useAuth()
   
   const columns = useMemo(
@@ -161,11 +165,9 @@ function HocVienLopTable({ setSelectedRows }) {
         sx={{ height: 598 }}
         additionalComponent={
           <Stack direction="row" spacing={1}>
-            {lopdaotaoCurrent && lopdaotaoCurrent._id && (
-              <DongBoHocViensTamButton lopdaotaoID={lopdaotaoCurrent._id} />
-            )}
-            <SelectHocVienForm />
-            <SelectVaiTro />
+          
+            <SelectHocVienForm isHoiDong= {true}/>
+            <SelectVaiTro isHoiDong= {true}/>
           </Stack>
         }
       />
@@ -173,4 +175,4 @@ function HocVienLopTable({ setSelectedRows }) {
   );
 }
 
-export default HocVienLopTable;
+export default ThanhVienHoiDongTable;

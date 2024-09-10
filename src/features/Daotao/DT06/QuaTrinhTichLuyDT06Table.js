@@ -12,9 +12,14 @@ import UpdateHinhThucButton from "../UpdateHinhThucButton";
 import DeleteHinhThucButton from "../DeleteHinhThucButton";
 import AddQuaTrinhDT06 from "./AddQuaTrinhDT06";
 import NhanVienViewDT06 from "features/NhanVien/NhanVienViewDT06";
+import UpdateQuaTrinhDT06Button from "./UpdateQuaTrinhDT06Button";
+import DeleteQuaTrinhDT06Button from "./DeleteQuaTrinhDT06Button";
+import useAuth from "hooks/useAuth";
 
 function QuaTrinhTichLuyDT06Table() {
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const { lopdaotaoCurrent } = useSelector((state) => state.daotao);
   useEffect(() => {
     dispatch(getAllHinhThucCapNhat());
   }, [dispatch]);
@@ -39,8 +44,8 @@ function QuaTrinhTichLuyDT06Table() {
             justifyContent="left"
             spacing={0}
           >
-            <UpdateHinhThucButton hinhthuccapnhat={row.original} />
-            <DeleteHinhThucButton hinhthuccapnhatID={row.original._id} />
+            <UpdateQuaTrinhDT06Button quatrinhDT06={row.original} />
+            <DeleteQuaTrinhDT06Button quatrinhdt06ID={row.original._id} />
           </Stack>
         ),
       },
@@ -49,14 +54,14 @@ function QuaTrinhTichLuyDT06Table() {
         Header: "Từ ngày",
         Footer: "Từ ngày",
 
-        accessor: "TuNgay",
+        accessor: "TuNgayFormat",
         disableGroupBy: true,
       },
       {
         Header: "Đến ngày",
         Footer: "Đến ngày",
 
-        accessor: "DenNgay",
+        accessor: "DenNgayFormat",
         disableGroupBy: true,
       },
       {
@@ -79,20 +84,23 @@ function QuaTrinhTichLuyDT06Table() {
 
   return (
     <Grid container spacing={3}>
-      
       {hocviendt06Current.NhanVienID && (
         <Grid item xs={12} lg={12}>
           <NhanVienViewDT06 data={hocviendt06Current.NhanVienID} />
         </Grid>
       )}
-      
+
       <Grid item xs={12} lg={12}>
         <MainCard title={`Quá trình tích lũy tín chỉ đào tạo trong khóa`}>
-          <SimpleTable
-            data={data}
-            columns={columns}
-            additionalComponent={<AddQuaTrinhDT06 />}
-          />
+          {user?._id === lopdaotaoCurrent.UserIDCreated ? (
+            <SimpleTable
+              data={data}
+              columns={columns}
+              additionalComponent={<AddQuaTrinhDT06 />}
+            />
+          ) : (
+            <SimpleTable data={data} columns={columns} />
+          )}
         </MainCard>
       </Grid>
     </Grid>

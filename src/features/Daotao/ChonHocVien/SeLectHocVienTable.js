@@ -110,13 +110,14 @@ function SeLectHocVienTable({onSelectedRowsChange}) {
   );
 
   const dispatch = useDispatch();
+  const { nhanviens } = useSelector((state) => state.nhanvien);
   useEffect(() => {
     // Gọi hàm để lấy danh sách cán bộ khi component được tạo
     if (nhanviens.length === 0) dispatch(getAllNhanVien());
-  }, [dispatch]);
+  }, []);
 
-  const { nhanviens } = useSelector((state) => state.nhanvien);
-  const {hocvienCurrents} =useSelector((state)=>state.daotao)
+  
+  const {hocvienCurrents} =useSelector((state)=>state.daotao) 
 
   const data = useMemo(() => 
     nhanviens.filter(nhanvien => 

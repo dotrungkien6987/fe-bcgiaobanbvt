@@ -15,8 +15,11 @@ import UploadLopDaoTaoNhanVienButton from "./UploadAnhChoHocVien/UploadLopDaoTao
 import { original } from "@reduxjs/toolkit";
 import UpLoadHocVienLopDaoTaoForm from "./UploadAnhChoHocVien/UpLoadHocVienLopDaoTaoForm";
 import ImagesUploadChip from "./UploadAnhChoHocVien/ImagesUploadChip";
+import useAuth from "hooks/useAuth";
 
 function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
+  const { user } = useAuth();
+  
   const columns = useMemo(() => {
     // Các cột cơ bản
     const baseColumns = [
@@ -233,7 +236,7 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
               Tự động tính tín chỉ tích lũy
             </Button>
           )}
-          {!lopdaotaoCurrent.TrangThai && (
+          {!lopdaotaoCurrent.TrangThai && (user?._id === lopdaotaoCurrent.UserIDCreated) && (
             <Button
               variant="contained"
               startIcon={<SaveIcon />}

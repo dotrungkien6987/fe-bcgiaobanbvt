@@ -19,7 +19,7 @@ function AddQuaTrinhDT06() {
   const handCloseFormNhanVien = ()=>{
     setOpenQuaTrinh(false)
   }
-  const quatrinhDT06= {_id:0}
+  const quatrinhDT06= {}
   return (
     <div>
       <Button

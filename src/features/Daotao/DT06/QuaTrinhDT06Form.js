@@ -88,6 +88,7 @@ const {lopdaotaoCurrent} = useSelector((state) => state.daotao);
     }
     console.log("data form", data);
     const quatrinhDT06Update = {
+      ...quatrinhDT06,
       ...data,
       TuNgay: data.TuNgay.toISOString(),
       DenNgay: data.DenNgay.toISOString(),
@@ -95,8 +96,9 @@ const {lopdaotaoCurrent} = useSelector((state) => state.daotao);
       LopDaoTaoID: lopdaotaoCurrent?._id||0,
     };
     console.log("quatrinhDT06 dispatch", quatrinhDT06Update);
-    if (quatrinhDT06Update && quatrinhDT06Update._id) dispatch(updateOneQuaTrinhDT06(quatrinhDT06Update));
+    if (quatrinhDT06Update && quatrinhDT06Update._id ) dispatch(updateOneQuaTrinhDT06(quatrinhDT06Update));
     else dispatch(insertOneQuaTrinhDT06(quatrinhDT06Update));
+    handleClose();
   };
   return (
     <Dialog

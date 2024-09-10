@@ -185,6 +185,13 @@ function ReactTable({
     return item;
   });
 
+  const getCellTextColor = (value) => {
+    // Tùy chỉnh logic để xác định màu sắc dựa trên giá trị của cell
+    if (value > 50) return "green";
+    if (value < 20) return "red";
+    return "black";
+  };
+  
   return (
     <>
       <Stack spacing={2}>

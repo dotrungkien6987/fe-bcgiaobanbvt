@@ -16,10 +16,10 @@ import LopDaoTaoView from "features/NhanVien/LopDaoTaoView";
 import { Add, Eye } from "iconsax-react";
 import { ThemeMode } from "configAble";
 import TrangThaiLopDaoTao from "./TrangThaiLopDaoTao";
-import { formatDate_getDate } from "utils/formatTime";
+
 import ScrollX from "components/ScrollX";
 import ThemHocVienTamButton from "./ThemHocVienTam/ThemHocVienTamButton";
-import { DateColumnFilter } from "utils/react-table";
+
 function LopDaoTaoTable() {
   const theme = useTheme();
   const mode = theme.palette.mode;
@@ -165,6 +165,13 @@ function LopDaoTaoTable() {
         Footer: "Số section",
 
         accessor: "SoLuong",
+        disableGroupBy: true,
+      },
+      {
+        Header: "Người tạo",
+        Footer: "Người tạo",
+
+        accessor: "NguoiTao",
         disableGroupBy: true,
       },
     ],

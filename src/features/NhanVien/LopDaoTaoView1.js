@@ -27,6 +27,7 @@ import { formatDate_getDate } from "utils/formatTime";
 import TrangThaiLopDaoTao from "features/Daotao/TrangThaiLopDaoTao";
 import { useDispatch, useSelector } from "react-redux";
 import { updateTrangThaiLopDaoTao } from "features/Daotao/daotaoSlice";
+import useAuth from "hooks/useAuth";
 
 
 
@@ -34,6 +35,7 @@ import { updateTrangThaiLopDaoTao } from "features/Daotao/daotaoSlice";
 
 const LopDaoTaoView1 = ({ data,tam=false }) => {
   const theme = useTheme();
+  const { user } = useAuth();
   const {HinhThucCapNhat} = useSelector((state) => state.hinhthuccapnhat); 
   const loaihinhthuc = HinhThucCapNhat?.find((item) => item.Ma === data.MaHinhThucCapNhat)?.Loai || "";
   const matchDownMD = useMediaQuery(theme.breakpoints.down("md"));
@@ -115,7 +117,7 @@ const LopDaoTaoView1 = ({ data,tam=false }) => {
                 <Divider />
               </Grid>
               <Grid item xs={12}>
-                {!tam && (
+                {!tam && user?._id === data.UserIDCreated && (
                   <Button
                   fullWidth
                   variant="contained"

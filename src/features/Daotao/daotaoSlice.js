@@ -98,6 +98,7 @@ const slice = createSlice({
         ...item,
         NgayBatDauFormat: formatDate_getDate(item.NgayBatDau),
         NgayKetThucFormat: formatDate_getDate(item.NgayKetThuc),
+        NguoiTao:item.UserIDCreated?.UserName || ''
       }));
     },
 
@@ -143,7 +144,13 @@ const slice = createSlice({
       state.vaitroCurrent = state.vaitroquydoiCurents[0]?.VaiTro || {};
 
       //set dư lieu cho lopdao tao DT06
-      state.quatrinhdt06 = action.payload.lopdaotaonhanvienDT06;
+      state.quatrinhdt06 = action.payload.lopdaotaonhanvienDT06.map((item) => {
+        return {
+          ...item,
+          TuNgayFormat: formatDate_getDate(item.TuNgay),
+          DenNgayFormat: formatDate_getDate(item.DenNgay),
+        };
+      });
       state.hocviendt06Current = action.payload.lopdaotaonhanvien[0] || {};
 
       //load dữ liệu cho hocvienCurrents từ lopdaotaonhanvien khi tam=false, từ lopdaotaonhanvientam khi tam=true
@@ -193,6 +200,11 @@ const slice = createSlice({
       state.error = null;
       state.vaitroCurrent = action.payload;
     },
+    setVaiTroQuyDoiCurrentsWithCaseIsHoiDongSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.vaitroquydoiCurents = action.payload;
+    },
     addselectedHocVienSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
@@ -234,7 +246,43 @@ const slice = createSlice({
     insertOneQuaTrinhDT06Success(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.quatrinhdt06.unshift(action.payload);
+      state.quatrinhdt06.unshift({
+        ...action.payload,
+        TuNgayFormat: formatDate_getDate(action.payload.TuNgay),
+        DenNgayFormat: formatDate_getDate(action.payload.DenNgay),
+      });
+    },
+    //Update qua trinh tich luy DT06
+    updateOneQuaTrinhDT06Success(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.quatrinhdt06 = state.quatrinhdt06.map((item) =>
+        item._id === action.payload._id
+          ? {
+              ...action.payload,
+              TuNgayFormat: formatDate_getDate(action.payload.TuNgay),
+              DenNgayFormat: formatDate_getDate(action.payload.DenNgay),
+            }
+          : item
+      );
+    },
+    //delete quatrinh dt06
+    deleteOneQuaTrinhDT06Success(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.quatrinhdt06 = state.quatrinhdt06.filter(
+        (item) => item._id !== action.payload
+      );
+    },
+
+    //reset hocvienCurrents
+    
+    setHocVienCurrentsSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+     
+      state.hocvienCurrents = action.payload;
+    
     },
   },
 });
@@ -340,6 +388,7 @@ export const getOneLopDaoTaoByID =
       toast.error(error.message);
     }
   };
+
 export const resetLopDaoTaoCurrent = () => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
@@ -545,3 +594,40 @@ export const updateOneQuaTrinhDT06 =
       toast.error(error.message);
     }
   };
+
+export const deleteOneQuaTrinhDT06 = (quatrinhdt06ID) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    const response = await apiService.delete(
+      `/lopdaotaonhanviendt06/${quatrinhdt06ID}`
+    );
+    dispatch(slice.actions.deleteOneQuaTrinhDT06Success(quatrinhdt06ID));
+    toast.success("Xóa thành công");
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+export const setVaiTroQuyDoiCurrentsWithCaseIsHoiDong = (vaitro) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    dispatch(slice.actions.setVaiTroQuyDoiCurrentsWithCaseIsHoiDongSuccess(vaitro));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+ 
+export const setHocVienCurrents = (thanhvien) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    dispatch(slice.actions.setHocVienCurrentsSuccess(thanhvien));
+   
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  
+  }
+};

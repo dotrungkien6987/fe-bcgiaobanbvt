@@ -27,6 +27,7 @@ import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import { useParams } from "react-router-dom";
 import HocVienLopTable from "./ChonHocVien/HocVienLopTable";
 import DiemDanhLopDaoTaoButton from "./DiemDanhLopDaoTaoButton";
+import useAuth from "hooks/useAuth";
 
 const yupSchema = Yup.object().shape({
   MaHinhThucCapNhat: Yup.object({
@@ -47,10 +48,10 @@ function LopDaoTaoForm() {
   const { NoiDaoTao, NguonKinhPhi, HinhThucDaoTao } = useSelector(
     (state) => state.nhanvien
   );
-
+  const { user } = useAuth();
   const dispatch = useDispatch();
   useEffect(() => {
-    if (lopdaotaoID) dispatch(getOneLopDaoTaoByID({lopdaotaoID,tam:false}));
+    if (lopdaotaoID) dispatch(getOneLopDaoTaoByID({ lopdaotaoID, tam: false }));
     else dispatch(resetLopDaoTaoCurrent());
   }, []);
   useEffect(() => {
@@ -134,6 +135,7 @@ function LopDaoTaoForm() {
     const lopdaotaoData = {
       ...lopdaotaoCurrent,
       ...data,
+      UserIDCreated: user?._id,
       MaHinhThucCapNhat: data.MaHinhThucCapNhat.Ma,
       NgayBatDau: data.NgayBatDau ? data.NgayBatDau.toISOString() : null,
       NgayKetThuc: data.NgayKetThuc ? data.NgayKetThuc.toISOString() : null,
@@ -143,6 +145,7 @@ function LopDaoTaoForm() {
         (item) => item.Ma === lopdaotaoData.MaHinhThucCapNhat
       ).VaiTroQuyDoi || [];
     console.log("vaitroquydoi", vaitroquydoi);
+    console.log("lopdaotaoData", lopdaotaoData);
     if (lopdaotaoData && lopdaotaoData._id) {
       dispatch(updateOneLopDaoTao({ lopdaotaoData, vaitroquydoi }));
     } else {
@@ -164,15 +167,17 @@ function LopDaoTaoForm() {
                   Thông tin lớp đào tạo
                 </Typography>
                 <Box sx={{ flexGrow: 1 }}></Box>
-                <LoadingButton
-                  type="submit"
-                  variant="contained"
-                  startIcon={<SaveIcon />}
-                  size="small"
-                  loading={isSubmitting}
-                >
-                  Lưu thông tin lớp
-                </LoadingButton>
+                {user?._id === lopdaotaoCurrent.UserIDCreated && (
+                  <LoadingButton
+                    type="submit"
+                    variant="contained"
+                    startIcon={<SaveIcon />}
+                    size="small"
+                    loading={isSubmitting}
+                  >
+                    Lưu thông tin lớp
+                  </LoadingButton>
+                )}
               </Stack>
               <Card variant="outlined" sx={{ p: 1 }}>
                 <Stack spacing={2}>
@@ -240,7 +245,10 @@ function LopDaoTaoForm() {
       <Stack direction="row" mb={2} mt={1}>
         <Box sx={{ flexGrow: 1 }}></Box>
         {lopdaotaoCurrent._id && (
-          <DiemDanhLopDaoTaoButton lopdaotaoID={lopdaotaoCurrent._id} isButton={true} />
+          <DiemDanhLopDaoTaoButton
+            lopdaotaoID={lopdaotaoCurrent._id}
+            isButton={true}
+          />
         )}
       </Stack>
       {/* <DropzonePage /> */}

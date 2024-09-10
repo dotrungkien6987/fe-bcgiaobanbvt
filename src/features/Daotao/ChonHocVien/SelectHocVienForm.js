@@ -20,6 +20,7 @@ import SeLectHocVienTable from "./SeLectHocVienTable";
 import { useDispatch, useSelector } from "react-redux";
 import { addselectedHocVien } from "../daotaoSlice";
 import AddIcon from "@mui/icons-material/Add";
+import { is } from "date-fns/locale";
 
 const Transition = forwardRef((props, ref) => (
   <Slide direction="up" ref={ref} {...props} />
@@ -27,7 +28,7 @@ const Transition = forwardRef((props, ref) => (
 
 // ==============================|| DIALOG - FULL SCREEN ||============================== //
 
-export default function SelectHocVienForm() {
+export default function SelectHocVienForm({isHoiDong = false}) {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
@@ -45,7 +46,7 @@ export default function SelectHocVienForm() {
   };
   return (
     <div>
-      {lopdaotaoCurrent && lopdaotaoCurrent._id && (
+      {((lopdaotaoCurrent && lopdaotaoCurrent._id) || isHoiDong) && (
         <Button
           fullWidth
           style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
