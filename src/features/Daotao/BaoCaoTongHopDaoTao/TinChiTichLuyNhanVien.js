@@ -113,11 +113,11 @@ function TinChiTichLuyNhanVien() {
             startIcon={<CalendarMonthIcon />}
             onClick={getDataForTongHop}
           >
-            Tổng hợp tổng tín chỉ tích lũy
+            Tổng hợp 
           </Button>
         </Stack>
       </Card>
-      <TongHopTinChiTable />
+      <TongHopTinChiTable giatricanhbao = {24*sonamcanhbao}/>
     </MainCard>
   );
 }

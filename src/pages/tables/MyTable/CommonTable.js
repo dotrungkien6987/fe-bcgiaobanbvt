@@ -1,11 +1,11 @@
 import PropTypes from "prop-types";
-import { Fragment,  useMemo, useState } from "react";
-
+import { Fragment, useMemo, useState } from "react";
+import { ExportCurve } from "iconsax-react";
 // material-ui
 import { styled, alpha, useTheme } from "@mui/material/styles";
 import {
   Box,
-
+  Button,
   Stack,
   Table,
   TableBody,
@@ -13,7 +13,6 @@ import {
   TableFooter,
   TableHead,
   TableRow,
-  
 } from "@mui/material";
 
 // third-party
@@ -43,32 +42,26 @@ import {
   DragPreview,
   HidingSelect,
   HeaderSort,
-  
   TablePagination,
-  
   CSVExport,
   EmptyTable,
 } from "components/third-party/ReactTable";
 
 import {
-  
   renderFilterTypes,
-  
   GlobalFilter,
   DefaultColumnFilter,
- 
 } from "utils/react-table";
-
 
 // assets
 import {
   ArrowDown2,
   ArrowRight2,
-
   LayoutMaximize,
   Maximize1,
-
 } from "iconsax-react";
+import { ExportExcellJS } from "features/BaoCaoSuCo/ExportExcellJS";
+import { ExportExcellTongHopTinChi } from "features/Daotao/XuatExcell/ExportExcellTongHopTinChi";
 
 const TableWrapper = styled("div")(() => ({
   ".header": {
@@ -80,7 +73,6 @@ const TableWrapper = styled("div")(() => ({
     position: "sticky",
     zIndex: "5 !important",
   },
-  
 }));
 // ==============================|| REACT TABLE ||============================== //
 
@@ -89,8 +81,12 @@ function ReactTable({
   data,
   init,
   additionalComponent,
-  
   renderRowSubComponent,
+  giatricanhbao = 24,
+
+  columnsExcell,
+  titleExcell,
+  fileNameExcell,
 }) {
   const theme = useTheme();
   const filterTypes = useMemo(() => renderFilterTypes, []);
@@ -125,7 +121,7 @@ function ReactTable({
       pageIndex,
       pageSize,
       columnOrder,
-      
+
       expanded,
     },
     preGlobalFilteredRows,
@@ -188,13 +184,32 @@ function ReactTable({
   const getCellTextColor = (cell) => {
     // Tùy chỉnh logic để xác định màu sắc dựa trên giá trị của cell
     if (cell.column.id === "totalSoTinChiTichLuy") {
-
-      if (cell.value >= 24) return "green";
-      if (cell.value < 24) return "red";
+      if (cell.value >= giatricanhbao) return "#1939B7";
+      if (cell.value < giatricanhbao) return "red";
     }
     return "black";
   };
-  
+  const getCellStyle = (cell) => {
+    // Tùy chỉnh logic để xác định màu sắc dựa trên giá trị của cell
+    if (cell.column.id === "totalSoTinChiTichLuy") {
+      if (cell.value >= giatricanhbao) return "#1939B7";
+      if (cell.value < giatricanhbao) return "red";
+    }
+    return "black";
+  };
+
+  const getDataOntable = () => {
+    return rows.map((row) => row.original);
+  };
+  const handleExportExcell = () => {
+    console.log("getDataOntable", getDataOntable());
+    ExportExcellTongHopTinChi({
+      data: getDataOntable(),
+      fileName: fileNameExcell,
+      title: titleExcell,
+      columns: columnsExcell,
+    });
+  };
   return (
     <>
       <Stack spacing={2}>
@@ -224,6 +239,13 @@ function ReactTable({
               filename={"umbrella-table.csv"}
               headers={headers}
             />
+            <Button
+              variant="contained"
+              startIcon={<ExportCurve />}
+              onClick={handleExportExcell}
+            >
+              Xuất Excell
+            </Button>
             {additionalComponent && additionalComponent}
           </Stack>
         </Stack>
@@ -425,7 +447,7 @@ function ReactTable({
             </TableFooter>
           </Table>
         </Box>
-       
+
         {/* 
         <SyntaxHighlight>
           {JSON.stringify(
@@ -466,6 +488,10 @@ const CommonTable = ({
   additionalComponent,
   onSelectedRowsChange,
   renderRowSubComponent,
+  giatricanhbao,
+  columnsExcell,
+  titleExcell,
+  fileNameExcell,
   sx,
 }) => {
   return (
@@ -475,18 +501,22 @@ const CommonTable = ({
     //   content={false}
     // >
     // <ScrollX sx={{ ...sx }}>
-      <TableWrapper>
-        <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
-          <ReactTable
-            columns={columns}
-            data={data}
-            additionalComponent={additionalComponent}
-            onSelectedRowsChange={onSelectedRowsChange}
-            renderRowSubComponent={renderRowSubComponent}
-          />
-          <DragPreview />
-        </DndProvider>
-      </TableWrapper>
+    <TableWrapper>
+      <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
+        <ReactTable
+          columns={columns}
+          data={data}
+          additionalComponent={additionalComponent}
+          onSelectedRowsChange={onSelectedRowsChange}
+          renderRowSubComponent={renderRowSubComponent}
+          giatricanhbao={giatricanhbao}
+          columnsExcell={columnsExcell}
+          titleExcell={titleExcell}
+          fileNameExcell={fileNameExcell}
+        />
+        <DragPreview />
+      </DndProvider>
+    </TableWrapper>
     // </ScrollX>
     // </MainCard>
   );

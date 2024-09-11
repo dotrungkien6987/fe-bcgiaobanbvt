@@ -82,13 +82,13 @@ const pages = {
        
         {
           id: 'taphuan',
-          title: 'Đoàn đến',
+          title: 'Đoàn vào',
           type: 'item',
           url: '/doanden'
         },
         {
           id: 'tapsan',
-          title: 'Đoàn đi',
+          title: 'Đoàn ra',
           type: 'item',
           url: '/doandi'
         },

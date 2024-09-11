@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
 import { uploadImagesToCloudinary } from "utils/cloudinary";
 import { formatDate_getDate } from "utils/formatTime";
+import { data } from "data/org-chart";
 
 const initialState = {
   openUploadLopDaoTaoNhanVien: false,
@@ -23,6 +24,9 @@ const initialState = {
   //Qua trinh tich luy DT06
   quatrinhdt06: [],
   hocviendt06Current: {},
+
+  //data Export
+  dataExport: [],
 };
 
 const slice = createSlice({
@@ -151,7 +155,7 @@ const slice = createSlice({
           DenNgayFormat: formatDate_getDate(item.DenNgay),
         };
       });
-      state.hocviendt06Current = action.payload.lopdaotaonhanvien[0] || {};
+      state.hocviendt06Current = action.payload.lopdaotaonhanvien[0].NhanVienID || {};
 
       //load dữ liệu cho hocvienCurrents từ lopdaotaonhanvien khi tam=false, từ lopdaotaonhanvientam khi tam=true
       if (!action.payload.tam) {
@@ -284,6 +288,17 @@ const slice = createSlice({
       state.hocvienCurrents = action.payload;
     
     },
+    //reset hocvienCurrents
+    
+    setDataExportSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+     
+      state.dataExport = action.payload;
+    
+    },
+
+
   },
 });
 export default slice.reducer;
@@ -624,6 +639,19 @@ export const setHocVienCurrents = (thanhvien) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
     dispatch(slice.actions.setHocVienCurrentsSuccess(thanhvien));
+   
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  
+  }
+};
+ 
+
+export const setDataExport = (dataExport) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    dispatch(slice.actions.setDataExportSuccess(dataExport));
    
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));

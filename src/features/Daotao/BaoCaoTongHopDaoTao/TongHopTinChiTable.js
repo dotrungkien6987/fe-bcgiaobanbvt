@@ -1,22 +1,16 @@
-import { Grid, Stack, Tooltip, useTheme } from "@mui/material";
+import { Grid, Stack } from "@mui/material";
 
-import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
-
-import React, { useCallback, useEffect, useMemo } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useCallback, useMemo } from "react";
+import { useSelector } from "react-redux";
 
 import CommonTable from "pages/tables/MyTable/CommonTable";
 
-import IconButton from "components/@extended/IconButton";
-import { Add, Eye } from "iconsax-react";
-import { ThemeMode } from "configAble";
 import NhanVienView from "features/NhanVien/NhanVienView";
 import { formatDate_getDate } from "utils/formatTime";
 import QuaTrinhDaoTaoNhanVienButon from "features/NhanVien/QuaTrinhDaoTaoNhanVienButon";
 import ScrollX from "components/ScrollX";
-function TongHopTinChiTable() {
-  const theme = useTheme();
-  const mode = theme.palette.mode;
+
+function TongHopTinChiTable({ giatricanhbao }) {
   const columns = useMemo(
     () => [
       {
@@ -43,7 +37,6 @@ function TongHopTinChiTable() {
               justifyContent="center"
               spacing={0}
             >
-              
               <QuaTrinhDaoTaoNhanVienButon nhanvienID={row.original._id} />
               {/* <Tooltip
                 componentsProps={{
@@ -79,7 +72,7 @@ function TongHopTinChiTable() {
         accessor: "TenKhoa",
         minWidth: 200,
         // filter: 'fuzzyText',
-        disableGroupBy: true
+        disableGroupBy: true,
       },
       {
         Header: "Mã NV",
@@ -97,7 +90,7 @@ function TongHopTinChiTable() {
         accessor: "Ten",
         disableGroupBy: true,
       },
-     
+
       {
         Header: "Ngày sinh",
         Footer: "Ngày sinh",
@@ -107,7 +100,7 @@ function TongHopTinChiTable() {
         disableGroupBy: true,
         Cell: ({ value }) => formatDate_getDate(value),
       },
-     
+
       {
         Header: "Dân tộc",
         Footer: "Dân tộc",
@@ -115,14 +108,14 @@ function TongHopTinChiTable() {
         accessor: "DanToc",
         disableGroupBy: true,
       },
-       {
+      {
         Header: "Phạm vi hành nghề",
         Footer: "Phạm vi hành nghề",
 
         accessor: "PhamViHanhNghe",
         disableGroupBy: true,
       },
-    
+
       {
         Header: "Trình độ chuyên môn",
         Footer: "Trình độ chuyên môn",
@@ -155,7 +148,7 @@ function TongHopTinChiTable() {
       //   filter: "fuzzyText",
       //   disableGroupBy: true,
       // },
-      
+
       // {
       //   Header: "Phạm vi hành nghề",
       //   Footer: "Phạm vi hành nghề",
@@ -171,7 +164,7 @@ function TongHopTinChiTable() {
       //   accessor: "SoDienThoai",
       //   disableGroupBy: true,
       // },
-      
+
       // {
       //   Header: "_id",
       //   Footer: "_id",
@@ -183,12 +176,59 @@ function TongHopTinChiTable() {
     []
   );
 
-  const dispatch = useDispatch();
-  // useEffect(() => {
-  //   // Gọi hàm để lấy danh sách cán bộ khi component được tạo
-  //   if (tonghoptinchitichluys.length === 0) dispatch(getAllNhanVien());
-  // }, [dispatch]);
+  const columnsExcell = [
+    {
+      header: "Khoa công tác",
+      key: "TenKhoa",
+      alignment: { horizontal: "left" },
+      font: { bold: false },
+    },
+    {
+      header: "Mã NV",
+      key: "MaNhanVien",
+      alignment: { horizontal: "left" },
+      font: { bold: false },
+    },
+    {
+      header: "Họ và Tên",
+      key: "Ten",
+      alignment: { horizontal: "left" },
+      font: { bold: false },
+    },
 
+    {
+      header: "Ngày sinh",
+      key: "NgaySinh",
+      alignment: { horizontal: "left" },
+      font: { bold: false },
+    },
+
+    {
+      header: "Dân tộc",
+      key: "DanToc",
+      alignment: { horizontal: "left" },
+      font: { bold: false },
+    },
+    {
+      header: "Phạm vi hành nghề",
+      key: "PhamViHanhNghe",
+      alignment: { horizontal: "left" },
+      font: { bold: false },
+    },
+
+    {
+      header: "Trình độ chuyên môn",
+      key: "TrinhDoChuyenMon",
+      alignment: { horizontal: "left" },
+      font: { bold: false },
+    },
+    {
+      header: "Tổng tín chỉ",
+      key: "totalSoTinChiTichLuy",
+      alignment: { horizontal: "left" },
+      font: { bold: false },
+    },
+  ];
   const { tonghoptinchitichluys } = useSelector((state) => state.nhanvien);
 
   const data = useMemo(() => tonghoptinchitichluys, [tonghoptinchitichluys]);
@@ -197,19 +237,21 @@ function TongHopTinChiTable() {
     ({ row }) => <NhanVienView data={data[Number(row.id)]} />,
     [data]
   );
+
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
-       
-          <ScrollX sx={{ height: 670 }}>
-            <CommonTable
-              data={data}
-              columns={columns}
-              renderRowSubComponent={renderRowSubComponent}
-             
-            />
-          </ScrollX>
-       
+        <ScrollX sx={{ height: 670 }}>
+          <CommonTable
+            data={data}
+            columns={columns}
+            renderRowSubComponent={renderRowSubComponent}
+            giatricanhbao={giatricanhbao}
+            titleExcell={"Tổng hợp tín chỉ tích lũy theo nhân viên"}
+            columnsExcell={columnsExcell}
+            fileNameExcell={"TongHopTinChi"}
+          />
+        </ScrollX>
       </Grid>
     </Grid>
   );

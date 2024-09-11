@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
-export async function ExportExcellJS(data) {
+export async function ExportExcellJS({ data, fileName ='sample' }) {
   // Tạo một workbook mới
   const workbook = new ExcelJS.Workbook();
   // Thêm một worksheet mới
@@ -33,7 +33,7 @@ export async function ExportExcellJS(data) {
   });
 
   // Sử dụng FileSaver để tải file
-  saveAs(blob, 'danhsachsucoykhoa.xlsx');
+  saveAs(blob, `${fileName}.xlsx`);
 }
 
 // Ví dụ về cách sử dụng:
