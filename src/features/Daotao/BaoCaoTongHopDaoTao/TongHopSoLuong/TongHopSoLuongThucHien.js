@@ -1,13 +1,12 @@
 import {
   Button,
   Card,
-  CardHeader,
+  
   Chip,
-  Container,
-  Grid,
+  
   Stack,
   TextField,
-  Typography,
+  
 } from "@mui/material";
 
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -18,16 +17,16 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import MainCard from "components/MainCard";
-import { getTongHopTinChiTichLuy } from "features/NhanVien/nhanvienSlice";
-import TongHopTinChiTable from "./TongHopTinChiTable";
-import { useRowSelect } from "react-table";
-import { formatDate_getDate } from "utils/formatTime";
+import { getTongHopSoLuongHinhThucCapNhatThucHien, getTongHopTinChiTichLuy } from "features/NhanVien/nhanvienSlice";
 
-function TinChiTichLuyNhanVien() {
+import { formatDate_getDate } from "utils/formatTime";
+import TongHopSoLuongThucHienTable from "./TongHopSoLuongThucHienTable";
+
+function TongHopSoLuongThucHien() {
   // Lấy thời gian hiện tại theo múi giờ của Việt Nam
   const now = dayjs().tz("Asia/Ho_Chi_Minh");
-  const { typeTongHop } = useSelector((state) => state.nhanvien);
-  const [sonamcanhbao, setSonamcanhbao] = useState(1);
+  
+  
   const [todate, setTodate] = useState(now);
   // const [fromdate, setFromdate] = useState(dayjs().subtract(120, 'day').startOf('day'));
   // const [fromdate, setFromdate] = useState(dayjs().subtract(6, 'month').startOf('day'));
@@ -52,7 +51,7 @@ function TinChiTichLuyNhanVien() {
     const toDateISO = todate.toISOString();
     console.log("fromdate -todate", fromDateISO, toDateISO);
     dispatch(
-      getTongHopTinChiTichLuy(fromDateISO, toDateISO, sonamcanhbao * 24)
+      getTongHopSoLuongHinhThucCapNhatThucHien(fromDateISO, toDateISO)
     );
   };
   const handleNgayBaoCaoChange = (newDate) => {
@@ -74,7 +73,7 @@ function TinChiTichLuyNhanVien() {
   }, [fromdate, todate, dispatch]);
 
   return (
-    <MainCard title={"Tổng hợp tín chỉ tích lũy cán bộ"}>
+    <MainCard title={"Tổng hợp số lượng thực hiện"}>
       <Card sx={{ p: 0.5 }}>
         <Stack direction={"row"} my={1} spacing={3}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -99,20 +98,7 @@ function TinChiTichLuyNhanVien() {
             />
           </LocalizationProvider>
 
-          <TextField
-            label="Chọn số năm cảnh báo"
-            type="number"
-            value={sonamcanhbao}
-            onChange={(e) => setSonamcanhbao(e.target.value)}
-          />
-          <Chip
-            label={`Khuyến cáo : ${
-              24 * sonamcanhbao
-            } tín chỉ trong ${sonamcanhbao} năm`}
-            size="large"
-            color="error"
-          />
-
+          
           <Button
             variant="contained"
             startIcon={<CalendarMonthIcon />}
@@ -122,17 +108,15 @@ function TinChiTichLuyNhanVien() {
           </Button>
         </Stack>
       </Card>
-      <TongHopTinChiTable
-        giatricanhbao={24 * sonamcanhbao}
-        titleExcell={`Tổng hợp tín chỉ tích luỹ cho cán bộ từ ${formatDate_getDate(
+      <TongHopSoLuongThucHienTable
+        
+        titleExcell={`Tổng hợp số lượng thực hiện từ ${formatDate_getDate(
           fromdate
         )} đến ${formatDate_getDate(todate)}`}
-        titleKhuyenCao={`Khuyến cáo : ${
-          24 * sonamcanhbao
-        } tín chỉ trong ${sonamcanhbao} năm`}
+        
       />
     </MainCard>
   );
 }
 
-export default TinChiTichLuyNhanVien;
+export default TongHopSoLuongThucHien;

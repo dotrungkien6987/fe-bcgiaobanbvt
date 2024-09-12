@@ -84,9 +84,9 @@ function QuaTrinhTichLuyDT06Table() {
 
   return (
     <Grid container spacing={3}>
-      {hocviendt06Current.NhanVienID && (
+      {hocviendt06Current._id && (
         <Grid item xs={12} lg={12}>
-          <NhanVienViewDT06 data={hocviendt06Current.NhanVienID} />
+          <NhanVienViewDT06 data={hocviendt06Current} />
         </Grid>
       )}
 

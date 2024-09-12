@@ -9,7 +9,7 @@ function AddQuaTrinhDT06() {
   const [openQuaTrinh, setOpenQuaTrinh] = useState(false);
   const {  hocviendt06Current } = useSelector((state) => state.daotao);
   const handleThemMoi = () => {
-    if (!hocviendt06Current.NhanVienID) {
+    if (!hocviendt06Current._id) {
       alert("Chưa có thành viên trong lớp");
       return;
     }

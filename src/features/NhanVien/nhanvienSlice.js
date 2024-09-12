@@ -14,6 +14,11 @@ const initialState = {
 
   //tổng hợp tín chỉ tích lũy
   tonghoptinchitichluys: [],
+typeTongHop:0,
+
+//tổng hợp số lương hình thức cap nhat
+tonghopsoluong:[],
+tonghopsoluongtheokhoa:[],
 
   nhanviens: [],
   datafix: {},
@@ -60,6 +65,11 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.isOpenUpdateNhanVien = action.payload;
+    },
+    setTypeTongHopSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.typeTongHop = action.payload;
     },
     getAllNhanVienSuccess(state, action) {
       state.isLoading = false;
@@ -136,6 +146,17 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
     },
+    getTongHopSoLuongHinhThucCapNhatThucHienSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.tonghopsoluong = action.payload
+    },
+    getTongHopSoLuongTheoKhoaSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.tonghopsoluongtheokhoa = action.payload
+    },
+    
     getTongHopTinChiTichLuySuccess(state, action) {
       state.isLoading = false;
       state.error = null;
@@ -268,21 +289,70 @@ export const updateOrInsertDatafix = (datafix) => async (dispatch) => {
     toast.error(error.message);
   }
 };
+
+// API tổng hợp số liệu
 export const getTongHopTinChiTichLuy =
-  (fromdate, todate) => async (dispatch) => {
+  (fromdate, todate, KhuyenCao) => async (dispatch) => {
     dispatch(slice.actions.startLoading);
     try {
-      const params = { FromDate: fromdate, ToDate: todate };
+      const params = { FromDate: fromdate, ToDate: todate,KhuyenCao };
 
       const response = await apiService.get(`/nhanvien/tichluytinchi`, {
         params,
       });
-      console.log("response for get tong hop theo khoa", response.data.data);
+      
       dispatch(
         slice.actions.getTongHopTinChiTichLuySuccess(response.data.data)
       );
     } catch (error) {
       dispatch(slice.actions.hasError(error));
+      toast.error(error.message);
+    }
+  };
+export const getTongHopSoLuongHinhThucCapNhatThucHien =
+  (fromdate, todate) => async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      const params = { FromDate: fromdate, ToDate: todate };
+
+      const response = await apiService.get(`/nhanvien/soluongthuchien`, {
+        params,
+      });
+      console.log("response for get tong hop theo khoa", response.data.data);
+      dispatch(
+        slice.actions.getTongHopSoLuongHinhThucCapNhatThucHienSuccess(response.data.data)
+      );
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+      toast.error(error.message);
+    }
+  };
+export const getTongHopSoLuongTheoKhoa =
+(fromdate, todate, KhuyenCao) => async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      const params = { FromDate: fromdate, ToDate: todate,KhuyenCao };
+
+      const response = await apiService.get(`/nhanvien/soluongtheokhoa`, {
+        params,
+      });
+      console.log("response for get tong hop theo khoa", response.data.data);
+      dispatch(
+        slice.actions.getTongHopSoLuongTheoKhoaSuccess(response.data.data)
+      );
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+      toast.error(error.message);
+    }
+  };
+
+
+  export const setTypeTongHop = (type) => async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      dispatch(slice.actions.setTypeTongHopSuccess(type));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);
     }
   };

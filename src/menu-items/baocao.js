@@ -2,13 +2,13 @@
 
 
 // assets
-import { Book1, I24Support, Security, MessageProgramming, DollarSquare, Airplane } from 'iconsax-react';
+import { ReceiptSearch, I24Support, Security, Setting2, DollarSquare, Airplane } from 'iconsax-react';
 
 // icons
 const icons = {
-  page: Book1,
+  page: ReceiptSearch,
   authentication: Security,
-  maintenance: MessageProgramming,
+  maintenance: Setting2,
   pricing: DollarSquare,
   contactus: I24Support,
   landing: Airplane
@@ -25,9 +25,9 @@ const baocao = {
    
     {
       id: 'danhmucdaotao',
-      title: 'DashBoard',
+      title: 'Báo cáo',
       type: 'collapse',
-      icon: icons.chart1,
+      icon: icons.page,
       children: [
         {
           id: 'tonghopdaotao',
@@ -36,10 +36,16 @@ const baocao = {
           url: '/tonghopdaotao'
         },
         {
-          id: 'canhbao',
-          title: 'Cảnh báo',
+          id: 'tonghopsoluong',
+          title: 'Báo cáo số lượng',
           type: 'item',
-          url: '/canhbao'
+          url: '/tonghopsoluong'
+        },
+        {
+          id: 'soluongtheokhoa',
+          title: 'Cảnh báo theo khoa',
+          type: 'item',
+          url: '/soluongtheokhoa'
         },
         
       ]

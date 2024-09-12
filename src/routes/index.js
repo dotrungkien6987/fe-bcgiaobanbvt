@@ -45,6 +45,9 @@ import NhanVienView1 from "features/NhanVien/NhanVienView1";
 import LopDaoTaoFormTam from "features/Daotao/LopDaoTaoFormTam";
 import TinChiTichLuyNhanVien from "features/Daotao/BaoCaoTongHopDaoTao/TinChiTichLuyNhanVien";
 import HoiDongTable from "features/Daotao/HoiDong/HoiDongTable";
+import LopDaoTaoTableByType from "features/Daotao/LopDaoTaoTableByType";
+import TongHopSoLuongThucHien from "features/Daotao/BaoCaoTongHopDaoTao/TongHopSoLuong/TongHopSoLuongThucHien";
+import BaoCaoSoLuongTheoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/BaoCaoSoLuongTheoKhoa/BaoCaoSoLuongTheoKhoa";
 function Router() {
   return (
     <div>
@@ -128,11 +131,16 @@ function Router() {
           <Route path="/nhomhinhthuc" element={<NhomHinhThucTable />} />
           <Route path="/hinhthuc" element={<HinhThucTable />} />
           <Route path="/lopdaotaos" element={<LopDaoTaoTable />} />
-          <Route path="/lopdaotao/:lopdaotaoID" element={<LopDaoTaoForm />} />
+          <Route path="/lopdaotaos/:type" element={<LopDaoTaoTableByType />} />
+          <Route path="/lopdaotao/:lopdaotaoID/:type" element={<LopDaoTaoForm />} />
           <Route path="/diemdanh/:lopdaotaoID" element={<DiemDanhLopDaoTaoForm />} />
           <Route path="/quatrinhdaotao/:nhanvienID" element={<NhanVienView1 />} />
-          <Route path="/lopdaotao" element={<LopDaoTaoForm />} />
+          <Route path="/lopdaotao/:type" element={<LopDaoTaoForm />} />
+
           <Route path="/tonghopdaotao" element={<TinChiTichLuyNhanVien />} />
+          <Route path="/tonghopsoluong" element={<TongHopSoLuongThucHien />} />
+          <Route path="/soluongtheokhoa" element={<BaoCaoSoLuongTheoKhoa />} />
+
           <Route path="/hoidong" element={<HoiDongTable />} />
           <Route path="/lopdaotaotam/:lopdaotaoID" element={<LopDaoTaoFormTam />} />
           {/* <Route path="*" element={<NotFoundPage />} /> */}

@@ -187,6 +187,8 @@ function ReactTable({
       if (cell.value >= giatricanhbao) return "#1939B7";
       if (cell.value < giatricanhbao) return "red";
     }
+    if (cell.column.id==='countDatTrue') return "#1939B7";
+    if (cell.column.id==='countDatFalse') return "red";
     return "black";
   };
   const getCellStyle = (cell) => {
@@ -230,7 +232,7 @@ function ReactTable({
               setHiddenColumns={setHiddenColumns}
               allColumns={allColumns}
             />
-            <CSVExport
+            {/* <CSVExport
               data={
                 selectedFlatRows.length > 0
                   ? selectedFlatRows.map((d) => d.original)
@@ -238,10 +240,10 @@ function ReactTable({
               }
               filename={"umbrella-table.csv"}
               headers={headers}
-            />
+            /> */}
             <Button
               variant="contained"
-              startIcon={<ExportCurve />}
+              startIcon={<ExportCurve size={10}/>}
               onClick={handleExportExcell}
             >
               Xuất Excell

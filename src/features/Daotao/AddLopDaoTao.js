@@ -6,12 +6,12 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { resetLopDaoTaoCurrent } from "./daotaoSlice";
 
-function AddLopDaoTao() {
+function AddLopDaoTao({mahinhthuccapnhat}) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const handleThemMoi = async () => {
     await dispatch(resetLopDaoTaoCurrent());
-    navigate("/lopdaotao/");
+    navigate(`/lopdaotao/${mahinhthuccapnhat}`);
   };
 
   return (

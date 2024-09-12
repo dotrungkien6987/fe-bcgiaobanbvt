@@ -2,13 +2,14 @@
 
 
 // assets
-import { Building3, Hospital,Element } from 'iconsax-react';
+import { Building3, Hospital,Element,MedalStar } from 'iconsax-react';
 
 // icons
 const icons = {
   charts: Building3,
   chart: Hospital,
   chart1: Element,
+  saudaihoc:MedalStar,
 };
 
 // ==============================|| MENU ITEMS - CHARTS & MAPS ||============================== //
@@ -20,10 +21,10 @@ const chartsMap = {
   type: 'group',
   children: [
     {
-      id: 'daotaonoivien',
-      title: 'Đào tạo nội viện',
+      id: 'quanlycanbo',
+      title: 'Thông tin cán bộ',
       type: 'collapse',
-      icon: icons.chart,
+      icon: icons.chart1,
       children: [
         {
           id: 'danhsachnoivien',
@@ -31,43 +32,103 @@ const chartsMap = {
           type: 'item',
           url: '/nhanvien'
         },
+       
+      ]
+    },
+    {
+      id: 'daotaonoivien',
+      title: 'Đào tạo nội viện',
+      type: 'collapse',
+      icon: icons.chart,
+      children: [
+       
         {
-          id: 'khoadaotaonoivien',
-          title: 'Khóa đào tạo',
+          id: 'Tatcahinhthuc',
+          title: 'Toàn bộ hình thức cập nhật',
           type: 'item',
           url: '/lopdaotaos'
         },
-        // {
-        //   id: 'taomoilopdaotaonoivien',
-        //   title: 'Tạo mới lớp đào tạo',
-        //   type: 'item',
-        //   url: '/lopdaotao',
-        // },
+        
         {
-          id: 'tonghopdaotaonoivien',
-          title: 'Tổng hợp tín chỉ tích lũy',
+          id: 'boiduongnganhan',
+          title: 'Khóa đào tạo ngắn hạn',
           type: 'item',
-          url: '/tonghopdaotao',
-        }
+          url:  '/lopdaotaos/ĐT01'
+        },
+        {
+          id: 'hoinghihoithao',
+          title: 'Hội nghị, hội thảo tại viện',
+          type: 'item',
+          url:  '/lopdaotaos/ĐT02'
+        },
+        {
+          id: 'hoinghihoithaotuyentren',
+          title: 'Hội thảo ngoại viện (tuyến trên)',
+          type: 'item',
+          url:  '/lopdaotaos/ĐT08'
+        },
+        {
+          id: 'soanthaoquytrinh',
+          title: 'Soạn thảo quy trình chuyên môn',
+          type: 'item',
+          url:  '/lopdaotaos/ĐT03'
+        },
+        {
+          id: 'soanthaoquyphamphapluat',
+          title: 'Soạn thảo quy phạm pháp luật',
+          type: 'item',
+          url:  '/lopdaotaos/ĐT04'
+        },
+        {
+          id: 'giangdayykhoa',
+          title: 'Giảng dạy y khoa',
+          type: 'item',
+          url:  '/lopdaotaos/ĐT05'
+        },
+        {
+          id: 'daotaotuyentren',
+          title: 'Đào tạo cấp CC tuyến trên',
+          type: 'item',
+          url:  '/lopdaotaos/ĐT07'
+        },
+        {
+          id: 'hoichancabenh',
+          title: 'Hội chẩn ca bệnh',
+          type: 'item',
+          url:  '/lopdaotaos/ĐT09'
+        },
       ]
     },
     {
       id: 'daotaosaudaihoc',
       title: 'Đào tạo sau đại học',
       type: 'collapse',
-      icon: icons.chart,
+      icon: icons.saudaihoc,
       children: [
+       
         {
-          id: 'danhsachnoivien',
-          title: 'Danh sách cán bộ',
+          id: 'thacsi',
+          title: 'Thạc sĩ',
           type: 'item',
-          url: '/nhanvien'
+          url: '/lopdaotaos/ĐT061'
         },
         {
-          id: 'khoadaotaonoivien',
-          title: 'Khóa đào tạo',
+          id: 'tiensi',
+          title: 'Tiến sĩ',
           type: 'item',
-          url: '/lopdaotaos'
+          url: '/lopdaotaos/ĐT062'
+        },
+        {
+          id: 'bacsick1',
+          title: 'Bác sĩ chuyên khoa I',
+          type: 'item',
+          url: '/lopdaotaos/ĐT063'
+        },
+        {
+          id: 'bacsick2',
+          title: 'Bác sĩ chuyên khoa II',
+          type: 'item',
+          url: '/lopdaotaos/ĐT064'
         },
        
       ]
@@ -79,23 +140,18 @@ const chartsMap = {
       icon: icons.charts,
       children: [
         {
-          id: 'hocvienngoaivien',
+          id: 'hocvienngoaivien1',
           title: 'Danh sách học viên',
           type: 'item',
-          url:'/nhanvien',
+          url:'/nhanvien1',
         },
         {
           id: '123',
-          title: 'Khóa đào tạo',
+          title: 'Danh sách khóa',
           type: 'item',
-          url: '/lopdaotaos',
+          url: '/lopdaotaos/ĐT20',
         },
-        // {
-        //   id: 'taomoilopdaotao',
-        //   title: 'Tạo mới lớp đào tạo',
-        //   type: 'item',
-        //   url: '/lopdaotao',
-        // }
+       
       ]
     },
    

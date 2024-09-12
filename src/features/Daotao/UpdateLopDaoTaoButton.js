@@ -10,7 +10,7 @@ function UpdateLopDaoTaoButton({lopdaotaoID}) {
   const navigate = useNavigate();
   
   const handleUpdate = () => {
-    navigate(`/lopdaotao/${lopdaotaoID}`)
+    navigate(`/lopdaotao/${lopdaotaoID}/7`)
   };
   return (
     <div>

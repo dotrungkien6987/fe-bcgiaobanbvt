@@ -40,9 +40,9 @@ const yupSchema = Yup.object().shape({
   NgayKetThuc: Yup.date().nullable().required("Bắt buộc chọn ngày kết thúc"),
 });
 
-function LopDaoTaoForm() {
+function LopDaoTaoForm({mahinhthuccapnhat}) {
   const params = useParams();
-  const lopdaotaoID = params.lopdaotaoID;
+  const {lopdaotaoID,type} = params;
   const { lopdaotaoCurrent } = useSelector((state) => state.daotao);
   const { HinhThucCapNhat } = useSelector((state) => state.hinhthuccapnhat);
   const { NoiDaoTao, NguonKinhPhi, HinhThucDaoTao } = useSelector(
@@ -88,7 +88,7 @@ function LopDaoTaoForm() {
   } = methods;
 
   useEffect(() => {
-    console.log("lopdaotaoCurrent", lopdaotaoCurrent);
+    
     // Kiểm tra xem `lopdaotaoCurrent` có tồn tại và form đang ở chế độ cập nhật không
     if (
       lopdaotaoCurrent &&
@@ -115,7 +115,7 @@ function LopDaoTaoForm() {
     } else {
       // Nếu không có `lopdaotaoCurrent` được truyền vào, reset form với giá trị mặc định
       reset({
-        MaHinhThucCapNhat: null,
+        MaHinhThucCapNhat: HinhThucCapNhat.find((item)=>item.Ma === type),
         // TenHinhThucCapNhat: null,
         Ten: "",
         QuyetDinh: "",

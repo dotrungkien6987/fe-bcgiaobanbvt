@@ -18,12 +18,12 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import MainCard from "components/MainCard";
-import { getTongHopTinChiTichLuy } from "features/NhanVien/nhanvienSlice";
-import TongHopTinChiTable from "./TongHopTinChiTable";
+import { getTongHopSoLuongTheoKhoa, getTongHopTinChiTichLuy } from "features/NhanVien/nhanvienSlice";
+import TongHopTinChiTable from "./BaoCaoSoLuongTheoKhoaTable";
 import { useRowSelect } from "react-table";
 import { formatDate_getDate } from "utils/formatTime";
 
-function TinChiTichLuyNhanVien() {
+function BaoCaoSoLuongTheoKhoa() {
   // Lấy thời gian hiện tại theo múi giờ của Việt Nam
   const now = dayjs().tz("Asia/Ho_Chi_Minh");
   const { typeTongHop } = useSelector((state) => state.nhanvien);
@@ -52,7 +52,7 @@ function TinChiTichLuyNhanVien() {
     const toDateISO = todate.toISOString();
     console.log("fromdate -todate", fromDateISO, toDateISO);
     dispatch(
-      getTongHopTinChiTichLuy(fromDateISO, toDateISO, sonamcanhbao * 24)
+      getTongHopSoLuongTheoKhoa(fromDateISO, toDateISO, sonamcanhbao * 24)
     );
   };
   const handleNgayBaoCaoChange = (newDate) => {
@@ -135,4 +135,4 @@ function TinChiTichLuyNhanVien() {
   );
 }
 
-export default TinChiTichLuyNhanVien;
+export default BaoCaoSoLuongTheoKhoa;

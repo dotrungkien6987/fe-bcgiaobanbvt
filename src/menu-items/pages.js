@@ -2,16 +2,17 @@
 
 
 // assets
-import { Book1, I24Support, Security, MessageProgramming, DollarSquare, Airplane } from 'iconsax-react';
+import { Book1, I24Support, ReceiptSearch,Bank, MessageProgramming, MenuBoard, Airplane } from 'iconsax-react';
 
 // icons
 const icons = {
   page: Book1,
-  authentication: Security,
+  baocao: ReceiptSearch,
   maintenance: MessageProgramming,
-  pricing: DollarSquare,
+  menuboard: MenuBoard,
   contactus: I24Support,
-  landing: Airplane
+  landing: Airplane,
+  bank:Bank,
 };
 
 // ==============================|| MENU ITEMS - PAGES ||============================== //
@@ -26,49 +27,49 @@ const pages = {
       id: 'nghiencuukhoahoc',
       title: "Nghiên cứu khoa học",
       type: 'collapse',
-      icon: icons.nghiencuukhoahoc,
+      icon: icons.menuboard,
       children: [
         {
           id: 'sinhhoatkhoahoc',
           title: 'Sinh hoạt khoa học',
           type: 'item',
-          url: '/sinhhoatkhoahoc'
+          url: '/lopdaotaos/NCKH06'
         },
         {
           id: 'detaicapcoso',
           title: 'Đề tài cấp cơ sở',
           type: 'item',
-          url: '/detaicapcoso'
+          url: '/lopdaotaos/NCKH01'
         },
         {
           id: 'detaicaptinh',
           title: 'Đề tài cấp tỉnh/bộ/quốc gia',
           type: 'item',
-          url: '/detaicaptinh'
+          url: '/lopdaotaos/NCKH04'
         },
         {
           id: 'baoquocte',
           title: 'Báo quốc tế',
           type: 'item',
-          url: '/baoquocte'
+          url: '/lopdaotaos/NCKH02'
         },
         {
           id: 'baotrongnuoc',
           title: 'Báo trong nước',
           type: 'item',
-          url: '/baotrongnuoc'
+          url: '/lopdaotaos/NCKH03'
         },
         {
           id: 'taphuan',
           title: 'Tập huấn/hội nghị/ hội thảo',
           type: 'item',
-          url: '/taphuan'
+          url: '/lopdaotaos/NCKH07'
         },
         {
           id: 'tapsan',
           title: 'Tập san TTT/YHTH',
           type: 'item',
-          url: '/taphuan'
+          url: '/lopdaotaos/NCKH08'
         },
       ]
     },
@@ -77,7 +78,7 @@ const pages = {
       id: 'hoptacquocte',
       title: "Hợp tác quốc tế",
       type: 'collapse',
-      icon: icons.nghiencuukhoahoc,
+      icon: icons.bank,
       children: [
        
         {

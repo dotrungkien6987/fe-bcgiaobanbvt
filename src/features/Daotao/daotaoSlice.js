@@ -27,6 +27,9 @@ const initialState = {
 
   //data Export
   dataExport: [],
+
+  //type HinhThucCapNhat
+  typeHinhThucCapNhat:'All'
 };
 
 const slice = createSlice({
@@ -40,6 +43,12 @@ const slice = createSlice({
     hasError(state, action) {
       state.isLoading = false;
       state.error = action.payload;
+    },
+
+    setTypeHinhThucCapNhatSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.typeHinhThucCapNhat = action.payload;
     },
 
     insertOneLopDaoTaoSuccess(state, action) {
@@ -140,6 +149,7 @@ const slice = createSlice({
     getOneLopDaoTaoByIDSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
+      
       state.lopdaotaoCurrent = action.payload.lopdaotao;
       state.vaitroquydoiCurents =
         action.payload.HinhThucCapNhat.find(
@@ -155,8 +165,8 @@ const slice = createSlice({
           DenNgayFormat: formatDate_getDate(item.DenNgay),
         };
       });
-      state.hocviendt06Current = action.payload.lopdaotaonhanvien[0].NhanVienID || {};
-
+      
+      state.hocviendt06Current = action.payload.lopdaotaonhanvien[0]?.NhanVienID || {};
       //load dữ liệu cho hocvienCurrents từ lopdaotaonhanvien khi tam=false, từ lopdaotaonhanvientam khi tam=true
       if (!action.payload.tam) {
         state.hocvienCurrents = action.payload.lopdaotaonhanvien.map((item) => {
@@ -185,6 +195,7 @@ const slice = createSlice({
             TuDong: tinhtudong,
             ...diemdanhSections,
           };
+          
         });
       } else {
         state.hocvienCurrents = action.payload.lopdaotaonhanvien.map((item) => {
@@ -198,6 +209,7 @@ const slice = createSlice({
           };
         });
       }
+      
     },
     setVaiTroCurrentSuccess(state, action) {
       state.isLoading = false;
@@ -657,5 +669,15 @@ export const setDataExport = (dataExport) => async (dispatch) => {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
   
+  }
+};
+
+export const setTypeHinhThucCapNhat = (type) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    dispatch(slice.actions.setTypeHinhThucCapNhatSuccess(type));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
   }
 };

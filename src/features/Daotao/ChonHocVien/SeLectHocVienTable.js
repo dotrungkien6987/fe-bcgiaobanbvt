@@ -51,14 +51,7 @@ function SeLectHocVienTable({onSelectedRowsChange}) {
         accessor: "Ten",
         disableGroupBy: true,
       },
-      {
-        Header: "Giới tính",
-        Footer: "Giới tính",
-
-        accessor: "GioiTinh",
-        aggregate: "count",
-        // disableGroupBy: true,
-      },
+      
       {
         Header: "Ngày sinh",
         Footer: "Ngày sinh",
@@ -69,10 +62,10 @@ function SeLectHocVienTable({onSelectedRowsChange}) {
         Cell: ({ value }) => formatDate_getDate(value),
       },
       {
-        Header: "Phân loại",
-        Footer: "Phân loại",
+        Header: "Phạm vi hành nghề",
+        Footer: "Phạm vi hành nghề",
 
-        accessor: "Loai",
+        accessor: "PhamViHanhNghe",
         disableGroupBy: true,
       },
       {
@@ -82,6 +75,14 @@ function SeLectHocVienTable({onSelectedRowsChange}) {
         
         filter: 'fuzzyText',
         disableGroupBy: true
+      },
+      {
+        Header: "Giới tính",
+        Footer: "Giới tính",
+
+        accessor: "Sex",
+        aggregate: "count",
+        // disableGroupBy: true,
       },
       {
         Header: "Trình độ chuyên môn",
@@ -99,10 +100,10 @@ function SeLectHocVienTable({onSelectedRowsChange}) {
         disableGroupBy: true,
       },
       {
-        Header: "Email",
-        Footer: "Email",
+        Header: "Dân tộc",
+        Footer: "Dân tộc",
 
-        accessor: "Email",
+        accessor: "DanToc",
         disableGroupBy: true,
       },
     ],

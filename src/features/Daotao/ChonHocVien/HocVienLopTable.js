@@ -18,7 +18,7 @@ import DongBoHocViensTamButton from "./DongBoHocViensTamButton";
 import useAuth from "hooks/useAuth";
 function HocVienLopTable({ setSelectedRows }) {
   const {user} = useAuth()
-  
+  const maSauDaiHoc = ["ĐT061","ĐT062","ĐT063","ĐT064"]
   const columns = useMemo(
     () => [
       {
@@ -102,10 +102,10 @@ function HocVienLopTable({ setSelectedRows }) {
   );
   const handleClickSave = () => {
     if (
-      lopdaotaoCurrent.MaHinhThucCapNhat === "ĐT06" &&
+      maSauDaiHoc.includes(lopdaotaoCurrent.MaHinhThucCapNhat) &&
       hocvienCurrents.length > 1
     ) {
-      alert("Lớp đào tạo nhóm DDT06 chỉ được phép có một học viên .");
+      alert("Lớp đào tạo sau đại học chỉ được phép có một học viên .");
       return;
     }
     if (

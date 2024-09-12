@@ -2,11 +2,11 @@
 
 
 // assets
-import { Book1, I24Support, Security, MessageProgramming, DollarSquare, Airplane } from 'iconsax-react';
+import { Setting2, I24Support, Security, MessageProgramming, DollarSquare, Airplane } from 'iconsax-react';
 
 // icons
 const icons = {
-  page: Book1,
+  page: Setting2,
   authentication: Security,
   maintenance: MessageProgramming,
   pricing: DollarSquare,
@@ -27,7 +27,7 @@ const hethong = {
       id: 'danhmucdaotao',
       title: 'Cấu hình danh mục',
       type: 'collapse',
-      icon: icons.chart1,
+      icon: icons.page,
       children: [
         {
           id: 'NhomHinhThuc',
