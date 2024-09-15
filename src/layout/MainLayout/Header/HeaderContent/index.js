@@ -169,7 +169,7 @@ const HeaderContent = () => {
         component={RouterLink}
         sx={{ mx: 1 }}
       >
-        Nội bộ
+        Quản lý đào tạo
       </MenuItem>
       <Divider sx={{ borderStyle: "dashed" }} />
       <MenuItem onClick={handleResetPass} component={RouterLink} sx={{ mx: 1 }}>

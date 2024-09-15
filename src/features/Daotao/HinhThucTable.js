@@ -87,6 +87,13 @@ function HinhThucTable() {
         accessor: "Ten",
         disableGroupBy: true,
       },
+      {
+        Header: "Tên theo bệnh viện",
+        Footer: "Tên theo bệnh viện",
+
+        accessor: "TenBenhVien",
+        disableGroupBy: true,
+      },
       
     ],
     []

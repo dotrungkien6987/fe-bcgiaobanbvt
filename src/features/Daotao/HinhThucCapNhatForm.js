@@ -45,6 +45,7 @@ const yupSchema = Yup.object().shape({
   // }).required("Bắt buộc chọn tên nhóm"),
   Ma: Yup.string().required("Bắt buộc nhập Mã hình thức cập nhật"),
   Ten: Yup.string().required("Bắt buộc nhập Tên hình thức cập nhật"),
+  TenBenhVien: Yup.string().required("Bắt buộc nhập Tên hình thức cập nhật"),
 });
 
 function HinhThucCapNhatForm({ hinhthuccapnhat, open, handleClose }) {
@@ -62,6 +63,7 @@ function HinhThucCapNhatForm({ hinhthuccapnhat, open, handleClose }) {
       TenNhomHinhThucCapNhat: null,
       Ma: "",
       Ten: "",
+      TenBenhVien:"",
       Loai: null,
     },
   });
@@ -94,6 +96,7 @@ function HinhThucCapNhatForm({ hinhthuccapnhat, open, handleClose }) {
         Loai: null,
         Ma: "",
         Ten: "",
+        TenBenhVien: "",
       });
     }
   }, [hinhthuccapnhat]);
@@ -209,6 +212,9 @@ function HinhThucCapNhatForm({ hinhthuccapnhat, open, handleClose }) {
                 </Grid>
                 <Grid item xs={12} sm={12} md={12}>
                   <FTextField name="Ten" label="Tên hình thức cập nhật" />
+                </Grid>
+                <Grid item xs={12} sm={12} md={12}>
+                  <FTextField name="TenBenhVien" label="Tên ngắn gọn theo bệnh viện" />
                 </Grid>
               </Grid>
             </Stack>

@@ -179,7 +179,7 @@ function MainHeader() {
           component={RouterLink}
           sx={{ mx: 1 }}
         >
-          Nội bộ
+          Quản lý đào tạo
         </MenuItem>
       )}
      

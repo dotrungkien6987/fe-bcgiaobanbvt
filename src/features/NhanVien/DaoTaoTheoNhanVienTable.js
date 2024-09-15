@@ -25,9 +25,9 @@ function DaoTaoTheoNhanVienTable({ LopDaoTaos,title }) {
   const columns = useMemo(
     () => [
       {
-        Header: "_id",
-        Footer: "Action",
-        accessor: "_id",
+        Header: "Actions",
+        Footer: "Actions",
+        accessor: "Actions",
         disableGroupBy: true,
         sticky: "left",
         Cell: ({ row }) => {
@@ -88,8 +88,8 @@ function DaoTaoTheoNhanVienTable({ LopDaoTaos,title }) {
         // Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarIma(`./avatar-${!value ? 1 : value}.png`)} />
       },
       {
-        Header: "Tên lớp đào tạo",
-        Footer: "Tên lớp đào tạo",
+        Header: "Tên, nội dung hình thức cập nhật",
+        Footer: "Tên, nội dung hình thức cập nhật",
 
         accessor: "Ten",
         disableGroupBy: true,
@@ -178,6 +178,13 @@ function DaoTaoTheoNhanVienTable({ LopDaoTaos,title }) {
         Footer: "Số section",
 
         accessor: "SoLuong",
+        disableGroupBy: true,
+      },
+      {
+        Header: "_id",
+        Footer: "_id",
+
+        accessor: "_id",
         disableGroupBy: true,
       },
     ],

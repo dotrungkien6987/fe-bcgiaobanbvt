@@ -219,7 +219,7 @@ function LopDaoTaoForm({mahinhthuccapnhat}) {
 
                   <FTextField name="GhiChu" label="Ghi chú" fullWidth />
 
-                  <FTextField name="SoLuong" label="Số lượng" fullWidth />
+                  <FTextField name="SoLuong" label="Số section" fullWidth />
 
                   <FDatePicker
                     name="NgayBatDau"

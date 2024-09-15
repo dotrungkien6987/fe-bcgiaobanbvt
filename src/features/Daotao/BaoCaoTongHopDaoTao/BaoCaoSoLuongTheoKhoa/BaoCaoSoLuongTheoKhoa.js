@@ -124,7 +124,7 @@ function BaoCaoSoLuongTheoKhoa() {
       </Card>
       <TongHopTinChiTable
         giatricanhbao={24 * sonamcanhbao}
-        titleExcell={`Tổng hợp tín chỉ tích luỹ cho cán bộ từ ${formatDate_getDate(
+        titleExcell={`Tổng hợp khuyến cáo của cán bộ theo khoa từ ${formatDate_getDate(
           fromdate
         )} đến ${formatDate_getDate(todate)}`}
         titleKhuyenCao={`Khuyến cáo : ${

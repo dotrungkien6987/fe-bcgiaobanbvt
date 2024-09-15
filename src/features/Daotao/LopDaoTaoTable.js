@@ -26,9 +26,9 @@ function LopDaoTaoTable() {
   const columns = useMemo(
     () => [
       {
-        Header: "Action",
-        Footer: "Action",
-        accessor: "id",
+        Header: "Actions",
+        Footer: "Actions",
+        accessor: "Actions",
         disableGroupBy: true,
         sticky: "left",
         Cell: ({ row }) => {
@@ -86,8 +86,8 @@ function LopDaoTaoTable() {
         },
       },
       {
-        Header: "Mã hình thức",
-        Footer: "Mã hình thức",
+        Header: "Mã nhóm",
+        Footer: "Mã nhóm",
         accessor: "MaHinhThucCapNhat",
         className: "cell-center",
         disableGroupBy: true,
@@ -95,8 +95,8 @@ function LopDaoTaoTable() {
         // Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarIma(`./avatar-${!value ? 1 : value}.png`)} />
       },
       {
-        Header: "Tên lớp đào tạo",
-        Footer: "Tên lớp đào tạo",
+        Header: "Tên, nội dung hình thức cập nhật",
+        Footer: "Tên, nội dung hình thức cập nhật",
 
         accessor: "Ten",
         disableGroupBy: true,
@@ -172,6 +172,13 @@ function LopDaoTaoTable() {
         Footer: "Người tạo",
 
         accessor: "NguoiTao",
+        disableGroupBy: true,
+      },
+      {
+        Header: "_id",
+        Footer: "_id",
+
+        accessor: "_id",
         disableGroupBy: true,
       },
     ],
