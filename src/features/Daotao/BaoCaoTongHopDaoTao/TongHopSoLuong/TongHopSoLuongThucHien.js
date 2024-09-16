@@ -17,7 +17,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import MainCard from "components/MainCard";
-import { getTongHopSoLuongHinhThucCapNhatThucHien, getTongHopTinChiTichLuy } from "features/NhanVien/nhanvienSlice";
+import { getCoCauNguonNhanLucToanVien, getTongHopSoLuongHinhThucCapNhatThucHien, getTongHopTinChiTichLuy } from "features/NhanVien/nhanvienSlice";
 
 import { formatDate_getDate } from "utils/formatTime";
 import TongHopSoLuongThucHienTable from "./TongHopSoLuongThucHienTable";
@@ -53,6 +53,10 @@ function TongHopSoLuongThucHien() {
     dispatch(
       getTongHopSoLuongHinhThucCapNhatThucHien(fromDateISO, toDateISO)
     );
+    dispatch(
+      getCoCauNguonNhanLucToanVien(fromDateISO, toDateISO)
+    );
+
   };
   const handleNgayBaoCaoChange = (newDate) => {
     // Chuyển đổi về múi giờ VN, kiểm tra đầu vào

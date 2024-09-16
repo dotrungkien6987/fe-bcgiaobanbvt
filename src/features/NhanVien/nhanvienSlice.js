@@ -20,6 +20,10 @@ typeTongHop:0,
 tonghopsoluong:[],
 tonghopsoluongtheokhoa:[],
 
+//Cơ cấu nguồn nhân lực
+CoCauNguonNhanLuc:{},
+
+
   nhanviens: [],
   datafix: {},
   VaiTro: [],
@@ -155,6 +159,12 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.tonghopsoluongtheokhoa = action.payload
+    },
+    
+    getCoCauNguonNhanLucToanVienSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.CoCauNguonNhanLuc = action.payload
     },
     
     getTongHopTinChiTichLuySuccess(state, action) {
@@ -339,6 +349,24 @@ export const getTongHopSoLuongTheoKhoa =
       console.log("response for get tong hop theo khoa", response.data.data);
       dispatch(
         slice.actions.getTongHopSoLuongTheoKhoaSuccess(response.data.data)
+      );
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+      toast.error(error.message);
+    }
+  };
+export const getCoCauNguonNhanLucToanVien =
+(fromdate, todate, KhuyenCao) => async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      const params = { FromDate: fromdate, ToDate: todate,KhuyenCao };
+
+      const response = await apiService.get(`/nhanvien/cocaunhanluc`, {
+        params,
+      });
+      console.log("response for get tong hop theo khoa", response.data.data);
+      dispatch(
+        slice.actions.getCoCauNguonNhanLucToanVienSuccess(response.data.data)
       );
     } catch (error) {
       dispatch(slice.actions.hasError(error));

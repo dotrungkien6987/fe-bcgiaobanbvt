@@ -42,6 +42,12 @@ const hethong = {
           url: '/hinhthuc'
         },
         {
+          id: 'TrinhDoChuyenMonQuyDoi',
+          title: 'Trình độ chuyên môn.',
+          type: 'item',
+          url: '/trinhdochuyenmon'
+        },
+        {
           id: 'HoiDong',
           title: 'Hội đồng',
           type: 'item',

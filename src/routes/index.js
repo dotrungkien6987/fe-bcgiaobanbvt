@@ -48,6 +48,7 @@ import HoiDongTable from "features/Daotao/HoiDong/HoiDongTable";
 import LopDaoTaoTableByType from "features/Daotao/LopDaoTaoTableByType";
 import TongHopSoLuongThucHien from "features/Daotao/BaoCaoTongHopDaoTao/TongHopSoLuong/TongHopSoLuongThucHien";
 import BaoCaoSoLuongTheoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/BaoCaoSoLuongTheoKhoa/BaoCaoSoLuongTheoKhoa";
+import TrinhDoChuyenMonTable from "features/Daotao/TrinhDoChuyenMon/TrinhDoChuyenMonTable";
 function Router() {
   return (
     <div>
@@ -129,6 +130,7 @@ function Router() {
           <Route path="/nhanvien" element={<NhanVienList />} />
           <Route path="/datafix/:field" element={<DataFixTable />} />
           <Route path="/nhomhinhthuc" element={<NhomHinhThucTable />} />
+          <Route path="/trinhdochuyenmon" element={<TrinhDoChuyenMonTable />} />
           <Route path="/hinhthuc" element={<HinhThucTable />} />
           <Route path="/lopdaotaos" element={<LopDaoTaoTable />} />
           <Route path="/lopdaotaos/:type" element={<LopDaoTaoTableByType />} />
