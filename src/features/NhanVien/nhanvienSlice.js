@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import apiService from "../../app/apiService";
 import { toast } from "react-toastify";
+import { chiaNhomDaoTao } from "utils/heplFuntion";
 
 const initialState = {
   isLoading: false,
@@ -21,6 +22,8 @@ typeTongHop:0,
 //tổng hợp số lương hình thức cap nhat
 tonghopsoluong:[],
 tonghopsoluongtheokhoa:[],
+pieChartDatKhuyenCao:[],
+phannhomTongHopSoLuongDaoTao:{},
 
 //Cơ cấu nguồn nhân lực
 CoCauNguonNhanLuc:{},
@@ -157,11 +160,16 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.tonghopsoluong = action.payload
+      state.phannhomTongHopSoLuongDaoTao = chiaNhomDaoTao(action.payload)
     },
     getTongHopSoLuongTheoKhoaSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
       state.tonghopsoluongtheokhoa = action.payload
+      state.pieChartDatKhuyenCao = [];
+      state.pieChartDatKhuyenCao.push({label:'Đạt',value:action.payload[0].countDatTrue})
+      state.pieChartDatKhuyenCao.push({label:'Chưa đạt',value:action.payload[0].countDatFalse})
+      
     },
 
     getCoCauNguonNhanLucToanVienSuccess(state, action) {

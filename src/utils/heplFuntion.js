@@ -1578,3 +1578,20 @@ export function ConvertMangVienPhiThemTong(doanhThu) {
 
   return doanhthutheovienphi;
 }
+
+export function chiaNhomDaoTao(arr) {
+  // Mảng 1: Saudaihoc - Lọc ra các đối tượng có MaHinhThucCapNhat có 4 ký tự đầu là 'ĐT06' và lopDaoTaoCount > 0
+  const saudaihoc = arr.filter(item => item.lopDaoTaoCount > 0 && item.MaHinhThucCapNhat.startsWith('ĐT06'));
+
+  // Mảng 2: Đối tượng có 2 ký tự đầu là 'ĐT' nhưng khác 'ĐT06' và lopDaoTaoCount > 0
+  const dtKhac = arr.filter(item => 
+    item.lopDaoTaoCount > 0 && 
+    item.MaHinhThucCapNhat.startsWith('ĐT') && 
+    !item.MaHinhThucCapNhat.startsWith('ĐT06')
+  );
+
+  // Mảng 3: Đối tượng có 4 ký tự đầu là 'NCKH' và lopDaoTaoCount > 0
+  const nckh = arr.filter(item => item.lopDaoTaoCount > 0 && item.MaHinhThucCapNhat.startsWith('NCKH'));
+
+  return { saudaihoc, dtKhac, nckh };
+}

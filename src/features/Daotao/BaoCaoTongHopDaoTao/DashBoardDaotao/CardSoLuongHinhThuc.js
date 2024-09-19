@@ -9,8 +9,8 @@ const CardSoLuongHinhThuc = ({ data }) => {
         minWidth: 275,
         mt: 1,
         boxShadow: 3,
-        background: '#1939B7' , // Gradient 2 tông màu
-        // background: `linear-gradient(135deg, #1939B7 30%, #bb1515 100%)`, // Gradient 2 tông màu
+        // background: '#1939B7' , // Gradient 2 tông màu
+        background: `linear-gradient(135deg, #1939B7 30%, #bb1515 100%)`, // Gradient 2 tông màu
         color: "#fff", // Màu chữ trắng nổi bật trên nền
         borderRadius: "50px",
       }}

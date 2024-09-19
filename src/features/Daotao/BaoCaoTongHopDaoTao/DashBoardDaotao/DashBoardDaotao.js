@@ -32,10 +32,12 @@ import CardDisplayTest from "./CardDisplayTest";
 
 function DashBoardDaotao() {
   // Lấy thời gian hiện tại theo múi giờ của Việt Nam
+
   const now = dayjs().tz("Asia/Ho_Chi_Minh");
-  const { typeTongHop, tonghopsoluong } = useSelector(
+  const { typeTongHop, phannhomTongHopSoLuongDaoTao } = useSelector(
     (state) => state.nhanvien
   );
+
   const [sonamcanhbao, setSonamcanhbao] = useState(1);
   const [todate, setTodate] = useState(now);
   // const [fromdate, setFromdate] = useState(dayjs().subtract(120, 'day').startOf('day'));
@@ -133,19 +135,41 @@ function DashBoardDaotao() {
         </Stack>
       </Card>
 
-      <CoCauNguonNhanLuc />
-      <MainCard title={'Tổng hợp các nội dung thuộc đào tạo'}>
+      <CoCauNguonNhanLuc
+        fromDateISO={fromdate.toISOString()}
+        toDateISO={todate.toISOString()}
+        sonamcanhbao={sonamcanhbao}
+      />
+      <MainCard title={"Tổng hợp các nội dung thuộc đào tạo"}>
         <Grid container spacing={2}>
-          {tonghopsoluong.length > 0 &&
-            tonghopsoluong.map((data) => (
+          {phannhomTongHopSoLuongDaoTao.dtKhac?.length > 0 &&
+            phannhomTongHopSoLuongDaoTao.dtKhac.map((data) => (
               <Grid item xs={12} sm={6} md={6} lg={4}>
                 <CardSoLuongHinhThuc data={data} />
               </Grid>
             ))}
         </Grid>
       </MainCard>
-
-      <CardDisplayTest />
+      <MainCard title={"Tổng hợp các nội dung thuộc nghiên cứu khoa học"}>
+        <Grid container spacing={2}>
+          {phannhomTongHopSoLuongDaoTao.nckh?.length > 0 &&
+            phannhomTongHopSoLuongDaoTao.nckh.map((data) => (
+              <Grid item xs={12} sm={6} md={6} lg={4}>
+                <CardSoLuongHinhThuc data={data} />
+              </Grid>
+            ))}
+        </Grid>
+      </MainCard>
+      <MainCard title={"Tổng hợp đào tạo sau đại học"}>
+        <Grid container spacing={2}>
+          {phannhomTongHopSoLuongDaoTao.saudaihoc?.length > 0 &&
+            phannhomTongHopSoLuongDaoTao.saudaihoc.map((data) => (
+              <Grid item xs={12} sm={6} md={6} lg={4}>
+                <CardSoLuongHinhThuc data={data} />
+              </Grid>
+            ))}
+        </Grid>
+      </MainCard>
     </MainCard>
   );
 }

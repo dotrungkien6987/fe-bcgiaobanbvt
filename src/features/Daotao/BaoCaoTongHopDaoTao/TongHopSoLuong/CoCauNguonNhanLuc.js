@@ -19,6 +19,7 @@ import MainCard from "components/MainCard";
 import {
   getCoCauNguonNhanLucToanVien,
   getTongHopSoLuongHinhThucCapNhatThucHien,
+  getTongHopSoLuongTheoKhoa,
   getTongHopTinChiTichLuy,
 } from "features/NhanVien/nhanvienSlice";
 
@@ -27,8 +28,8 @@ import TongHopSoLuongThucHienTable from "./TongHopSoLuongThucHienTable";
 import MyPieChart from "components/form/MyPieChart";
 import LoadingScreen from "components/LoadingScreen";
 
-function CoCauNguonNhanLuc() {
-  const { isLoading, CoCauNguonNhanLuc } = useSelector((state) => state.nhanvien);
+function CoCauNguonNhanLuc({fromDateISO, toDateISO, sonamcanhbao}) {
+  const { isLoading, CoCauNguonNhanLuc,pieChartDatKhuyenCao } = useSelector((state) => state.nhanvien);
   const dispatch = useDispatch();
   const colors = [
     { color: "#1939B7" },
@@ -53,6 +54,9 @@ function CoCauNguonNhanLuc() {
   };
   useEffect(() => {
     dispatch(getCoCauNguonNhanLucToanVien());
+    dispatch(
+      getTongHopSoLuongTheoKhoa(fromDateISO, toDateISO, sonamcanhbao * 24)
+    );
   }, []);
 
   return (
@@ -85,7 +89,7 @@ function CoCauNguonNhanLuc() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={6}>
           <Card>
             <CardHeader title={"2. Cơ cấu nguồn nhân lực theo chứng chỉ hành nghề"} />
             {CoCauNguonNhanLuc.resultQuyDoi1 && (
@@ -97,30 +101,19 @@ function CoCauNguonNhanLuc() {
             )}
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={6}>
           <Card>
-            <CardHeader title={"1.Tỷ lệ đạt tín chỉ khuyến cáo"} />
+            <CardHeader title={"1.Tỷ lệ đạt tín chỉ khuyến cáo (Trên tổng số cán bộ có CCHN)"} />
             {CoCauNguonNhanLuc.resultQuyDoi1 && (
               <MyPieChart
-                data={CoCauNguonNhanLuc.resultChungChiHanhNghe}
+                data={pieChartDatKhuyenCao}
                 colors={colors}
                 other={{ ...size1 }}
               />
             )}
           </Card>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardHeader title={"1.Cơ cấu nguồn nhân lực chi tiết"} />
-            {CoCauNguonNhanLuc.resultQuyDoi1 && (
-              <MyPieChart
-                data={CoCauNguonNhanLuc.resultChungChiHanhNghe}
-                colors={colors}
-                other={{ ...size1 }}
-              />
-            )}
-          </Card>
-        </Grid>
+       
       </Grid>
     </Card>
     )
