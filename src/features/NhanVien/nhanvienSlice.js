@@ -7,10 +7,12 @@ const initialState = {
   error: null,
   isOpenDeleteNhanVien: false,
   isOpenUpdateNhanVien: false,
+
   nhanvienCurrent: {},
   lopdaotaotheoNhanVienCurrents: [],
   nghiencuukhoahoctheoNhanVienCurrents: [],
   tinchitichluyCurrents: [],
+  tonghopHinhThucTheoNhanVienCurrent:[],
 
   //tổng hợp tín chỉ tích lũy
   tonghoptinchitichluys: [],
@@ -64,6 +66,7 @@ const slice = createSlice({
       state.nghiencuukhoahoctheoNhanVienCurrents =
         action.payload.nghiencuukhoahocs;
       state.tinchitichluyCurrents = action.payload.TinChiTichLuys;
+      state.tonghopHinhThucTheoNhanVienCurrent = action.payload.hinhthuccapnhats;
     },
     setIsOpenUpdateNhanVienSuccess(state, action) {
       state.isLoading = false;
@@ -160,7 +163,7 @@ const slice = createSlice({
       state.error = null;
       state.tonghopsoluongtheokhoa = action.payload
     },
-    
+
     getCoCauNguonNhanLucToanVienSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
@@ -356,14 +359,11 @@ export const getTongHopSoLuongTheoKhoa =
     }
   };
 export const getCoCauNguonNhanLucToanVien =
-(fromdate, todate, KhuyenCao) => async (dispatch) => {
+() => async (dispatch) => {
     dispatch(slice.actions.startLoading);
     try {
-      const params = { FromDate: fromdate, ToDate: todate,KhuyenCao };
-
-      const response = await apiService.get(`/nhanvien/cocaunhanluc`, {
-        params,
-      });
+   
+      const response = await apiService.get(`/nhanvien/cocaunhanluc`);
       console.log("response for get tong hop theo khoa", response.data.data);
       dispatch(
         slice.actions.getCoCauNguonNhanLucToanVienSuccess(response.data.data)

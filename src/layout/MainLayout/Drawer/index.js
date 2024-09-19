@@ -52,10 +52,12 @@ const dispatch = useDispatch()
               width: DRAWER_WIDTH,
               borderRight: `1px solid ${theme.palette.divider}`,
               backgroundImage: 'none',
-              boxShadow: 'inherit'
+              boxShadow: 'inherit',
+              
             }
           }}
         >
+         
           {drawerHeader}
           {drawerContent}
         </Drawer>

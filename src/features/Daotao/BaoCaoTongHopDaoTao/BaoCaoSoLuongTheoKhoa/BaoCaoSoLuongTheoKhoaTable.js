@@ -33,6 +33,15 @@ function BaoCaoSoLuongTheoKhoaTable({ giatricanhbao,titleExcell ='Tổng hợp s
         // Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarIma(`./avatar-${!value ? 1 : value}.png`)} />
       },
       {
+        Header: "Cán bộ có CCHN",
+        Footer: "Cán bộ có CCHN",
+        accessor: "countSoCCHN",
+        className: "cell-center",
+        disableGroupBy: true,
+        // sticky: 'left',
+        // Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarIma(`./avatar-${!value ? 1 : value}.png`)} />
+      },
+      {
         Header: "Đạt khuyến cáo",
         Footer: "Đạt khuyến cáo",
 
@@ -65,6 +74,13 @@ function BaoCaoSoLuongTheoKhoaTable({ giatricanhbao,titleExcell ='Tổng hợp s
     {
       header: "Tổng số cán bộ",
       key: "totalNhanVien",
+      alignment: { horizontal: "left" },
+      font: { bold: false },
+      width:25,
+    },
+    {
+      header: "Cán bộ có CCHN",
+      key: "countSoCCHN",
       alignment: { horizontal: "left" },
       font: { bold: false },
       width:25,

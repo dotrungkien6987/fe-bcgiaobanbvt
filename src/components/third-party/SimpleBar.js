@@ -45,10 +45,11 @@ export default function SimpleBarScroll({ children, sx, ...other }) {
       <RootStyle>
         <SimpleBarStyle clickOnTrack={false} sx={sx} {...other}>
           {children}
+         
         </SimpleBarStyle>
       </RootStyle>
       <MobileView>
-        <Box sx={{ overflowX: 'auto', ...sx }} {...other}>
+        <Box sx={{ overflowY: 'auto',overflowX: 'auto', ...sx }} {...other}>
           {children}
         </Box>
       </MobileView>

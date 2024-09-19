@@ -14,7 +14,7 @@ function LoadingScreen() {
 
     }}
     >
-      
+     
       <CircularProgress/>
     </Box>
   );

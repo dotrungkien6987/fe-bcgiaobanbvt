@@ -24,11 +24,17 @@ const baocao = {
   children: [
    
     {
-      id: 'danhmucdaotao',
+      id: 'BaoCao',
       title: 'Báo cáo',
       type: 'collapse',
       icon: icons.page,
       children: [
+        {
+          id: 'dashboard',
+          title: 'DashBoard',
+          type: 'item',
+          url: '/dashboarddaotao'
+        },
         {
           id: 'tonghopdaotao',
           title: 'Tổng hợp tín chỉ tích lũy',

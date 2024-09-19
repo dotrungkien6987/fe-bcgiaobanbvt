@@ -95,6 +95,14 @@ function LopDaoTaoTable() {
         // Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarIma(`./avatar-${!value ? 1 : value}.png`)} />
       },
       {
+        Header: "Loại hình",
+        Footer: "Loại hình",
+        accessor: "TenHinhThucCapNhat",
+        className: "cell-center",
+        disableGroupBy: true,
+       
+      },
+      {
         Header: "Tên, nội dung hình thức cập nhật",
         Footer: "Tên, nội dung hình thức cập nhật",
 

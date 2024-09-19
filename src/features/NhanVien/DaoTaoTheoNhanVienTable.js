@@ -84,8 +84,15 @@ function DaoTaoTheoNhanVienTable({ LopDaoTaos,title }) {
         accessor: "MaHinhThucCapNhat",
         className: "cell-center",
         disableGroupBy: true,
-        // sticky: 'left',
-        // Cell: ({ value }) => <Avatar alt="Avatar 1" size="sm" src={avatarIma(`./avatar-${!value ? 1 : value}.png`)} />
+       
+      },
+      {
+        Header: "Loại hình",
+        Footer: "Loại hình",
+        accessor: "TenHinhThucCapNhat",
+        className: "cell-center",
+        disableGroupBy: true,
+       
       },
       {
         Header: "Tên, nội dung hình thức cập nhật",

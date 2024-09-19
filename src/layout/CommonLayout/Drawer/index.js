@@ -35,10 +35,12 @@ const Drawer = ({ handleDrawerOpen, open }) => {
         top: { xs: 0, md: 84, xl: 90 },
         height: { xs: 'auto', md: 'calc(100vh - 140px)', xl: 'calc(100vh - 148px)' },
         zIndex: { xs: open ? 1200 : -1, md: 0 },
+        // overflowY: 'auto', // Thêm thuộc tính này để cho phép cuộn dọc
         '& .MuiDrawer-paper': {
           borderRadius: matchDownMd ? 0 : 1.5,
           position: 'relative',
-          border: 'none'
+          border: 'none',
+          // overflowY: 'auto', // Thêm thuộc tính này để cho phép cuộn dọc
         }
       }}
       variant={matchDownMd ? 'temporary' : 'persistent'}
@@ -49,6 +51,7 @@ const Drawer = ({ handleDrawerOpen, open }) => {
     >
       <MainCard sx={{ height: '100%', borderRadius: matchDownMd ? 0 : 1.5 }} content={false}>
         <Box sx={{ p: 3, borderBottom: `1px solid ${theme.palette.divider}` }}>
+         
           <TextField
             fullWidth
             autoFocus

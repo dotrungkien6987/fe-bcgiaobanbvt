@@ -23,7 +23,13 @@ import { useParams } from "react-router-dom";
 
 function LopDaoTaoTableByType() {
   const params = useParams();
-  const typeLopDaoTao = params.type;
+  let typeLopDaoTao = params.type;
+
+  // Kiểm tra nếu ký tự đầu tiên là 'D' thì thay bằng 'Đ'
+if (typeLopDaoTao && typeLopDaoTao.charAt(0) === 'D') {
+  typeLopDaoTao = 'Đ' + typeLopDaoTao.slice(1);
+}
+
   const theme = useTheme();
   const mode = theme.palette.mode;
   const columns = useMemo(
@@ -126,6 +132,14 @@ function LopDaoTaoTableByType() {
         Footer: "Quyết định",
 
         accessor: "QuyetDinh",
+
+        disableGroupBy: true,
+      },
+      {
+        Header: "Cán bộ tham gia",
+        Footer: "Cán bộ tham gia",
+
+        accessor: "CanBoThamGia",
 
         disableGroupBy: true,
       },

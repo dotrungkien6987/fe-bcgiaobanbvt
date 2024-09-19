@@ -1,12 +1,13 @@
 import {
   Button,
   Card,
-  
+  CardHeader,
   Chip,
-  
+  Container,
+  Grid,
   Stack,
   TextField,
-  
+  Typography,
 } from "@mui/material";
 
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
@@ -17,17 +18,25 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import MainCard from "components/MainCard";
-import { getCoCauNguonNhanLucToanVien, getTongHopSoLuongHinhThucCapNhatThucHien, getTongHopTinChiTichLuy } from "features/NhanVien/nhanvienSlice";
+import {
+  getTongHopSoLuongHinhThucCapNhatThucHien,
+  getTongHopSoLuongTheoKhoa,
+  getTongHopTinChiTichLuy,
+} from "features/NhanVien/nhanvienSlice";
 
+import { useRowSelect } from "react-table";
 import { formatDate_getDate } from "utils/formatTime";
-import TongHopSoLuongThucHienTable from "./TongHopSoLuongThucHienTable";
-import CoCauNguonNhanLuc from "./CoCauNguonNhanLuc";
+import CoCauNguonNhanLuc from "../TongHopSoLuong/CoCauNguonNhanLuc";
+import CardSoLuongHinhThuc from "./CardSoLuongHinhThuc";
+import CardDisplayTest from "./CardDisplayTest";
 
-function TongHopSoLuongThucHien() {
+function DashBoardDaotao() {
   // Lấy thời gian hiện tại theo múi giờ của Việt Nam
   const now = dayjs().tz("Asia/Ho_Chi_Minh");
-  
-  
+  const { typeTongHop, tonghopsoluong } = useSelector(
+    (state) => state.nhanvien
+  );
+  const [sonamcanhbao, setSonamcanhbao] = useState(1);
   const [todate, setTodate] = useState(now);
   // const [fromdate, setFromdate] = useState(dayjs().subtract(120, 'day').startOf('day'));
   // const [fromdate, setFromdate] = useState(dayjs().subtract(6, 'month').startOf('day'));
@@ -52,10 +61,9 @@ function TongHopSoLuongThucHien() {
     const toDateISO = todate.toISOString();
     console.log("fromdate -todate", fromDateISO, toDateISO);
     dispatch(
-      getTongHopSoLuongHinhThucCapNhatThucHien(fromDateISO, toDateISO)
+      getTongHopSoLuongTheoKhoa(fromDateISO, toDateISO, sonamcanhbao * 24)
     );
-    
-
+    dispatch(getTongHopSoLuongHinhThucCapNhatThucHien(fromDateISO, toDateISO));
   };
   const handleNgayBaoCaoChange = (newDate) => {
     // Chuyển đổi về múi giờ VN, kiểm tra đầu vào
@@ -76,7 +84,7 @@ function TongHopSoLuongThucHien() {
   }, [fromdate, todate, dispatch]);
 
   return (
-    <MainCard title={"Tổng hợp số lượng thực hiện"}>
+    <MainCard title={"Tổng hợp tín chỉ tích lũy cán bộ"}>
       <Card sx={{ p: 0.5 }}>
         <Stack direction={"row"} my={1} spacing={3}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -101,7 +109,20 @@ function TongHopSoLuongThucHien() {
             />
           </LocalizationProvider>
 
-          
+          <TextField
+            label="Chọn số năm cảnh báo"
+            type="number"
+            value={sonamcanhbao}
+            onChange={(e) => setSonamcanhbao(e.target.value)}
+          />
+          <Chip
+            label={`Khuyến cáo : ${
+              24 * sonamcanhbao
+            } tín chỉ trong ${sonamcanhbao} năm`}
+            size="large"
+            color="error"
+          />
+
           <Button
             variant="contained"
             startIcon={<CalendarMonthIcon />}
@@ -111,16 +132,22 @@ function TongHopSoLuongThucHien() {
           </Button>
         </Stack>
       </Card>
-      
-      <TongHopSoLuongThucHienTable
-        
-        titleExcell={`Tổng hợp số lượng thực hiện từ ${formatDate_getDate(
-          fromdate
-        )} đến ${formatDate_getDate(todate)}`}
-        
-      />
+
+      <CoCauNguonNhanLuc />
+      <MainCard title={'Tổng hợp các nội dung thuộc đào tạo'}>
+        <Grid container spacing={2}>
+          {tonghopsoluong.length > 0 &&
+            tonghopsoluong.map((data) => (
+              <Grid item xs={12} sm={6} md={6} lg={4}>
+                <CardSoLuongHinhThuc data={data} />
+              </Grid>
+            ))}
+        </Grid>
+      </MainCard>
+
+      <CardDisplayTest />
     </MainCard>
   );
 }
 
-export default TongHopSoLuongThucHien;
+export default DashBoardDaotao;
