@@ -50,6 +50,7 @@ import TongHopSoLuongThucHien from "features/Daotao/BaoCaoTongHopDaoTao/TongHopS
 import BaoCaoSoLuongTheoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/BaoCaoSoLuongTheoKhoa/BaoCaoSoLuongTheoKhoa";
 import TrinhDoChuyenMonTable from "features/Daotao/TrinhDoChuyenMon/TrinhDoChuyenMonTable";
 import DashBoardDaotao from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaotao/DashBoardDaotao";
+import DashBoardDaotaoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaoTaoKhoa/DashBoardDaotaoKhoa";
 function Router() {
   return (
     <div>
@@ -141,6 +142,7 @@ function Router() {
           <Route path="/lopdaotao/:type" element={<LopDaoTaoForm />} />
 
           <Route path="/dashboarddaotao" element={<DashBoardDaotao />} />
+          <Route path="/dashboarddaotaotheokhoa" element={<DashBoardDaotaoKhoa />} />
           <Route path="/tonghopdaotao" element={<TinChiTichLuyNhanVien />} />
           <Route path="/tonghopsoluong" element={<TongHopSoLuongThucHien />} />
           <Route path="/soluongtheokhoa" element={<BaoCaoSoLuongTheoKhoa />} />

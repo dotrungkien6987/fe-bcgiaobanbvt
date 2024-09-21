@@ -41,7 +41,7 @@ function DiemDanhLopDaoTaoForm() {
   const { lopdaotaoCurrent } = useSelector((state) => state.daotao);
   const { HinhThucCapNhat } = useSelector((state) => state.hinhthuccapnhat);
   const { NoiDaoTao } = useSelector((state) => state.nhanvien);
-  const maSauDaiHoc = ["ĐT061","ĐT062","ĐT063","ĐT064"]
+  
   const dispatch = useDispatch();
   useEffect(() => {
     if (lopdaotaoID) dispatch(getOneLopDaoTaoByID({ lopdaotaoID, tam: false }));
@@ -150,7 +150,7 @@ function DiemDanhLopDaoTaoForm() {
         </Grid>
 
         <Grid item xs={12} md={12}>
-          {maSauDaiHoc.includes(lopdaotaoCurrent.MaHinhThucCapNhat) ? (
+          {lopdaotaoCurrent.MaHinhThucCapNhat?.startsWith("ĐT06") ? (
             <QuaTrinhTichLuyDT06Table />
           ) : (
             <DiemDanhLopDaoTaoTable numSections={lopdaotaoCurrent.SoLuong} />

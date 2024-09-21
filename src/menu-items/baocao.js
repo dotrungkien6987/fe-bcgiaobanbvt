@@ -36,6 +36,12 @@ const baocao = {
           url: '/dashboarddaotao'
         },
         {
+          id: 'dashboardkhoa',
+          title: 'DashBoard theo khoa',
+          type: 'item',
+          url: '/dashboarddaotaotheokhoa'
+        },
+        {
           id: 'tonghopdaotao',
           title: 'Tổng hợp tín chỉ tích lũy',
           type: 'item',

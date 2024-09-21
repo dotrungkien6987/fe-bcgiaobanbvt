@@ -13,21 +13,20 @@ const initialState = {
   lopdaotaotheoNhanVienCurrents: [],
   nghiencuukhoahoctheoNhanVienCurrents: [],
   tinchitichluyCurrents: [],
-  tonghopHinhThucTheoNhanVienCurrent:[],
+  tonghopHinhThucTheoNhanVienCurrent: [],
 
   //tổng hợp tín chỉ tích lũy
   tonghoptinchitichluys: [],
-typeTongHop:0,
+  typeTongHop: 0,
 
-//tổng hợp số lương hình thức cap nhat
-tonghopsoluong:[],
-tonghopsoluongtheokhoa:[],
-pieChartDatKhuyenCao:[],
-phannhomTongHopSoLuongDaoTao:{},
+  //tổng hợp số lương hình thức cap nhat
+  tonghopsoluong: [],
+  tonghopsoluongtheokhoa: [],
+  pieChartDatKhuyenCao: [],
+  phannhomTongHopSoLuongDaoTao: {},
 
-//Cơ cấu nguồn nhân lực
-CoCauNguonNhanLuc:{},
-
+  //Cơ cấu nguồn nhân lực
+  CoCauNguonNhanLuc: {},
 
   nhanviens: [],
   datafix: {},
@@ -69,7 +68,8 @@ const slice = createSlice({
       state.nghiencuukhoahoctheoNhanVienCurrents =
         action.payload.nghiencuukhoahocs;
       state.tinchitichluyCurrents = action.payload.TinChiTichLuys;
-      state.tonghopHinhThucTheoNhanVienCurrent = action.payload.hinhthuccapnhats;
+      state.tonghopHinhThucTheoNhanVienCurrent =
+        action.payload.hinhthuccapnhats;
     },
     setIsOpenUpdateNhanVienSuccess(state, action) {
       state.isLoading = false;
@@ -159,25 +159,30 @@ const slice = createSlice({
     getTongHopSoLuongHinhThucCapNhatThucHienSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.tonghopsoluong = action.payload
-      state.phannhomTongHopSoLuongDaoTao = chiaNhomDaoTao(action.payload)
+      state.tonghopsoluong = action.payload;
+      state.phannhomTongHopSoLuongDaoTao = chiaNhomDaoTao(action.payload);
     },
     getTongHopSoLuongTheoKhoaSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.tonghopsoluongtheokhoa = action.payload
+      state.tonghopsoluongtheokhoa = action.payload;
       state.pieChartDatKhuyenCao = [];
-      state.pieChartDatKhuyenCao.push({label:'Đạt',value:action.payload[0].countDatTrue})
-      state.pieChartDatKhuyenCao.push({label:'Chưa đạt',value:action.payload[0].countDatFalse})
-      
+      state.pieChartDatKhuyenCao.push({
+        label: "Đạt",
+        value: action.payload[0].countDatTrue,
+      });
+      state.pieChartDatKhuyenCao.push({
+        label: "Chưa đạt",
+        value: action.payload[0].countDatFalse,
+      });
     },
 
     getCoCauNguonNhanLucToanVienSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.CoCauNguonNhanLuc = action.payload
+      state.CoCauNguonNhanLuc = action.payload;
     },
-    
+
     getTongHopTinChiTichLuySuccess(state, action) {
       state.isLoading = false;
       state.error = null;
@@ -185,7 +190,6 @@ const slice = createSlice({
         ...item,
         ...item.nhanVien,
         TenKhoa: item.nhanVien.KhoaID.TenKhoa,
-        
       }));
     },
   },
@@ -316,12 +320,12 @@ export const getTongHopTinChiTichLuy =
   (fromdate, todate, KhuyenCao) => async (dispatch) => {
     dispatch(slice.actions.startLoading);
     try {
-      const params = { FromDate: fromdate, ToDate: todate,KhuyenCao };
+      const params = { FromDate: fromdate, ToDate: todate, KhuyenCao };
 
       const response = await apiService.get(`/nhanvien/tichluytinchi`, {
         params,
       });
-      
+
       dispatch(
         slice.actions.getTongHopTinChiTichLuySuccess(response.data.data)
       );
@@ -330,6 +334,26 @@ export const getTongHopTinChiTichLuy =
       toast.error(error.message);
     }
   };
+export const getTongHopTinChiTichLuyByKhoa =
+  (fromdate, todate, KhuyenCao,khoaID) => async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      const params = { FromDate: fromdate, ToDate: todate, KhuyenCao,khoaID };
+
+      const response = await apiService.get(`/nhanvien/tichluytinchitheokhoa`, {
+        params,
+      });
+
+      dispatch(
+        slice.actions.getTongHopTinChiTichLuySuccess(response.data.data)
+      );
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+      toast.error(error.message);
+    }
+  };
+
+
 export const getTongHopSoLuongHinhThucCapNhatThucHien =
   (fromdate, todate) => async (dispatch) => {
     dispatch(slice.actions.startLoading);
@@ -341,7 +365,9 @@ export const getTongHopSoLuongHinhThucCapNhatThucHien =
       });
       console.log("response for get tong hop theo khoa", response.data.data);
       dispatch(
-        slice.actions.getTongHopSoLuongHinhThucCapNhatThucHienSuccess(response.data.data)
+        slice.actions.getTongHopSoLuongHinhThucCapNhatThucHienSuccess(
+          response.data.data
+        )
       );
     } catch (error) {
       dispatch(slice.actions.hasError(error));
@@ -349,10 +375,10 @@ export const getTongHopSoLuongHinhThucCapNhatThucHien =
     }
   };
 export const getTongHopSoLuongTheoKhoa =
-(fromdate, todate, KhuyenCao) => async (dispatch) => {
+  (fromdate, todate, KhuyenCao) => async (dispatch) => {
     dispatch(slice.actions.startLoading);
     try {
-      const params = { FromDate: fromdate, ToDate: todate,KhuyenCao };
+      const params = { FromDate: fromdate, ToDate: todate, KhuyenCao };
 
       const response = await apiService.get(`/nhanvien/soluongtheokhoa`, {
         params,
@@ -366,29 +392,39 @@ export const getTongHopSoLuongTheoKhoa =
       toast.error(error.message);
     }
   };
-export const getCoCauNguonNhanLucToanVien =
-() => async (dispatch) => {
-    dispatch(slice.actions.startLoading);
-    try {
-   
-      const response = await apiService.get(`/nhanvien/cocaunhanluc`);
-      console.log("response for get tong hop theo khoa", response.data.data);
-      dispatch(
-        slice.actions.getCoCauNguonNhanLucToanVienSuccess(response.data.data)
-      );
-    } catch (error) {
-      dispatch(slice.actions.hasError(error));
-      toast.error(error.message);
-    }
-  };
+export const getCoCauNguonNhanLucToanVien = () => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    const response = await apiService.get(`/nhanvien/cocaunhanluc`);
+    console.log("response for get tong hop theo khoa", response.data.data);
+    dispatch(
+      slice.actions.getCoCauNguonNhanLucToanVienSuccess(response.data.data)
+    );
+  } catch (error) {
+    dispatch(slice.actions.hasError(error));
+    toast.error(error.message);
+  }
+};
+export const getCoCauNguonNhanLucByKhoa = (khoaID) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    const response = await apiService.get(`/nhanvien/cocaunhanluctheokhoa/${khoaID}`);
+    console.log("response for get tong hop theo khoa", response.data.data);
+    dispatch(
+      slice.actions.getCoCauNguonNhanLucToanVienSuccess(response.data.data)
+    );
+  } catch (error) {
+    dispatch(slice.actions.hasError(error));
+    toast.error(error.message);
+  }
+};
 
-
-  export const setTypeTongHop = (type) => async (dispatch) => {
-    dispatch(slice.actions.startLoading);
-    try {
-      dispatch(slice.actions.setTypeTongHopSuccess(type));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error.message));
-      toast.error(error.message);
-    }
-  };
+export const setTypeTongHop = (type) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    dispatch(slice.actions.setTypeTongHopSuccess(type));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};

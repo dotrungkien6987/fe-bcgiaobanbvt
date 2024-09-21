@@ -17,6 +17,7 @@ import { useDispatch, useSelector } from "react-redux";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import MainCard from "components/MainCard";
 import {
+  getCoCauNguonNhanLucByKhoa,
   getCoCauNguonNhanLucToanVien,
   getTongHopSoLuongHinhThucCapNhatThucHien,
   getTongHopSoLuongTheoKhoa,
@@ -28,8 +29,12 @@ import TongHopSoLuongThucHienTable from "./TongHopSoLuongThucHienTable";
 import MyPieChart from "components/form/MyPieChart";
 import LoadingScreen from "components/LoadingScreen";
 
-function CoCauNguonNhanLuc({fromDateISO, toDateISO, sonamcanhbao}) {
-  const { isLoading, CoCauNguonNhanLuc,pieChartDatKhuyenCao } = useSelector((state) => state.nhanvien);
+
+function CoCauNguonNhanLuc({ fromDateISO, toDateISO, sonamcanhbao, khoaID }) {
+  
+  const { isLoading, CoCauNguonNhanLuc, pieChartDatKhuyenCao } = useSelector(
+    (state) => state.nhanvien
+  );
   const dispatch = useDispatch();
   const colors = [
     { color: "#1939B7" },
@@ -53,22 +58,29 @@ function CoCauNguonNhanLuc({fromDateISO, toDateISO, sonamcanhbao}) {
     height: 250,
   };
   useEffect(() => {
-    dispatch(getCoCauNguonNhanLucToanVien());
+   
     dispatch(
       getTongHopSoLuongTheoKhoa(fromDateISO, toDateISO, sonamcanhbao * 24)
     );
   }, []);
 
-  return (
-    isLoading ? (<LoadingScreen/>) : (
-      <Card sx={{ backgroundColor:"#1939B7", p:2 }}>
+useEffect(() => {
+  if (khoaID) {
+    dispatch(getCoCauNguonNhanLucByKhoa(khoaID));
+  } else dispatch(getCoCauNguonNhanLucToanVien());
+},[khoaID])
+
+  return isLoading ? (
+    <LoadingScreen />
+  ) : (
+    <Card sx={{ backgroundColor: "#1939B7", p: 2 }}>
       <Grid container spacing={3} my={1}>
         <Grid item xs={12} md={4.5}>
           <Card>
             <CardHeader title={"1.Cơ cấu nguồn nhân lực chung"} />
             {CoCauNguonNhanLuc.resultQuyDoi1 && (
               <MyPieChart
-                data={CoCauNguonNhanLuc.resultQuyDoi1}
+                data={CoCauNguonNhanLuc.resultQuyDoi1.filter((item)=>item.value>0)}
                 colors={colors}
                 other={{ ...size1 }}
               />
@@ -78,10 +90,12 @@ function CoCauNguonNhanLuc({fromDateISO, toDateISO, sonamcanhbao}) {
 
         <Grid item xs={12} md={7.5}>
           <Card>
-            <CardHeader title={"1.Cơ cấu nguồn nhân lực theo trình độ chuyên môn"} />
+            <CardHeader
+              title={"1.Cơ cấu nguồn nhân lực theo trình độ chuyên môn"}
+            />
             {CoCauNguonNhanLuc.resultQuyDoi1 && (
               <MyPieChart
-                data={CoCauNguonNhanLuc.resultQuyDoi2}
+                data={CoCauNguonNhanLuc.resultQuyDoi2.filter((item)=>item.value>0)}
                 colors={colors}
                 other={{ ...size1 }}
               />
@@ -91,7 +105,9 @@ function CoCauNguonNhanLuc({fromDateISO, toDateISO, sonamcanhbao}) {
 
         <Grid item xs={12} md={6}>
           <Card>
-            <CardHeader title={"2. Cơ cấu nguồn nhân lực theo chứng chỉ hành nghề"} />
+            <CardHeader
+              title={"2. Cơ cấu nguồn nhân lực theo chứng chỉ hành nghề"}
+            />
             {CoCauNguonNhanLuc.resultQuyDoi1 && (
               <MyPieChart
                 data={CoCauNguonNhanLuc.resultChungChiHanhNghe}
@@ -103,7 +119,11 @@ function CoCauNguonNhanLuc({fromDateISO, toDateISO, sonamcanhbao}) {
         </Grid>
         <Grid item xs={12} md={6}>
           <Card>
-            <CardHeader title={"1.Tỷ lệ đạt tín chỉ khuyến cáo (Trên tổng số cán bộ có CCHN)"} />
+            <CardHeader
+              title={
+                "1.Tỷ lệ đạt tín chỉ khuyến cáo (Trên tổng số cán bộ có CCHN)"
+              }
+            />
             {CoCauNguonNhanLuc.resultQuyDoi1 && (
               <MyPieChart
                 data={pieChartDatKhuyenCao}
@@ -113,11 +133,8 @@ function CoCauNguonNhanLuc({fromDateISO, toDateISO, sonamcanhbao}) {
             )}
           </Card>
         </Grid>
-       
       </Grid>
     </Card>
-    )
-    
   );
 }
 

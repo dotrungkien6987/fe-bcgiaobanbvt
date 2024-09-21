@@ -18,7 +18,7 @@ import DongBoHocViensTamButton from "./DongBoHocViensTamButton";
 import useAuth from "hooks/useAuth";
 function HocVienLopTable({ setSelectedRows }) {
   const {user} = useAuth()
-  const maSauDaiHoc = ["ĐT061","ĐT062","ĐT063","ĐT064"]
+  
   const columns = useMemo(
     () => [
       {
@@ -102,7 +102,7 @@ function HocVienLopTable({ setSelectedRows }) {
   );
   const handleClickSave = () => {
     if (
-      maSauDaiHoc.includes(lopdaotaoCurrent.MaHinhThucCapNhat) &&
+      lopdaotaoCurrent.MaHinhThucCapNhat?.startsWith("ĐT06") &&
       hocvienCurrents.length > 1
     ) {
       alert("Lớp đào tạo sau đại học chỉ được phép có một học viên .");
