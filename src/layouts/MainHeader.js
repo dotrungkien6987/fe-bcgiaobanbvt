@@ -136,42 +136,6 @@ function MainHeader() {
       </MenuItem>
 
       <Divider sx={{ borderStyle: "dashed" }} />
-      <MenuItem
-        onClick={handleThongBaoSuCo}
-        // to="/suco"
-        // component={RouterLink}
-        sx={{ mx: 1 }}
-      >
-        Thông báo sự cố y khoa
-      </MenuItem>
-
-      {/* <MenuItem
-        onClick={handleMenuClose}
-        to="/danhsach"
-        component={RouterLink}
-        sx={{ mx: 1 }}
-      >
-      Danh sách sự cố y khoa
-      </MenuItem> */}
-
-      <MenuItem
-        onClick={handleMenuClose}
-        to="/datagrid"
-        component={RouterLink}
-        sx={{ mx: 1 }}
-      >
-        Danh sách sự cố y khoa
-      </MenuItem>
-
-      <MenuItem
-        onClick={handleMenuClose}
-        to="/baocaosuco"
-        component={RouterLink}
-        sx={{ mx: 1 }}
-      >
-        Tổng hợp sự cố y khoa
-      </MenuItem>
-      <Divider sx={{ borderStyle: "dashed" }} />
       {(user.PhanQuyen === "admin" || user.PhanQuyen === "daotao") && (
         <MenuItem
           onClick={handleMenuClose}

@@ -16,8 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import MainCard from "components/MainCard";
 import {
-  getTongHopSoLuongHinhThucCapNhatThucHien,
-  getTongHopSoLuongTheoKhoa,
+  
   getTongHopTinChiTichLuyByKhoa,
 } from "features/NhanVien/nhanvienSlice";
 import CoCauNguonNhanLuc from "../TongHopSoLuong/CoCauNguonNhanLuc";
@@ -37,12 +36,17 @@ function DashBoardDaotaoKhoa() {
   }, []);
 
   useEffect(() => {
-    const khoa = khoas.find((khoa) => khoa._id === user.KhoaID._id)
+    const khoa = khoas.find((khoa) => khoa._id === user.KhoaID._id);
     console.log("khoa", khoa);
     console.log("user", user);
     setSelectedKhoaID(khoa?._id);
   }, [khoas]);
 
+  useEffect(() => {
+    if (!selectedKhoaID) return;
+    getDataForTongHop();
+  }, [selectedKhoaID]);
+  
   // Lấy thời gian hiện tại theo múi giờ của Việt Nam
   const now = dayjs().tz("Asia/Ho_Chi_Minh");
 
@@ -71,13 +75,16 @@ function DashBoardDaotaoKhoa() {
     const toDateISO = todate.toISOString();
     console.log("user", user);
     console.log("selectedKhoaID", selectedKhoaID);
+    if(!selectedKhoaID) return;
     dispatch(
-      getTongHopTinChiTichLuyByKhoa(fromDateISO, toDateISO, sonamcanhbao * 24,selectedKhoaID)
+      getTongHopTinChiTichLuyByKhoa(
+        fromDateISO,
+        toDateISO,
+        sonamcanhbao * 24,
+        selectedKhoaID
+      )
     );
-    // dispatch(
-    //   getTongHopSoLuongTheoKhoa(fromDateISO, toDateISO, sonamcanhbao * 24)
-    // );
-    // dispatch(getTongHopSoLuongHinhThucCapNhatThucHien(fromDateISO, toDateISO));
+    
   };
   const handleNgayBaoCaoChange = (newDate) => {
     // Chuyển đổi về múi giờ VN, kiểm tra đầu vào
@@ -90,7 +97,6 @@ function DashBoardDaotaoKhoa() {
       //   const updatedDate = newDate.hour(7).minute(0).second(0).millisecond(0);
       //   console.log("updateDate", updatedDate);
       setFromdate(newDate);
-      
     }
   };
   useEffect(() => {
@@ -155,14 +161,18 @@ function DashBoardDaotaoKhoa() {
           </Button>
         </Stack>
       </Card>
+      {selectedKhoaID && (
+        <CoCauNguonNhanLuc
+          fromDateISO={fromdate.toISOString()}
+          toDateISO={todate.toISOString()}
+          sonamcanhbao={sonamcanhbao}
+          khoaID={selectedKhoaID}
+        />
+      )}
 
-      <CoCauNguonNhanLuc
-        fromDateISO={fromdate.toISOString()}
-        toDateISO={todate.toISOString()}
-        sonamcanhbao={sonamcanhbao}
-        khoaID={selectedKhoaID}
-      />
-        <TongHopTinChiTableTheoKhoa
+      <MainCard title = 'Chi tiết theo cán bộ'>
+
+      <TongHopTinChiTableTheoKhoa
         giatricanhbao={24 * sonamcanhbao}
         titleExcell={`Tổng hợp tín chỉ tích luỹ cho cán bộ từ ${formatDate_getDate(
           fromdate
@@ -171,7 +181,7 @@ function DashBoardDaotaoKhoa() {
           24 * sonamcanhbao
         } tín chỉ trong ${sonamcanhbao} năm`}
       />
-
+      </MainCard>
     </MainCard>
   );
 }

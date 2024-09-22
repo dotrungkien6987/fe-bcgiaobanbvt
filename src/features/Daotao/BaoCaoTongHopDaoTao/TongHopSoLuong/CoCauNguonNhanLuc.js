@@ -58,7 +58,7 @@ function CoCauNguonNhanLuc({ fromDateISO, toDateISO, sonamcanhbao, khoaID }) {
     height: 250,
   };
   useEffect(() => {
-   
+   if (!khoaID)
     dispatch(
       getTongHopSoLuongTheoKhoa(fromDateISO, toDateISO, sonamcanhbao * 24)
     );

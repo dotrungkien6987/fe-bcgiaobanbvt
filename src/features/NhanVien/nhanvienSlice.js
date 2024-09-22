@@ -192,6 +192,32 @@ const slice = createSlice({
         TenKhoa: item.nhanVien.KhoaID.TenKhoa,
       }));
     },
+    getTongHopTinChiTichLuyByKhoaSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+    
+      //danh sach can bo theo khoa
+      state.tonghoptinchitichluys = action.payload.map((item) => ({
+        ...item,
+        ...item.nhanVien,
+        TenKhoa: item.nhanVien.KhoaID.TenKhoa,
+      }));
+
+        //Xử lý chart tỷ lệ đạt khuyến cáo
+        state.pieChartDatKhuyenCao = [];
+        const dat = state.tonghoptinchitichluys.filter((item) => item.Dat === true).length;
+        const chuadat = state.tonghoptinchitichluys.filter((item) => item.Dat === false).length;
+        
+        state.pieChartDatKhuyenCao.push({
+          label: "Đạt",
+          value:dat,
+        });
+  
+        state.pieChartDatKhuyenCao.push({
+          label: "Chưa đạt",
+          value: chuadat,
+        });
+    },
   },
 });
 
@@ -345,7 +371,7 @@ export const getTongHopTinChiTichLuyByKhoa =
       });
 
       dispatch(
-        slice.actions.getTongHopTinChiTichLuySuccess(response.data.data)
+        slice.actions.getTongHopTinChiTichLuyByKhoaSuccess(response.data.data)
       );
     } catch (error) {
       dispatch(slice.actions.hasError(error));

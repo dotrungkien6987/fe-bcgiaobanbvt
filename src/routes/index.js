@@ -21,13 +21,11 @@ import BaoCaoSuCoYKhoaPage from "../pages/BaoCaoSuCoYKhoaPage";
 import DanhSachSuCoDataGridPage from "../pages/DanhSachSuCoDataGridPage";
 import AdminRequire from "./AdminRequire";
 import DashBoardPage from "../pages/DashBoardPage";
-import TongHopPKYC from "../pages/TongHopPKYCPage";
-import TongHopPKYCPage from "../pages/TongHopPKYCPage";
+
 import KhuyenCaoKhoaPage from "../pages/KhuyenCaoKhoaPage";
 import DashboardRequire from "./DashboardRequire";
 import SupperAdminPage from "../pages/SupperAdminPage";
-import DaoTaoPage from "../pages/DaoTaoPage";
-import NavLayOut from "layouts/NavLayOut";
+
 import Test from "pages/Test";
 import QuanLyHocVienPage from "pages/QuanLyHocVienPage";
 import MainLayoutAble from "layout/MainLayout";
