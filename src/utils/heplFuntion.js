@@ -1595,3 +1595,7 @@ export function chiaNhomDaoTao(arr) {
 
   return { saudaihoc, dtKhac, nckh };
 }
+
+export function isNullOrEmptyObject(obj) {
+  return obj === null || (typeof obj === 'object' && Object.keys(obj).length === 0);
+}

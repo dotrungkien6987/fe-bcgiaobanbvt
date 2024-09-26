@@ -53,12 +53,14 @@ function HoiDongForm({ hoidong, open, handleClose }) {
     // Kiểm tra xem `hoidong` có tồn tại và form đang ở chế độ cập nhật không
     let thanhvien = [];
     if (hoidong && hoidong._id && hoidong._id !== 0) {
+      console.log("hoidong", hoidong);
       thanhvien = hoidong.ThanhVien.map((hv) => ({
         ...hv.NhanVienID,
-        NhanVienID: hv.NhanVienID._id,
+       
         TenKhoa: hv.NhanVienID.KhoaID.TenKhoa,
         Sex: hv.NhanVienID.GioiTinh === 0 ? "Nam" : "Nữ",
         ...hv,
+        NhanVienID: hv.NhanVienID._id,
       }));
       dispatch(setHocVienCurrents(thanhvien));
       reset({
@@ -71,7 +73,7 @@ function HoiDongForm({ hoidong, open, handleClose }) {
         Ten: "",
       });
     }
-  }, [hoidong]);
+  }, [hoidong,open]);
 
   const onSubmitData = (data) => {
     console.log("data form", data);

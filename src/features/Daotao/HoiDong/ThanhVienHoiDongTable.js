@@ -21,8 +21,7 @@ import SelectHocVienForm from "../ChonHocVien/SelectHocVienForm";
 import SelectVaiTro from "../ChonHocVien/SelectVaiTro";
 import RemoveHocVienTrongLop from "../ChonHocVien/RemoveHocVienTrongLop";
 function ThanhVienHoiDongTable({ setSelectedRows }) {
-  const {user} = useAuth()
-  
+ 
   const columns = useMemo(
     () => [
       {
@@ -96,44 +95,19 @@ function ThanhVienHoiDongTable({ setSelectedRows }) {
   );
 
   const dispatch = useDispatch();
-  useEffect(() => {
-    // Gọi hàm để lấy danh sách cán bộ khi component được tạo
-    dispatch(getAllNhanVien());
-  }, [dispatch]);
-
-  const { hocvienCurrents, lopdaotaoCurrent } = useSelector(
+  
+  const { hocvienCurrents } = useSelector(
     (state) => state.daotao
   );
-  const handleClickSave = () => {
-    if (
-      lopdaotaoCurrent.MaHinhThucCapNhat === "ĐT06" &&
-      hocvienCurrents.length > 1
-    ) {
-      alert("Lớp đào tạo nhóm DDT06 chỉ được phép có một học viên .");
-      return;
-    }
-    if (
-      lopdaotaoCurrent &&
-      lopdaotaoCurrent._id &&
-      lopdaotaoCurrent._id !== 0
-    ) {
-      const lopdaotaonhanvienData = hocvienCurrents.map((hv) => ({
-        LopDaoTaoID: lopdaotaoCurrent._id,
-        NhanVienID: hv.NhanVienID,
-        VaiTro: hv.VaiTro,
-      }));
+  const {nhanviens  } = useSelector(
+    (state) => state.nhanvien
+  );
+  useEffect(() => {
+    // Gọi hàm để lấy danh sách cán bộ khi component được tạo
+    
+    if (nhanviens.length === 0) dispatch(getAllNhanVien());
+  }, []);
 
-      dispatch(
-        insertOrUpdateLopDaoTaoNhanVien({
-          lopdaotaonhanvienData,
-          lopdaotaoID: lopdaotaoCurrent._id,
-        })
-      );
-    } else {
-      // Hiển thị thông báo cho người dùng
-      alert("Vui lòng cập nhật thông tin lớp đào tạo hợp lệ trước.");
-    }
-  };
   const data = useMemo(() => hocvienCurrents, [hocvienCurrents]);
   return (
     <Card variant="outlined" sx={{ p: 1 }}>
@@ -143,17 +117,7 @@ function ThanhVienHoiDongTable({ setSelectedRows }) {
           Danh sách học viên trong lớp
         </Typography>
         <Box sx={{ flexGrow: 1 }}></Box>
-        {lopdaotaoCurrent &&
-          lopdaotaoCurrent._id &&
-          lopdaotaoCurrent._id !== 0 && (user._id === lopdaotaoCurrent.UserIDCreated) && (
-            <Button
-              variant="contained"
-              startIcon={<SaveIcon />}
-              onClick={handleClickSave}
-            >
-              Lưu thành viên tham gia
-            </Button>
-          )}
+      
       </Stack>
 
       

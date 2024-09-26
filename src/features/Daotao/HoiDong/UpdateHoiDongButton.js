@@ -9,7 +9,7 @@ function UpdateHoiDongButton({hoidong}) {
   
   const [openForm,setOpenForm] =useState(false)
   const handleUpdate = () => {
-   
+   console.log("hooij",hoidong);
 setOpenForm(true)
   };
   return (

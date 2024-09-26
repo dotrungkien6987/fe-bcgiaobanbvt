@@ -11,14 +11,21 @@ import SelectVaiTro from "./SelectVaiTro";
 import RemoveHocVienTrongLop from "./RemoveHocVienTrongLop";
 import SaveIcon from "@mui/icons-material/Save";
 
-import { insertOrUpdateLopDaoTaoNhanVien } from "../daotaoSlice";
+import {
+  insertOrUpdateLopDaoTaoNhanVien,
+  updateHoiDongForLopDaoTao,
+} from "../daotaoSlice";
 
 import { formatDate_getDate } from "utils/formatTime";
 import DongBoHocViensTamButton from "./DongBoHocViensTamButton";
 import useAuth from "hooks/useAuth";
+import SelectHoiDong from "../HoiDong/ChonHoiDong/SelectHoiDong";
+
 function HocVienLopTable({ setSelectedRows }) {
-  const {user} = useAuth()
-  
+  const { user } = useAuth();
+  const { hoidongCurrent, vaitroquydoiCurents } = useSelector(
+    (state) => state.daotao
+  );
   const columns = useMemo(
     () => [
       {
@@ -100,7 +107,51 @@ function HocVienLopTable({ setSelectedRows }) {
   const { hocvienCurrents, lopdaotaoCurrent } = useSelector(
     (state) => state.daotao
   );
+  function validateHocVien(hocvienCurrents, vaitro) {
+    // Bước 1: Kiểm tra NhanVienID trùng lặp
+    const nhanVienIDSet = new Set();
+
+    for (let i = 0; i < hocvienCurrents.length; i++) {
+      const hocvien = hocvienCurrents[i];
+
+      if (nhanVienIDSet.has(hocvien.NhanVienID)) {
+        return {
+          value: false,
+          message: `Trùng NhanVienID: ${hocvien.Ten} có NhanVienID: ${hocvien.NhanVienID}`,
+        };
+      }
+      nhanVienIDSet.add(hocvien.NhanVienID);
+    }
+
+    // Bước 2: Kiểm tra VaiTro có hợp lệ không
+    const validVaiTroSet = new Set(vaitro.map((item) => item.VaiTro));
+
+    for (let i = 0; i < hocvienCurrents.length; i++) {
+      const hocvien = hocvienCurrents[i];
+
+      if (!validVaiTroSet.has(hocvien.VaiTro)) {
+        return {
+          value: false,
+          message: `Vai trò không hợp lệ cho: ${hocvien.Ten} với vai trò: ${hocvien.VaiTro}`,
+        };
+      }
+    }
+
+    // Nếu tất cả điều kiện đều thỏa mãn
+    return {
+      value: true,
+      message: "",
+    };
+  }
+
   const handleClickSave = () => {
+    //validate dữ liệu trước khi lưu
+    const check = validateHocVien(hocvienCurrents, vaitroquydoiCurents);
+    if (!check.value) {
+      alert(check.message);
+      return;
+    }
+    //Validate đối với DDT06 chỉ có 1 học viên
     if (
       lopdaotaoCurrent.MaHinhThucCapNhat?.startsWith("ĐT06") &&
       hocvienCurrents.length > 1
@@ -118,7 +169,20 @@ function HocVienLopTable({ setSelectedRows }) {
         NhanVienID: hv.NhanVienID,
         VaiTro: hv.VaiTro,
       }));
-
+      if (hoidongCurrent !== "0")
+        dispatch(
+          updateHoiDongForLopDaoTao({
+            hoidongID: hoidongCurrent,
+            lopdaotaoID: lopdaotaoCurrent._id,
+          })
+        );
+      else
+        dispatch(
+          updateHoiDongForLopDaoTao({
+            hoidongID: null,
+            lopdaotaoID: lopdaotaoCurrent._id,
+          })
+        );
       dispatch(
         insertOrUpdateLopDaoTaoNhanVien({
           lopdaotaonhanvienData,
@@ -139,9 +203,11 @@ function HocVienLopTable({ setSelectedRows }) {
           Danh sách học viên trong lớp
         </Typography>
         <Box sx={{ flexGrow: 1 }}></Box>
+        <SelectHoiDong />
         {lopdaotaoCurrent &&
           lopdaotaoCurrent._id &&
-          lopdaotaoCurrent._id !== 0 && (user._id === lopdaotaoCurrent.UserIDCreated) && (
+          lopdaotaoCurrent._id !== 0 &&
+          user._id === lopdaotaoCurrent.UserIDCreated && (
             <Button
               variant="contained"
               startIcon={<SaveIcon />}
@@ -152,8 +218,6 @@ function HocVienLopTable({ setSelectedRows }) {
           )}
       </Stack>
 
-      
-
       <StickyTable
         data={data}
         columns={columns}
@@ -161,9 +225,13 @@ function HocVienLopTable({ setSelectedRows }) {
         sx={{ height: 598 }}
         additionalComponent={
           <Stack direction="row" spacing={1}>
-            {lopdaotaoCurrent && lopdaotaoCurrent._id && (
-              <DongBoHocViensTamButton lopdaotaoID={lopdaotaoCurrent._id} />
-            )}
+            {lopdaotaoCurrent &&
+              lopdaotaoCurrent._id &&
+              (lopdaotaoCurrent.MaHinhThucCapNhat?.startsWith("ĐT") ? (
+                <DongBoHocViensTamButton lopdaotaoID={lopdaotaoCurrent._id} />
+              ) : (
+                <></>
+              ))}
             <SelectHocVienForm />
             <SelectVaiTro />
           </Stack>

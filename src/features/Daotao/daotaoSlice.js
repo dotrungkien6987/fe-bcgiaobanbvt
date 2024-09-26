@@ -29,7 +29,9 @@ const initialState = {
   dataExport: [],
 
   //type HinhThucCapNhat
-  typeHinhThucCapNhat:'All'
+  typeHinhThucCapNhat: "All",
+
+  hoidongCurrent: {},
 };
 
 const slice = createSlice({
@@ -96,6 +98,19 @@ const slice = createSlice({
       );
       state.lopdaotaoCurrent.TrangThai = action.payload.TrangThai;
     },
+    updateHoiDongForLopDaoTaoSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.LopDaoTaos = state.LopDaoTaos.map((item) =>
+        item._id === action.payload.lopdaotaoID
+          ? {
+              ...item,
+              HoiDongID: action.payload.hoidongID,
+            }
+          : item
+      );
+      state.lopdaotaoCurrent.HoiDongID = action.payload.hoidongID;
+    },
     deleteOneLopDaoTaoSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
@@ -111,7 +126,7 @@ const slice = createSlice({
         ...item,
         NgayBatDauFormat: formatDate_getDate(item.NgayBatDau),
         NgayKetThucFormat: formatDate_getDate(item.NgayKetThuc),
-        NguoiTao:item.UserIDCreated?.UserName || ''
+        NguoiTao: item.UserIDCreated?.UserName || "",
       }));
     },
 
@@ -149,8 +164,9 @@ const slice = createSlice({
     getOneLopDaoTaoByIDSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      
+
       state.lopdaotaoCurrent = action.payload.lopdaotao;
+console.log("action.payload getOneLopDaoTaoByIDSuccess", action.payload);
       state.vaitroquydoiCurents =
         action.payload.HinhThucCapNhat.find(
           (item) => item.Ma === state.lopdaotaoCurrent.MaHinhThucCapNhat
@@ -165,8 +181,9 @@ const slice = createSlice({
           DenNgayFormat: formatDate_getDate(item.DenNgay),
         };
       });
-      
-      state.hocviendt06Current = action.payload.lopdaotaonhanvien[0]?.NhanVienID || {};
+
+      state.hocviendt06Current =
+        action.payload.lopdaotaonhanvien[0]?.NhanVienID || {};
       //load dữ liệu cho hocvienCurrents từ lopdaotaonhanvien khi tam=false, từ lopdaotaonhanvientam khi tam=true
       if (!action.payload.tam) {
         state.hocvienCurrents = action.payload.lopdaotaonhanvien.map((item) => {
@@ -195,7 +212,6 @@ const slice = createSlice({
             TuDong: tinhtudong,
             ...diemdanhSections,
           };
-          
         });
       } else {
         state.hocvienCurrents = action.payload.lopdaotaonhanvien.map((item) => {
@@ -209,7 +225,6 @@ const slice = createSlice({
           };
         });
       }
-      
     },
     setVaiTroCurrentSuccess(state, action) {
       state.isLoading = false;
@@ -292,25 +307,39 @@ const slice = createSlice({
     },
 
     //reset hocvienCurrents
-    
+
     setHocVienCurrentsSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-     
+
       state.hocvienCurrents = action.payload;
-    
     },
     //reset hocvienCurrents
-    
+
     setDataExportSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-     
+
       state.dataExport = action.payload;
-    
     },
 
-
+    // xử lý khi thay đổi hội đồng current
+    setHoiDongCurrentSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.hoidongCurrent = action.payload;
+      
+    },
+    updateHocVienCurrentsWhenHoiDongChangedSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+    
+      state.hocvienCurrents = updateHocVienCurrents(
+        state.hocvienCurrents,
+        action.payload.thanhvienOld,
+        action.payload.thanhvienNew
+      );
+    },
   },
 });
 export default slice.reducer;
@@ -354,6 +383,27 @@ export const updateOneLopDaoTao =
     }
   };
 
+export const updateHoiDongForLopDaoTao =
+  ({ hoidongID, lopdaotaoID }) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      const response = await apiService.put(`/lopdaotao/updatehoidong`, {
+        hoidongID,
+        lopdaotaoID,
+      });
+      dispatch(
+        slice.actions.updateHoiDongForLopDaoTaoSuccess({
+          hoidongID,
+          lopdaotaoID,
+        })
+      );
+      toast.success("Cập nhật hội đồng thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
 export const updateTrangThaiLopDaoTao =
   ({ TrangThai, lopdaotaoID }) =>
   async (dispatch) => {
@@ -636,39 +686,36 @@ export const deleteOneQuaTrinhDT06 = (quatrinhdt06ID) => async (dispatch) => {
   }
 };
 
-export const setVaiTroQuyDoiCurrentsWithCaseIsHoiDong = (vaitro) => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
-  try {
-    dispatch(slice.actions.setVaiTroQuyDoiCurrentsWithCaseIsHoiDongSuccess(vaitro));
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message);
-  }
-};
+export const setVaiTroQuyDoiCurrentsWithCaseIsHoiDong =
+  (vaitro) => async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      dispatch(
+        slice.actions.setVaiTroQuyDoiCurrentsWithCaseIsHoiDongSuccess(vaitro)
+      );
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
 
- 
 export const setHocVienCurrents = (thanhvien) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
     dispatch(slice.actions.setHocVienCurrentsSuccess(thanhvien));
-   
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
-  
   }
 };
- 
 
 export const setDataExport = (dataExport) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
     dispatch(slice.actions.setDataExportSuccess(dataExport));
-   
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
-  
   }
 };
 
@@ -681,3 +728,42 @@ export const setTypeHinhThucCapNhat = (type) => async (dispatch) => {
     toast.error(error.message);
   }
 };
+
+export const setHoiDongCurrent = (hoidong) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+ 
+    dispatch(slice.actions.setHoiDongCurrentSuccess(hoidong));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+export const updateHocVienCurrentsWhenHoiDongChanged = (thanhvien) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+ 
+    dispatch(slice.actions.updateHocVienCurrentsWhenHoiDongChangedSuccess(thanhvien));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+function updateHocVienCurrents(hocvienCurrents, thanhvienOld, thanhvienNew) {
+  
+  // Bước 1: Xóa các phần tử trong hocvienCurrents mà có NhanVienID và VaiTro trùng với thanhvienOld
+  hocvienCurrents = hocvienCurrents.filter((hocvien) => {
+    return !thanhvienOld.some(
+      (thanhvien) =>
+        hocvien.NhanVienID === thanhvien.NhanVienID &&
+        hocvien.VaiTro === thanhvien.VaiTro
+    );
+  });
+
+  // Bước 2: Thêm các phần tử trong thanhvienNew vào hocvienCurrents
+  hocvienCurrents.push(...thanhvienNew);
+
+  return hocvienCurrents;
+}

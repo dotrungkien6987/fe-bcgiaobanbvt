@@ -21,6 +21,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addselectedHocVien } from "../daotaoSlice";
 import AddIcon from "@mui/icons-material/Add";
 import { is } from "date-fns/locale";
+import { isNullOrEmptyObject } from "utils/heplFuntion";
 
 const Transition = forwardRef((props, ref) => (
   <Slide direction="up" ref={ref} {...props} />
@@ -32,8 +33,12 @@ export default function SelectHocVienForm({isHoiDong = false}) {
   const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
-  const { lopdaotaoCurrent } = useSelector((state) => state.daotao);
+  const { lopdaotaoCurrent,vaitroCurrent } = useSelector((state) => state.daotao);
   const handleClickOpen = () => {
+    if (isNullOrEmptyObject(vaitroCurrent)){
+      alert("Vui lòng chọn vai trò")
+      return;
+    }
     setOpen(true);
   };
 

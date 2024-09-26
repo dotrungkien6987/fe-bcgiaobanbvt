@@ -8,6 +8,7 @@ const initialState = {
   
   HinhThucCapNhat:[],
   HoiDong:[],
+  
 };
 
 const slice = createSlice({
@@ -76,7 +77,7 @@ const slice = createSlice({
         hoidong._id === action.payload._id ? action.payload : hoidong
       );
     },
-
+   
   },
 });
 
@@ -190,3 +191,4 @@ export const updateOneHoiDong = (hoidong) => async (dispatch) => {
     toast.error(error.message);
   }
 };
+

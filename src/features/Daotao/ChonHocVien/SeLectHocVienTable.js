@@ -114,6 +114,7 @@ function SeLectHocVienTable({onSelectedRowsChange}) {
   const { nhanviens } = useSelector((state) => state.nhanvien);
   useEffect(() => {
     // Gọi hàm để lấy danh sách cán bộ khi component được tạo
+    
     if (nhanviens.length === 0) dispatch(getAllNhanVien());
   }, []);
 

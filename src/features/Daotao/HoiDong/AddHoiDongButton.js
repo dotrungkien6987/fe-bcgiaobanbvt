@@ -2,15 +2,16 @@ import { Button } from "@mui/material";
 import React, { useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import HoiDongForm from "./HoiDongForm";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { isNullOrEmptyObject } from "utils/heplFuntion";
 
 
 
 function AddHoiDongButton() {
   const [openFormAddNew, setOpenFormAddNew] = useState(false);
-  const dispatch = useDispatch();
+  
   const handleThemMoi = async () => {
-      
+    
     setOpenFormAddNew(true)
     console.log("them moi");
   };
