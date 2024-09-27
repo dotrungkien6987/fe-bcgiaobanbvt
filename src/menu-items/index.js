@@ -12,6 +12,7 @@ import daotaos from './daotaos';
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
+  // items: [ ]
   items: [ daotaos, pages,baocao,hethong]
   // items: [widget, applications, formsTables, chartsMap, pages, support]
 };

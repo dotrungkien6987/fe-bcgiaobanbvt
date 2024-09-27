@@ -13,6 +13,8 @@ import DieuHanh from "../features/DashBoard/DieuHanh";
 import TaiChinh from "../features/DashBoard/TaiChinh";
 import HaiLongNguoiBenh from "../features/DashBoard/HaiLongNguoiBenh";
 import DashBoardKhoa from "../features/DashBoard/DashBoardKhoa/DashBoardKhoa";
+import DashBoardDaotao from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaotao/DashBoardDaotao";
+import DashBoardDaotaoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaoTaoKhoa/DashBoardDaotaoKhoa";
 
 const TabsWrapperStyled = styled("div")(({ theme }) => ({
   zIndex: 9,
@@ -67,6 +69,16 @@ function DashBoardPage() {
       value: "HÀI LÒNG NGƯỜI BỆNH",
       
       component: <HaiLongNguoiBenh />,
+    },
+    {
+      value: "Đào tạo toàn viện",
+      
+      component: <DashBoardDaotao />,
+    },
+    {
+      value: "Đào tạo theo khoa",
+      
+      component: <DashBoardDaotaoKhoa />,
     },
   ];
   

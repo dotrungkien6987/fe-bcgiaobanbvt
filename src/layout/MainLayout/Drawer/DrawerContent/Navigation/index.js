@@ -99,10 +99,14 @@ const Navigation = () => {
       sx={{
         pt: drawerOpen ? (isHorizontal ? 0 : 2) : 0,
         '& > ul:first-of-type': { mt: 0 },
-        display: isHorizontal ? { xs: 'block', lg: 'flex' } : 'block'
+        display: isHorizontal ? { xs: 'block', lg: 'flex' } : 'block',
+        overflowY: 'auto', // Cho phép cuộn dọc
+        height: '100%',   // Đặt chiều cao để Box có thể cuộn
+        maxHeight: '100vh' // Giới hạn chiều cao để không vượt quá màn hình
       }}
     >
       {navGroups}
+      
     </Box>
   );
 };
