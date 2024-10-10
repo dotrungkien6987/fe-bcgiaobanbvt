@@ -13,10 +13,13 @@ import { useSelector } from 'react-redux';
 import useConfig from 'hooks/useConfig';
 import { HORIZONTAL_MAX_ITEM } from 'configAble';
 import { MenuOrientation } from 'configAble';
+import useAuth from 'hooks/useAuth';
 
 // ==============================|| DRAWER CONTENT - NAVIGATION ||============================== //
 
 const Navigation = () => {
+  const {user} = useAuth()
+  
   const theme = useTheme();
 
   const downLG = useMediaQuery(theme.breakpoints.down('lg'));
@@ -95,7 +98,9 @@ const Navigation = () => {
     }
   });
   return (
-    <Box
+    <>
+    {(user.PhanQuyen === "admin"||user.PhanQuyen === "daotao")?(
+      <Box
       sx={{
         pt: drawerOpen ? (isHorizontal ? 0 : 2) : 0,
         '& > ul:first-of-type': { mt: 0 },
@@ -108,6 +113,10 @@ const Navigation = () => {
       {navGroups}
       
     </Box>
+    ):(
+      <Box></Box>
+    )}
+   </>
   );
 };
 

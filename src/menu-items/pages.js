@@ -35,18 +35,73 @@ const pages = {
           type: 'item',
           url: '/lopdaotaos/NCKH06'
         },
+       
         {
-          id: 'detaicapcoso',
-          title: 'Đề tài cấp cơ sở',
-          type: 'item',
-          url: '/lopdaotaos/NCKH01'
+          id: "detai",
+          title: <>Đề tài khoa học</>,
+          type: "collapse",
+          children: [
+            {
+              id: "detaicoso",
+              title: <>Cấp cơ sở</>,
+              type: "item",
+              url: '/lopdaotaos/NCKH011',
+            },
+            {
+              id: "detaicaptinh",
+              title: <>Cấp tỉnh</>,
+              type: "item",
+              url: '/lopdaotaos/NCKH012',
+            },
+          
+            {
+              id: "detaicapbo",
+              title: <>Cấp bộ</>,
+              type: "item",
+              url: '/lopdaotaos/NCKH013',
+            },
+            {
+              id: "detaicapquocgia",
+              title: <>Cấp quốc gia</>,
+              type: "item",
+              url: '/lopdaotaos/NCKH014',
+            },
+          ],
         },
+      
         {
-          id: 'detaicaptinh',
-          title: 'Đề tài cấp tỉnh/bộ/quốc gia',
-          type: 'item',
-          url: '/lopdaotaos/NCKH04'
+          id: "sangkien",
+          title: <>Sáng kiến khoa học</>,
+          type: "collapse",
+          children: [
+            {
+              id: "sangkiencoso",
+              title: <>Cấp cơ sở</>,
+              type: "item",
+              url: '/lopdaotaos/NCKH015',
+            },
+            {
+              id: "sangkiencaptinh",
+              title: <>Cấp tỉnh</>,
+              type: "item",
+              url: '/lopdaotaos/NCKH016',
+            },
+          
+            {
+              id: "sangkiencapbo",
+              title: <>Cấp bộ</>,
+              type: "item",
+              url: '/lopdaotaos/NCKH017',
+            },
+            {
+              id: "sangkiencapquocgia",
+              title: <>Cấp quốc gia</>,
+              type: "item",
+              url: '/lopdaotaos/NCKH018',
+            },
+          ],
         },
+      
         {
           id: 'baoquocte',
           title: 'Báo quốc tế',

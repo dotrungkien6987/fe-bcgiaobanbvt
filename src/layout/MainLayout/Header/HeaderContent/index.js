@@ -103,17 +103,19 @@ const HeaderContent = () => {
         Home
       </MenuItem>
       {(user.PhanQuyen === "admin"||user.PhanQuyen === "manager") && (
-        <>
+        [
           <MenuItem
+           key="dashboard"
             onClick={handleMenuClose}
             to="/dashboard"
             component={RouterLink}
             sx={{ mx: 1 }}
           >
             DashBoard
-          </MenuItem>
+          </MenuItem>,
 
           <MenuItem
+          key="khuyencaokhoa"
             onClick={handleMenuClose}
             to="/khuyencaokhoa"
             component={RouterLink}
@@ -121,10 +123,11 @@ const HeaderContent = () => {
           >
             Khuyến cáo khoa
           </MenuItem>
-        </>
+        ]
       )}
       {user.PhanQuyen === "admin" && (
         <MenuItem
+        key="admin"
           onClick={handleMenuClose}
           to="/admin"
           component={RouterLink}
@@ -135,6 +138,7 @@ const HeaderContent = () => {
       )}
 
       <MenuItem
+      key="tongtruc"
         onClick={handleMenuClose}
         to="/tongtruc"
         component={RouterLink}
@@ -155,6 +159,7 @@ const HeaderContent = () => {
       </MenuItem> */}
 
       <MenuItem
+      key="baocaosuco"
         onClick={handleMenuClose}
         to="/baocaosuco"
         component={RouterLink}
@@ -164,6 +169,7 @@ const HeaderContent = () => {
       </MenuItem>
       <Divider sx={{ borderStyle: "dashed" }} />
       <MenuItem
+      key="lopdaotaos"
         onClick={handleMenuClose}
         to="/lopdaotaos"
         component={RouterLink}

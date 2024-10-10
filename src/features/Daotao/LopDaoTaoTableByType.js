@@ -20,11 +20,18 @@ import TrangThaiLopDaoTao from "./TrangThaiLopDaoTao";
 import ScrollX from "components/ScrollX";
 import ThemHocVienTamButton from "./ThemHocVienTam/ThemHocVienTamButton";
 import { useParams } from "react-router-dom";
+import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
+import { el } from "date-fns/locale";
 
 function LopDaoTaoTableByType() {
   const params = useParams();
   let typeLopDaoTao = params.type;
-
+const {HinhThucCapNhat} = useSelector((state) => state.hinhthuccapnhat)
+useEffect(() => {
+  if (HinhThucCapNhat.length === 0) {
+    dispatch(getAllHinhThucCapNhat());
+  }
+},[])
   // Kiểm tra nếu ký tự đầu tiên là 'D' thì thay bằng 'Đ'
 if (typeLopDaoTao && typeLopDaoTao.charAt(0) === 'D') {
   typeLopDaoTao = 'Đ' + typeLopDaoTao.slice(1);
@@ -219,49 +226,54 @@ if (typeLopDaoTao && typeLopDaoTao.charAt(0) === 'D') {
     [data]
   );
   const quyDoiLoaiDaoTao =(maLoai) =>{
-    switch (maLoai) {
-        case "ĐT01":
-            return "khóa đào tạo ngắn hạn";
-        case "ĐT02":
-            return "hội nghị ,hội thảo tại viện";
-        case "ĐT03":
-            return "hội thảo ngoại viện tuyến trên";
-        case "ĐT08":
-            return "soạn thảo quy trình chuyên môn";
-        case "ĐT04":
-            return "soạn thảo quy phạm pháp luật ban hành quy trình chuyên môn";
-        case "ĐT05":
-            return "giảng dạy y khoa";
-        case "ĐT07":
-            return "giảng dạy cấp chứng chỉ tuyến trên";
-        case "ĐT09":
-            return "hội chẩn ca bệnh";
-        case "NCKH06":
-            return "sinh hoạt khoa học";
-        case "NCKH01":
-            return "đề tài cấp cơ sở";
-        case "NCKH04":
-            return "đề tài cấp tỉnh/bộ/quốc gia";
-        case "NCKH02":
-            return "đăng báo quốc tế";
-        case "NCKH03":
-            return "đăng báo trong nước";
-        case "NCKH07":
-            return "tập huấn, hội nghị, hội thảo";
-        case "NCKH08":
-            return "tập san thông tin thuốc, y học thực hành";
-        case "ĐT061":
-            return "đào tạo thạc sĩ";
-        case "ĐT062":
-            return "đào tạo tiến sĩ";
-        case "ĐT063":
-            return "bác sĩ chuyên khoa I";
-        case "ĐT064":
-            return "bác sĩ chuyên khoa II";
-        default:
-            return "lớp đào tạo";
-    }
+   const hinhthuc = HinhThucCapNhat.find((item) => item.Ma === maLoai)
+   if (hinhthuc.TenBenhVien) return hinhthuc.TenBenhVien
+   else return "Lớp đào tạo"
 }
+//   const quyDoiLoaiDaoTao =(maLoai) =>{
+//     switch (maLoai) {
+//         case "ĐT01":
+//             return "khóa đào tạo ngắn hạn";
+//         case "ĐT02":
+//             return "hội nghị ,hội thảo tại viện";
+//         case "ĐT03":
+//             return "hội thảo ngoại viện tuyến trên";
+//         case "ĐT08":
+//             return "soạn thảo quy trình chuyên môn";
+//         case "ĐT04":
+//             return "soạn thảo quy phạm pháp luật ban hành quy trình chuyên môn";
+//         case "ĐT05":
+//             return "giảng dạy y khoa";
+//         case "ĐT07":
+//             return "giảng dạy cấp chứng chỉ tuyến trên";
+//         case "ĐT09":
+//             return "hội chẩn ca bệnh";
+//         case "NCKH06":
+//             return "sinh hoạt khoa học";
+//         case "NCKH01":
+//             return "đề tài cấp cơ sở";
+//         case "NCKH04":
+//             return "đề tài cấp tỉnh/bộ/quốc gia";
+//         case "NCKH02":
+//             return "đăng báo quốc tế";
+//         case "NCKH03":
+//             return "đăng báo trong nước";
+//         case "NCKH07":
+//             return "tập huấn, hội nghị, hội thảo";
+//         case "NCKH08":
+//             return "tập san thông tin thuốc, y học thực hành";
+//         case "ĐT061":
+//             return "đào tạo thạc sĩ";
+//         case "ĐT062":
+//             return "đào tạo tiến sĩ";
+//         case "ĐT063":
+//             return "bác sĩ chuyên khoa I";
+//         case "ĐT064":
+//             return "bác sĩ chuyên khoa II";
+//         default:
+//             return "lớp đào tạo";
+//     }
+// }
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>

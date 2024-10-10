@@ -31,7 +31,7 @@ const initialState = {
   //type HinhThucCapNhat
   typeHinhThucCapNhat: "All",
 
-  hoidongCurrent: {},
+  hoidongCurrent: "0",
 };
 
 const slice = createSlice({

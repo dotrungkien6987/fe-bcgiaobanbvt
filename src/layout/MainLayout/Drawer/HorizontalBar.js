@@ -1,65 +1,65 @@
-import { cloneElement } from 'react';
+// import { cloneElement } from 'react';
 
-// material-ui
-import { alpha, useTheme } from '@mui/material/styles';
-import { AppBar, Box, Container, useScrollTrigger } from '@mui/material';
+// // material-ui
+// import { alpha, useTheme } from '@mui/material/styles';
+// import { AppBar, Box, Container, useScrollTrigger } from '@mui/material';
 
-// project-imports
-import Navigation from './DrawerContent/Navigation';
+// // project-imports
+// import Navigation from './DrawerContent/Navigation';
 
-import { HEADER_HEIGHT } from 'configAble';
-import useConfig from 'hooks/useConfig';
+// import { HEADER_HEIGHT } from 'configAble';
+// import useConfig from 'hooks/useConfig';
 
-// ==============================|| HORIZONTAL MENU LIST ||============================== //
+// // ==============================|| HORIZONTAL MENU LIST ||============================== //
 
-function ElevationScroll({ children, window }) {
+// function ElevationScroll({ children, window }) {
   
-  // Note that you normally won't need to set the window ref as useScrollTrigger
-  // will default to window.
-  // This is only being set here because the demo is in an iframe.
-  const trigger = useScrollTrigger({
-    disableHysteresis: true,
-    threshold: 0,
-    target: window
-  });
+//   // Note that you normally won't need to set the window ref as useScrollTrigger
+//   // will default to window.
+//   // This is only being set here because the demo is in an iframe.
+//   const trigger = useScrollTrigger({
+//     disableHysteresis: true,
+//     threshold: 0,
+//     target: window
+//   });
 
-  // theme.shadows[4] = theme.customShadows.z1;
-  // theme.shadows[1] = theme.customShadows.z2;
+//   // theme.shadows[4] = theme.customShadows.z1;
+//   // theme.shadows[1] = theme.customShadows.z2;
 
-  return cloneElement(children, {
-    elevation: trigger ? 4 : 1
-  });
-}
+//   return cloneElement(children, {
+//     elevation: trigger ? 4 : 1
+//   });
+// }
 
-// ==============================|| HORIZONTAL MENU ||============================== //
+// // ==============================|| HORIZONTAL MENU ||============================== //
 
-const CustomAppBar = () => {
-  const theme = useTheme();
-  const { container } = useConfig();
+// const CustomAppBar = () => {
+//   const theme = useTheme();
+//   const { container } = useConfig();
 
-  return (
-    <ElevationScroll>
-      <AppBar
-        sx={{
-          top: HEADER_HEIGHT,
-          height: HEADER_HEIGHT,
-          bgcolor: alpha(theme.palette.background.default, 0.8),
-          backdropFilter: 'blur(8px)',
-          width: '100%',
-          justifyContent: 'center',
-          borderTop: `1px solid ${theme.palette.divider}`,
-          zIndex: 1098,
-          color: theme.palette.secondary.main
-        }}
-      >
-        <Container maxWidth={container ? 'xl' : false}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Navigation />
-          </Box>
-        </Container>
-      </AppBar>
-    </ElevationScroll>
-  );
-};
+//   return (
+//     <ElevationScroll>
+//       <AppBar
+//         sx={{
+//           top: HEADER_HEIGHT,
+//           height: HEADER_HEIGHT,
+//           bgcolor: alpha(theme.palette.background.default, 0.8),
+//           backdropFilter: 'blur(8px)',
+//           width: '100%',
+//           justifyContent: 'center',
+//           borderTop: `1px solid ${theme.palette.divider}`,
+//           zIndex: 1098,
+//           color: theme.palette.secondary.main
+//         }}
+//       >
+//         <Container maxWidth={container ? 'xl' : false}>
+//           <Box sx={{ display: 'flex', alignItems: 'center' }}>
+//             <Navigation />
+//           </Box>
+//         </Container>
+//       </AppBar>
+//     </ElevationScroll>
+//   );
+// };
 
-export default CustomAppBar;
+// export default CustomAppBar;

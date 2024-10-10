@@ -169,20 +169,23 @@ function HocVienLopTable({ setSelectedRows }) {
         NhanVienID: hv.NhanVienID,
         VaiTro: hv.VaiTro,
       }));
-      if (hoidongCurrent !== "0")
-        dispatch(
-          updateHoiDongForLopDaoTao({
-            hoidongID: hoidongCurrent,
-            lopdaotaoID: lopdaotaoCurrent._id,
-          })
-        );
-      else
-        dispatch(
-          updateHoiDongForLopDaoTao({
-            hoidongID: null,
-            lopdaotaoID: lopdaotaoCurrent._id,
-          })
-        );
+      if (lopdaotaoCurrent.MaHinhThucCapNhat.startsWith("NCKH")) {
+       
+        if (hoidongCurrent !== "0")
+          dispatch(
+            updateHoiDongForLopDaoTao({
+              hoidongID: hoidongCurrent,
+              lopdaotaoID: lopdaotaoCurrent._id,
+            })
+          );
+        else
+          dispatch(
+            updateHoiDongForLopDaoTao({
+              hoidongID: null,
+              lopdaotaoID: lopdaotaoCurrent._id,
+            })
+          );
+      }
       dispatch(
         insertOrUpdateLopDaoTaoNhanVien({
           lopdaotaonhanvienData,
@@ -203,7 +206,12 @@ function HocVienLopTable({ setSelectedRows }) {
           Danh sách học viên trong lớp
         </Typography>
         <Box sx={{ flexGrow: 1 }}></Box>
+        {lopdaotaoCurrent &&
+          lopdaotaoCurrent._id &&
+          lopdaotaoCurrent._id !== 0 && lopdaotaoCurrent.MaHinhThucCapNhat.startsWith("NCKH")&&(
+
         <SelectHoiDong />
+          )}
         {lopdaotaoCurrent &&
           lopdaotaoCurrent._id &&
           lopdaotaoCurrent._id !== 0 &&

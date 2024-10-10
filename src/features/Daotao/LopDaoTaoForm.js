@@ -20,14 +20,13 @@ import {
   updateOneLopDaoTao,
 } from "./daotaoSlice";
 
-import DropzonePage from "forms/plugins/dropzone";
-
 import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import { useParams } from "react-router-dom";
 import HocVienLopTable from "./ChonHocVien/HocVienLopTable";
 import DiemDanhLopDaoTaoButton from "./DiemDanhLopDaoTaoButton";
 import useAuth from "hooks/useAuth";
+import { getKhoas } from "features/BaoCaoNgay/baocaongaySlice";
 
 const yupSchema = Yup.object().shape({
   MaHinhThucCapNhat: Yup.object({
@@ -40,9 +39,10 @@ const yupSchema = Yup.object().shape({
   NgayKetThuc: Yup.date().nullable().required("Bắt buộc chọn ngày kết thúc"),
 });
 
-function LopDaoTaoForm({mahinhthuccapnhat}) {
+function LopDaoTaoForm({ mahinhthuccapnhat }) {
   const params = useParams();
-  const {lopdaotaoID,type} = params;
+  const { khoas } = useSelector((state) => state.baocaongay);
+  const { lopdaotaoID, type } = params;
   const { lopdaotaoCurrent } = useSelector((state) => state.daotao);
   const { HinhThucCapNhat } = useSelector((state) => state.hinhthuccapnhat);
   const { NoiDaoTao, NguonKinhPhi, HinhThucDaoTao } = useSelector(
@@ -54,6 +54,12 @@ function LopDaoTaoForm({mahinhthuccapnhat}) {
     if (lopdaotaoID) dispatch(getOneLopDaoTaoByID({ lopdaotaoID, tam: false }));
     else dispatch(resetLopDaoTaoCurrent());
   }, []);
+
+  useEffect(() => {
+    if (khoas && khoas.length > 0) return;
+    dispatch(getKhoas());
+  }, []);
+
   useEffect(() => {
     if (HinhThucCapNhat.length === 0) {
       dispatch(getAllHinhThucCapNhat());
@@ -73,6 +79,7 @@ function LopDaoTaoForm({mahinhthuccapnhat}) {
       NoiDaoTao: null,
       NguonKinhPhi: null,
       HinhThucDaoTao: null,
+      KhoaID:null,
       GhiChu: "",
       SoLuong: 1,
       NgayBatDau: null,
@@ -84,11 +91,24 @@ function LopDaoTaoForm({mahinhthuccapnhat}) {
     handleSubmit,
     reset,
     setValue,
+    watch, // Dùng watch để theo dõi thay đổi
     formState: { isSubmitting },
   } = methods;
 
+  // Sử dụng watch để theo dõi giá trị của MaHinhThucCapNhat
+  const maHinhThucCapNhatValue = watch("MaHinhThucCapNhat");
+
   useEffect(() => {
-    
+    // Logic khi MaHinhThucCapNhat thay đổi
+    if (maHinhThucCapNhatValue) {
+      console.log("MaHinhThucCapNhat đã thay đổi:", maHinhThucCapNhatValue);
+
+      // Thêm logic xử lý ở đây khi MaHinhThucCapNhat thay đổi, ví dụ:
+      // setValue("Ten", maHinhThucCapNhatValue.Ten); // Cập nhật giá trị trường "Ten" dựa trên MaHinhThucCapNhat
+    }
+  }, [maHinhThucCapNhatValue]);
+
+  useEffect(() => {
     // Kiểm tra xem `lopdaotaoCurrent` có tồn tại và form đang ở chế độ cập nhật không
     if (
       lopdaotaoCurrent &&
@@ -103,6 +123,7 @@ function LopDaoTaoForm({mahinhthuccapnhat}) {
       reset({
         ...lopdaotaoCurrent,
         MaHinhThucCapNhat: hinhthuccapnhatCurent,
+        KhoaID: khoas.find((item) => item._id === lopdaotaoCurrent.KhoaID),
         // Đảm bảo rằng các trường như Ngày sinh được chuyển đổi đúng định dạng nếu cần
         NgayBatDau: lopdaotaoCurrent.NgayBatDau
           ? dayjs(lopdaotaoCurrent.NgayBatDau)
@@ -115,13 +136,14 @@ function LopDaoTaoForm({mahinhthuccapnhat}) {
     } else {
       // Nếu không có `lopdaotaoCurrent` được truyền vào, reset form với giá trị mặc định
       reset({
-        MaHinhThucCapNhat: HinhThucCapNhat.find((item)=>item.Ma === type),
+        MaHinhThucCapNhat: HinhThucCapNhat.find((item) => item.Ma === type),
         // TenHinhThucCapNhat: null,
         Ten: "",
         QuyetDinh: "",
         NoiDaoTao: null,
         NguonKinhPhi: null,
         HinhThucDaoTao: null,
+        KhoaID:null,
         GhiChu: "",
         SoLuong: 1,
         NgayBatDau: null,
@@ -135,6 +157,7 @@ function LopDaoTaoForm({mahinhthuccapnhat}) {
     const lopdaotaoData = {
       ...lopdaotaoCurrent,
       ...data,
+      KhoaID: data.KhoaID?._id || null,
       UserIDCreated: user?._id,
       MaHinhThucCapNhat: data.MaHinhThucCapNhat.Ma,
       NgayBatDau: data.NgayBatDau ? data.NgayBatDau.toISOString() : null,
@@ -167,7 +190,8 @@ function LopDaoTaoForm({mahinhthuccapnhat}) {
                   Thông tin lớp đào tạo
                 </Typography>
                 <Box sx={{ flexGrow: 1 }}></Box>
-                {((user?._id === lopdaotaoCurrent.UserIDCreated) ||(!lopdaotaoCurrent._id)) && (
+                {(user?._id === lopdaotaoCurrent.UserIDCreated ||
+                  !lopdaotaoCurrent._id) && (
                   <LoadingButton
                     type="submit"
                     variant="contained"
@@ -197,24 +221,44 @@ function LopDaoTaoForm({mahinhthuccapnhat}) {
 
                   <FTextField name="Ten" multiline label="Tên lớp" fullWidth />
 
-                  <FTextField name="QuyetDinh" label="Quyết định" fullWidth />
+                  {(maHinhThucCapNhatValue &&
+                    maHinhThucCapNhatValue.Ma.startsWith("ĐT"))?(
+                      <div>
+                        <FTextField
+                          name="QuyetDinh"
+                          label="Quyết định"
+                          fullWidth
+                        />
 
-                  <FAutocomplete
-                    name="NoiDaoTao"
-                    options={NoiDaoTao.map((item) => item.NoiDaoTao)}
-                    label="Nơi đào tạo"
-                  />
+                        <FAutocomplete
+                          name="NoiDaoTao"
+                          options={NoiDaoTao.map((item) => item.NoiDaoTao)}
+                          label="Nơi đào tạo"
+                        />
 
-                  <FAutocomplete
-                    name="NguonKinhPhi"
-                    options={NguonKinhPhi.map((item) => item.NguonKinhPhi)}
-                    label="Nguồn kinh phí"
-                  />
+                        <FAutocomplete
+                          name="NguonKinhPhi"
+                          options={NguonKinhPhi.map(
+                            (item) => item.NguonKinhPhi
+                          )}
+                          label="Nguồn kinh phí"
+                        />
+                      </div>
+                    ): (
+                      <div>
+                        <FAutocomplete
+                          name="KhoaID"
+                          options={khoas}
+                           displayField="TenKhoa"
+                          label="Khoa"
+                        />
+                      </div>
+                    )}
 
                   <FAutocomplete
                     name="HinhThucDaoTao"
                     options={HinhThucDaoTao.map((item) => item.HinhThucDaoTao)}
-                    label="Hình thức đào tạo"
+                    label="Hình thức tổ chức"
                   />
 
                   <FTextField name="GhiChu" label="Ghi chú" fullWidth />
@@ -251,8 +295,6 @@ function LopDaoTaoForm({mahinhthuccapnhat}) {
           />
         )}
       </Stack>
-      {/* <DropzonePage /> */}
-      {/* <NhanVienList /> */}
     </MainCard>
   );
 }

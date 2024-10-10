@@ -201,7 +201,7 @@ const [openResetPass, setOpenResetPass] = useState(false);
           <DialogTitle id="alert-dialog-title">{"Cảnh báo!"}</DialogTitle>
           <DialogContent>
             <DialogContentText id="alert-dialog-description">
-              Bạn có chắc muốn xóa bệnh nhân này?
+              Bạn có chắc muốn xóa người dùng này?
             </DialogContentText>
           </DialogContent>
           <DialogActions>
