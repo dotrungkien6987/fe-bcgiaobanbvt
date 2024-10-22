@@ -37,7 +37,7 @@ function UserResetPassForm({
   open,
     handleClose,
   handleSave,
-  user,
+  user ={},
   handleChange,
 }) {
   
@@ -47,11 +47,12 @@ function UserResetPassForm({
   const methods = useForm({
    
     defaultValues: {
-      UserName: user.UserName || "",
+      UserName: user?.UserName || "",
       PassWordNew: "",
       PassWordOld: "",
       PassWordNewConfirm:"",
     },
+    resolver: yupResolver(yupSchema),
   });
   const {
     handleSubmit,

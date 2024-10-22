@@ -40,50 +40,71 @@ import { getKhoas } from "../BaoCaoNgay/baocaongaySlice";
 import { CreateUser,  updateUserProfile } from "./userSlice";
 import ChonKhoaForm from "./ChonKhoaForm";
 import { useTheme } from "@emotion/react";
+import FAutocomplete from "components/form/FAutocomplete";
+import SelectNhanVienForUserForm from "./UserThemeAble/SelectNhanVienForUserForm";
+import NhanVienViewDT06 from "features/NhanVien/NhanVienViewDT06";
 
 const yupSchema = Yup.object().shape({
   UserName: Yup.string().required("Bắt buộc nhập UserName"),
+  KhoaID: Yup.object({
+    TenKhoa: Yup.string().required("Bắt buộc chọn khoa"),
+  }).required("Bắt buộc chọn khoa"),
 });
 
-function UserInsertForm({ open, handleClose, handleSave, user, handleChange }) {
-  const [selectedDepartment, setSelectedDepartment] = useState(null);
+function UserInsertForm({ open, handleClose, handleSave,  handleChange }) {
+  // const [selectedDepartment, setSelectedDepartment] = useState(null);
   const { khoas } = useSelector((state) => state.baocaongay);
-  const { KhoaTaiChinhCurent } = useSelector((state) => state.user);
+  const { KhoaTaiChinhCurent,userCurrent,NhanVienUserCurrent } = useSelector((state) => state.user);
+  
   const dispatch = useDispatch();
   useEffect(() => {
     // Update selectedDepartment when khoas changes
-    dispatch(getKhoas());
-    if (khoas && khoas.length > 0) {
-      setSelectedDepartment(khoas[0]._id);
-    }
+   
+    if (khoas && khoas.length > 0) return;
+      dispatch(getKhoas());
+    
   }, []);
   const [isEditing, setIsEditing] = useState(false); // Biến để xác định form đang ở chế độ thêm mới hay chỉnh sửa
 
   useEffect(() => {
     
-    if (user && user._id) {
-      setIsEditing(true); // Nếu có user._id, chúng ta đang chỉnh sửa
+    if (userCurrent && userCurrent._id) {
+      setIsEditing(true); // Nếu có userCurrent._id, chúng ta đang chỉnh sửa
     } else {
       setIsEditing(false); // Ngược lại, chúng ta đang thêm mới
     }
-  }, [user]);
-  const handleSelectChange = (e) => {
-    setSelectedDepartment(e.target.value);
-  };
+  }, [userCurrent]);
+  // const handleSelectChange = (e) => {
+  //   setSelectedDepartment(e.target.value);
+  // };
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const methods = useForm({
     resolver: yupResolver(yupSchema),
     defaultValues: {
-      UserName: user.UserName || "",
-      PassWord: user.PassWord || "",
-      KhoaID: user.KhoaID || "64dddf4dad3370de59be2982",
-      HoTen: user.HoTen || "",
+      UserName: "",
+      PassWord: "",
+      KhoaID: null,
+      HoTen:  "",
 
-      Email: user.Email || "",
-      PhanQuyen: user.PhanQuyen || "nomal",
+      Email:  "",
+      PhanQuyen: "nomal",
+      UserHis:"",
     },
   });
+  // const methods = useForm({
+  //   resolver: yupResolver(yupSchema),
+  //   defaultValues: {
+  //     UserName: userCurrent.UserName || "",
+  //     PassWord: userCurrent.PassWord || "",
+  //     KhoaID: userCurrent.KhoaID || null,
+  //     HoTen: userCurrent.HoTen || "",
+
+  //     Email: userCurrent.Email || "",
+  //     PhanQuyen: userCurrent.PhanQuyen || "nomal",
+  //   },
+  // });
+
   const {
     handleSubmit,
     reset,
@@ -96,52 +117,78 @@ function UserInsertForm({ open, handleClose, handleSave, user, handleChange }) {
   };
 
   const onSubmitData = (data) => {
+
     console.log("data", data);
 
     if (isEditing) {
       const userUpdate = {
         ...data,
-        KhoaID: selectedDepartment,
+        // KhoaID: selectedDepartment,
+        KhoaID: data.KhoaID._id,
         PhanQuyen: valueQuyen,
         KhoaTaiChinh:KhoaTaiChinhCurent,
-        UserId: user._id,
+        UserId: userCurrent._id,
+        NhanVienID: NhanVienUserCurrent._id || null,
       };
       dispatch(updateUserProfile(userUpdate));
     } else {
       // Thêm mới người dùng
       const userUpdate = {
         ...data,
-        KhoaID: selectedDepartment,
+        // KhoaID: selectedDepartment,
+        KhoaID: data.KhoaID._id,
         PhanQuyen: valueQuyen,
         KhoaTaiChinh:KhoaTaiChinhCurent,
+        NhanVienID: NhanVienUserCurrent._id || null,
       };
       console.log("usser ínert", userUpdate);
-      if (!selectedDepartment) {
-        alert("Bạn chưa chọn khoa");
-        return;
-      }
+      // if (!selectedDepartment) {
+      //   alert("Bạn chưa chọn khoa");
+      //   return;
+      // }
       dispatch(CreateUser(userUpdate));
     }
 
     handleClose();
   };
 
-  useEffect(() => {
-    if (user) {
-      // Khi prop benhnhan thay đổi, cập nhật lại dữ liệu trong form
-      console.log("chay vao day", user);
-      setValue("UserName", user.UserName || "");
-      setValue("PassWord", user.PassWord || "");
+  // useEffect(() => {
+  //   if (userCurrent) {
+  //     // Khi prop benhnhan thay đổi, cập nhật lại dữ liệu trong form
+  //     console.log("chay vao day", userCurrent);
+  //     setValue("UserName", userCurrent.UserName || "");
+  //     setValue("PassWord", userCurrent.PassWord || "");
 
-      setValue("HoTen", user.HoTen || "");
+  //     setValue("HoTen", userCurrent.HoTen || "");
 
-      setValue("Email", user.Email || "");
-      // setValue("PhanQuyen", user.PhanQuyen || "");
-      setValueQuyen(user.PhanQuyen);
-      setSelectedDepartment(user.KhoaID);
+  //     setValue("Email", userCurrent.Email || "");
+  //     // setValue("PhanQuyen", userCurrent.PhanQuyen || "");
+  //     setValueQuyen(userCurrent.PhanQuyen);
+  //   setValue("KhoaID", userCurrent.KhoaID || null);
       
-    }
-  }, [user, open, setValue]);
+  //   }
+  // }, [userCurrent, open, setValue]);
+
+useEffect(()=>{
+  console.log("userCurrent",userCurrent)
+if (userCurrent && userCurrent._id && userCurrent._id !== 0) {
+reset ({
+  ...userCurrent,
+})
+setValueQuyen(userCurrent.PhanQuyen);
+} else {
+  reset({
+    UserName: "",
+    PassWord: "",
+    KhoaID: null,
+    HoTen:  "",
+
+    Email:  "",
+    PhanQuyen: "nomal",
+    UserHis:"",
+  });
+}
+},[userCurrent])
 
   const [valueQuyen, setValueQuyen] = useState("nomal");
 
@@ -153,8 +200,8 @@ function UserInsertForm({ open, handleClose, handleSave, user, handleChange }) {
         aria-labelledby="form-dialog-title"
         sx={{
           "& .MuiDialog-paper": {
-            width: "1000px", // Or any other width you want
-            height: "600px", // Or any other height you want
+            width: "90vw", // Or any other width you want
+            height: "90vh", // Or any other height you want
           },
         }}
       >
@@ -168,7 +215,7 @@ function UserInsertForm({ open, handleClose, handleSave, user, handleChange }) {
             >
               <Stack spacing={1}>
                 <FormControl fullWidth>
-                  <InputLabel>Khoa</InputLabel>
+                  {/* <InputLabel>Khoa</InputLabel>
                   <Select
                     value={selectedDepartment || ""}
                     onChange={handleSelectChange}
@@ -180,7 +227,14 @@ function UserInsertForm({ open, handleClose, handleSave, user, handleChange }) {
                           {department.TenKhoa}
                         </MenuItem>
                       ))}
-                  </Select>
+                  </Select> */}
+                    <FAutocomplete
+                name="KhoaID"
+                options={khoas}
+                displayField="TenKhoa"
+                label="Chọn khoa"
+              />
+
                 </FormControl>
                 <FTextField name="UserName" label="User name" />
                 {!isEditing && (
@@ -193,6 +247,7 @@ function UserInsertForm({ open, handleClose, handleSave, user, handleChange }) {
 
                 <FTextField multiline name="HoTen" label="Tên" />
                 <FTextField multiline name="Email" label="Email" />
+                <FTextField multiline name="UserHis" label="UserHis" />
 
                 <Autocomplete
                   options={["admin", "nomal", "manager","daotao"]}
@@ -210,6 +265,11 @@ function UserInsertForm({ open, handleClose, handleSave, user, handleChange }) {
                 />
 
                 <Divider />
+                <SelectNhanVienForUserForm />
+                {(NhanVienUserCurrent && NhanVienUserCurrent._id) && (
+
+                <NhanVienViewDT06 data={NhanVienUserCurrent} /> 
+                )}
                 <ChonKhoaForm KhoaTaiChinh={KhoaTaiChinhCurent} />
                 <Card
                   sx={{
@@ -241,7 +301,7 @@ function UserInsertForm({ open, handleClose, handleSave, user, handleChange }) {
                   <TableBody>
                     {KhoaTaiChinhCurent && KhoaTaiChinhCurent.length > 0 &&
                       KhoaTaiChinhCurent.map((row, index) => (
-                        <TableRow>
+                        <TableRow key= {index}>
                           <TableCell>
                             {khoas.find((khoa) => khoa.MaKhoa === row).MaKhoa}
                           </TableCell>

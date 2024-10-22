@@ -32,6 +32,7 @@ function UserTable({ users }) {
     const dispatch = useDispatch()
 const handleEditUser =async(userId)=>{
     const bn= users.find(user=>user._id === userId)
+    console.log('bn',bn)
     await dispatch(setKhoaTaiChinhCurent(bn.KhoaTaiChinh))
     console.log("user suwar",userEdit)
     setUserEdit(bn)

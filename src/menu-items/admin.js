@@ -30,10 +30,10 @@ const admin = {
       icon: icons.page,
       children: [
         {
-          id: 'NhomHinhThuc',
+          id: 'usersable',
           title: 'Users',
           type: 'item',
-          url: '/nhomhinhthuc'
+          url: '/usersable'
         },
        
       ]

@@ -1,5 +1,5 @@
 import React, {  useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 
 import {
@@ -33,18 +33,18 @@ function ResetPassForm({
   open,
     handleClose,
   handleSave,
-  user,
+ 
   handleChange,
 }) {
   
-  
+  const { userCurrent } = useSelector((state) => state.user);
   const dispatch = useDispatch();
  
   const methods = useForm({
    
     defaultValues: {
-      UserName: user.UserName || "",
-      PassWord: user.PassWord || "",
+      UserName:  "",
+      PassWord:  "",
       
     },
   });
@@ -56,12 +56,12 @@ function ResetPassForm({
   } = methods;
 
   const onSubmitData = (data) => {
-    console.log("data", data);
+    
     const userUpdate = {
       ...data, 
-      UserId:user._id
+      UserId:userCurrent._id
     };
-    console.log("reset pass user",userUpdate)
+    console.log("reset pass userCurrent",userUpdate)
 
     //dispach reset User
     dispatch(resetPass(userUpdate))
@@ -69,15 +69,15 @@ function ResetPassForm({
   };
   
   useEffect(() => {
-    if (user) {
+    if (userCurrent) {
       // Khi prop benhnhan thay đổi, cập nhật lại dữ liệu trong form
-      console.log("chay vao day",user)
-      setValue("UserName", user.UserName || "");
-      setValue("PassWord", user.PassWord || "");
+      console.log("chay vao day",userCurrent)
+      setValue("UserName", userCurrent.UserName || "");
+      setValue("PassWord", userCurrent.PassWord || "");
      
     }
    
-  }, [user,open,setValue]);
+  }, [userCurrent,open,setValue]);
 
   return (
     <div>

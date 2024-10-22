@@ -49,6 +49,7 @@ import BaoCaoSoLuongTheoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/BaoCaoSoL
 import TrinhDoChuyenMonTable from "features/Daotao/TrinhDoChuyenMon/TrinhDoChuyenMonTable";
 import DashBoardDaotao from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaotao/DashBoardDaotao";
 import DashBoardDaotaoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaoTaoKhoa/DashBoardDaotaoKhoa";
+import UserThemeAbleTable from "features/User/UserThemeAble/UserThemeAbleTable";
 function Router() {
   return (
     <div>
@@ -146,6 +147,7 @@ function Router() {
           <Route path="/soluongtheokhoa" element={<BaoCaoSoLuongTheoKhoa />} />
 
           <Route path="/hoidong" element={<HoiDongTable />} />
+          <Route path="/usersable" element={<UserThemeAbleTable />} />
           <Route path="/lopdaotaotam/:lopdaotaoID" element={<LopDaoTaoFormTam />} />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>

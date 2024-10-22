@@ -227,7 +227,7 @@ if (typeLopDaoTao && typeLopDaoTao.charAt(0) === 'D') {
   );
   const quyDoiLoaiDaoTao =(maLoai) =>{
    const hinhthuc = HinhThucCapNhat.find((item) => item.Ma === maLoai)
-   if (hinhthuc.TenBenhVien) return hinhthuc.TenBenhVien
+   if (hinhthuc?.TenBenhVien) return hinhthuc.TenBenhVien
    else return "Lớp đào tạo"
 }
 //   const quyDoiLoaiDaoTao =(maLoai) =>{

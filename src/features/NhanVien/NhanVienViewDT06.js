@@ -33,17 +33,17 @@ const avatarImage = require.context('assets/images/users', true);
 
 // ==============================|| CUSTOMER - VIEW ||============================== //
 
-const NhanVienViewDT06 = ({ data }) => {
+const NhanVienViewDT06 = ({ data, title = `Cán bộ tham gia đào tạo`}) => {
   const theme = useTheme();
   const matchDownMD = useMediaQuery(theme.breakpoints.down('md'));
 console.log("datanhanvien",data);
   return (
     <MainCard
-      title={`Cán bộ tham gia đào tạo`}
+      title={title}
     >
-          <Grid container spacing={2.5} sx={{ pl: { xs: 0, sm: 5, md: 6, lg: 10, xl: 12 } }}>
+          <Grid container spacing={2.5}>
             <Grid item xs={12} sm={5} >
-            <Grid container spacing={2.5}  sx={{ pl: { xs: 0, sm: 5, md: 6, lg: 10, xl: 12 } }}>
+            <Grid container spacing={2.5} >
               <Grid item xs={12} >
               <MainCard>
                 <Chip
@@ -108,15 +108,6 @@ console.log("datanhanvien",data);
                         </ListItemSecondaryAction>
                       </ListItem>
 
-                      {/* <ListItem>
-                        <ListItemIcon>
-                          <Location size={18} />
-                        </ListItemIcon>
-                        <ListItemSecondaryAction>
-                          <Typography align="right">{data.country}</Typography>
-                        </ListItemSecondaryAction>
-                      </ListItem> */}
-                      
                     </List>
                   </Grid>
                 </Grid>
