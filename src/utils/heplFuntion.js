@@ -1579,3 +1579,31 @@ export function chiaNhomDaoTao(arr) {
 export function isNullOrEmptyObject(obj) {
   return obj === null || (typeof obj === 'object' && Object.keys(obj).length === 0);
 }
+
+export function summarizeMedicineStore(data) {
+  // Tạo một Map để lưu thông tin duy nhất cho mỗi medicinestoreid
+  const storeMap = new Map();
+
+  data.forEach(item => {
+      const { medicinestoreid, medicinestorename, giaban, soluong } = item;
+
+      // Tính tổng tiền cho item hiện tại
+      const tongTien = giaban * soluong;
+
+      // Nếu medicinestoreid đã tồn tại trong Map, cập nhật tongtien
+      if (storeMap.has(medicinestoreid)) {
+          const existing = storeMap.get(medicinestoreid);
+          existing.tongtien += tongTien;
+      } else {
+          // Nếu chưa tồn tại, thêm mới vào Map
+          storeMap.set(medicinestoreid, {
+              medicinestoreid,
+              medicinestorename,
+              tongtien: tongTien
+          });
+      }
+  });
+
+  // Trả kết quả dưới dạng mảng
+  return Array.from(storeMap.values());
+}

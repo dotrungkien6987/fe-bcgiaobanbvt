@@ -210,7 +210,41 @@ const DuocVatTu = () => {
                     />
                   </Card>
                 </Grid>
+               
+                <Grid item xs={12} sm={12} md={6}>
+                  <Card
+                    sx={{
+                      fontWeight: "bold",
+                      color: darkMode ? "#FFF" : "#1939B7",
 
+                      boxShadow: 10,
+                    }}
+                  >
+                    Nhập nhà cung cấp từ đầu tháng 
+                    <CardTonKho 
+                    tonkho ={Duoc_VatTu_Sumary.find(item=>item.loai=== 'duoc')}
+                    dataTonKho={Duoc_TonKho.filter(item=>[2,3,8,10].includes(item.medicinestoretype))}
+                    />
+                  </Card>
+                </Grid>
+
+                <Grid item xs={12} sm={12} md={6}>
+                  <Card
+                    sx={{
+                      fontWeight: "bold",
+                      color: darkMode ? "#FFF" : "#1939B7",
+
+                      boxShadow: 10,
+                    }}
+                  >
+                    Nhập nhà cung cấp trong ngày
+                    <CardTonKho 
+                    tonkho ={Duoc_VatTu_Sumary.find(item=>item.loai=== 'duoc')}
+                    dataTonKho={Duoc_TonKho.filter(item=>[2,3,8,10].includes(item.medicinestoretype))}
+                    />
+                  </Card>
+                </Grid>
+                
                 <Grid item xs={12} sm={12} md={12}>
                   <Card
                     sx={{
@@ -223,6 +257,7 @@ const DuocVatTu = () => {
                     <Typography sx={{ fontSize: "1.2rem" }}>
                      Nhập nhà cung cấp
                     </Typography>
+                  
                   
                   </Card>
                 </Grid>

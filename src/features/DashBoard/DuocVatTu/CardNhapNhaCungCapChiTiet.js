@@ -182,21 +182,25 @@ function CardNhapNhaCungCapChiTiet({
                         </TableCell>
 
                         <TableCell style={commonStyleLeftReponsive}>
-                          {VND.format(row.tongtien)} 
+                          {row.medicinedate}
                         </TableCell>
 
                         <TableCell style={commonStyleLeftReponsive}>
-                          {row.tongdanhmucthuoc}
+                          {row.medicinestorebillcode}
                         
                         </TableCell>
 
                         <TableCell style={commonStyleLeftReponsive}>
                           
-                          {row.tongsolo}
+                          {row.medicinestorebillcode}
                         </TableCell>
 
-                        <TableCell style={commonStyleLeftReponsive}>{row.tongtonkho}</TableCell>
-                        <TableCell style={commonStyleLeftReponsive}>{row.tongkhadung}</TableCell>
+                        <TableCell style={commonStyleLeftReponsive}>{row.medicinename}</TableCell>
+                        <TableCell style={commonStyleLeftReponsive}>{row.donvitinh}</TableCell>
+                        <TableCell style={commonStyleLeftReponsive}>{row.soluong}</TableCell>
+                        <TableCell style={commonStyleLeftReponsive}>{VND.format(row.giaban)}</TableCell>
+                        <TableCell style={commonStyleLeftReponsive}>{VND.format(row.giaban*row.soluong)}</TableCell>
+                       
 
                        
                       </TableRow>

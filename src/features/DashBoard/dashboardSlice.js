@@ -10,6 +10,7 @@ import {
   convertData_CanLamSang_PhongThucHien,
   groupByVipTypeId,
   removeAndRenumber,
+  summarizeMedicineStore,
   themVipName,
 } from "../../utils/heplFuntion";
 import { uploadImagesToCloudinary } from "../../utils/cloudinary";
@@ -95,7 +96,9 @@ const initialState = {
   Duoc_TonKho:[],
   Duoc_TonKho_HetHan:[],
   Duoc_NhapNhaCungCap:[],
+  ChiaKho_NhapNhaCungCap:[],
   Duoc_VatTu_Sumary:[],
+  
  
 };
 
@@ -387,6 +390,8 @@ const slice = createSlice({
         state.Duoc_NhapNhaCungCap = state.chisosObj.json_duoc_nhapnhacungcap 
         ? JSON.parse(state.chisosObj.json_duoc_nhapnhacungcap )
         : [] || [];
+
+        state.ChiaKho_NhapNhaCungCap = summarizeMedicineStore(state.Duoc_NhapNhaCungCap)
         state.Duoc_VatTu_Sumary = state.chisosObj.json_duoc_vattu_sumary 
         ? JSON.parse(state.chisosObj.json_duoc_vattu_sumary )
         : [] || [];
