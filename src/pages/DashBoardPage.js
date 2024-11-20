@@ -15,6 +15,7 @@ import HaiLongNguoiBenh from "../features/DashBoard/HaiLongNguoiBenh";
 import DashBoardKhoa from "../features/DashBoard/DashBoardKhoa/DashBoardKhoa";
 import DashBoardDaotao from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaotao/DashBoardDaotao";
 import DashBoardDaotaoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaoTaoKhoa/DashBoardDaotaoKhoa";
+import DuocVatTu from "features/DashBoard/DuocVatTu/DuocVatTu";
 
 const TabsWrapperStyled = styled("div")(({ theme }) => ({
   zIndex: 9,
@@ -64,6 +65,11 @@ function DashBoardPage() {
       value: "THEO DÕI THEO KHOA",
       
       component: <DashBoardKhoa />,
+    },
+    {
+      value: "DƯỢC VẬT TƯ",
+      
+      component: <DuocVatTu />,
     },
     {
       value: "HÀI LÒNG NGƯỜI BỆNH",

@@ -14,7 +14,7 @@ import {
 } from "../../utils/heplFuntion";
 import { uploadImagesToCloudinary } from "../../utils/cloudinary";
 import { toast } from "react-toastify";
-import { da } from "date-fns/locale";
+
 import { DanhMucBenhVien } from "./DanhMucBenhVien";
 
 const initialState = {
@@ -88,6 +88,15 @@ const initialState = {
   
   SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc:[],
   SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai:[],
+
+  //Duoc - Vat tu
+  Duoc_ChiTiet:[],
+  Duoc_TongHop:[],
+  Duoc_TonKho:[],
+  Duoc_TonKho_HetHan:[],
+  Duoc_NhapNhaCungCap:[],
+  Duoc_VatTu_Sumary:[],
+ 
 };
 
 const slice = createSlice({
@@ -357,6 +366,29 @@ const slice = createSlice({
         
         state.SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai = state.chisosObj.json_soluong_tongtien_chuaduyetkt_thanghientai_toanvien 
         ? JSON.parse(state.chisosObj.json_soluong_tongtien_chuaduyetkt_thanghientai_toanvien )
+        : [] || [];
+        
+        state.Duoc_ChiTiet = state.chisosObj.json_duoc_tonghop 
+        ? JSON.parse(state.chisosObj.json_duoc_tonghop )
+        : [] || [];
+        
+        state.Duoc_TongHop = state.chisosObj.json_duoc_tonghop 
+        ? JSON.parse(state.chisosObj.json_duoc_tonghop )
+        : [] || [];
+        
+        state.Duoc_TonKho = state.chisosObj.json_duoc_tonkho 
+        ? JSON.parse(state.chisosObj.json_duoc_tonkho )
+        : [] || [];
+        
+        state.Duoc_TonKho_HetHan = state.chisosObj.json_duoc_tonkho_hethan 
+        ? JSON.parse(state.chisosObj.json_duoc_tonkho_hethan )
+        : [] || [];
+        
+        state.Duoc_NhapNhaCungCap = state.chisosObj.json_duoc_nhapnhacungcap 
+        ? JSON.parse(state.chisosObj.json_duoc_nhapnhacungcap )
+        : [] || [];
+        state.Duoc_VatTu_Sumary = state.chisosObj.json_duoc_vattu_sumary 
+        ? JSON.parse(state.chisosObj.json_duoc_vattu_sumary )
         : [] || [];
         
     },
