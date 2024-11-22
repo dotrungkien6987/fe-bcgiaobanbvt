@@ -1,33 +1,26 @@
 import {
   Box,
-  Button,
+  
   Card,
   CardContent,
-  Divider,
-  Grid,
-  IconButton,
+  
   Modal,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  ThemeProvider,
+  
   Typography,
-  createTheme,
+  
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, {  useState } from "react";
 import { useSelector } from "react-redux";
-import MenuIcon from "@mui/icons-material/Menu";
+
 import {
   commonStyle,
   commonStyleLeft,
   commonStyleTitle,
 } from "../../utils/heplFuntion";
 
-import TableBenhNhanPhongThucHien from "./TableBenhNhanPhongThucHien";
+
 import TablePhongChiDinhPhongThucHien from "./TablePhongChiDinhPhongThucHien";
 function CardPhongChiDinhPhongThucHien({
   dataPhongChiDinh,

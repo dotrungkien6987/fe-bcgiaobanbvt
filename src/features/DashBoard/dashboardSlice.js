@@ -7,13 +7,13 @@ import {
   calculateDoanhThuAdjusted,
   calculateKPIWithDifferences,
   convertDataWithTextKeys_CanLamSang_PhongThucHien,
-  convertData_CanLamSang_PhongThucHien,
+  
   groupByVipTypeId,
-  removeAndRenumber,
+  
   summarizeMedicineStore,
   themVipName,
 } from "../../utils/heplFuntion";
-import { uploadImagesToCloudinary } from "../../utils/cloudinary";
+
 import { toast } from "react-toastify";
 
 import { DanhMucBenhVien } from "./DanhMucBenhVien";
@@ -96,10 +96,11 @@ const initialState = {
   Duoc_TonKho:[],
   Duoc_TonKho_HetHan:[],
   Duoc_NhapNhaCungCap:[],
+  Duoc_NhapNhaCungCap_TrongNgay:[],
   ChiaKho_NhapNhaCungCap:[],
+  ChiaKho_NhapNhaCungCap_TrongNgay:[],
   Duoc_VatTu_Sumary:[],
   
- 
 };
 
 const slice = createSlice({

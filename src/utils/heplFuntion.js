@@ -1585,7 +1585,7 @@ export function summarizeMedicineStore(data) {
   const storeMap = new Map();
 
   data.forEach(item => {
-      const { medicinestoreid, medicinestorename, giaban, soluong } = item;
+      const { medicinestoretype, medicinestoreid, medicinestorename, giaban, soluong } = item;
 
       // Tính tổng tiền cho item hiện tại
       const tongTien = giaban * soluong;
@@ -1597,6 +1597,7 @@ export function summarizeMedicineStore(data) {
       } else {
           // Nếu chưa tồn tại, thêm mới vào Map
           storeMap.set(medicinestoreid, {
+            medicinestoretype,
               medicinestoreid,
               medicinestorename,
               tongtien: tongTien

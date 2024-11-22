@@ -1,9 +1,7 @@
 import {
   Box,
-  
   Card,
   CardContent,
-  
   Modal,
   Table,
   TableBody,
@@ -18,8 +16,12 @@ import {
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { commonStyle, commonStyleLeft, commonStyleTitle } from "utils/heplFuntion";
-
+import { formatDate_getDate } from "utils/formatTime";
+import {
+  commonStyle,
+  commonStyleLeft,
+  commonStyleTitle,
+} from "utils/heplFuntion";
 
 function CardNhapNhaCungCapChiTiet({
   data,
@@ -118,7 +120,7 @@ function CardNhapNhaCungCapChiTiet({
             {title}
           </Typography>
           <Typography variant="h6" sx={{ textAlign: "center" }}>
-            {title==='Tổng tiền'?VND.format(value):Math.round(value)}
+            {VND.format(value)}
           </Typography>
         </CardContent>
       </Card>
@@ -149,14 +151,12 @@ function CardNhapNhaCungCapChiTiet({
               >
                 {titleMore}
               </Typography>
-        
+
               <Table>
                 <TableHead>
                   <TableRow sx={rowStyle}>
-                    <TableCell style={commonStyleReponsive}>
-                     Tên kho
-                    </TableCell>
-                    
+                    <TableCell style={commonStyleReponsive}>Tên kho</TableCell>
+
                     <TableCell style={commonStyleReponsive}>
                       Ngày nhập
                     </TableCell>
@@ -164,13 +164,18 @@ function CardNhapNhaCungCapChiTiet({
                       Phiếu nhập
                     </TableCell>
                     <TableCell style={commonStyleReponsive}>Mã thuốc</TableCell>
-                    <TableCell style={commonStyleReponsive}>Tên thuốc</TableCell>
-                    <TableCell style={commonStyleReponsive}>Nhà cung cấp</TableCell>
+                    <TableCell style={commonStyleReponsive}>
+                      Tên thuốc
+                    </TableCell>
+                    <TableCell style={commonStyleReponsive}>
+                      Nhà cung cấp
+                    </TableCell>
                     <TableCell style={commonStyleReponsive}>Đơn vị</TableCell>
                     <TableCell style={commonStyleReponsive}>Số lượng</TableCell>
                     <TableCell style={commonStyleReponsive}>Đơn giá</TableCell>
-                    <TableCell style={commonStyleReponsive}>Thành tiền</TableCell>
-                    
+                    <TableCell style={commonStyleReponsive}>
+                      Thành tiền
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -182,27 +187,36 @@ function CardNhapNhaCungCapChiTiet({
                         </TableCell>
 
                         <TableCell style={commonStyleLeftReponsive}>
-                          {row.medicinedate}
+                          {formatDate_getDate(row.medicinedate)}
                         </TableCell>
 
                         <TableCell style={commonStyleLeftReponsive}>
                           {row.medicinestorebillcode}
-                        
                         </TableCell>
 
+               
                         <TableCell style={commonStyleLeftReponsive}>
-                          
                           {row.medicinestorebillcode}
                         </TableCell>
 
-                        <TableCell style={commonStyleLeftReponsive}>{row.medicinename}</TableCell>
-                        <TableCell style={commonStyleLeftReponsive}>{row.donvitinh}</TableCell>
-                        <TableCell style={commonStyleLeftReponsive}>{row.soluong}</TableCell>
-                        <TableCell style={commonStyleLeftReponsive}>{VND.format(row.giaban)}</TableCell>
-                        <TableCell style={commonStyleLeftReponsive}>{VND.format(row.giaban*row.soluong)}</TableCell>
-                       
-
-                       
+                        <TableCell style={commonStyleLeftReponsive}>
+                          {row.medicinename}
+                        </TableCell>
+                        <TableCell style={commonStyleLeftReponsive}>
+                          {row.nhacungcapname}
+                        </TableCell>
+                        <TableCell style={commonStyleLeftReponsive}>
+                          {row.donvitinh}
+                        </TableCell>
+                        <TableCell style={commonStyleLeftReponsive}>
+                          {row.soluong}
+                        </TableCell>
+                        <TableCell style={commonStyleLeftReponsive}>
+                          {VND.format(row.giaban)}
+                        </TableCell>
+                        <TableCell style={commonStyleLeftReponsive}>
+                          {VND.format(row.giaban * row.soluong)}
+                        </TableCell>
                       </TableRow>
                     ))}
                 </TableBody>

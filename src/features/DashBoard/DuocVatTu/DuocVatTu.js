@@ -21,31 +21,11 @@ import { formatDateTime } from "utils/formatTime";
 import DisplayChiSoDashBoard from "components/DisplayChiSoDashBoard";
 
 import CardTheoDoiBNVip from "../CardTheoDoiBNVip";
-import CardPhongThucHienCanLamSang from "../CardPhongThucHienCanLamSang";
+
 import { getDataNewestByNgay } from "../dashboardSlice";
 import CardTonKho from "./CardTonKho";
+import CardNhapNhaCungCap from "./CardNhapNhaCungCap";
 
-const data1 = [
-  { label: "Group A", value: 400, color: "#1939B7" },
-  { label: "Group B", value: 300, color: "#bb1515" },
-  { label: "Group C", value: 300, color: "#00cc00" },
-  { label: "Group D", value: 200 },
-];
-
-const data3 = data1;
-const data2 = [
-  { label: "A1", value: 0, color: "#1939B7" },
-  { label: "A2", value: 300, color: "#bb1515" },
-  { label: "B1", value: 100, color: "#1939B7" },
-  { label: "B2", value: 80 },
-  { label: "B3", value: 40, color: "#1939B7" },
-  { label: "B4", value: 30, color: "#bb1515" },
-  { label: "B5", value: 50, color: "#bb1515" },
-  { label: "C1", value: 100, color: "#1939B7" },
-  { label: "C2", value: 200, color: "#bb1515" },
-  { label: "D1", value: 150, color: "#1939B7" },
-  { label: "D2", value: 50, color: "#bb1515" },
-];
 const DuocVatTu = () => {
   const now = dayjs().tz("Asia/Ho_Chi_Minh");
   const [date, setDate] = useState(now);
@@ -61,6 +41,7 @@ const DuocVatTu = () => {
     Duoc_TonKho_HetHan,
     Duoc_NhapNhaCungCap,
     Duoc_VatTu_Sumary,
+    ChiaKho_NhapNhaCungCap
   } = useSelector((state) => state.dashboard);
   const dispatch = useDispatch();
   const { darkMode } = useSelector((state) => state.mytheme);
@@ -119,8 +100,7 @@ const DuocVatTu = () => {
     const fetchNewestData = () => {
       console.log("newdate truyen  dispatch", date.toISOString());
       dispatch(getDataNewestByNgay(date.toISOString()));
-      console.log("render lại");
-      console.log("canlamsangphongthuchien", CanLamSang_PhongThucHien);
+      
     };
     fetchNewestData();
     // Kiểm tra nếu ngày là ngày hiện tại mới chạy setInterval
@@ -221,9 +201,9 @@ const DuocVatTu = () => {
                     }}
                   >
                     Nhập nhà cung cấp từ đầu tháng 
-                    <CardTonKho 
-                    tonkho ={Duoc_VatTu_Sumary.find(item=>item.loai=== 'duoc')}
-                    dataTonKho={Duoc_TonKho.filter(item=>[2,3,8,10].includes(item.medicinestoretype))}
+                    <CardNhapNhaCungCap 
+                    khohienthi ={ChiaKho_NhapNhaCungCap.filter(item=>item.medicinestoretype===3)}
+                    dataNhapNhaCungCap={Duoc_NhapNhaCungCap}
                     />
                   </Card>
                 </Grid>
@@ -238,9 +218,9 @@ const DuocVatTu = () => {
                     }}
                   >
                     Nhập nhà cung cấp trong ngày
-                    <CardTonKho 
-                    tonkho ={Duoc_VatTu_Sumary.find(item=>item.loai=== 'duoc')}
-                    dataTonKho={Duoc_TonKho.filter(item=>[2,3,8,10].includes(item.medicinestoretype))}
+                    <CardNhapNhaCungCap 
+                    khohienthi ={ChiaKho_NhapNhaCungCap.filter(item=>item.medicinestoretype===3)}
+                    dataNhapNhaCungCap={Duoc_NhapNhaCungCap}
                     />
                   </Card>
                 </Grid>
@@ -325,6 +305,42 @@ const DuocVatTu = () => {
                     />
                   </Card>
                 </Grid>
+
+
+                <Grid item xs={12} sm={12} md={6}>
+                  <Card
+                    sx={{
+                      fontWeight: "bold",
+                      color: darkMode ? "#FFF" : "#1939B7",
+
+                      boxShadow: 10,
+                    }}
+                  >
+                    Nhập nhà cung cấp từ đầu tháng 
+                    <CardNhapNhaCungCap 
+                    khohienthi ={ChiaKho_NhapNhaCungCap.filter(item=>item.medicinestoretype===7)}
+                    dataNhapNhaCungCap={Duoc_NhapNhaCungCap}
+                    />
+                  </Card>
+                </Grid>
+
+                <Grid item xs={12} sm={12} md={6}>
+                  <Card
+                    sx={{
+                      fontWeight: "bold",
+                      color: darkMode ? "#FFF" : "#1939B7",
+
+                      boxShadow: 10,
+                    }}
+                  >
+                    Nhập nhà cung cấp trong ngày
+                    <CardNhapNhaCungCap 
+                    khohienthi ={ChiaKho_NhapNhaCungCap.filter(item=>item.medicinestoretype===7)}
+                    dataNhapNhaCungCap={Duoc_NhapNhaCungCap}
+                    />
+                  </Card>
+                </Grid>
+                
 
                 <Grid item xs={12} sm={12} md={12}>
                   <Card
