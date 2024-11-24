@@ -10,6 +10,8 @@ import {
   Stack,
   Box,
   CardHeader,
+  Autocomplete,
+  TextField,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -20,87 +22,52 @@ import dayjs from "dayjs";
 import { formatDateTime } from "utils/formatTime";
 import DisplayChiSoDashBoard from "components/DisplayChiSoDashBoard";
 
-import CardTheoDoiBNVip from "../CardTheoDoiBNVip";
-
 import { getDataNewestByNgay } from "../dashboardSlice";
 import CardTonKho from "./CardTonKho";
 import CardNhapNhaCungCap from "./CardNhapNhaCungCap";
+import CardNhapXuat from "./CardNhapXuat";
+import CardTonTheoKho from "./CardTonTheoKho";
 
 const DuocVatTu = () => {
   const now = dayjs().tz("Asia/Ho_Chi_Minh");
   const [date, setDate] = useState(now);
+  const [selectedKhoDuocID, setSelectedKhoDuocID] = useState(30);
+  const [selectedKhoVatTuID, setSelectedKhoVatTuID] = useState(168);
   const [isToday, setIsToday] = useState(true);
   const {
     dashboadChiSoChatLuong,
-    
-    CanLamSang_PhongThucHien,
-   
-    chisosObj,
+
+    ChiaKho_NhapNhaCungCap_TrongNgay,
+    Duoc_NhapNhaCungCap_TrongNgay,
+  
     Duoc_TongHop,
     Duoc_TonKho,
     Duoc_TonKho_HetHan,
     Duoc_NhapNhaCungCap,
     Duoc_VatTu_Sumary,
-    ChiaKho_NhapNhaCungCap
+    ChiaKho_NhapNhaCungCap,
+    Kho_Unique,
   } = useSelector((state) => state.dashboard);
   const dispatch = useDispatch();
   const { darkMode } = useSelector((state) => state.mytheme);
-  //   useEffect(() => {
-  //     const dateCurent = new Date().toISOString();
-
-  //     dispatch(getDataNewestByNgay(dateCurent));
-  //   }, []);
-  const dataCLSNoiTru = [];
-  dataCLSNoiTru.push(chisosObj.xn_noitru);
-  dataCLSNoiTru.push(chisosObj.xq_noitru);
-  dataCLSNoiTru.push(chisosObj.ct32_noitru);
-  dataCLSNoiTru.push(chisosObj.ct128_noitru);
-  dataCLSNoiTru.push(chisosObj.ct128_noitru_bhyt);
-  dataCLSNoiTru.push(chisosObj.mri30_noitru);
-  dataCLSNoiTru.push(chisosObj.mri15_noitru);
-  dataCLSNoiTru.push(chisosObj.sa_noitru);
-  dataCLSNoiTru.push(chisosObj.cnhh_noitru);
-  dataCLSNoiTru.push(chisosObj.mdlx_noitru);
-  dataCLSNoiTru.push(chisosObj.ns_noitru);
-  dataCLSNoiTru.push(chisosObj.dn_noitru);
-  dataCLSNoiTru.push(chisosObj.dt_noitru);
-
-  const dataCLSNgoaiTru = [];
-  dataCLSNgoaiTru.push(chisosObj.xn_ngoaitru);
-  dataCLSNgoaiTru.push(chisosObj.xq_ngoaitru);
-  dataCLSNgoaiTru.push(chisosObj.ct32_ngoaitru);
-  dataCLSNgoaiTru.push(chisosObj.ct128_ngoaitru);
-  dataCLSNgoaiTru.push(chisosObj.ct128_ngoaitru_bhyt);
-  dataCLSNgoaiTru.push(chisosObj.mri30_ngoaitru);
-  dataCLSNgoaiTru.push(chisosObj.mri15_ngoaitru);
-  dataCLSNgoaiTru.push(chisosObj.sa_ngoaitru);
-  dataCLSNgoaiTru.push(chisosObj.cnhh_ngoaitru);
-  dataCLSNgoaiTru.push(chisosObj.mdlx_ngoaitru);
-  dataCLSNgoaiTru.push(chisosObj.ns_ngoaitru);
-  dataCLSNgoaiTru.push(chisosObj.dn_ngoaitru);
-  dataCLSNgoaiTru.push(chisosObj.dt_ngoaitru);
-
+  
   const handleDateChange = (newDate) => {
-    
     if (newDate instanceof Date) {
       // newDate.setHours(7, 0, 0, 0);
       setDate(new Date(newDate));
       console.log("newdate", newDate);
     } else if (dayjs.isDayjs(newDate)) {
       console.log("newdate", newDate);
-     
+
       setDate(newDate);
-     
     }
     setIsToday(dayjs(newDate).isSame(now, "day"));
-    
   };
 
   useEffect(() => {
     const fetchNewestData = () => {
       console.log("newdate truyen  dispatch", date.toISOString());
       dispatch(getDataNewestByNgay(date.toISOString()));
-      
     };
     fetchNewestData();
     // Kiểm tra nếu ngày là ngày hiện tại mới chạy setInterval
@@ -165,32 +132,18 @@ const DuocVatTu = () => {
                       boxShadow: 10,
                     }}
                   >
-                    Tồn kho 
-                    <CardTonKho 
-                    tonkho ={Duoc_VatTu_Sumary.find(item=>item.loai=== 'duoc')}
-                    dataTonKho={Duoc_TonKho.filter(item=>[2,3,8,10].includes(item.medicinestoretype))}
+                    Tồn kho
+                    <CardTonKho
+                      tonkho={Duoc_VatTu_Sumary.find(
+                        (item) => item.loai === "duoc"
+                      )}
+                      dataTonKho={Duoc_TonKho.filter((item) =>
+                        [2, 3, 8, 10].includes(item.medicinestoretype)
+                      )}
                     />
                   </Card>
                 </Grid>
 
-                <Grid item xs={12} sm={12} md={6}>
-                <Card
-                    sx={{
-                      fontWeight: "bold",
-                      color: darkMode ? "#FFF" : "#1939B7",
-
-                      boxShadow: 10,
-                    }}
-                  >
-                    Hết hạn
-                    <CardTonKho 
-                    tonkho ={Duoc_VatTu_Sumary.find(item=>item.loai=== 'duochethan')}
-                    dataTonKho={Duoc_TonKho_HetHan.filter(item=>[2,3,8,10].includes(item.medicinestoretype))}
-                    colorCardWarning={true}
-                    />
-                  </Card>
-                </Grid>
-               
                 <Grid item xs={12} sm={12} md={6}>
                   <Card
                     sx={{
@@ -200,10 +153,34 @@ const DuocVatTu = () => {
                       boxShadow: 10,
                     }}
                   >
-                    Nhập nhà cung cấp từ đầu tháng 
-                    <CardNhapNhaCungCap 
-                    khohienthi ={ChiaKho_NhapNhaCungCap.filter(item=>item.medicinestoretype===3)}
-                    dataNhapNhaCungCap={Duoc_NhapNhaCungCap}
+                    Hết hạn
+                    <CardTonKho
+                      tonkho={Duoc_VatTu_Sumary.find(
+                        (item) => item.loai === "duochethan"
+                      )}
+                      dataTonKho={Duoc_TonKho_HetHan.filter((item) =>
+                        [2, 3, 8, 10].includes(item.medicinestoretype)
+                      )}
+                      colorCardWarning={true}
+                    />
+                  </Card>
+                </Grid>
+
+                <Grid item xs={12} sm={12} md={6}>
+                  <Card
+                    sx={{
+                      fontWeight: "bold",
+                      color: darkMode ? "#FFF" : "#1939B7",
+
+                      boxShadow: 10,
+                    }}
+                  >
+                    Nhập nhà cung cấp từ đầu tháng
+                    <CardNhapNhaCungCap
+                      khohienthi={ChiaKho_NhapNhaCungCap.filter(
+                        (item) => item.medicinestoretype === 3
+                      )}
+                      dataNhapNhaCungCap={Duoc_NhapNhaCungCap}
                     />
                   </Card>
                 </Grid>
@@ -218,13 +195,15 @@ const DuocVatTu = () => {
                     }}
                   >
                     Nhập nhà cung cấp trong ngày
-                    <CardNhapNhaCungCap 
-                    khohienthi ={ChiaKho_NhapNhaCungCap.filter(item=>item.medicinestoretype===3)}
-                    dataNhapNhaCungCap={Duoc_NhapNhaCungCap}
+                    <CardNhapNhaCungCap
+                      khohienthi={ChiaKho_NhapNhaCungCap_TrongNgay.filter(
+                        (item) => item.medicinestoretype === 3
+                      )}
+                      dataNhapNhaCungCap={Duoc_NhapNhaCungCap_TrongNgay}
                     />
                   </Card>
                 </Grid>
-                
+
                 <Grid item xs={12} sm={12} md={12}>
                   <Card
                     sx={{
@@ -235,25 +214,70 @@ const DuocVatTu = () => {
                     }}
                   >
                     <Typography sx={{ fontSize: "1.2rem" }}>
-                     Nhập nhà cung cấp
+                      Nhập xuất tồn trong tháng
                     </Typography>
-                  
-                  
-                  </Card>
-                </Grid>
-
-                <Grid item xs={12} sm={12} md={12}>
-                  <Card sx={{ p: 1 }}>
-                    <Typography
+                    <Autocomplete
+                      options={Kho_Unique.filter((item) =>
+                        [2, 3, 8, 4].includes(item.medicinestoretype)
+                      )} // Sử dụng Khoa_Unique để lọc khoa theo loại
+                      getOptionLabel={(option) =>
+                        option?.medicinestorename || ""
+                      } // Hiển thị TenKhoa
+                      value={
+                        Kho_Unique.find(
+                          (khoa) => khoa.medicinestoreid === selectedKhoDuocID
+                        ) || null
+                      } // So khớp value theo _id
+                      onChange={(event, newValue) => {
+                        setSelectedKhoDuocID(
+                          newValue ? newValue.medicinestoreid : null
+                        ); // Lưu _id vào selectedKhoaID
+                      }}
+                      renderInput={(params) => (
+                        <TextField {...params} label="Chọn khoa" />
+                      )}
+                      sx={{ width: "100%" }}
+                    />
+                    <Card
                       sx={{
-                        fontSize: "1.3rem",
-                        color: darkMode ? "#FFF" : "#1939B7",
+                        fontWeight: "bold",
+                        color: "#f2f2f2",
+                        backgroundColor: "#1939B7",
+                        p: 2,
                       }}
                     >
-                      Bệnh nhân đặc biệt đang điều trị
-                    </Typography>
-                    {/* <CardDonThuocNgoaiTru /> */}
-                    <CardTheoDoiBNVip />
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={12} md={4} spacing={1}>
+                          <CardNhapXuat
+                            dataNhapXuat={Duoc_TongHop.filter(
+                              (item) =>
+                                item.medicinestoreid === selectedKhoDuocID &&
+                                item.nhapxuat === 1
+                            )}
+
+                            title = "Nhập"
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={12} md={4} spacing={1}>
+                          <CardNhapXuat
+                            dataNhapXuat={Duoc_TongHop.filter(
+                              (item) =>
+                                item.medicinestoreid === selectedKhoDuocID &&
+                                item.nhapxuat === 2
+                            )}
+
+                             title = "Xuất"
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={12} md={4} spacing={1}>
+                          <CardTonTheoKho
+                            tonkho={Duoc_TonKho.find(
+                              (item) => item.medicinestoreid === selectedKhoDuocID
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+                    </Card>
                   </Card>
                 </Grid>
               </Grid>
@@ -261,7 +285,7 @@ const DuocVatTu = () => {
           </Card>
         </Grid>
 
-        {/* Hiển thị nội trú */}
+        {/* Hiển thị vat tu */}
         <Grid item xs={12} sm={12} md={6} spacing={1}>
           <Card sx={{ backgroundColor: darkMode ? "#1D1D1D" : "#1939B7" }}>
             <CardHeader
@@ -269,7 +293,7 @@ const DuocVatTu = () => {
               sx={{ textAlign: "center", color: "#FFF" }}
             />
             <CardContent>
-            <Grid container spacing={1}>
+              <Grid container spacing={1}>
                 {/* Grid items bên trong Card */}
                 <Grid item xs={12} sm={12} md={6}>
                   <Card
@@ -280,32 +304,17 @@ const DuocVatTu = () => {
                       boxShadow: 10,
                     }}
                   >
-                    Tồn kho 
-                    <CardTonKho 
-                    tonkho ={Duoc_VatTu_Sumary.find(item=>item.loai=== 'vattu')}
-                    dataTonKho={Duoc_TonKho.filter(item=>[7,9].includes(item.medicinestoretype))}
+                    Tồn kho
+                    <CardTonKho
+                      tonkho={Duoc_VatTu_Sumary.find(
+                        (item) => item.loai === "vattu"
+                      )}
+                      dataTonKho={Duoc_TonKho.filter((item) =>
+                        [7, 9].includes(item.medicinestoretype)
+                      )}
                     />
                   </Card>
                 </Grid>
-
-                <Grid item xs={12} sm={12} md={6}>
-                <Card
-                    sx={{
-                      fontWeight: "bold",
-                      color: darkMode ? "#FFF" : "#1939B7",
-
-                      boxShadow: 10,
-                    }}
-                  >
-                    Hết hạn
-                    <CardTonKho 
-                    tonkho ={Duoc_VatTu_Sumary.find(item=>item.loai=== 'vattuhethan')}
-                    dataTonKho={Duoc_TonKho_HetHan.filter(item=>[7,9].includes(item.medicinestoretype))}
-                    colorCardWarning = {true}
-                    />
-                  </Card>
-                </Grid>
-
 
                 <Grid item xs={12} sm={12} md={6}>
                   <Card
@@ -316,10 +325,34 @@ const DuocVatTu = () => {
                       boxShadow: 10,
                     }}
                   >
-                    Nhập nhà cung cấp từ đầu tháng 
-                    <CardNhapNhaCungCap 
-                    khohienthi ={ChiaKho_NhapNhaCungCap.filter(item=>item.medicinestoretype===7)}
-                    dataNhapNhaCungCap={Duoc_NhapNhaCungCap}
+                    Hết hạn
+                    <CardTonKho
+                      tonkho={Duoc_VatTu_Sumary.find(
+                        (item) => item.loai === "vattuhethan"
+                      )}
+                      dataTonKho={Duoc_TonKho_HetHan.filter((item) =>
+                        [7, 9].includes(item.medicinestoretype)
+                      )}
+                      colorCardWarning={true}
+                    />
+                  </Card>
+                </Grid>
+
+                <Grid item xs={12} sm={12} md={6}>
+                  <Card
+                    sx={{
+                      fontWeight: "bold",
+                      color: darkMode ? "#FFF" : "#1939B7",
+
+                      boxShadow: 10,
+                    }}
+                  >
+                    Nhập nhà cung cấp từ đầu tháng
+                    <CardNhapNhaCungCap
+                      khohienthi={ChiaKho_NhapNhaCungCap.filter(
+                        (item) => item.medicinestoretype === 7
+                      )}
+                      dataNhapNhaCungCap={Duoc_NhapNhaCungCap}
                     />
                   </Card>
                 </Grid>
@@ -334,13 +367,14 @@ const DuocVatTu = () => {
                     }}
                   >
                     Nhập nhà cung cấp trong ngày
-                    <CardNhapNhaCungCap 
-                    khohienthi ={ChiaKho_NhapNhaCungCap.filter(item=>item.medicinestoretype===7)}
-                    dataNhapNhaCungCap={Duoc_NhapNhaCungCap}
+                    <CardNhapNhaCungCap
+                      khohienthi={ChiaKho_NhapNhaCungCap_TrongNgay.filter(
+                        (item) => item.medicinestoretype === 7
+                      )}
+                      dataNhapNhaCungCap={Duoc_NhapNhaCungCap_TrongNgay}
                     />
                   </Card>
                 </Grid>
-                
 
                 <Grid item xs={12} sm={12} md={12}>
                   <Card
@@ -352,33 +386,81 @@ const DuocVatTu = () => {
                     }}
                   >
                     <Typography sx={{ fontSize: "1.2rem" }}>
-                      Nhập nhà cung cấp
+                      Nhập xuất tồn trong tháng
                     </Typography>
-                  
-                  </Card>
-                </Grid>
-
-                <Grid item xs={12} sm={12} md={12}>
-                  <Card sx={{ p: 1 }}>
-                    <Typography
+                    <Autocomplete
+                      options={Kho_Unique.filter((item) =>
+                        [7, 9].includes(item.medicinestoretype)
+                      )} // Sử dụng Khoa_Unique để lọc khoa theo loại
+                      getOptionLabel={(option) =>
+                        option?.medicinestorename || ""
+                      } // Hiển thị TenKhoa
+                      value={
+                        Kho_Unique.find(
+                          (khoa) => khoa.medicinestoreid === selectedKhoVatTuID
+                        ) || null
+                      } // So khớp value theo _id
+                      onChange={(event, newValue) => {
+                        setSelectedKhoVatTuID(
+                          newValue ? newValue.medicinestoreid : null
+                        ); // Lưu _id vào selectedKhoaID
+                      }}
+                      renderInput={(params) => (
+                        <TextField {...params} label="Chọn khoa" />
+                      )}
+                      sx={{ width: "100%" }}
+                    />
+                    <Card
                       sx={{
-                        fontSize: "1.3rem",
-                        color: darkMode ? "#FFF" : "#1939B7",
+                        fontWeight: "bold",
+                        color: "#f2f2f2",
+                        backgroundColor: "#1939B7",
+                        p: 2,
                       }}
                     >
-                      Bệnh nhân đặc biệt đang điều trị
-                    </Typography>
-                    {/* <CardDonThuocNgoaiTru /> */}
-                    <CardTheoDoiBNVip />
+                      <Grid container spacing={2}>
+
+                        <Grid item xs={12} sm={12} md={4} spacing={1}>
+                          <CardNhapXuat
+                            dataNhapXuat={Duoc_TongHop.filter(
+                              (item) =>
+                                item.medicinestoreid === selectedKhoVatTuID &&
+                                item.nhapxuat === 1
+                            )}
+                              title = "Nhập"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={12} md={4} spacing={1}>
+                          <CardNhapXuat
+                            dataNhapXuat={Duoc_TongHop.filter(
+                              (item) =>
+                                item.medicinestoreid === selectedKhoVatTuID &&
+                                item.nhapxuat === 2
+                            )}
+                              title = "Xuất"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={12} md={4} spacing={1}>
+                          <CardTonTheoKho
+                            tonkho={Duoc_TonKho.find(
+                              (item) => item.medicinestoreid === selectedKhoVatTuID
+                            )}
+                          />
+                        </Grid>
+
+
+                      </Grid>
+
+                    </Card>
                   </Card>
                 </Grid>
               </Grid>
             </CardContent>
           </Card>
         </Grid>
-       
       </Grid>
-
     </Stack>
   );
 };

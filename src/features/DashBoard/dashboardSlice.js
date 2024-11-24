@@ -8,6 +8,8 @@ import {
   calculateKPIWithDifferences,
   convertDataWithTextKeys_CanLamSang_PhongThucHien,
   
+  getUniqueMedicineStores,
+  
   groupByVipTypeId,
   
   summarizeMedicineStore,
@@ -91,8 +93,10 @@ const initialState = {
   SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai:[],
 
   //Duoc - Vat tu
-  Duoc_ChiTiet:[],
+  
   Duoc_TongHop:[],
+Kho_Unique:[],
+
   Duoc_TonKho:[],
   Duoc_TonKho_HetHan:[],
   Duoc_NhapNhaCungCap:[],
@@ -371,15 +375,12 @@ const slice = createSlice({
         state.SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai = state.chisosObj.json_soluong_tongtien_chuaduyetkt_thanghientai_toanvien 
         ? JSON.parse(state.chisosObj.json_soluong_tongtien_chuaduyetkt_thanghientai_toanvien )
         : [] || [];
-        
-        state.Duoc_ChiTiet = state.chisosObj.json_duoc_tonghop 
-        ? JSON.parse(state.chisosObj.json_duoc_tonghop )
-        : [] || [];
-        
+      
         state.Duoc_TongHop = state.chisosObj.json_duoc_tonghop 
         ? JSON.parse(state.chisosObj.json_duoc_tonghop )
         : [] || [];
-        
+        state.Kho_Unique = getUniqueMedicineStores(state.Duoc_TongHop)
+
         state.Duoc_TonKho = state.chisosObj.json_duoc_tonkho 
         ? JSON.parse(state.chisosObj.json_duoc_tonkho )
         : [] || [];
@@ -391,11 +392,20 @@ const slice = createSlice({
         state.Duoc_NhapNhaCungCap = state.chisosObj.json_duoc_nhapnhacungcap 
         ? JSON.parse(state.chisosObj.json_duoc_nhapnhacungcap )
         : [] || [];
+        state.Duoc_NhapNhaCungCap_TrongNgay = state.chisosObj.json_duoc_nhapnhacungcap_trongngay 
+        ? JSON.parse(state.chisosObj.json_duoc_nhapnhacungcap_trongngay )
+        : [] || [];
 
-        state.ChiaKho_NhapNhaCungCap = summarizeMedicineStore(state.Duoc_NhapNhaCungCap)
+        state.ChiaKho_NhapNhaCungCap = state.Duoc_NhapNhaCungCap?summarizeMedicineStore(state.Duoc_NhapNhaCungCap):[]
+        
+        state.ChiaKho_NhapNhaCungCap_TrongNgay =state.Duoc_NhapNhaCungCap_TrongNgay?summarizeMedicineStore(state.Duoc_NhapNhaCungCap_TrongNgay):[]
+
         state.Duoc_VatTu_Sumary = state.chisosObj.json_duoc_vattu_sumary 
         ? JSON.parse(state.chisosObj.json_duoc_vattu_sumary )
         : [] || [];
+        
+        
+       
         
     },
 

@@ -1582,6 +1582,7 @@ export function isNullOrEmptyObject(obj) {
 
 export function summarizeMedicineStore(data) {
   // Tạo một Map để lưu thông tin duy nhất cho mỗi medicinestoreid
+  console.log('summarizeMedicineStore',data);
   const storeMap = new Map();
 
   data.forEach(item => {
@@ -1606,5 +1607,26 @@ export function summarizeMedicineStore(data) {
   });
 
   // Trả kết quả dưới dạng mảng
+  return Array.from(storeMap.values());
+}
+
+export function getUniqueMedicineStores(data) {
+  // Tạo Map để lưu các cặp medicinestoreid và thông tin tương ứng duy nhất
+  const storeMap = new Map();
+
+  data.forEach(item => {
+      const { medicinestoreid, medicinestorename, medicinestoretype } = item;
+
+      // Chỉ thêm vào Map nếu medicinestoreid chưa tồn tại
+      if (!storeMap.has(medicinestoreid)) {
+          storeMap.set(medicinestoreid, {
+              medicinestoreid,
+              medicinestorename,
+              medicinestoretype
+          });
+      }
+  });
+
+  // Chuyển Map thành mảng các đối tượng
   return Array.from(storeMap.values());
 }

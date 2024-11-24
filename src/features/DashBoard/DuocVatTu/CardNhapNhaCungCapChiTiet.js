@@ -14,7 +14,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, {  useState } from "react";
 import { useSelector } from "react-redux";
 import { formatDate_getDate } from "utils/formatTime";
 import {
@@ -52,9 +52,6 @@ function CardNhapNhaCungCapChiTiet({
     ? { ...commonStyleLeftReponsive, color: "#FFF" }
     : { ...commonStyleLeftReponsive };
 
-  let commonStyleTitleReponsive = isSmallScreen
-    ? { ...commonStyleTitle, fontSize: "0.8rem" }
-    : { ...commonStyleTitle };
   const rowStyle = {
     height: "35px", // Adjust the height as needed
     "& td, & th": { padding: "5px" }, // Adjust the padding as needed

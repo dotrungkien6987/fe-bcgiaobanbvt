@@ -16,7 +16,7 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, {  useState } from "react";
 import { useSelector } from "react-redux";
 import { commonStyle, commonStyleLeft, commonStyleTitle } from "utils/heplFuntion";
 
