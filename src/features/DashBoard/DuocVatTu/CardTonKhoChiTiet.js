@@ -162,7 +162,7 @@ function CardTonKhoChiTiet({
                       Tổng danh mục thuốc
                     </TableCell>
                     <TableCell style={commonStyleReponsive}>
-                      Tổng số lô
+                      Tổng số mã
                     </TableCell>
                     <TableCell style={commonStyleReponsive}>Tổng tồn kho</TableCell>
                     <TableCell style={commonStyleReponsive}>Tổng khả dụng</TableCell>

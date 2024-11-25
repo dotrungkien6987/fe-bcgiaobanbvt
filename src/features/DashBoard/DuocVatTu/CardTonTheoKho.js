@@ -80,7 +80,7 @@ function CardTonTheoKho({ tonkho ={} }) {
               >
                 <CardContent>
                   <Typography sx={{ textAlign: "center", fontSize: "0.7rem" }}>
-                    Tổng số lô
+                    Tổng số mã
                   </Typography>
                   <Typography sx={{ textAlign: "center", fontSize: "1.1rem" }}>
                   {tonkho.tongsolo}

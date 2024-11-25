@@ -193,7 +193,7 @@ function CardNhapNhaCungCapChiTiet({
 
                
                         <TableCell style={commonStyleLeftReponsive}>
-                          {row.medicinestorebillcode}
+                          {row.medicinecode}
                         </TableCell>
 
                         <TableCell style={commonStyleLeftReponsive}>

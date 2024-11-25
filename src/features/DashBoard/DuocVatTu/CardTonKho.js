@@ -17,7 +17,7 @@ function CardTonKho({tonkho,dataTonKho, colorCardWarning}) {
   data.push({ Name: "Tổng tiền", Value: tonkho?.tongtien  ||0});
   data.push({ Name: "Tổng số lượng", Value: tonkho?.tongtonkho  ||0});
   data.push({ Name: "Tổng danh mục", Value: tonkho?.tongdanhmucthuoc  ||0});
-  data.push({ Name: "Tổng số lô", Value:  tonkho?.tongsolo ||0});
+  data.push({ Name: "Tổng số mã", Value:  tonkho?.tongsolo ||0});
   
   return (
     <Card sx={{ pl: 0, pr: 1 }}>

@@ -234,8 +234,16 @@ const DuocVatTu = () => {
                     }}
                   >
                     <Typography sx={{ fontSize: "1.2rem" }}>
-                      Nhập xuất tồn trong tháng
+                    {`Nhập xuất tồn trong tháng -${Kho_Unique.find(item=>item.medicinestoreid===selectedKhoDuocID)?.medicinestorename}`} 
                     </Typography>
+                    <Typography sx={{ fontSize: "1rem" }}>
+                      {`(Từ 00:00 01/${formatDate_getDate(
+                        date.toISOString()
+                      ).substring(3, 10)} đến ${formatDateTime(
+                        dashboadChiSoChatLuong.Ngay
+                      )})`}
+                    </Typography>
+
                     <Autocomplete
                       options={Kho_Unique.filter((item) =>
                         [2, 3, 8, 4].includes(item.medicinestoretype)
@@ -254,7 +262,7 @@ const DuocVatTu = () => {
                         ); // Lưu _id vào selectedKhoaID
                       }}
                       renderInput={(params) => (
-                        <TextField {...params} label="Chọn khoa" />
+                        <TextField {...params} label="Chọn kho" />
                       )}
                       sx={{ width: "100%" }}
                     />
@@ -376,6 +384,8 @@ const DuocVatTu = () => {
                         dashboadChiSoChatLuong.Ngay
                       )})`}
                     </Typography>
+
+                    
                     <CardNhapNhaCungCap
                       khohienthi={ChiaKho_NhapNhaCungCap.filter(
                         (item) => item.medicinestoretype === 7
@@ -420,7 +430,15 @@ const DuocVatTu = () => {
                     }}
                   >
                     <Typography sx={{ fontSize: "1.2rem" }}>
-                      Nhập xuất tồn trong tháng
+                     
+                     {`Nhập xuất tồn trong tháng -${Kho_Unique.find(item=>item.medicinestoreid===selectedKhoVatTuID)?.medicinestorename}`} 
+                    </Typography>
+                    <Typography sx={{ fontSize: "1rem" }}>
+                      {`(Từ 00:00 01/${formatDate_getDate(
+                        date.toISOString()
+                      ).substring(3, 10)} đến ${formatDateTime(
+                        dashboadChiSoChatLuong.Ngay
+                      )})`}
                     </Typography>
                     <Autocomplete
                       options={Kho_Unique.filter((item) =>
@@ -440,7 +458,7 @@ const DuocVatTu = () => {
                         ); // Lưu _id vào selectedKhoaID
                       }}
                       renderInput={(params) => (
-                        <TextField {...params} label="Chọn khoa" />
+                        <TextField {...params} label="Chọn kho" />
                       )}
                       sx={{ width: "100%" }}
                     />
