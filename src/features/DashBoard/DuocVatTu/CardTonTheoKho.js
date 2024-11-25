@@ -1,7 +1,7 @@
 import { Card, CardContent, Grid, Typography } from "@mui/material";
 import React from "react";
 
-function CardTonTheoKho({ tonkho }) {
+function CardTonTheoKho({ tonkho ={} }) {
   const VND = new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",

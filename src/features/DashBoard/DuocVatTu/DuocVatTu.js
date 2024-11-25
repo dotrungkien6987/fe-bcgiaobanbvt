@@ -15,11 +15,15 @@ import {
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import {
+  DatePicker,
+  datePickerToolbarClasses,
+  LocalizationProvider,
+} from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 
-import { formatDateTime } from "utils/formatTime";
+import { formatDate_getDate, formatDateTime } from "utils/formatTime";
 import DisplayChiSoDashBoard from "components/DisplayChiSoDashBoard";
 
 import { getDataNewestByNgay } from "../dashboardSlice";
@@ -27,6 +31,7 @@ import CardTonKho from "./CardTonKho";
 import CardNhapNhaCungCap from "./CardNhapNhaCungCap";
 import CardNhapXuat from "./CardNhapXuat";
 import CardTonTheoKho from "./CardTonTheoKho";
+import { da } from "date-fns/locale";
 
 const DuocVatTu = () => {
   const now = dayjs().tz("Asia/Ho_Chi_Minh");
@@ -39,7 +44,7 @@ const DuocVatTu = () => {
 
     ChiaKho_NhapNhaCungCap_TrongNgay,
     Duoc_NhapNhaCungCap_TrongNgay,
-  
+
     Duoc_TongHop,
     Duoc_TonKho,
     Duoc_TonKho_HetHan,
@@ -50,7 +55,7 @@ const DuocVatTu = () => {
   } = useSelector((state) => state.dashboard);
   const dispatch = useDispatch();
   const { darkMode } = useSelector((state) => state.mytheme);
-  
+
   const handleDateChange = (newDate) => {
     if (newDate instanceof Date) {
       // newDate.setHours(7, 0, 0, 0);
@@ -175,7 +180,17 @@ const DuocVatTu = () => {
                       boxShadow: 10,
                     }}
                   >
-                    Nhập nhà cung cấp từ đầu tháng
+                  
+                      Nhập nhà cung cấp trong tháng
+                   
+                    <Typography sx={{ fontSize: "1rem" }}>
+                      {`(Từ 00:00 01/${formatDate_getDate(
+                        date.toISOString()
+                      ).substring(3, 10)} đến ${formatDateTime(
+                        dashboadChiSoChatLuong.Ngay
+                      )})`}
+                    </Typography>
+
                     <CardNhapNhaCungCap
                       khohienthi={ChiaKho_NhapNhaCungCap.filter(
                         (item) => item.medicinestoretype === 3
@@ -195,6 +210,11 @@ const DuocVatTu = () => {
                     }}
                   >
                     Nhập nhà cung cấp trong ngày
+                    <Typography sx={{ fontSize: "1rem" }}>
+                      {`(Ngày ${formatDate_getDate(
+                        dashboadChiSoChatLuong.Ngay
+                      )})`}
+                    </Typography>
                     <CardNhapNhaCungCap
                       khohienthi={ChiaKho_NhapNhaCungCap_TrongNgay.filter(
                         (item) => item.medicinestoretype === 3
@@ -254,8 +274,7 @@ const DuocVatTu = () => {
                                 item.medicinestoreid === selectedKhoDuocID &&
                                 item.nhapxuat === 1
                             )}
-
-                            title = "Nhập"
+                            title="Nhập"
                           />
                         </Grid>
                         <Grid item xs={12} sm={12} md={4} spacing={1}>
@@ -265,14 +284,14 @@ const DuocVatTu = () => {
                                 item.medicinestoreid === selectedKhoDuocID &&
                                 item.nhapxuat === 2
                             )}
-
-                             title = "Xuất"
+                            title="Xuất"
                           />
                         </Grid>
                         <Grid item xs={12} sm={12} md={4} spacing={1}>
                           <CardTonTheoKho
                             tonkho={Duoc_TonKho.find(
-                              (item) => item.medicinestoreid === selectedKhoDuocID
+                              (item) =>
+                                item.medicinestoreid === selectedKhoDuocID
                             )}
                           />
                         </Grid>
@@ -347,13 +366,23 @@ const DuocVatTu = () => {
                       boxShadow: 10,
                     }}
                   >
-                    Nhập nhà cung cấp từ đầu tháng
+                     <Typography sx={{ fontSize: "1rem", fontWeight: "bold",}}>
+                      Nhập nhà cung cấp trong tháng
+                    </Typography>
+                    <Typography sx={{ fontSize: "1rem" }}>
+                      {`(Từ 00:00 01/${formatDate_getDate(
+                        date.toISOString()
+                      ).substring(3, 10)} đến ${formatDateTime(
+                        dashboadChiSoChatLuong.Ngay
+                      )})`}
+                    </Typography>
                     <CardNhapNhaCungCap
                       khohienthi={ChiaKho_NhapNhaCungCap.filter(
                         (item) => item.medicinestoretype === 7
                       )}
                       dataNhapNhaCungCap={Duoc_NhapNhaCungCap}
                     />
+
                   </Card>
                 </Grid>
 
@@ -367,6 +396,11 @@ const DuocVatTu = () => {
                     }}
                   >
                     Nhập nhà cung cấp trong ngày
+                    <Typography sx={{ fontSize: "1rem" }}>
+                      {`(Ngày ${formatDate_getDate(
+                        dashboadChiSoChatLuong.Ngay
+                      )})`}
+                    </Typography>
                     <CardNhapNhaCungCap
                       khohienthi={ChiaKho_NhapNhaCungCap_TrongNgay.filter(
                         (item) => item.medicinestoretype === 7
@@ -419,7 +453,6 @@ const DuocVatTu = () => {
                       }}
                     >
                       <Grid container spacing={2}>
-
                         <Grid item xs={12} sm={12} md={4} spacing={1}>
                           <CardNhapXuat
                             dataNhapXuat={Duoc_TongHop.filter(
@@ -427,7 +460,7 @@ const DuocVatTu = () => {
                                 item.medicinestoreid === selectedKhoVatTuID &&
                                 item.nhapxuat === 1
                             )}
-                              title = "Nhập"
+                            title="Nhập"
                           />
                         </Grid>
 
@@ -438,21 +471,19 @@ const DuocVatTu = () => {
                                 item.medicinestoreid === selectedKhoVatTuID &&
                                 item.nhapxuat === 2
                             )}
-                              title = "Xuất"
+                            title="Xuất"
                           />
                         </Grid>
 
                         <Grid item xs={12} sm={12} md={4} spacing={1}>
                           <CardTonTheoKho
                             tonkho={Duoc_TonKho.find(
-                              (item) => item.medicinestoreid === selectedKhoVatTuID
+                              (item) =>
+                                item.medicinestoreid === selectedKhoVatTuID
                             )}
                           />
                         </Grid>
-
-
                       </Grid>
-
                     </Card>
                   </Card>
                 </Grid>
