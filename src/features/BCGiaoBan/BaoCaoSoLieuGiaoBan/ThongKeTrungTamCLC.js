@@ -30,6 +30,7 @@ let commonStyleLeftReponsive = isSmallScreen ? {...commonStyleLeft, fontSize: '0
       'ls-Nang': 0,
       'ls-XinVe': 0,
       'ls-PhauThuat':0,
+      'ls-TheoDoi':0,
     };
 
     const rows = bcTrungTamCLC.map((entry) => {
@@ -38,7 +39,7 @@ let commonStyleLeftReponsive = isSmallScreen ? {...commonStyleLeft, fontSize: '0
         BSTruc: entry.BSTruc,
       };
 
-      ['ls-TongNB', 'ls-NgoaiGio', 'ls-ChuyenVien', 'ls-TuVong', 'ls-Nang', 'ls-XinVe','ls-PhauThuat'].forEach((code) => {
+      ['ls-TongNB', 'ls-NgoaiGio', 'ls-ChuyenVien', 'ls-TuVong', 'ls-Nang', 'ls-XinVe','ls-PhauThuat','ls-TheoDoi'].forEach((code) => {
         row[code] = 0;
       });
 
@@ -77,6 +78,7 @@ let commonStyleLeftReponsive = isSmallScreen ? {...commonStyleLeft, fontSize: '0
             <TableCell style={commonStyleReponsive}>NB nặng</TableCell>
             <TableCell style={commonStyleReponsive}>Xin về</TableCell>
             <TableCell style={commonStyleReponsive}>Phẫu thuật</TableCell>
+            <TableCell style={commonStyleReponsive}>Theo dõi</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -91,6 +93,7 @@ let commonStyleLeftReponsive = isSmallScreen ? {...commonStyleLeft, fontSize: '0
               <TableCell style={commonStyleReponsive}>{row['ls-Nang']}</TableCell>
               <TableCell style={commonStyleReponsive}>{row['ls-XinVe']}</TableCell>
               <TableCell style={commonStyleReponsive}>{row['ls-PhauThuat']}</TableCell>
+              <TableCell style={commonStyleReponsive}>{row['ls-TheoDoi']}</TableCell>
             </TableRow>
           ))}
         </TableBody>

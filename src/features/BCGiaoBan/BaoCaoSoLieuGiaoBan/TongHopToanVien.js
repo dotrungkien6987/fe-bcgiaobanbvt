@@ -17,6 +17,7 @@ function TongHopToanVien() {
     noiBNXinVes,
     noiBNNangs,
     noiBNCanThieps,
+    noiBNTheoDois,
     noiBNNgoaiGios,
 
     ngoaiBNTuvongs,
@@ -24,6 +25,7 @@ function TongHopToanVien() {
     ngoaiBNXinVes,
     ngoaiBNNangs,
     ngoaiBNPhauThuats,
+    ngoaiBNTheoDois,
     ngoaiBNNgoaiGios,
 
     chisoTong,
@@ -114,6 +116,13 @@ function TongHopToanVien() {
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
         Can thiệp: {noiBNCanThieps.length}
+      </Typography>
+
+      <Typography
+        variant="body2"
+        // sx={{ color: "text.secondary", fontStyle: "italic" }}
+      >
+        Theo dõi: {noiBNTheoDois.length + ngoaiBNTheoDois.length}
       </Typography>
     </Card>
   );

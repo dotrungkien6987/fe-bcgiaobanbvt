@@ -22,6 +22,7 @@ function Content() {
     noiBNXinVes,
     noiBNNangs,
     noiBNCanThieps,
+    noiBNTheoDois,
     noiBNNgoaiGios,
     noiBNNgoaiGiosKhongGomCLC,
 
@@ -30,6 +31,7 @@ function Content() {
     ngoaiBNXinVes,
     ngoaiBNNangs,
     ngoaiBNPhauThuats,
+    ngoaiBNTheoDois,
     ngoaiBNNgoaiGios,
     ngoaiBNNgoaiGiosKhongGomCLC,
 
@@ -99,6 +101,11 @@ function Content() {
       {ngoaiBNPhauThuats.map((ngoaiBNNang) => (
         <BenhNhanInBaoCao key={ngoaiBNNang._id} benhnhan={ngoaiBNNang} />
       ))}
+
+      {ngoaiBNTheoDois.map((ngoaiBNTheoDoi) => (
+        <BenhNhanInBaoCao key={ngoaiBNTheoDoi._id} benhnhan={ngoaiBNTheoDoi} />
+      ))}
+
       <ChuyenTiepForm
         title="BỆNH NHÂN VÀO VIỆN NGOÀI GIỜ HỆ NGOẠI"
         id="ngoaigiohengoai"
@@ -133,6 +140,10 @@ function Content() {
       ))}
       {noiBNCanThieps.map((noiBNCanThiep) => (
         <BenhNhanInBaoCao key={noiBNCanThiep._id} benhnhan={noiBNCanThiep} />
+      ))}
+
+      {noiBNTheoDois.map((noiBNTheoDoi) => (
+        <BenhNhanInBaoCao key={noiBNTheoDoi._id} benhnhan={noiBNTheoDoi} />
       ))}
       {/* {noiBNNgoaiGios.length > 0 && (
         <ChuyenTiepForm title="BỆNH NHÂN VÀO VIỆN NGOÀI GIỜ HỆ NỘI" id= 'ngoaigiohenoi'/>

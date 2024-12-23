@@ -1,4 +1,4 @@
-import { Box, Container, Grid, Stack, Typography } from "@mui/material";
+import { Box, Button, Card, Container, Grid, Stack, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
 import { useForm } from "react-hook-form";
@@ -16,6 +16,8 @@ import dayjs from "dayjs";
 import { fDate } from "../../utils/formatTime";
 import { CheckDisplayKhoa } from "../../utils/heplFuntion";
 import { getDataBCGiaoBanCurent } from "../BCGiaoBan/bcgiaobanSlice";
+import BenhNhanInsertForm from "features/BenhNhan/BenhNhanInsertForm";
+import ListBenhNhanCard from "features/BenhNhan/ListBenhNhanCard";
 
 const RegisterSchema = Yup.object().shape({
   
@@ -27,9 +29,10 @@ const RegisterSchema = Yup.object().shape({
 
 function BCGayMeHS() {
   const { user } = useAuth();
-  const { bcGiaoBanTheoNgay, khoas, ctChiSos, isLoading } = useSelector(
+  const { bcGiaoBanTheoNgay, khoas, ctChiSos, isLoading,bnTuVongs,bnTheoDois } = useSelector(
     (state) => state.baocaongay
   );
+  
   const { bcGiaoBanCurent} = useSelector((state)=>state.bcgiaoban);
   console.log("bcGiaobantheongay", bcGiaoBanTheoNgay);
   const defaultValues = {
@@ -128,7 +131,17 @@ function BCGayMeHS() {
     }
   }, [bcGiaoBanTheoNgay, khoas, ctChiSos, setValue]);
 
-  
+   const [tenLoaiBN, setTenLoaiBN] = useState("");
+  const [loaiBN, setLoaiBN] = useState(0);
+  const [openEdit, setOpenEdit] = useState(false);
+  const handleCloseEditPostForm = () => {
+    setOpenEdit(false);
+  };
+  const handleSaveEditPostForm = () => {
+    // Code to save changes goes here
+    setOpenEdit(false);
+  };
+
   const handleCapNhatDuLieu = (data) => {
     //Set ChitietChiSols-TongNB
 
@@ -137,7 +150,8 @@ function BCGayMeHS() {
       { ChiSoCode: "gmhs-TongMo", SoLuong: data.TongMo },
       { ChiSoCode: "gmhs-TrongGio", SoLuong: data.TrongGio },
       { ChiSoCode: "gmhs-NgoaiGio", SoLuong: data.NgoaiGio },
-     
+      { ChiSoCode: "ls-TuVong", SoLuong: bnTuVongs.length },
+      { ChiSoCode: "ls-TheoDoi", SoLuong: bnTheoDois.length },
     ];
     // set BaoCaoNgay cap nhat
     const bcNgayKhoa = {
@@ -146,7 +160,7 @@ function BCGayMeHS() {
       BSTruc:data.BSTruc,
       DDTruc:data.DDTruc,
       CBThemGio:data.CBThemGio,
-      ChiTietBenhNhan: [],
+      ChiTietBenhNhan: [...bnTuVongs,...bnTheoDois],
       ChiTietChiSo: ctChiSo,
     };
 
@@ -155,6 +169,16 @@ function BCGayMeHS() {
     console.log("BaoCaoNgay", bcNgayKhoa);
     dispatch(insertOrUpdateBaoCaoNgay(bcNgayKhoa));
   };
+
+
+  const handleEdit = (tenloai, loaiBN) => {
+    setTenLoaiBN(tenloai);
+    setLoaiBN(loaiBN);
+    console.log(tenLoaiBN);
+    setOpenEdit(true);
+    console.log("click");
+  };
+
 
   return (
     <Container>
@@ -203,6 +227,79 @@ function BCGayMeHS() {
           </Grid>
         </FormProvider>
       </Stack>
+
+      <Stack direction="row">
+        <Card
+          variant="outlined"
+          sx={{
+            p: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          {/* <CardHeader title="Tử vong" variant="h6" /> */}
+          <Typography variant="h6" m={1}>
+            Số người bệnh tử vong: {bnTuVongs.length}
+          </Typography>
+
+          {coQuyen && (
+            <Button
+              onClick={() => handleEdit("tử vong", 1)}
+              variant="contained"
+            >
+              Thêm
+            </Button>
+          )}
+        </Card>
+
+        <Card
+          variant="outlined"
+          sx={{
+            p: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          {/* <CardHeader title="Tử vong" variant="h6" /> */}
+          <Typography variant="h6" m={1}>
+            Số người bệnh theo dõi: {bnTheoDois.length}
+          </Typography>
+
+          {coQuyen && (
+            <Button
+              onClick={() => handleEdit("theo dõi", 8)}
+              variant="contained"
+            >
+              Thêm
+            </Button>
+          )}
+        </Card>
+
+        <BenhNhanInsertForm
+          open={openEdit}
+          handleClose={handleCloseEditPostForm}
+          handleSave={handleSaveEditPostForm}
+          tenLoaiBN={tenLoaiBN}
+          loaiBN={loaiBN}
+          benhnhan={{}}
+        />
+      </Stack>
+      {bnTuVongs.length > 0 && (
+        <ListBenhNhanCard
+          benhnhans={bnTuVongs}
+          title="Người bệnh tử vong"
+        />
+      )}
+
+      {bnTheoDois.length > 0 && (
+        <ListBenhNhanCard
+          benhnhans={bnTheoDois}
+          title="Người bệnh theo dõi"
+        />
+      )}
+
     </Container>
   );
 }

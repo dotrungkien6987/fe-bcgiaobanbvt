@@ -43,6 +43,7 @@ function BCNgayLamSangNgoai() {
     bnNangs,
     bnPhauThuats,
     bnNgoaiGios,
+    bnTheoDois,
     bcGiaoBanTheoNgay,
     khoas,
     ctChiSos,
@@ -152,6 +153,7 @@ function BCNgayLamSangNgoai() {
       { ChiSoCode: "ls-NgoaiGio", SoLuong: bnNgoaiGios.length },
       { ChiSoCode: "ls-PhauThuat", SoLuong: bnPhauThuats.length },
       { ChiSoCode: "ls-ChuyenVien", SoLuong: bnChuyenViens.length },
+      { ChiSoCode: "ls-TheoDoi", SoLuong: bnTheoDois.length },
     ];
     // set BaoCaoNgay cap nhat
     const bcNgayKhoa = {
@@ -167,6 +169,7 @@ function BCNgayLamSangNgoai() {
         ...bnNangs,
         ...bnPhauThuats,
         ...bnNgoaiGios,
+        ...bnTheoDois,
       ],
       ChiTietChiSo: ctChiSo,
     };
@@ -308,6 +311,21 @@ function BCNgayLamSangNgoai() {
             </Button>
             )}
           </Card>
+
+          <Card variant="outlined" sx={{p:1,display: 'flex', flexDirection: 'column', alignItems:'center'}}>
+            <Typography variant="h6" m={1}>
+              Theo dõi: {bnTheoDois.length}
+            </Typography>
+            {coQuyen&&(
+              
+            <Button
+              onClick={() => handleEdit("theo giờ", 8)}
+              variant="contained"
+            >
+              Thêm
+            </Button>
+            )}
+          </Card>
           </Card>
           <BenhNhanInsertForm
             open={openEdit}
@@ -347,6 +365,12 @@ function BCNgayLamSangNgoai() {
           <ListBenhNhanCard
             benhnhans={bnNgoaiGios}
             title="Người bệnh vào viện ngoài giờ"
+          />
+        )}
+        {bnTheoDois.length > 0 && (
+          <ListBenhNhanCard
+            benhnhans={bnTheoDois}
+            title="Người bệnh theo dõi"
           />
         )}
 

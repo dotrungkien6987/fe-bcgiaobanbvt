@@ -45,6 +45,7 @@ function BCNgayLamSangNoi() {
     bnPhauThuats,
     bnNgoaiGios,
     bnCanThieps,
+    bnTheoDois,
     bcGiaoBanTheoNgay,
     khoas,
     ctChiSos,
@@ -163,6 +164,7 @@ function BCNgayLamSangNoi() {
       { ChiSoCode: "ls-NgoaiGio", SoLuong: bnNgoaiGios.length },
       { ChiSoCode: "ls-ChuyenVien", SoLuong: bnChuyenViens.length },
       { ChiSoCode: "ls-CanThiep", SoLuong: bnCanThieps.length },
+      { ChiSoCode: "ls-TheoDoi", SoLuong: bnTheoDois.length },
     ];
 
     // set BaoCaoNgay cap nhat
@@ -180,6 +182,7 @@ function BCNgayLamSangNoi() {
         ...bnPhauThuats,
         ...bnNgoaiGios,
         ...bnCanThieps,
+        ...bnTheoDois,
       ],
       ChiTietChiSo: ctChiSo,
     };
@@ -380,6 +383,30 @@ function BCNgayLamSangNoi() {
                 </Button>
               )}
             </Card>
+
+            <Card
+              variant="outlined"
+              sx={{
+                p: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              <Typography variant="h6" m={1}>
+                Theo dõi: {bnTheoDois.length}
+              </Typography>
+              {/* <FTextField name="tuvong" label="Số lượng" /> */}
+              {coQuyen && (
+                <Button
+                  onClick={() => handleEdit("Theo dõi", 8)}
+                  variant="contained"
+                >
+                  Thêm
+                </Button>
+              )}
+            </Card>
+
           </Card>
           <BenhNhanInsertForm
             open={openEdit}
@@ -421,6 +448,12 @@ function BCNgayLamSangNoi() {
           <ListBenhNhanCard
             benhnhans={bnCanThieps}
             title="Người bệnh can thiệp"
+          />
+        )}
+        {bnTheoDois.length > 0 && (
+          <ListBenhNhanCard
+            benhnhans={bnTheoDois}
+            title="Người bệnh theo dõi"
           />
         )}
       </Stack>

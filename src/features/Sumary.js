@@ -59,7 +59,7 @@ function Sumary() {
     noiBNXinVes,
     noiBNNangs,
     noiBNCanThieps,
-    
+    noiBNTheoDois,
     noiBNNgoaiGiosKhongGomCLC,
 
     ngoaiBNTuvongs,
@@ -67,7 +67,8 @@ function Sumary() {
     ngoaiBNXinVes,
     ngoaiBNNangs,
     ngoaiBNPhauThuats,
-    
+    ngoaiBNTheoDois,
+
     ngoaiBNNgoaiGiosKhongGomCLC,
 
     bcGiaoBanCurent,
@@ -76,6 +77,8 @@ function Sumary() {
     clcBNXinVes,
     clcBNNangs,
     clcBNCanThieps,
+    clcBNTheoDois,
+
     hsccycBNNgoaiGios,
     noiycBNNgoaiGios,
     ngoaiycBNNgoaiGios,
@@ -763,6 +766,7 @@ function Sumary() {
         "ls-Nang": 0,
         "ls-XinVe": 0,
         "ls-PhauThuat": 0,
+        "ls-TheoDoi": 0,
       };
 
       const rows = bcHeNgoai.map((entry) => {
@@ -779,6 +783,7 @@ function Sumary() {
           "ls-Nang",
           "ls-XinVe",
           "ls-PhauThuat",
+          "ls-TheoDoi",
         ].forEach((code) => {
           row[code] = 0;
         });
@@ -811,6 +816,7 @@ function Sumary() {
         { text: "NB nặng", options: { ...styleCenterCell, fontSize: 13 } },
         { text: "Xin về", options: { ...styleCenterCell, fontSize: 13 } },
         { text: "Phẫu thuật", options: { ...styleCenterCell, fontSize: 13 } },
+        { text: "Theo dõi", options: { ...styleCenterCell, fontSize: 13 } },
       ],
       ...rowTongTrucHeNgoai.map((row, index) => [
         { text: row.TenKhoa, options: { ...styleLeftCell, fontSize: 13 } },
@@ -840,6 +846,10 @@ function Sumary() {
           text: row["ls-PhauThuat"],
           options: { ...styleCenterCell, fontSize: 13 },
         },
+        {
+          text: row["ls-TheoDoi"],
+          options: { ...styleCenterCell, fontSize: 13 },
+        },
       ]),
     ];
     slideBCTongTrucHeNgoai.addTable(tableHeNgoai, {
@@ -848,7 +858,7 @@ function Sumary() {
       w: 10,
       h: 4.2,
       border: { type: "solid", color: "1939B7", pt: 1 },
-      colW: [2.2, 2, 0.8, 0.8, 1, 0.8, 0.8, 0.8, 0.8],
+      colW: [2.2, 2, 0.7, 0.7, 0.9, 0.7, 0.7, 0.7, 0.7, 0.7],
       color: "1939B7",
       fontFace: "Times New Roman",
       autoPage: true,
@@ -898,6 +908,7 @@ function Sumary() {
       ngoaiBNXinVes,
       ngoaiBNNangs,
       ngoaiBNPhauThuats,
+      ngoaiBNTheoDois,
       ngoaiBNNgoaiGiosKhongGomCLC,
     ];
 
@@ -907,13 +918,14 @@ function Sumary() {
       "Người bệnh xin về",
       "Người bệnh nặng tại khoa",
       "Người bệnh phẫu thuật",
+      "Người bệnh theo dõi",
       "Người bệnh vào viện ngoài giờ",
     ];
     listBenhNhanBaoCaoTongTrucHeNgoai.forEach((lstBenhNhan, index) => {
       //Export lstBenhNhan
       if (lstBenhNhan.length > 0) {
         //Slide chuyen ngoai gio he ngoai
-        if (index === 5) {
+        if (index === 6) {
           let slideChuyenNgoaiGio = pres.addSlide();
           slideChuyenNgoaiGio.addText("BÁO CÁO GIAO BAN TOÀN VIỆN", {
             ...styleTitle,
@@ -1172,6 +1184,7 @@ function Sumary() {
         "ls-Nang": 0,
         "ls-XinVe": 0,
         "ls-CanThiep": 0,
+        "ls-TheoDoi": 0,
       };
 
       const rows = bcHeNoi.map((entry) => {
@@ -1188,6 +1201,7 @@ function Sumary() {
           "ls-Nang",
           "ls-XinVe",
           "ls-CanThiep",
+          "ls-TheoDoi",
         ].forEach((code) => {
           row[code] = 0;
         });
@@ -1220,6 +1234,7 @@ function Sumary() {
         { text: "NB nặng", options: { ...styleCenterCell, fontSize: 14 } },
         { text: "Xin về", options: { ...styleCenterCell, fontSize: 14 } },
         { text: "Can thiệp", options: { ...styleCenterCell, fontSize: 14 } },
+        { text: "Theo dõi", options: { ...styleCenterCell, fontSize: 14 } },
       ],
       ...rowTongTrucHeNoi.map((row, index) => [
         { text: row.TenKhoa, options: { ...styleLeftCell, fontSize: 14 } },
@@ -1249,6 +1264,10 @@ function Sumary() {
           text: row["ls-CanThiep"],
           options: { ...styleCenterCell, fontSize: 14 },
         },
+        {
+          text: row["ls-TheoDoi"],
+          options: { ...styleCenterCell, fontSize: 14 },
+        },
       ]),
     ];
     slideBCTongTrucHeNoi.addTable(tableHeNoi, {
@@ -1258,7 +1277,7 @@ function Sumary() {
       h: 4.5,
       border: { type: "solid", color: "1939B7", pt: 1 },
       color: "1939B7",
-      colW: [2.2, 2, 0.8, 0.8, 1, 0.8, 0.8, 0.8, 0.8],
+      colW: [2.2, 2, 0.7, 0.7, 0.9, 0.7, 0.7, 0.7, 0.7, 0.7],
       fontFace: "Times New Roman",
       align: "center",
       valign: "middle",
@@ -1442,6 +1461,7 @@ function Sumary() {
       noiBNXinVes,
       noiBNNangs,
       noiBNCanThieps,
+      noiBNTheoDois,
       noiBNNgoaiGiosKhongGomCLC,
     ];
 
@@ -1451,13 +1471,14 @@ function Sumary() {
       "Người bệnh xin về",
       "Người bệnh nặng tại khoa",
       "Người bệnh can thiệp",
+      "Người bệnh theo dõi",
       "Người bệnh vào viện ngoài giờ",
     ];
     listBenhNhanBaoCaoTongTrucHeNoi.forEach((lstBenhNhan, index) => {
       //Export lstBenhNhan
       if (lstBenhNhan.length > 0) {
         //Slide chuyen ngoai gio he noi
-        if (index === 5) {
+        if (index === 6) {
           let slideChuyenNgoaiGio = pres.addSlide();
           slideChuyenNgoaiGio.addText("BÁO CÁO GIAO BAN TOÀN VIỆN", {
             ...styleTitle,
@@ -1751,6 +1772,7 @@ function Sumary() {
       "ls-Nang": 0,
       "ls-XinVe": 0,
       "ls-PhauThuat": 0,
+      "ls-TheoDoi": 0,
     };
 
     const rowThongKeTrungTamCLC = bcTrungTamCLC.map((entry) => {
@@ -1767,6 +1789,7 @@ function Sumary() {
         "ls-Nang",
         "ls-XinVe",
         "ls-PhauThuat",
+        "ls-TheoDoi",
       ].forEach((code) => {
         row[code] = 0;
       });
@@ -1794,6 +1817,7 @@ function Sumary() {
         "NB nặng",
         "Xin về",
         "Phẫu thuật",
+        "Theo dõi",
       ],
       ...rowThongKeTrungTamCLC.map((row) => [
         row.TenKhoa,
@@ -1805,6 +1829,7 @@ function Sumary() {
         row["ls-Nang"],
         row["ls-XinVe"],
         row["ls-PhauThuat"],
+        row["ls-TheoDoi"],
       ]),
     ];
 
@@ -1814,7 +1839,7 @@ function Sumary() {
       w: 10,
       h: 3.5,
       // margin: [0.5, 0.5, 0.5, 0.5],
-      colW: [2.2, 2.1, 0.8, 0.8, 0.9, 0.8, 0.8, 0.8, 0.8],
+      colW: [2.2, 2.1, 0.7, 0.7, 0.8, 0.7, 0.7, 0.7, 0.7,0.7],
       align: "center",
       valign: "middle",
       border: { type: "solid", color: "1939B7", pt: 1 },
@@ -2173,6 +2198,7 @@ function Sumary() {
       "ls-Nang": 0,
       "ls-XinVe": 0,
       "ls-PhauThuat": 0,
+      "ls-TheoDoi": 0,
     };
 
     const rowThongKeTrungTamCLC = bcTrungTamCLC.map((entry) => {
@@ -2189,6 +2215,7 @@ function Sumary() {
         "ls-Nang",
         "ls-XinVe",
         "ls-PhauThuat",
+        "ls-TheoDoi",
       ].forEach((code) => {
         row[code] = 0;
       });
@@ -2216,6 +2243,7 @@ function Sumary() {
         "NB nặng",
         "Xin về",
         "Phẫu thuật",
+        "Theo dõi",
       ],
       ...rowThongKeTrungTamCLC.map((row) => [
         row.TenKhoa,
@@ -2227,6 +2255,7 @@ function Sumary() {
         row["ls-Nang"],
         row["ls-XinVe"],
         row["ls-PhauThuat"],
+        row["ls-TheoDoi"],
       ]),
     ];
 
@@ -2236,7 +2265,7 @@ function Sumary() {
       w: 10,
       h: 3.5,
       // margin: [0.5, 0.5, 0.5, 0.5],
-      colW: [2.2, 2.1, 0.8, 0.8, 0.9, 0.8, 0.8, 0.8, 0.8],
+      colW: [2.2, 2, 0.7, 0.7, 0.9, 0.7, 0.7, 0.7, 0.7,0.7],
       align: "center",
       valign: "middle",
       border: { type: "solid", color: "1939B7", pt: 1 },
@@ -2589,6 +2618,7 @@ function Sumary() {
       clcBNNangs,
       clcBNCanThieps,
       ngoaiycBNPhauThuats,
+      clcBNTheoDois,
     ];
 
     const listTitleSlideTTCLC = [
@@ -2598,6 +2628,7 @@ function Sumary() {
       "Người bệnh nặng tại khoa",
       "Người bệnh can thiệp",
       "Người bệnh phẫu thuật",
+      "Người bệnh theo dõi",
     ];
 
     listBenhNhanQuanTamCLC.forEach((lstBenhNhan, index) => {

@@ -4,7 +4,6 @@ import { removeAndRenumber } from "../../utils/heplFuntion";
 import { uploadImagesToCloudinary } from "../../utils/cloudinary";
 import { toast } from "react-toastify";
 
-
 const initialState = {
   isLoading: false,
   error: null,
@@ -15,7 +14,8 @@ const initialState = {
   bnNangs: [],
   bnPhauThuats: [],
   bnNgoaiGios: [],
-  bnCanThieps:[],
+  bnCanThieps: [],
+  bnTheoDois: [],
   ctChiSos: [],
   khoas: [],
 };
@@ -67,6 +67,10 @@ const slice = createSlice({
       const benhnhan = { ...action.payload, Stt: state.bnCanThieps.length + 1 };
       state.bnCanThieps.push(benhnhan);
     },
+    addTheoDoiSuccess(state, action) {
+      const benhnhan = { ...action.payload, Stt: state.bnTheoDois.length + 1 };
+      state.bnTheoDois.push(benhnhan);
+    },
     //Xử lý khi update 1 Bn vào trong các list BN
     updateTuVongSuccess(state, action) {
       state.bnTuVongs[action.payload.Stt - 1] = action.payload;
@@ -88,6 +92,9 @@ const slice = createSlice({
     },
     updateCanThiepSuccess(state, action) {
       state.bnCanThieps[action.payload.Stt - 1] = action.payload;
+    },
+    updateTheoDoiSuccess(state, action) {
+      state.bnTheoDois[action.payload.Stt - 1] = action.payload;
     },
 
     //Xử lý khi xóa 1 BN trong list BN
@@ -119,6 +126,10 @@ const slice = createSlice({
     removeBenhNhanInCanThiepSuccess(state, action) {
       const stt = action.payload.Stt;
       state.bnCanThieps = removeAndRenumber(state.bnCanThieps, stt);
+    },
+    removeBenhNhanInTheoDoiSuccess(state, action) {
+      const stt = action.payload.Stt;
+      state.bnTheoDois = removeAndRenumber(state.bnTheoDois, stt);
     },
     getDataBCNgaySuccess(state, action) {
       state.isLoading = false;
@@ -158,6 +169,9 @@ const slice = createSlice({
         state.bnCanThieps = baocaongay.ChiTietBenhNhan.filter(
           (BN) => BN.LoaiBN === 7
         );
+        state.bnTheoDois = baocaongay.ChiTietBenhNhan.filter(
+          (BN) => BN.LoaiBN === 8
+        );
       } else {
         console.log("get BCngay insert", action.payload);
         state.bcGiaoBanTheoNgay = {
@@ -171,6 +185,7 @@ const slice = createSlice({
         state.bnPhauThuats = [];
         state.bnNgoaiGios = [];
         state.bnCanThieps = [];
+        state.bnTheoDois = [];
         state.ctChiSos = [];
       }
     },
@@ -188,10 +203,10 @@ const slice = createSlice({
       console.log("playload capnhat thanh cong", action.payload);
       const { baocaongay } = { ...action.payload };
       state.ctChiSos = baocaongay.ChiTietChiSo;
-      state.bcGiaoBanTheoNgay.UserID =baocaongay.UserID;
-      state.bcGiaoBanTheoNgay.BSTruc=baocaongay.BSTruc;
-      state.bcGiaoBanTheoNgay.DDTruc=baocaongay.DDTruc;
-      state.bcGiaoBanTheoNgay.CBThemGio=baocaongay.CBThemGio;
+      state.bcGiaoBanTheoNgay.UserID = baocaongay.UserID;
+      state.bcGiaoBanTheoNgay.BSTruc = baocaongay.BSTruc;
+      state.bcGiaoBanTheoNgay.DDTruc = baocaongay.DDTruc;
+      state.bcGiaoBanTheoNgay.CBThemGio = baocaongay.CBThemGio;
     },
 
     createCommentSuccess(state, action) {
@@ -203,7 +218,6 @@ const slice = createSlice({
       state.error = null;
       console.log("payload in del comment", action.payload);
     },
-  
   },
 });
 export default slice.reducer;
@@ -243,7 +257,9 @@ export const addBenhNhanToList = (benhnhan, images) => async (dispatch) => {
       case 7:
         dispatch(slice.actions.addCanThiepSuccess(benhnhan));
         break;
-
+      case 8:
+        dispatch(slice.actions.addTheoDoiSuccess(benhnhan));
+        break;
       default:
         break;
     }
@@ -287,6 +303,9 @@ export const updateBenhNhanToList = (benhnhan, images) => async (dispatch) => {
       case 7:
         dispatch(slice.actions.updateCanThiepSuccess(benhnhan));
         break;
+      case 8:
+        dispatch(slice.actions.updateTheoDoiSuccess(benhnhan));
+        break;
 
       default:
         break;
@@ -318,6 +337,9 @@ export const removeBenhNhanInList = (benhnhan) => (dispatch) => {
     case 7:
       dispatch(slice.actions.removeBenhNhanInCanThiepSuccess(benhnhan));
       break;
+    case 8:
+      dispatch(slice.actions.removeBenhNhanInTheoDoiSuccess(benhnhan));
+      break;
 
     default:
       break;
@@ -327,7 +349,6 @@ export const removeBenhNhanInList = (benhnhan) => (dispatch) => {
 export const insertOrUpdateBaoCaoNgay = (bcngayKhoa) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
-   
     const body = {
       KhoaID: bcngayKhoa.KhoaID,
       Ngay: bcngayKhoa.Ngay,
@@ -335,7 +356,7 @@ export const insertOrUpdateBaoCaoNgay = (bcngayKhoa) => async (dispatch) => {
     };
     const response = await apiService.post("/baocaongay", body);
     dispatch(slice.actions.insertOrUpdateBaoCaoNgaySuccess(response.data.data));
-    toast.success("Cập nhật thành công")
+    toast.success("Cập nhật thành công");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
   }
@@ -352,7 +373,7 @@ export const getDataBCNgay = (date, khoaId) => async (dispatch) => {
     dispatch(slice.actions.getDataBCNgaySuccess(response.data.data));
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message)
+    toast.error(error.message);
   }
 };
 
@@ -363,6 +384,6 @@ export const getKhoas = () => async (dispatch) => {
     dispatch(slice.actions.getKhoasSuccess(response.data.data.khoas));
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message)
+    toast.error(error.message);
   }
 };

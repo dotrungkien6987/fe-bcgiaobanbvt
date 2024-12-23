@@ -22,6 +22,7 @@ const initialState = {
   noiBNXinVes: [],
   noiBNNangs: [],
   noiBNCanThieps: [],
+  noiBNTheoDois: [],
   noiBNNgoaiGios: [],
   noiBNNgoaiGiosKhongGomCLC: [],
 
@@ -31,6 +32,7 @@ const initialState = {
   ngoaiBNNangs: [],
   ngoaiBNPhauThuats: [],
   ngoaiBNNgoaiGios: [],
+  ngoaiBNTheoDois: [],
   ngoaiBNNgoaiGiosKhongGomCLC: [],
 
   clcBNTuvongs: [],
@@ -38,6 +40,7 @@ const initialState = {
   clcBNXinVes: [],
   clcBNNangs: [],
   clcBNCanThieps: [],
+  clcBNTheoDois: [],
 
   hsccycBNNgoaiGios: [],
   noiycBNNgoaiGios: [],
@@ -98,6 +101,12 @@ const slice = createSlice({
         "noi"
       );
 
+      state.noiBNTheoDois = filterChiTietBenhNhansNotExcludeTTCLC(
+        state.baocaongays,
+        8,
+        "noi"
+      );
+
       state.noiBNNgoaiGios = filterChiTietBenhNhansNotExcludeTTCLC(
         state.baocaongays,
         6,
@@ -139,6 +148,11 @@ const slice = createSlice({
         6,
         "ngoai"
       );
+      state.ngoaiBNTheoDois = filterChiTietBenhNhansNotExcludeTTCLC(
+        state.baocaongays,
+        8,
+        "ngoai"
+      );
       state.ngoaiBNNgoaiGiosKhongGomCLC = filterChiTietBenhNhansHasExcludeTTCLC(
         state.baocaongays,
         6,
@@ -166,6 +180,11 @@ const slice = createSlice({
         "HSCCYC",
       ]);
       state.clcBNCanThieps = filterChiTietBenhNhansCLC(state.baocaongays, 7, [
+        "NoiYC",
+        "NgoaiYC",
+        "HSCCYC",
+      ]);
+      state.clcBNTheoDois = filterChiTietBenhNhansCLC(state.baocaongays, 8, [
         "NoiYC",
         "NgoaiYC",
         "HSCCYC",

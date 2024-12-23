@@ -151,8 +151,8 @@ const [date, setDate] = useState(defaultDate);
         {(loaikhoa === "pkyc") && <BCPhongKhamYeuCau />}
         {(loaikhoa === "noi"&& makhoa !=="KCC" && makhoa !=="CDHA") && <BCNgayLamSangNoi/>}
         {(loaikhoa === "noi"&& makhoa ==="KCC") && <BCKhoaCapCuu/>}
-        {loaikhoa === "ngoai" && <BCNgayLamSangNgoai/>}
-        {loaikhoa === "gmhs" && <BCGayMeHS />}
+        {(loaikhoa === "ngoai" && makhoa !=="GMHS") && <BCNgayLamSangNgoai/>}
+        {(loaikhoa === "ngoai" && makhoa ==="GMHS") && <BCGayMeHS />}
         {loaikhoa === "xnhh" && <BCXetNghiemHH />}
         {loaikhoa === "xnhs" && <BCXetNghiemHS />}
         {loaikhoa === "xnvs" && <BCXetNghiemVS />}

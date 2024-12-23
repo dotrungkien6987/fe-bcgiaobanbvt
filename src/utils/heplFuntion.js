@@ -18,6 +18,7 @@ export function getTextFromNumber(number) {
     5: "phẫu thuật",
     6: "vào viện ngoài giờ",
     7: "can thiệp",
+    8:"theo dõi",
   };
   return mapping[number] || "Invalid input";
 }

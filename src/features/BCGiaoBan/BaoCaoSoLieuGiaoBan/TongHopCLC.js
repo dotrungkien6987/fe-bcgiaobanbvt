@@ -18,6 +18,7 @@ function TongHopCLC() {
     clcBNXinVes,
     clcBNNangs,
     clcBNCanThieps,
+    clcBNTheoDois,
     hsccycBNNgoaiGios,
     noiycBNNgoaiGios,
     ngoaiycBNNgoaiGios,
@@ -107,6 +108,13 @@ function TongHopCLC() {
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
        Can thiệp: {clcBNCanThieps.length}
+      </Typography>
+
+      <Typography
+        variant="body2"
+        // sx={{ color: "text.secondary", fontStyle: "italic" }}
+      >
+       Theo dõi: {clcBNTheoDois.length}
       </Typography>
     </Card>
   );

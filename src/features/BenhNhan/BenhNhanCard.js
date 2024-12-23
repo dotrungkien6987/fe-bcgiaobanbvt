@@ -202,38 +202,38 @@ function BenhNhanCard({ benhnhan }) {
         variant="body2"
         sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Vaò viện: {VaoVien}
+       - Vào viện: {VaoVien}
       </Typography>
 
       <Typography
         variant="body2"
         sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Lý do vào viện: {LyDoVV}
+        - Lý do vào viện: {LyDoVV}
       </Typography>
       <Typography
         variant="body2"
         sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Diễn biến: {DienBien}
+        - Diễn biến: {DienBien}
       </Typography>
       <Typography
         variant="body2"
         sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Chẩn đoán: {ChanDoan}
+        - Chẩn đoán: {ChanDoan}
       </Typography>
       <Typography
         variant="body2"
         sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Xử trí: {XuTri}
+        - Xử trí: {XuTri}
       </Typography>
       <Typography
         variant="body2"
         sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Hiện tại: {HienTai}
+       - Hiện tại: {HienTai}
       </Typography>
 
       <Typography
