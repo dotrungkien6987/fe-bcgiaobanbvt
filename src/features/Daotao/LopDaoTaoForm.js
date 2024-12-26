@@ -79,7 +79,9 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
       NoiDaoTao: null,
       NguonKinhPhi: null,
       HinhThucDaoTao: null,
-      KhoaID:null,
+      KhoaID: null,
+      TenTapChi: "",
+      XepLoai: "",
       GhiChu: "",
       SoLuong: 1,
       NgayBatDau: null,
@@ -118,7 +120,7 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
       const hinhthuccapnhatCurent = HinhThucCapNhat.find(
         (item) => item.Ma === lopdaotaoCurrent.MaHinhThucCapNhat
       );
-
+      console.log("hinhthuccapnhatCurent", hinhthuccapnhatCurent);
       // Cập nhật giá trị mặc định cho form bằng thông tin của `lopdaotaoCurrent`
       reset({
         ...lopdaotaoCurrent,
@@ -143,7 +145,9 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
         NoiDaoTao: null,
         NguonKinhPhi: null,
         HinhThucDaoTao: null,
-        KhoaID:null,
+        KhoaID: null,
+        TenTapChi: "",
+        XepLoai: "",
         GhiChu: "",
         SoLuong: 1,
         NgayBatDau: null,
@@ -176,7 +180,12 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
     }
   };
   return (
-    <MainCard title="Thông tin lớp đào tạo">
+    <MainCard
+      title={`Thông tin ${
+        maHinhThucCapNhatValue ? maHinhThucCapNhatValue.TenBenhVien : ""
+      }`}
+    >
+      {/* <MainCard title={`Thông tin `}> */}
       <Grid container spacing={2}>
         <Grid item xs={12} md={4}>
           <Card variant="outlined" sx={{ p: 1 }}>
@@ -187,7 +196,7 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
               <Stack direction="row" mb={2.2}>
                 <Typography fontSize={18} fontWeight={"bold"}>
                   {" "}
-                  Thông tin lớp đào tạo
+                  Thông tin chung
                 </Typography>
                 <Box sx={{ flexGrow: 1 }}></Box>
                 {(user?._id === lopdaotaoCurrent.UserIDCreated ||
@@ -199,7 +208,7 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
                     size="small"
                     loading={isSubmitting}
                   >
-                    Lưu thông tin lớp
+                    Lưu thông tin chung
                   </LoadingButton>
                 )}
               </Stack>
@@ -219,47 +228,74 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
                     label="Hình thức cập nhật"
                   />
 
-                  <FTextField name="Ten" multiline label="Tên lớp" fullWidth />
+                  <FTextField name="Ten" multiline label={`Tên ${maHinhThucCapNhatValue?maHinhThucCapNhatValue.TenBenhVien:""}`} fullWidth />
 
-                  {(maHinhThucCapNhatValue &&
-                    maHinhThucCapNhatValue.Ma.startsWith("ĐT"))?(
-                      <div>
-                        <FTextField
-                          name="QuyetDinh"
-                          label="Quyết định"
-                          fullWidth
-                        />
+                  {maHinhThucCapNhatValue &&
+                  maHinhThucCapNhatValue.Ma.startsWith("ĐT") ? (
+                    <div>
+                      <FTextField
+                        name="QuyetDinh"
+                        label="Quyết định"
+                        fullWidth
+                      />
 
-                        <FAutocomplete
-                          name="NoiDaoTao"
-                          options={NoiDaoTao.map((item) => item.NoiDaoTao)}
-                          label="Nơi đào tạo"
-                        />
+                      <FAutocomplete
+                        name="NoiDaoTao"
+                        options={NoiDaoTao.map((item) => item.NoiDaoTao)}
+                        label="Nơi đào tạo"
+                      />
 
-                        <FAutocomplete
-                          name="NguonKinhPhi"
-                          options={NguonKinhPhi.map(
-                            (item) => item.NguonKinhPhi
-                          )}
-                          label="Nguồn kinh phí"
-                        />
-                      </div>
-                    ): (
-                      <div>
-                        <FAutocomplete
-                          name="KhoaID"
-                          options={khoas}
-                           displayField="TenKhoa"
-                          label="Khoa"
-                        />
-                      </div>
+                      <FAutocomplete
+                        name="NguonKinhPhi"
+                        options={NguonKinhPhi.map((item) => item.NguonKinhPhi)}
+                        label="Nguồn kinh phí"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      {maHinhThucCapNhatValue &&
+                        ["NCKH02", "NCKH03"].includes(
+                          maHinhThucCapNhatValue.Ma
+                        ) && (
+                          <FTextField
+                            name="TenTapChi"
+                            label="Tên tạp chí"
+                            fullWidth
+                          />
+                        )}
+
+                      <FAutocomplete
+                        name="KhoaID"
+                        options={khoas}
+                        displayField="TenKhoa"
+                        label="Khoa"
+                      />
+
+                      {maHinhThucCapNhatValue &&
+                        !["NCKH02", "NCKH03"].includes(
+                          maHinhThucCapNhatValue.Ma
+                        ) && (
+                          <FAutocomplete
+                            name="XepLoai"
+                            options={["Đạt", "Xuất sắc"]}
+                            label="Xếp loại"
+                          />
+                        )}
+                    </div>
+                  )}
+
+                  {maHinhThucCapNhatValue &&
+                    !["NCKH02", "NCKH03"].includes(
+                      maHinhThucCapNhatValue.Ma
+                    ) && (
+                      <FAutocomplete
+                        name="HinhThucDaoTao"
+                        options={HinhThucDaoTao.map(
+                          (item) => item.HinhThucDaoTao
+                        )}
+                        label="Hình thức tổ chức"
+                      />
                     )}
-
-                  <FAutocomplete
-                    name="HinhThucDaoTao"
-                    options={HinhThucDaoTao.map((item) => item.HinhThucDaoTao)}
-                    label="Hình thức tổ chức"
-                  />
 
                   <FTextField name="GhiChu" label="Ghi chú" fullWidth />
 
