@@ -116,6 +116,13 @@ function TongHopTinChiTable({ giatricanhbao,titleExcell ='Tổng hợp số li�
         accessor: "PhamViHanhNghe",
         disableGroupBy: true,
       },
+      {
+        Header: "Số CCHN",
+        Footer: "Số CCHN",
+
+        accessor: "SoCCHN",
+        disableGroupBy: true,
+      },
 
       {
         Header: "Trình độ chuyên môn",
@@ -227,6 +234,12 @@ function TongHopTinChiTable({ giatricanhbao,titleExcell ='Tổng hợp số li�
     {
       header: "Phạm vi hành nghề",
       key: "PhamViHanhNghe",
+      alignment: { horizontal: "left" },
+      font: { bold: false },
+    },
+    {
+      header: "Số CCHN",
+      key: "SoCCHN",
       alignment: { horizontal: "left" },
       font: { bold: false },
     },

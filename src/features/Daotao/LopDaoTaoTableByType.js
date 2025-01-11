@@ -283,12 +283,7 @@ function LopDaoTaoTableByType() {
             );
           },
         },
-        {
-          Header: "_id",
-          Footer: "_id",
-          accessor: "_id",
-          disableGroupBy: true,
-        },
+       
         {
           Header: "Mã hình thức",
           Footer: "Mã hình thức",
@@ -364,6 +359,12 @@ function LopDaoTaoTableByType() {
           Header: "Người tạo",
           Footer: "Người tạo",
           accessor: "NguoiTao",
+          disableGroupBy: true,
+        },
+        {
+          Header: "_id",
+          Footer: "_id",
+          accessor: "_id",
           disableGroupBy: true,
         },
       ];

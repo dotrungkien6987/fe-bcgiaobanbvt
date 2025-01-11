@@ -9,6 +9,8 @@ const initialState = {
   error: null,
   chisokhoa: {},
   chisokhoa_NgayChenhLech: {},
+  logevents: {},
+  logeventInsert: {},
 };
 
 const slice = createSlice({
@@ -27,6 +29,16 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.chisokhoa = action.payload;
+    },
+    getLogEventsSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.logevents = action.payload;
+    },
+    insertLogEventSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.logeventInsert = action.payload;
     },
 
     getDataNewestByNgayKhoaChenhLechSuccess(state, action) {
@@ -134,5 +146,29 @@ export const deleteDashboardIsNotNewestByNgay = (date) => async (dispatch) => {
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
+  }
+};
+
+export const getLogEvents = () => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    const response = await apiService.get("/logevent");
+    dispatch(slice.actions.getLogEventsSuccess(response.data.data));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+
+export const insertLogEvent = (logevent) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    
+    const response = await apiService.post("/logevent", logevent);
+    dispatch(slice.actions.insertLogEventSuccess(response.data.data));
+    toast.success("Insert logevent success");
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
   }
 };
