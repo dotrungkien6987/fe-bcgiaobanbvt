@@ -114,6 +114,9 @@ function SupperAdminPage() {
       <Button onClick={handleClickTestUpdate} variant="contained">
         Test Update
       </Button>
+      <Button onClick={handleClickTestUpdate} variant="contained">
+        Test Update
+      </Button>
     </Container>
   );
 }
