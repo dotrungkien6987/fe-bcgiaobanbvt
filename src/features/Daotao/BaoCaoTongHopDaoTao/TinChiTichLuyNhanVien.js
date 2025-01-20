@@ -52,7 +52,7 @@ function TinChiTichLuyNhanVien() {
     const toDateISO = todate.toISOString();
     console.log("fromdate -todate", fromDateISO, toDateISO);
     dispatch(
-      getTongHopTinChiTichLuy(fromDateISO, toDateISO, sonamcanhbao * 24)
+      getTongHopTinChiTichLuy(fromDateISO, toDateISO, sonamcanhbao * 24,['ĐT07','ĐT08'])
     );
   };
   const handleNgayBaoCaoChange = (newDate) => {

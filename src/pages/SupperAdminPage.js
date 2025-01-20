@@ -8,6 +8,7 @@ import {
   deleteDashboardIsNotNewestByNgay,
   getLogEvents,
   insertLogEvent,
+  updateLogEvent,
 } from "../features/DashBoard/DashBoardKhoa/dashboardkhoaSlice";
 import TestHookForm from "components/TestHookForm";
 
@@ -34,9 +35,10 @@ function SupperAdminPage() {
     console.log("logevents", logevents);
   };
   const handleClickTestUpdate = () => {
-    dispatch(insertLogEvent(logeventInsert));
+    dispatch(updateLogEvent({logeventid :34782583,logEventData:logeventUpdate}));
     console.log("logevents", logevents);
   };
+  
   const logeventInsert = {
     logapp: 'Web app', // Tên ứng dụng
   loguser: 'NguyenVanA', // Tên người dùng
@@ -50,6 +52,32 @@ function SupperAdminPage() {
   departmentid : 234,
   logeventtype : 4,
   logeventcontent : 'logeventcontent',
+  
+  hosobenhanid: 6585,
+  vienphiid: 1235,
+  medicalrecordid: 65456 ,
+  sothutuphongkhamid: 54646,
+  maubenhphamid: null ,
+  servicepriceid: null,
+  
+  version: null, 
+  sync_flag: null, // Cờ đồng bộ
+  update_flag: null, // Cờ cập nhật
+  }
+
+  const logeventUpdate = {
+    logapp: 'Web app', // Tên ứng dụng
+  loguser: 'NguyenVanUpdate', // Tên người dùng
+  logform: 'LoginForm', // Tên form
+  softversion: '1.2.3', // Phiên bản phần mềm
+  logtime: new Date(),
+  ipaddress: '192.168.1.100', // Địa chỉ IP
+  computername: 'DESKTOP-123', // Tên máy tính
+  patientid: 123, // ID bệnh nhân (nếu có)
+  departmentgroupid: 456, // ID nhóm khoa (nếu có)
+  departmentid : 234,
+  logeventtype : 4,
+  logeventcontent : 'logeventcontentUpdate',
   
   hosobenhanid: 6585,
   vienphiid: 1235,

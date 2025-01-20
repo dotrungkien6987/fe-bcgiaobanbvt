@@ -148,22 +148,22 @@ function TongHopTinChiTable({ giatricanhbao,titleExcell ='Tổng hợp số li�
         filter: "fuzzyText",
         disableGroupBy: true,
       },
-      // {
-      //   Header: "Chức danh",
-      //   Footer: "Chức danh",
-      //   accessor: "ChucDanh",
-      //   dataType: "text",
-      //   filter: "fuzzyText",
-      //   disableGroupBy: true,
-      // },
-      // {
-      //   Header: "Chức vụ",
-      //   Footer: "Chức vụ",
-      //   accessor: "ChucVu",
-      //   dataType: "text",
-      //   filter: "fuzzyText",
-      //   disableGroupBy: true,
-      // },
+      {
+        Header: "Tham gia ĐT07",
+        Footer: "Chức danh",
+        accessor: "ĐT07",
+        dataType: "text",
+        filter: "fuzzyText",
+        disableGroupBy: true,
+      },
+      {
+        Header: "Tham gia ĐT08",
+        Footer: "Tham gia ĐT08",
+        accessor: "ĐT08",
+        dataType: "text",
+        filter: "fuzzyText",
+        disableGroupBy: true,
+      },
 
       // {
       //   Header: "Phạm vi hành nghề",

@@ -343,10 +343,10 @@ export const updateOrInsertDatafix = (datafix) => async (dispatch) => {
 
 // API tổng hợp số liệu
 export const getTongHopTinChiTichLuy =
-  (fromdate, todate, KhuyenCao) => async (dispatch) => {
+  (fromdate, todate, KhuyenCao,MaHinhThucCapNhatList) => async (dispatch) => {
     dispatch(slice.actions.startLoading);
     try {
-      const params = { FromDate: fromdate, ToDate: todate, KhuyenCao };
+      const params = { FromDate: fromdate, ToDate: todate, KhuyenCao,MaHinhThucCapNhatList };
 
       const response = await apiService.get(`/nhanvien/tichluytinchi`, {
         params,

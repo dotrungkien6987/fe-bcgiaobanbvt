@@ -11,6 +11,7 @@ const initialState = {
   chisokhoa_NgayChenhLech: {},
   logevents: {},
   logeventInsert: {},
+  logeventUpdate: {},
 };
 
 const slice = createSlice({
@@ -39,6 +40,11 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.logeventInsert = action.payload;
+    },
+    updateLogEventSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.logeventUpdate = action.payload;
     },
 
     getDataNewestByNgayKhoaChenhLechSuccess(state, action) {
@@ -168,6 +174,18 @@ export const insertLogEvent = (logevent) => async (dispatch) => {
     const response = await apiService.post("/logevent", logevent);
     dispatch(slice.actions.insertLogEventSuccess(response.data.data));
     toast.success("Insert logevent success");
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+  }
+};
+
+export const updateLogEvent = ({logeventid,logEventData}) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    
+    const response = await apiService.put(`/logevent/${logeventid}`, logEventData);
+    dispatch(slice.actions.updateLogEventSuccess(response.data.data));
+    toast.success("Updated logevent success");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
   }
