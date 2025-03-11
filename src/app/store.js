@@ -10,6 +10,7 @@ import daotaoSlice from "../features/Daotao/daotaoSlice";
 import nhanvienSlice from "features/NhanVien/nhanvienSlice";
 import menuSlice from "features/Menu/menuSlice";
 import hinhthuccapnhatSlice from "../features/NhanVien/hinhthuccapnhatSlice";
+import fileSlice from "../features/File/fileSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -24,6 +25,7 @@ const rootReducer = {
   nhanvien:nhanvienSlice,
   hinhthuccapnhat:hinhthuccapnhatSlice,
   menu:menuSlice,
+  file: fileSlice,
 };
 
 const store = configureStore({

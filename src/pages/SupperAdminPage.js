@@ -1,4 +1,4 @@
-import { Button, Container } from "@mui/material";
+import { Button, Card, Container } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
@@ -11,6 +11,8 @@ import {
   updateLogEvent,
 } from "../features/DashBoard/DashBoardKhoa/dashboardkhoaSlice";
 import TestHookForm from "components/TestHookForm";
+import AssetDetail from "features/QRCode/AssetDetail";
+import FileUploadView from "components/FileUploadView";
 
 function SupperAdminPage() {
   const { logevents } = useSelector((state) => state.dashboardkhoa);
@@ -115,8 +117,14 @@ function SupperAdminPage() {
         Test Update
       </Button>
       <Button onClick={handleClickTestUpdate} variant="contained">
-        Test Update1234
+        Test Update123
       </Button>
+      <AssetDetail />
+
+      <Card>
+        <h1>Upload file</h1>
+        <FileUploadView />
+      </Card>
     </Container>
   );
 }

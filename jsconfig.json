@@ -4,6 +4,6 @@
     "module": "commonjs",
     "baseUrl": "src"
   },
-  "include": ["src/**/*", "src/pages/tables/react-table/FilteringTable.js"],
+  "include": ["src/**/*", "src/pages/tables/react-table/FilteringTable.js", "tsconfig.json"],
   "exclude": ["node_modules"]
 }

@@ -105,6 +105,8 @@ Kho_Unique:[],
   ChiaKho_NhapNhaCungCap_TrongNgay:[],
   Duoc_VatTu_Sumary:[],
   
+  //Thoi gian nhom xet nghiem
+  ThoiGian_NhomXetNghiem:[],
 };
 
 const slice = createSlice({
@@ -402,6 +404,11 @@ const slice = createSlice({
 
         state.Duoc_VatTu_Sumary = state.chisosObj.json_duoc_vattu_sumary 
         ? JSON.parse(state.chisosObj.json_duoc_vattu_sumary )
+        : [] || [];
+        
+        
+        state.ThoiGian_NhomXetNghiem = state.chisosObj.json_tonghop_thoigian_theonhomxetnghiem 
+        ? JSON.parse(state.chisosObj.json_tonghop_thoigian_theonhomxetnghiem )
         : [] || [];
         
         

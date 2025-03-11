@@ -569,6 +569,10 @@ const khoaToDepartmentGroupMapping = [
     departmentgroupid: 125,
   },
   {
+    MaKhoa: "CSGN",
+    departmentgroupid: 158,
+  },  
+  {
     MaKhoa: "HSTC",
     departmentgroupid: 3,
   },

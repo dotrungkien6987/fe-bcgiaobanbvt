@@ -17,6 +17,29 @@ import CardThoiGian from "./CardThoiGian";
 import TableCanLamSang from "./TableCanLamSang";
 import StackBarTyLeTraDungCLS from "./StackBarTyLeTraDungCLS";
 import { fDateTime, fDateTimeSuffix, formatDateTime } from "../../utils/formatTime";
+import CustomTableComponent from "./CustomTableComponent/CustomTableComponent";
+
+// Hàm làm tròn số đến 2 chữ số thập phân
+const roundToTwoDecimals = (value) => {
+  if (typeof value !== 'number') return value;
+  return Math.round(value * 10) / 10;
+};
+
+
+// Hàm định dạng để thay đổi màu chữ dựa trên điều kiện
+const formatCell = (columnName, value, rowData) => {
+  // Kiểm tra điều kiện và trả về style tương ứng
+  if (columnName === 'thoi_gian_chotraketqua_lau_nhat' && value > 180) {
+    return { color: "#bb1515" }; // Màu đỏ
+  }
+  
+  if (columnName === 'thoi_gian_chotraketqua_trung_binh' && value > 180) {
+    return { color: "#bb1515" }; // Màu đỏ
+  }
+  
+  // Trường hợp khác giữ nguyên style mặc định
+  return null;
+};
 
 const ChiSoChatLuong = () => {
   const {
@@ -25,6 +48,7 @@ const ChiSoChatLuong = () => {
     thoigiankhambenh,
     tongthoigian,
     canlamsangs,
+    ThoiGian_NhomXetNghiem
   } = useSelector((state) => state.dashboard);
   const dispatch = useDispatch();
   //   useEffect(() => {
@@ -73,6 +97,28 @@ const ChiSoChatLuong = () => {
         <Grid item xs={12} sm={12} md={6}>
           <TableCanLamSang canlamsangs={canlamsangs} type={0} />
           <TableCanLamSang canlamsangs={canlamsangs} type={1} />
+        </Grid>
+        <Grid item xs={12} sm={12} md={12}>
+          <CustomTableComponent
+          data={ThoiGian_NhomXetNghiem}
+          columns={[
+            { header: "Tên Xét Nghiệm", name: "xetnghiemtype", rowSpan: 2 },
+            // { header: "Chỉ định", name: "tong_so_trong_nhom", rowSpan: 2 },
+            { header: "Thời gian chờ lấy mẫu", colSpan: 4 },
+            { header: "Thời gian chờ kết quả", colSpan: 4 },
+            { header: "Đã lấy mẫu", name: "so_da_lay_mau" },
+            { header: "Nhanh nhất (phút)", name: "thoi_gian_cholaymau_nhanh_nhat" },
+            { header: "Trung bình (phút)", name: "thoi_gian_cholaymau_trung_binh" },
+            { header: "Lâu nhất (phút)", name: "thoi_gian_cholaymau_lau_nhat" },
+            { header: "Đã trả KQ", name: "so_da_traketqua" },
+            { header: "Nhanh nhất (phút)", name: "thoi_gian_chotraketqua_nhanh_nhat" },
+            { header: "Trung bình (phút)", name: "thoi_gian_chotraketqua_trung_binh" },
+            { header: "Lâu nhất (phút)", name: "thoi_gian_chotraketqua_lau_nhat" },
+          ]}
+          titles={["Thời gian chờ theo nhóm xét nghiệm",]}
+          roundingFunction={roundToTwoDecimals}
+        formatFunction={formatCell}
+          />
         </Grid>
       </Grid>
     </Stack>
