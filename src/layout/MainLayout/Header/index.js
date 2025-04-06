@@ -44,7 +44,7 @@ const Header = () => {
       : "secondary.100";
 
   useEffect(() => {
-    if (user.PhanQuyen === "admin" || user.PhanQuyen === "daotao") {
+    if (user.PhanQuyen === "admin" || user.PhanQuyen === "daotao" || user.PhanQuyen === "noibo") {
       console.log("user", user);
       return;
     }

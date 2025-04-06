@@ -136,7 +136,7 @@ function MainHeader() {
       </MenuItem>
 
       <Divider sx={{ borderStyle: "dashed" }} />
-      {(user.PhanQuyen === "admin" || user.PhanQuyen === "daotao") && (
+      
         <MenuItem
           onClick={handleMenuClose}
           to="/lopdaotaos"
@@ -145,8 +145,18 @@ function MainHeader() {
         >
           Quản lý đào tạo
         </MenuItem>
-      )}
+   
      
+     <Divider sx={{ borderStyle: "dashed" }} />
+<MenuItem
+  onClick={handleMenuClose}
+  to="/newfeature"
+  component={RouterLink}
+  sx={{ mx: 1 }}
+>
+  Chức năng mới
+</MenuItem>
+
       <Divider sx={{ borderStyle: "dashed" }} />
       <MenuItem onClick={handleResetPass} component={RouterLink} sx={{ mx: 1 }}>
         Đổi mật khẩu

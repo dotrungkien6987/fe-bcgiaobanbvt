@@ -2,7 +2,7 @@ import { Button, Card, Container } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   deleteDashboardIsNotNewestByNgay,
@@ -13,8 +13,35 @@ import {
 import TestHookForm from "components/TestHookForm";
 import AssetDetail from "features/QRCode/AssetDetail";
 import FileUploadView from "components/FileUploadView";
+import VinhPhuc from "features/DashBoard/Map/VinhPhuc";
+import ProvincesMapDemo from "features/DashBoard/Map/ProvincesMapDemo";
+
+import MapComponent from "features/DashBoard/Map1/MapComponent";
+import DateRangePicker from "features/His/DateRangePicker";
+
+
 
 function SupperAdminPage() {
+  const [vinhPhucGeoData, setVinhPhucGeoData] = useState(null);
+
+  useEffect(() => {
+    // Fetch dữ liệu GeoJSON khi component mount
+    const fetchGeoData = async () => {
+      try {
+        const response = await fetch('/VinhPhuc.geojson');
+        if (!response.ok) {
+          throw new Error(`GeoJSON không tải được: ${response.status}`);
+        }
+        const data = await response.json();
+        setVinhPhucGeoData(data);
+      } catch (error) {
+        console.error("Lỗi khi tải GeoJSON:", error);
+      }
+    };
+
+    fetchGeoData();
+  }, []);
+
   const { logevents } = useSelector((state) => state.dashboardkhoa);
   const now = dayjs().tz("Asia/Ho_Chi_Minh");
   const [date, setDate] = useState(now);
@@ -125,6 +152,12 @@ function SupperAdminPage() {
         <h1>Upload file</h1>
         <FileUploadView />
       </Card>
+Map
+      {/* <ProvincesMapDemo /> */}
+
+      {/* <MapComponent geojsonData={vinhPhucGeoData} /> */}
+
+      <DateRangePicker/>
     </Container>
   );
 }

@@ -4,7 +4,21 @@ import AccountBoxIcon from "@mui/icons-material/AccountBox";
 import ContactMailIcon from "@mui/icons-material/ContactMail";
 import PersonAddRoundedIcon from "@mui/icons-material/PersonAddRounded";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
-import { Box, Card, Container, Stack, Tab, Tabs } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu"; // Thêm icon Menu
+import { 
+  Box, 
+  Card, 
+  Container, 
+  Stack, 
+  Tab, 
+  Tabs, 
+  IconButton, 
+  Menu, 
+  MenuItem, 
+  Typography,
+  AppBar,
+  Toolbar
+} from "@mui/material";
 import SendTimeExtensionIcon from "@mui/icons-material/SendTimeExtension";
 
 import styled from "@emotion/styled";
@@ -16,6 +30,7 @@ import DashBoardKhoa from "../features/DashBoard/DashBoardKhoa/DashBoardKhoa";
 import DashBoardDaotao from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaotao/DashBoardDaotao";
 import DashBoardDaotaoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaoTaoKhoa/DashBoardDaotaoKhoa";
 import DuocVatTu from "features/DashBoard/DuocVatTu/DuocVatTu";
+import BenhNhanNgoaiTinh from "features/His/BenhNhanNgoaiTinh/BenhNhanNgoaiTinh";
 
 const TabsWrapperStyled = styled("div")(({ theme }) => ({
   zIndex: 9,
@@ -40,50 +55,67 @@ function DashBoardPage() {
   // Thiết lập tab mặc định dựa trên quyền người dùng
   const defaultTab = user.PhanQuyen === 'admin' ? "TÀI CHÍNH" : "THEO DÕI THEO KHOA";
   const [currentTab, setCurrentTab] = useState(defaultTab);
+  
+  // State cho menu
+  const [anchorEl, setAnchorEl] = useState(null);
+  const openMenu = Boolean(anchorEl);
 
   const handleChangeTab = (newValue) => {
     setCurrentTab(newValue);
   };
 
+  // Xử lý mở menu
+  const handleOpenMenu = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  // Xử lý đóng menu
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
+  // Xử lý chọn menu item
+  const handleMenuItemClick = (tabValue) => {
+    setCurrentTab(tabValue);
+    handleCloseMenu();
+  };
+
   const allTabs  = [
+    
+    {
+      value: "BỆNH NHÂN NGOẠI TỈNH",
+      component: <BenhNhanNgoaiTinh />,
+    },
     {
       value: "CHỈ SỐ CHẤT LƯỢNG",
-      
       component: <ChiSoChatLuong />,
     },
     {
       value: "ĐIỀU HÀNH",
-     
       component: <DieuHanh />,
     },
     {
       value: "TÀI CHÍNH",
-      
       component: <TaiChinh />,
     },
     {
       value: "THEO DÕI THEO KHOA",
-      
       component: <DashBoardKhoa />,
     },
     {
       value: "DƯỢC VẬT TƯ",
-      
       component: <DuocVatTu />,
     },
     {
       value: "HÀI LÒNG NGƯỜI BỆNH",
-      
       component: <HaiLongNguoiBenh />,
     },
     {
       value: "Đào tạo toàn viện",
-      
       component: <DashBoardDaotao />,
     },
     {
       value: "Đào tạo theo khoa",
-      
       component: <DashBoardDaotaoKhoa />,
     },
   ];
@@ -93,6 +125,45 @@ function DashBoardPage() {
 
   return (
     <Stack>
+      {/* AppBar với Menu button */}
+      <AppBar position="static" color="default" elevation={1} sx={{ mb: 2 }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            onClick={handleOpenMenu}
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            Dashboard
+          </Typography>
+        </Toolbar>
+      </AppBar>
+      
+      {/* Menu cho điều hướng */}
+      <Menu
+        id="dashboard-menu"
+        anchorEl={anchorEl}
+        open={openMenu}
+        onClose={handleCloseMenu}
+        MenuListProps={{
+          'aria-labelledby': 'menu-button',
+        }}
+      >
+        {PROFILE_TABS.map((tab) => (
+          <MenuItem 
+            key={tab.value} 
+            onClick={() => handleMenuItemClick(tab.value)}
+            selected={tab.value === currentTab}
+          >
+            {tab.value}
+          </MenuItem>
+        ))}
+      </Menu>
+
       <Card
         sx={{
           mb: 3,

@@ -155,10 +155,11 @@ export const deleteDashboardIsNotNewestByNgay = (date) => async (dispatch) => {
   }
 };
 
-export const getLogEvents = () => async (dispatch) => {
+export const getLogEvents = (fromdate,todate) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
-    const response = await apiService.get("/logevent");
+    const params = {fromdate,todate}
+    const response = await apiService.get("/logevent",{params});
     dispatch(slice.actions.getLogEventsSuccess(response.data.data));
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));

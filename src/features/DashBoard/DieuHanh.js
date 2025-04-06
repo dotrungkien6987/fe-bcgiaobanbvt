@@ -33,6 +33,7 @@ import dayjs from "dayjs";
 import CardTheoDoiBNVip from "./CardTheoDoiBNVip";
 
 import CardPhongThucHienCanLamSang from "./CardPhongThucHienCanLamSang";
+import VinhPhuc from "./Map/VinhPhuc";
 
 
 const colors = [
@@ -40,6 +41,7 @@ const colors = [
   { color: "#bb1515" },
   { color: "#00C49F" },
   { color: "#eb99ff" },
+  
   { color: "#660000" },
   { color: "#00661a" },
   { color: "#0033cc" },
@@ -136,27 +138,11 @@ const DieuHanh = () => {
     // dispatch(getDataNewestByNgay(date.toISOString()));
   };
 
-  // useEffect(() => {
-  //   const fetchNewestData = () => {
-  //     const dateCurent = new Date().toISOString();
-  //     dispatch(getDataNewestByNgay(dateCurent));
-  //     console.log("render lại");
-  //   };
-
-  //   fetchNewestData(); // Gọi khi component mount
-
-  //   const intervalId = setInterval(fetchNewestData, 60000); // Gọi lại sau mỗi 1 phút
-
-  //   return () => {
-  //     clearInterval(intervalId); // Dọn dẹp khi component unmount
-  //   };
-  // }, [dispatch]); // Chỉ rerun khi dispatch thay đổi
-
   useEffect(() => {
     const fetchNewestData = () => {
-      console.log("newdate truyen  dispatch", date.toISOString());
+      
       dispatch(getDataNewestByNgay(date.toISOString()));
-      console.log("render lại");
+      
       console.log("canlamsangphongthuchien", CanLamSang_PhongThucHien);
     };
     fetchNewestData();
@@ -240,6 +226,7 @@ const DieuHanh = () => {
                 </Grid>
 
                 <Grid item xs={12} sm={12} md={12}>
+                  
                   <Card
                     sx={{
                       fontWeight: "bold",

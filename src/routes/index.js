@@ -35,6 +35,7 @@ import ThemeCustomization from "theme/index1";
 import NhanVienList from "features/Daotao/NhanVienList";
 import DataFixTable from "features/Daotao/DataFixTable";
 import NhomHinhThucTable from "features/Daotao/NhomHinhThucTable";
+import TongHopHoatDong from "features/DashBoard/HoatDongChung/TongHopHoatDong";
 import HinhThucTable from "features/Daotao/HinhThucTable";
 import LopDaoTaoTable from "features/Daotao/LopDaoTaoTable";
 import LopDaoTaoForm from "features/Daotao/LopDaoTaoForm";
@@ -50,6 +51,8 @@ import TrinhDoChuyenMonTable from "features/Daotao/TrinhDoChuyenMon/TrinhDoChuye
 import DashBoardDaotao from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaotao/DashBoardDaotao";
 import DashBoardDaotaoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaoTaoKhoa/DashBoardDaotaoKhoa";
 import UserThemeAbleTable from "features/User/UserThemeAble/UserThemeAbleTable";
+import Function1 from "features/NoiBo/Function1";
+import Function2 from "features/NoiBo/Function2";
 function Router() {
   return (
     <div>
@@ -105,7 +108,7 @@ function Router() {
           <Route path="/baocaosuco" element={<BaoCaoSuCoYKhoaPage />} />
           <Route path="/kienadmin" element={<SupperAdminPage />} />
           <Route path="/daotao" element={<DataFixTable />} />
-          
+          <Route path="/testtonghop1" element={<TongHopHoatDong />} />
           <Route path="/hocvien" element={<QuanLyHocVienPage />} />
         </Route>
 
@@ -127,6 +130,7 @@ function Router() {
           }
         >
           <Route path="/dev" element={<SupperAdminPage />} />
+          <Route path="/testtonghop" element={<TongHopHoatDong />} />
           <Route path="/test" element={<Test />} />
           <Route path="/nhanvien" element={<NhanVienList />} />
           <Route path="/datafix/:field" element={<DataFixTable />} />
@@ -149,6 +153,10 @@ function Router() {
           <Route path="/hoidong" element={<HoiDongTable />} />
           <Route path="/usersable" element={<UserThemeAbleTable />} />
           <Route path="/lopdaotaotam/:lopdaotaoID" element={<LopDaoTaoFormTam />} />
+          <Route path="/newfeature" element={<TongHopHoatDong />} />
+          <Route path="/newfeature/function1" element={<Function1 />} />
+          <Route path="/newfeature/function2" element={<Function2 />} />
+          <Route path="/newfeature/function3" element={<TongHopHoatDong />} />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
       </Routes>

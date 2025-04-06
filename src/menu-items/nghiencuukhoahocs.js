@@ -17,7 +17,7 @@ const icons = {
 
 // ==============================|| MENU ITEMS - PAGES ||============================== //
 
-const pages = {
+const nghiencuukhoahocs = {
   id: 'group-pages',
   title: "Quản lý nghiên cứu khoa học",
   type: 'group',
@@ -154,4 +154,4 @@ const pages = {
   ]
 };
 
-export default pages;
+export default nghiencuukhoahocs;

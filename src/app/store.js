@@ -11,6 +11,7 @@ import nhanvienSlice from "features/NhanVien/nhanvienSlice";
 import menuSlice from "features/Menu/menuSlice";
 import hinhthuccapnhatSlice from "../features/NhanVien/hinhthuccapnhatSlice";
 import fileSlice from "../features/File/fileSlice";
+import hisSlice from "../features/Slice/hisSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -26,6 +27,7 @@ const rootReducer = {
   hinhthuccapnhat:hinhthuccapnhatSlice,
   menu:menuSlice,
   file: fileSlice,
+  his: hisSlice,
 };
 
 const store = configureStore({

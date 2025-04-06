@@ -250,7 +250,7 @@ setValueQuyen(userCurrent.PhanQuyen);
                 <FTextField multiline name="UserHis" label="UserHis" />
 
                 <Autocomplete
-                  options={["admin", "nomal", "manager","daotao"]}
+                  options={["admin", "nomal", "manager","daotao","noibo"]}
                   value={valueQuyen || "nomal"}
                   onChange={(event, newValue) => {
                     setValueQuyen(newValue || "nomal");

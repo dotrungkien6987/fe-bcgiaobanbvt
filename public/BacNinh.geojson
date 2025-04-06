@@ -1,0 +1,181 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "TP. Bắc Ninh",
+        "code": "BN01",
+        "provinceCode": "Bắc Ninh",
+        "provinceName": "Bắc Ninh"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [106.045, 21.18],
+            [106.065, 21.19],
+            [106.08, 21.185],
+            [106.075, 21.165],
+            [106.055, 21.16],
+            [106.045, 21.18]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "H. Yên Phong",
+        "code": "BN02",
+        "provinceCode": "Bắc Ninh",
+        "provinceName": "Bắc Ninh"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.99, 21.2],
+            [106.03, 21.22],
+            [106.06, 21.21],
+            [106.05, 21.18],
+            [106.01, 21.17],
+            [105.99, 21.2]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "H. Quế Võ",
+        "code": "BN03",
+        "provinceCode": "Bắc Ninh",
+        "provinceName": "Bắc Ninh"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [106.08, 21.16],
+            [106.12, 21.18],
+            [106.14, 21.165],
+            [106.13, 21.135],
+            [106.09, 21.13],
+            [106.08, 21.16]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "H. Tiên Du",
+        "code": "BN04",
+        "provinceCode": "Bắc Ninh",
+        "provinceName": "Bắc Ninh"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [106.03, 21.15],
+            [106.07, 21.17],
+            [106.085, 21.155],
+            [106.075, 21.13],
+            [106.04, 21.12],
+            [106.03, 21.15]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "TX. Từ Sơn",
+        "code": "BN05",
+        "provinceCode": "Bắc Ninh",
+        "provinceName": "Bắc Ninh"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.99, 21.12],
+            [106.03, 21.14],
+            [106.045, 21.13],
+            [106.035, 21.105],
+            [106.005, 21.1],
+            [105.99, 21.12]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "H. Thuận Thành",
+        "code": "BN06",
+        "provinceCode": "Bắc Ninh",
+        "provinceName": "Bắc Ninh"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [106.05, 21.1],
+            [106.09, 21.12],
+            [106.11, 21.105],
+            [106.095, 21.075],
+            [106.06, 21.07],
+            [106.05, 21.1]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "H. Gia Bình",
+        "code": "BN07",
+        "provinceCode": "Bắc Ninh",
+        "provinceName": "Bắc Ninh"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [106.11, 21.07],
+            [106.15, 21.09],
+            [106.17, 21.08],
+            [106.16, 21.05],
+            [106.12, 21.04],
+            [106.11, 21.07]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "H. Lương Tài",
+        "code": "BN08",
+        "provinceCode": "Bắc Ninh",
+        "provinceName": "Bắc Ninh"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [106.05, 21.03],
+            [106.09, 21.05],
+            [106.11, 21.04],
+            [106.1, 21.01],
+            [106.06, 21.0],
+            [106.05, 21.03]
+          ]
+        ]
+      }
+    }
+  ]
+}

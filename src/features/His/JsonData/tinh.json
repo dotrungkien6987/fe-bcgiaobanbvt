@@ -1,0 +1,270 @@
+{
+    "DanhSach": [
+        {
+            "matinh": "00",
+            "tentinh": "Không xác định"
+        },
+        {
+            "matinh": "01",
+            "tentinh": "Thành phố Hà Nội"
+        },
+        {
+            "matinh": "02",
+            "tentinh": "Tỉnh Hà Giang"
+        },
+        {
+            "matinh": "04",
+            "tentinh": "Tỉnh Cao Bằng"
+        },
+        {
+            "matinh": "06",
+            "tentinh": "Tỉnh Bắc Kạn"
+        },
+        {
+            "matinh": "08",
+            "tentinh": "Tỉnh Tuyên Quang"
+        },
+        {
+            "matinh": "10",
+            "tentinh": "Tỉnh Lào Cai"
+        },
+        {
+            "matinh": "11",
+            "tentinh": "Tỉnh Điện Biên"
+        },
+        {
+            "matinh": "12",
+            "tentinh": "Tỉnh Lai Châu"
+        },
+        {
+            "matinh": "14",
+            "tentinh": "Tỉnh Sơn La"
+        },
+        {
+            "matinh": "15",
+            "tentinh": "Tỉnh Yên Bái"
+        },
+        {
+            "matinh": "17",
+            "tentinh": "Tỉnh Hòa Bình"
+        },
+        {
+            "matinh": "19",
+            "tentinh": "Tỉnh Thái Nguyên"
+        },
+        {
+            "matinh": "20",
+            "tentinh": "Tỉnh Lạng Sơn"
+        },
+        {
+            "matinh": "22",
+            "tentinh": "Tỉnh Quảng Ninh"
+        },
+        {
+            "matinh": "24",
+            "tentinh": "Tỉnh Bắc Giang"
+        },
+        {
+            "matinh": "25",
+            "tentinh": "Tỉnh Phú Thọ"
+        },
+        {
+            "matinh": "26",
+            "tentinh": "Tỉnh Vĩnh Phúc"
+        },
+        {
+            "matinh": "27",
+            "tentinh": "Tỉnh Bắc Ninh"
+        },
+        {
+            "matinh": "30",
+            "tentinh": "Tỉnh Hải Dương"
+        },
+        {
+            "matinh": "31",
+            "tentinh": "Thành phố Hải Phòng"
+        },
+        {
+            "matinh": "33",
+            "tentinh": "Tỉnh Hưng Yên"
+        },
+        {
+            "matinh": "34",
+            "tentinh": "Tỉnh Thái Bình"
+        },
+        {
+            "matinh": "35",
+            "tentinh": "Tỉnh Hà Nam"
+        },
+        {
+            "matinh": "36",
+            "tentinh": "Tỉnh Nam Định"
+        },
+        {
+            "matinh": "37",
+            "tentinh": "Tỉnh Ninh Bình"
+        },
+        {
+            "matinh": "38",
+            "tentinh": "Tỉnh Thanh Hóa"
+        },
+        {
+            "matinh": "40",
+            "tentinh": "Tỉnh Nghệ An"
+        },
+        {
+            "matinh": "42",
+            "tentinh": "Tỉnh Hà Tĩnh"
+        },
+        {
+            "matinh": "44",
+            "tentinh": "Tỉnh Quảng Bình"
+        },
+        {
+            "matinh": "45",
+            "tentinh": "Tỉnh Quảng Trị"
+        },
+        {
+            "matinh": "46",
+            "tentinh": "Tỉnh Thừa Thiên Huế"
+        },
+        {
+            "matinh": "48",
+            "tentinh": "Thành phố Đà Nẵng"
+        },
+        {
+            "matinh": "49",
+            "tentinh": "Tỉnh Quảng Nam"
+        },
+        {
+            "matinh": "51",
+            "tentinh": "Tỉnh Quảng Ngãi"
+        },
+        {
+            "matinh": "52",
+            "tentinh": "Tỉnh Bình Định"
+        },
+        {
+            "matinh": "54",
+            "tentinh": "Tỉnh Phú Yên"
+        },
+        {
+            "matinh": "56",
+            "tentinh": "Tỉnh Khánh Hòa"
+        },
+        {
+            "matinh": "58",
+            "tentinh": "Tỉnh Ninh Thuận"
+        },
+        {
+            "matinh": "60",
+            "tentinh": "Tỉnh Bình Thuận"
+        },
+        {
+            "matinh": "62",
+            "tentinh": "Tỉnh Kon Tum"
+        },
+        {
+            "matinh": "64",
+            "tentinh": "Tỉnh Gia Lai"
+        },
+        {
+            "matinh": "66",
+            "tentinh": "Tỉnh Đắk Lắk"
+        },
+        {
+            "matinh": "67",
+            "tentinh": "Tỉnh Đắk Nông"
+        },
+        {
+            "matinh": "68",
+            "tentinh": "Tỉnh Lâm Đồng"
+        },
+        {
+            "matinh": "70",
+            "tentinh": "Tỉnh Bình Phước"
+        },
+        {
+            "matinh": "72",
+            "tentinh": "Tỉnh Tây Ninh"
+        },
+        {
+            "matinh": "74",
+            "tentinh": "Tỉnh Bình Dương"
+        },
+        {
+            "matinh": "75",
+            "tentinh": "Tỉnh Đồng Nai"
+        },
+        {
+            "matinh": "77",
+            "tentinh": "Tỉnh Bà Rịa - Vũng Tàu"
+        },
+        {
+            "matinh": "79",
+            "tentinh": "Thành phố Hồ Chí Minh"
+        },
+        {
+            "matinh": "80",
+            "tentinh": "Tỉnh Long An"
+        },
+        {
+            "matinh": "82",
+            "tentinh": "Tỉnh Tiền Giang"
+        },
+        {
+            "matinh": "83",
+            "tentinh": "Tỉnh Bến Tre"
+        },
+        {
+            "matinh": "84",
+            "tentinh": "Tỉnh Trà Vinh"
+        },
+        {
+            "matinh": "86",
+            "tentinh": "Tỉnh Vĩnh Long"
+        },
+        {
+            "matinh": "87",
+            "tentinh": "Tỉnh Đồng Tháp"
+        },
+        {
+            "matinh": "89",
+            "tentinh": "Tỉnh An Giang"
+        },
+        {
+            "matinh": "91",
+            "tentinh": "Tỉnh Kiên Giang"
+        },
+        {
+            "matinh": "92",
+            "tentinh": "Thành phố Cần Thơ"
+        },
+        {
+            "matinh": "93",
+            "tentinh": "Tỉnh Hậu Giang"
+        },
+        {
+            "matinh": "94",
+            "tentinh": "Tỉnh Sóc Trăng"
+        },
+        {
+            "matinh": "95",
+            "tentinh": "Tỉnh Bạc Liêu"
+        },
+        {
+            "matinh": "96",
+            "tentinh": "Tỉnh Cà Mau"
+        },
+        {
+            "matinh": "97",
+            "tentinh": "BHXH BQP"
+        },
+        {
+            "matinh": "98",
+            "tentinh": "BHXH BCA"
+        }
+    ],
+    "ResultCode": "000",
+    "ResultMessage": ""
+}

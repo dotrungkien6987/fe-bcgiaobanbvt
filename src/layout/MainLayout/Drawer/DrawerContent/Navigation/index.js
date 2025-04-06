@@ -1,3 +1,4 @@
+
 import { useEffect, useLayoutEffect, useState } from 'react';
 
 // material-ui
@@ -18,12 +19,10 @@ import useAuth from 'hooks/useAuth';
 // ==============================|| DRAWER CONTENT - NAVIGATION ||============================== //
 
 const Navigation = () => {
-  const {user} = useAuth()
+  const {user} = useAuth();
   
   const theme = useTheme();
-
   const downLG = useMediaQuery(theme.breakpoints.down('lg'));
-
   const { menuOrientation } = useConfig();
   const { drawerOpen } = useSelector((state) => state.menu);
 
@@ -31,49 +30,64 @@ const Navigation = () => {
   const [selectedLevel, setSelectedLevel] = useState(0);
   const [menuItems, setMenuItems] = useState({ items: [] });
 
+  // Kiểm tra xem user có quyền truy cập menu item hay không
+  const hasAccess = (item) => {
+    if (!user || !user.PhanQuyen) return false;
+    const role = user.PhanQuyen || 'default';
+    return item.roles?.includes(role);
+  };
+
   useEffect(() => {
     handlerMenuItem();
     // eslint-disable-next-line
-  }, []);
+  }, [user]);
 
   useLayoutEffect(() => {
+    // Set menu items trực tiếp từ menuItem gốc
     setMenuItems(menuItem);
     // eslint-disable-next-line
-  }, [menuItem]);
+  }, [menuItem, user]);
 
   let getMenu = Menu();
+  // Nếu getMenu có roles, đảm bảo gán nó
+  if (getMenu && !getMenu.roles) {
+    getMenu.roles = ['noibo','admin', 'daotao', 'manager', 'default']; // Dashboard hiện cho tất cả
+  }
+  
   const handlerMenuItem = () => {
-    const isFound = menuItem.items.some((element) => {
-      if (element.id === 'group-dashboard') {
-        return true;
-      }
-      return false;
-    });
+    // Kiểm tra xem Dashboard đã được thêm vào chưa
+    const isFound = menuItems.items.some(element => element.id === 'group-dashboard');
 
     if (getMenu?.id !== undefined && !isFound) {
-      menuItem.items.splice(0, 0, getMenu);
-      setMenuItems(menuItem);
+      // Thêm Dashboard menu vào đầu danh sách nếu chưa có
+      const updatedItems = { ...menuItems };
+      updatedItems.items = [getMenu, ...updatedItems.items];
+      setMenuItems(updatedItems);
     }
   };
 
   const isHorizontal = menuOrientation === MenuOrientation.HORIZONTAL && !downLG;
 
   const lastItem = isHorizontal ? HORIZONTAL_MAX_ITEM : null;
-  let lastItemIndex = menuItems.items.length - 1;
+  
+  // Lọc menu items dựa trên phân quyền trước khi xử lý
+  const visibleItems = menuItems.items.filter(item => hasAccess(item));
+  
+  let lastItemIndex = visibleItems.length - 1;
   let remItems = [];
   let lastItemId;
 
-  if (lastItem && lastItem < menuItems.items.length) {
-    lastItemId = menuItems.items[lastItem - 1].id;
+  if (lastItem && lastItem < visibleItems.length) {
+    lastItemId = visibleItems[lastItem - 1].id;
     lastItemIndex = lastItem - 1;
-    remItems = menuItems.items.slice(lastItem - 1, menuItems.items.length).map((item) => ({
+    remItems = visibleItems.slice(lastItem - 1, visibleItems.length).map((item) => ({
       title: item.title,
       elements: item.children,
       icon: item.icon
     }));
   }
 
-  const navGroups = menuItems.items.slice(0, lastItemIndex + 1).map((item) => {
+  const navGroups = visibleItems.slice(0, lastItemIndex + 1).map((item) => {
     switch (item.type) {
       case 'group':
         return (
@@ -97,26 +111,20 @@ const Navigation = () => {
         );
     }
   });
+
   return (
-    <>
-    {(user.PhanQuyen === "admin"||user.PhanQuyen === "daotao")?(
-      <Box
+    <Box
       sx={{
         pt: drawerOpen ? (isHorizontal ? 0 : 2) : 0,
         '& > ul:first-of-type': { mt: 0 },
         display: isHorizontal ? { xs: 'block', lg: 'flex' } : 'block',
-        overflowY: 'auto', // Cho phép cuộn dọc
-        height: '100%',   // Đặt chiều cao để Box có thể cuộn
-        maxHeight: '100vh' // Giới hạn chiều cao để không vượt quá màn hình
+        overflowY: 'auto', 
+        height: '100%',   
+        maxHeight: '100vh' 
       }}
     >
       {navGroups}
-      
     </Box>
-    ):(
-      <Box></Box>
-    )}
-   </>
   );
 };
 

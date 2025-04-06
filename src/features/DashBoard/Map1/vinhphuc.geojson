@@ -1,0 +1,104 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "H. Sông Lô",
+          "patients": 3770
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[105.5, 21.4], [105.6, 21.4], [105.6, 21.5], [105.5, 21.5], [105.5, 21.4]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "H. Lập Thạch",
+          "patients": 1693
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[105.6, 21.4], [105.7, 21.4], [105.7, 21.5], [105.6, 21.5], [105.6, 21.4]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "H. Tam Đảo",
+          "patients": 40
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[105.7, 21.4], [105.8, 21.4], [105.8, 21.5], [105.7, 21.5], [105.7, 21.4]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "H. Tam Dương",
+          "patients": 93
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[105.5, 21.3], [105.6, 21.3], [105.6, 21.4], [105.5, 21.4], [105.5, 21.3]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "TP. Vĩnh Yên",
+          "patients": 240
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[105.6, 21.3], [105.7, 21.3], [105.7, 21.4], [105.6, 21.4], [105.6, 21.3]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "TP. Phúc Yên",
+          "patients": 22
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[105.7, 21.3], [105.8, 21.3], [105.8, 21.4], [105.7, 21.4], [105.7, 21.3]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "H. Bình Xuyên",
+          "patients": 51
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[105.5, 21.2], [105.6, 21.2], [105.6, 21.3], [105.5, 21.3], [105.5, 21.2]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "H. Yên Lạc",
+          "patients": 157
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[105.6, 21.2], [105.7, 21.2], [105.7, 21.3], [105.6, 21.3], [105.6, 21.2]]]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "name": "H. Vĩnh Tường",
+          "patients": 2498
+        },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [[[105.4, 21.3], [105.5, 21.3], [105.5, 21.4], [105.4, 21.4], [105.4, 21.3]]]
+        }
+      }
+    ]
+  }

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Container,
   Grid,
@@ -18,6 +18,9 @@ import TableCanLamSang from "./TableCanLamSang";
 import StackBarTyLeTraDungCLS from "./StackBarTyLeTraDungCLS";
 import { fDateTime, fDateTimeSuffix, formatDateTime } from "../../utils/formatTime";
 import CustomTableComponent from "./CustomTableComponent/CustomTableComponent";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 
 // Hàm làm tròn số đến 2 chữ số thập phân
 const roundToTwoDecimals = (value) => {
@@ -42,6 +45,10 @@ const formatCell = (columnName, value, rowData) => {
 };
 
 const ChiSoChatLuong = () => {
+  const now = dayjs().tz("Asia/Ho_Chi_Minh");
+  const [date, setDate] = useState(now);
+  const [isToday, setIsToday] = useState(true);
+  
   const {
     dashboadChiSoChatLuong,
     thoigianchokhambenh,
@@ -51,27 +58,35 @@ const ChiSoChatLuong = () => {
     ThoiGian_NhomXetNghiem
   } = useSelector((state) => state.dashboard);
   const dispatch = useDispatch();
-  //   useEffect(() => {
-  //     const dateCurent = new Date().toISOString();
 
-  //     dispatch(getDataNewestByNgay(dateCurent));
-  //   }, []);
+  const handleDateChange = (newDate) => {
+    if (newDate instanceof Date) {
+      setDate(new Date(newDate));
+    } else if (dayjs.isDayjs(newDate)) {
+      setDate(newDate);
+    }
+    setIsToday(dayjs(newDate).isSame(now, "day"));
+  };
 
   useEffect(() => {
     const fetchNewestData = () => {
-      const dateCurent = new Date().toISOString();
-      dispatch(getDataNewestByNgay(dateCurent));
-      console.log("render lại");
+      dispatch(getDataNewestByNgay(date.toISOString()));
+      console.log("Đang tải dữ liệu cho ngày:", date.format ? date.format("DD/MM/YYYY") : new Date(date).toLocaleDateString());
     };
-
-    fetchNewestData(); // Gọi khi component mount
-
-    const intervalId = setInterval(fetchNewestData, 900000); // Gọi lại sau mỗi 1 phút
-
-    return () => {
-      clearInterval(intervalId); // Dọn dẹp khi component unmount
-    };
-  }, [dispatch]); // Chỉ rerun khi dispatch thay đổi
+    
+    fetchNewestData();
+    
+    // Chỉ thiết lập interval nếu đang xem dữ liệu của ngày hôm nay
+    if (isToday) {
+      const intervalId = setInterval(fetchNewestData, 900000); // Làm mới sau mỗi 15 phút
+      
+      return () => {
+        clearInterval(intervalId); // Dọn dẹp khi component unmount
+      };
+    }
+    
+    return undefined; // Không cần interval nếu xem dữ liệu lịch sử
+  }, [dispatch, date, isToday]); // Chạy lại khi dispatch, date hoặc isToday thay đổi
 
   return (
     <Stack>
@@ -81,6 +96,16 @@ const ChiSoChatLuong = () => {
           <Typography variant="h6" sx={{marginX:'auto',textAlign:'center'}}>CHỈ SỐ CHẤT LƯỢNG KHÁM BỆNH (Số liệu {formatDateTime(dashboadChiSoChatLuong.Ngay)})</Typography>
             }
           <Box sx={{ flexGrow: 1 }} />
+          <Card sx={{ m: 1 }}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <DatePicker
+                sx={{ m: 1 }}
+                label="Ngày"
+                value={date}
+                onChange={handleDateChange}
+              />
+            </LocalizationProvider>
+          </Card>
           <DisplayChiSoDashBoard
             ChiSoDashBoard={dashboadChiSoChatLuong.ChiSoDashBoard}
           />
@@ -103,7 +128,6 @@ const ChiSoChatLuong = () => {
           data={ThoiGian_NhomXetNghiem}
           columns={[
             { header: "Tên Xét Nghiệm", name: "xetnghiemtype", rowSpan: 2 },
-            // { header: "Chỉ định", name: "tong_so_trong_nhom", rowSpan: 2 },
             { header: "Thời gian chờ lấy mẫu", colSpan: 4 },
             { header: "Thời gian chờ kết quả", colSpan: 4 },
             { header: "Đã lấy mẫu", name: "so_da_lay_mau" },

@@ -1,0 +1,203 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Q. Ba Đình",
+        "code": "HN01",
+        "provinceCode": "Hà Nội",
+        "provinceName": "Hà Nội"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.815, 21.035],
+            [105.835, 21.045],
+            [105.85, 21.035],
+            [105.845, 21.02],
+            [105.825, 21.015],
+            [105.815, 21.035]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Q. Hoàn Kiếm",
+        "code": "HN02",
+        "provinceCode": "Hà Nội",
+        "provinceName": "Hà Nội"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.845, 21.03],
+            [105.86, 21.035],
+            [105.865, 21.025],
+            [105.855, 21.015],
+            [105.845, 21.02],
+            [105.845, 21.03]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Q. Tây Hồ",
+        "code": "HN03",
+        "provinceCode": "Hà Nội",
+        "provinceName": "Hà Nội"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.82, 21.06],
+            [105.84, 21.08],
+            [105.86, 21.075],
+            [105.855, 21.055],
+            [105.835, 21.05],
+            [105.82, 21.06]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Q. Long Biên",
+        "code": "HN04",
+        "provinceCode": "Hà Nội",
+        "provinceName": "Hà Nội"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.87, 21.04],
+            [105.89, 21.06],
+            [105.91, 21.05],
+            [105.9, 21.03],
+            [105.88, 21.025],
+            [105.87, 21.04]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Q. Cầu Giấy",
+        "code": "HN05",
+        "provinceCode": "Hà Nội",
+        "provinceName": "Hà Nội"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.78, 21.04],
+            [105.8, 21.05],
+            [105.82, 21.045],
+            [105.815, 21.03],
+            [105.795, 21.025],
+            [105.78, 21.04]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Q. Đống Đa",
+        "code": "HN06",
+        "provinceCode": "Hà Nội",
+        "provinceName": "Hà Nội"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.82, 21.015],
+            [105.84, 21.025],
+            [105.85, 21.02],
+            [105.845, 21.0],
+            [105.825, 20.995],
+            [105.82, 21.015]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Q. Hai Bà Trưng",
+        "code": "HN07",
+        "provinceCode": "Hà Nội",
+        "provinceName": "Hà Nội"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.855, 21.01],
+            [105.875, 21.02],
+            [105.885, 21.015],
+            [105.88, 20.995],
+            [105.86, 20.99],
+            [105.855, 21.01]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Q. Hoàng Mai",
+        "code": "HN08",
+        "provinceCode": "Hà Nội",
+        "provinceName": "Hà Nội"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.85, 20.985],
+            [105.87, 20.995],
+            [105.885, 20.99],
+            [105.88, 20.97],
+            [105.86, 20.965],
+            [105.85, 20.985]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Q. Thanh Xuân",
+        "code": "HN09",
+        "provinceCode": "Hà Nội",
+        "provinceName": "Hà Nội"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [105.815, 20.995],
+            [105.835, 21.005],
+            [105.845, 20.995],
+            [105.84, 20.975],
+            [105.82, 20.97],
+            [105.815, 20.995]
+          ]
+        ]
+      }
+    }
+  ]
+}
