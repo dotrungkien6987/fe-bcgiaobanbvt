@@ -41,6 +41,10 @@ const initialState = {
   HinhThucDaoTao: [],
   DanToc: [],
   PhamViHanhNghe: [],
+
+  Tinh: [],
+  Huyen: [],
+  Xa: [],
 };
 
 const slice = createSlice({
@@ -135,6 +139,10 @@ const slice = createSlice({
       state.HinhThucDaoTao = action.payload.HinhThucDaoTao;
       state.DanToc = action.payload.DanToc;
       state.PhamViHanhNghe = action.payload.PhamViHanhNghe;
+
+      state.Tinh = action.payload.Tinh;
+      state.Huyen = action.payload.Huyen;
+      state.Xa = action.payload.Xa;
     },
     updateOrInsertDatafixSuccess(state, action) {
       state.isLoading = false;
@@ -151,6 +159,10 @@ const slice = createSlice({
       state.HinhThucDaoTao = action.payload.HinhThucDaoTao;
       state.DanToc = action.payload.DanToc;
       state.PhamViHanhNghe = action.payload.PhamViHanhNghe;
+
+      state.Tinh = action.payload.Tinh;
+      state.Huyen = action.payload.Huyen;
+      state.Xa = action.payload.Xa;
     },
     importNhanViensSuccess(state, action) {
       state.isLoading = false;

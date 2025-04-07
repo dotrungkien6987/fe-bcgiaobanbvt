@@ -53,6 +53,9 @@ import DashBoardDaotaoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDa
 import UserThemeAbleTable from "features/User/UserThemeAble/UserThemeAbleTable";
 import Function1 from "features/NoiBo/Function1";
 import Function2 from "features/NoiBo/Function2";
+import TinhTable from "features/Daotao/DanhMucTinh/TinhTable";
+import HuyenTable from "features/Daotao/DanhMucHuyen/HuyenTable";
+import XaTable from "features/Daotao/DanhMucXa/XaTable";
 function Router() {
   return (
     <div>
@@ -157,6 +160,11 @@ function Router() {
           <Route path="/newfeature/function1" element={<Function1 />} />
           <Route path="/newfeature/function2" element={<Function2 />} />
           <Route path="/newfeature/function3" element={<TongHopHoatDong />} />
+          <Route path="/tinh" element={<TinhTable />} />
+          <Route path="/Huyen" element={<HuyenTable />} />
+          <Route path="/Xa" element={<XaTable />} />
+          
+
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
       </Routes>

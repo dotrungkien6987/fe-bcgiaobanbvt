@@ -113,6 +113,24 @@ const hethong = {
           type: 'item',
           url: '/datafix/PhamViHanhNghe'
         },
+        {
+          id: 'Tinh',
+          title: 'Tỉnh',
+          type: 'item',
+          url: '/tinh'
+        },
+        {
+          id: 'Huyen',
+          title: 'Huyện',
+          type: 'item',
+          url: '/huyen'
+        },
+        {
+          id: 'Xa',
+          title: 'Xã',
+          type: 'item',
+          url: '/xa'
+        },
       ]
     }
   ]
