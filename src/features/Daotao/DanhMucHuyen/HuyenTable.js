@@ -107,7 +107,7 @@ function HuyenTable() {
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
         <MainCard
-          title={`Danh mục tỉnh`}
+          title={`Danh mục huyện`}
         >
           <SimpleTable
             data={data}

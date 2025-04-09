@@ -94,7 +94,7 @@ function MainHeader() {
       >
         Home
       </MenuItem>
-      {(user.PhanQuyen === "admin" || user.PhanQuyen === "manager") && (
+      {/* {(user.PhanQuyen === "admin" || user.PhanQuyen === "manager") && ( */}
         <div>
           <MenuItem
             onClick={handleMenuClose}
@@ -114,17 +114,8 @@ function MainHeader() {
             Khuyến cáo khoa
           </MenuItem>
         </div>
-      )}
-      {user.PhanQuyen === "admin" && (
-        <MenuItem
-          onClick={handleMenuClose}
-          to="/admin"
-          component={RouterLink}
-          sx={{ mx: 1 }}
-        >
-          Admin
-        </MenuItem>
-      )}
+      {/* )} */}
+    
 
       <MenuItem
         onClick={handleMenuClose}

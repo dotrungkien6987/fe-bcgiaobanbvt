@@ -17,7 +17,8 @@ import {
   MenuItem, 
   Typography,
   AppBar,
-  Toolbar
+  Toolbar,
+  Badge
 } from "@mui/material";
 import SendTimeExtensionIcon from "@mui/icons-material/SendTimeExtension";
 
@@ -49,12 +50,138 @@ const TabsWrapperStyled = styled("div")(({ theme }) => ({
   },
 }));
 
+// Mapping giữa các mã quyền dashboard và tên tab
+const DASHBOARD_PERMISSION_MAP = {
+  'BNNT': "BỆNH NHÂN NGOẠI TỈNH",
+  'CSCL': "CHỈ SỐ CHẤT LƯỢNG",
+  'ĐH': "ĐIỀU HÀNH",
+  'TC': "TÀI CHÍNH",
+  'TCKHOA': "THEO DÕI THEO KHOA",
+  'DVT': "DƯỢC VẬT TƯ",
+  'ĐT': "ĐÀO TẠO TOÀN VIỆN",
+  'ĐTKHOA': "ĐÀO TẠO THEO KHOA"
+};
+
 function DashBoardPage() {
   const { user } = useAuth();
 
-  // Thiết lập tab mặc định dựa trên quyền người dùng
-  const defaultTab = user.PhanQuyen === 'admin' ? "TÀI CHÍNH" : "THEO DÕI THEO KHOA";
-  const [currentTab, setCurrentTab] = useState(defaultTab);
+  // Danh sách tất cả các tab có sẵn
+  const allTabs = [
+    {
+      value: "BỆNH NHÂN NGOẠI TỈNH",
+      component: <BenhNhanNgoaiTinh />,
+      permission: 'BNNT'
+    },
+    {
+      value: "CHỈ SỐ CHẤT LƯỢNG",
+      component: <ChiSoChatLuong />,
+      permission: 'CSCL'
+    },
+    {
+      value: "ĐIỀU HÀNH",
+      component: <DieuHanh />,
+      permission: 'ĐH'
+    },
+    {
+      value: "TÀI CHÍNH",
+      component: <TaiChinh />,
+      permission: 'TC'
+    },
+    {
+      value: "THEO DÕI THEO KHOA",
+      component: <DashBoardKhoa />,
+      permission: 'TCKHOA'
+    },
+    {
+      value: "DƯỢC VẬT TƯ",
+      component: <DuocVatTu />,
+      permission: 'DVT'
+    },
+    {
+      value: "ĐÀO TẠO TOÀN VIỆN",
+      component: <DashBoardDaotao />,
+      permission: 'ĐT'
+    },
+    {
+      value: "ĐÀO TẠO THEO KHOA",
+      component: <DashBoardDaotaoKhoa />,
+      permission: 'ĐTKHOA'
+    },
+  ];
+
+  // Lọc các tab dựa trên quyền của người dùng
+  const getAuthorizedTabs = () => {
+    // Nếu là admin, hiển thị tất cả các tab
+    if (user.PhanQuyen === 'admin') {
+      return allTabs;
+    }
+
+    // Lấy các quyền dashboard từ user
+    const userDashboardPermissions = user.DashBoard || [];
+
+    // Tạo mảng chứa tên các tab mà user có quyền xem
+    let allowedTabs = [];
+
+    // Nếu là manager
+    if (user.PhanQuyen === 'manager') {
+      // Manager mặc định xem được THEO DÕI THEO KHOA và CHỈ SỐ CHẤT LƯỢNG
+      allowedTabs = ["THEO DÕI THEO KHOA", "CHỈ SỐ CHẤT LƯỢNG"];
+
+      // Thêm các quyền dashboard khác
+      userDashboardPermissions.forEach(permission => {
+        const tabName = DASHBOARD_PERMISSION_MAP[permission];
+        if (tabName && !allowedTabs.includes(tabName)) {
+          allowedTabs.push(tabName);
+        }
+      });
+    } 
+    // Các quyền khác (nomal, daotao, noibo)
+    else {
+      // Mặc định xem được CHỈ SỐ CHẤT LƯỢNG
+      allowedTabs = ["CHỈ SỐ CHẤT LƯỢNG"];
+
+      // Thêm các quyền dashboard khác
+      userDashboardPermissions.forEach(permission => {
+        const tabName = DASHBOARD_PERMISSION_MAP[permission];
+        if (tabName && !allowedTabs.includes(tabName)) {
+          allowedTabs.push(tabName);
+        }
+      });
+    }
+
+    // Lọc lại danh sách tab theo các quyền đã xác định
+    return allTabs.filter(tab => allowedTabs.includes(tab.value));
+  };
+
+  // Lấy danh sách tab được phép xem
+  const PROFILE_TABS = getAuthorizedTabs();
+
+  // Thiết lập tab mặc định dựa trên quyền và tab được phép xem
+  const getDefaultTab = () => {
+    if (PROFILE_TABS.length === 0) return "";
+    
+    if (user.PhanQuyen === 'admin') {
+      return "TÀI CHÍNH";
+    } else if (user.PhanQuyen === 'manager') {
+      return "THEO DÕI THEO KHOA";
+    } else {
+      return "CHỈ SỐ CHẤT LƯỢNG";
+    }
+  };
+
+  const [currentTab, setCurrentTab] = useState("");
+  
+  // Cập nhật tab mặc định sau khi đã lọc danh sách tab
+  useEffect(() => {
+    const defaultTab = getDefaultTab();
+    // Kiểm tra xem tab mặc định có tồn tại trong danh sách tab được phép không
+    if (defaultTab && PROFILE_TABS.some(tab => tab.value === defaultTab)) {
+      setCurrentTab(defaultTab);
+    } else if (PROFILE_TABS.length > 0) {
+      // Nếu không, chọn tab đầu tiên trong danh sách
+      setCurrentTab(PROFILE_TABS[0].value);
+    }
+  }, [user]);
   
   // State cho menu
   const [anchorEl, setAnchorEl] = useState(null);
@@ -80,49 +207,6 @@ function DashBoardPage() {
     handleCloseMenu();
   };
 
-  const allTabs  = [
-    
-    {
-      value: "BỆNH NHÂN NGOẠI TỈNH",
-      component: <BenhNhanNgoaiTinh />,
-    },
-    {
-      value: "CHỈ SỐ CHẤT LƯỢNG",
-      component: <ChiSoChatLuong />,
-    },
-    {
-      value: "ĐIỀU HÀNH",
-      component: <DieuHanh />,
-    },
-    {
-      value: "TÀI CHÍNH",
-      component: <TaiChinh />,
-    },
-    {
-      value: "THEO DÕI THEO KHOA",
-      component: <DashBoardKhoa />,
-    },
-    {
-      value: "DƯỢC VẬT TƯ",
-      component: <DuocVatTu />,
-    },
-    {
-      value: "HÀI LÒNG NGƯỜI BỆNH",
-      component: <HaiLongNguoiBenh />,
-    },
-    {
-      value: "Đào tạo toàn viện",
-      component: <DashBoardDaotao />,
-    },
-    {
-      value: "Đào tạo theo khoa",
-      component: <DashBoardDaotaoKhoa />,
-    },
-  ];
-  
-  // Lọc các tab dựa trên quyền của người dùng
-  const PROFILE_TABS = user.PhanQuyen === 'admin' ? allTabs : allTabs.filter(tab => tab.value === "THEO DÕI THEO KHOA");
-
   return (
     <Stack>
       {/* AppBar với Menu button */}
@@ -135,7 +219,9 @@ function DashBoardPage() {
             onClick={handleOpenMenu}
             sx={{ mr: 2 }}
           >
-            <MenuIcon />
+            <Badge badgeContent={PROFILE_TABS.length} color="primary">
+              <MenuIcon />
+            </Badge>
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Dashboard
@@ -164,37 +250,54 @@ function DashBoardPage() {
         ))}
       </Menu>
 
-      <Card
-        sx={{
-          mb: 3,
-          height: 50,
-          position: "relative",
-        }}
-      >
-        <TabsWrapperStyled>
-          <Tabs
-            value={currentTab}
-            scrollButtons="auto"
-            variant="scrollable"
-            allowScrollButtonsMobile
-            onChange={(e, value) => handleChangeTab(value)}
+      {PROFILE_TABS.length > 0 ? (
+        <>
+          <Card
+            sx={{
+              mb: 3,
+              height: 50,
+              position: "relative",
+            }}
           >
-            {PROFILE_TABS.map((tab) => (
-              <Tab
-                disableRipple
-                key={tab.value}
-                value={tab.value}
-                icon={tab.icon}
-                label={tab.value}
-              />
-            ))}
-          </Tabs>
-        </TabsWrapperStyled>
-      </Card>
-      {PROFILE_TABS.map((tab) => {
-        const isMatched = tab.value === currentTab;
-        return isMatched && <Box key={tab.value}>{tab.component}</Box>;
-      })}
+            <TabsWrapperStyled>
+              <Tabs
+                value={currentTab}
+                scrollButtons="auto"
+                variant="scrollable"
+                allowScrollButtonsMobile
+                onChange={(e, value) => handleChangeTab(value)}
+              >
+                {PROFILE_TABS.map((tab) => (
+                  <Tab
+                    disableRipple
+                    key={tab.value}
+                    value={tab.value}
+                    icon={tab.icon}
+                    label={tab.value}
+                  />
+                ))}
+              </Tabs>
+            </TabsWrapperStyled>
+          </Card>
+          
+          {PROFILE_TABS.map((tab) => {
+            const isMatched = tab.value === currentTab;
+            return isMatched && <Box key={tab.value}>{tab.component}</Box>;
+          })}
+        </>
+      ) : (
+        <Box sx={{ 
+          p: 3, 
+          textAlign: 'center', 
+          bgcolor: '#f5f5f5',
+          borderRadius: 2,
+          boxShadow: 1 
+        }}>
+          <Typography variant="h6" color="text.secondary">
+            Bạn không có quyền xem Dashboard nào
+          </Typography>
+        </Box>
+      )}
     </Stack>
   );
 }

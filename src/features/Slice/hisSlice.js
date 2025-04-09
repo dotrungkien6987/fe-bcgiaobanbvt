@@ -1,12 +1,27 @@
 import { createSlice } from "@reduxjs/toolkit";
 import apiService from "../../app/apiService";
 import { toast } from "react-toastify";
+import { PieChart } from "@mui/icons-material";
+import { tongHopBenhNhanTheoHuyenLabelValue, tongHopBenhNhanTheoTinhLabelValue, tongHopBenhNhanTheoXaLabelValue } from "./helpHisSliceFunction";
 
 const initialState = {
   isLoading: false,
   error: null,
   bnNgoaiTinhs: [],
-  bnTheoTinh:[]
+  bnTheoTinh:[],
+  PieChartBenhNhanNgoaiTinhNgoaiTru: [],
+  PieChartBenhNhanNgoaiTinhNoiTru: [],
+
+  PieChartVinhPhucNgoaiTru: [],
+  PieChartVinhPhucNoiTru: [],
+  PieChartHoaBinhNgoaiTru: [],
+  PieChartHoaBinhNoiTru: [],
+  PieChartTuyenQuangNgoaiTru: [],
+  PieChartTuyenQuangNoiTru: [],
+  PieChartYenBaiNgoaiTru: [],
+  PieChartYenBaiNoiTru: [],
+  PieChartBaViNgoaiTru: [],
+  PieChartBaViNoiTru: [],
 };
 
 const slice = createSlice({
@@ -25,6 +40,68 @@ const slice = createSlice({
       state.error = null;
       state.bnNgoaiTinhs = action.payload;
 
+      state.PieChartBenhNhanNgoaiTinhNgoaiTru = tongHopBenhNhanTheoTinhLabelValue(
+        action.payload,
+        0 // Hình thức ngoại trú
+      );
+      state.PieChartBenhNhanNgoaiTinhNoiTru = tongHopBenhNhanTheoTinhLabelValue(
+        action.payload,
+        2 // Hình thức nội trú
+      );
+
+state.PieChartVinhPhucNgoaiTru = tongHopBenhNhanTheoHuyenLabelValue(
+        action.payload,
+        "26",
+        0 // Hình thức ngoại trú
+      );
+state.PieChartVinhPhucNoiTru = tongHopBenhNhanTheoHuyenLabelValue(
+        action.payload,
+        "26",
+        2 // Hình thức nội trú
+      );
+state.PieChartHoaBinhNgoaiTru = tongHopBenhNhanTheoHuyenLabelValue(
+        action.payload,
+        "17",
+        0 // Hình thức ngoại trú
+      );
+state.PieChartHoaBinhNoiTru = tongHopBenhNhanTheoHuyenLabelValue(
+        action.payload,
+        "17",
+        2 // Hình thức nội trú
+      );
+state.PieChartTuyenQuangNgoaiTru = tongHopBenhNhanTheoHuyenLabelValue(
+        action.payload,
+        "08",
+        0 // Hình thức ngoại trú
+      );
+state.PieChartTuyenQuangNoiTru = tongHopBenhNhanTheoHuyenLabelValue(
+        action.payload,
+        "08",
+        2 // Hình thức nội trú
+      );
+state.PieChartYenBaiNgoaiTru = tongHopBenhNhanTheoHuyenLabelValue(
+        action.payload,
+        "15",
+        0 // Hình thức ngoại trú
+      );
+state.PieChartYenBaiNoiTru = tongHopBenhNhanTheoHuyenLabelValue(
+        action.payload,
+        "15",
+        2 // Hình thức nội trú
+      );
+
+      state.PieChartBaViNgoaiTru = tongHopBenhNhanTheoXaLabelValue(
+        action.payload,
+        "01",
+        "17",
+        0 // Hình thức ngoại trú
+      )
+      state.PieChartBaViNoiTru = tongHopBenhNhanTheoXaLabelValue(
+        action.payload,
+        "01",
+        "17",
+        2 // Hình thức nội trú
+      );
       // Tổng hợp số bệnh nhân theo tỉnh
       const provinceMap = {};
       
@@ -38,9 +115,9 @@ const slice = createSlice({
           provinceMap[tinhCode].tongBenhNhan += soBN;
         } else {
           provinceMap[tinhCode] = {
-            maTinh: tinhCode,
-            tenTinh: tinhName,
-            tongBenhNhan: soBN
+            MaTinh: tinhCode,
+            TenTinh: tinhName,
+            TongBenhNhan: soBN
           };
         }
       });

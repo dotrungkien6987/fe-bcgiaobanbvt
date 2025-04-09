@@ -87,10 +87,8 @@ function Router() {
           <Route
             path="/dashboard"
             element={
-              <DashboardRequire>
-                {" "}
-                <DashBoardPage />{" "}
-              </DashboardRequire>
+             
+                <DashBoardPage />
             }
           />
           <Route

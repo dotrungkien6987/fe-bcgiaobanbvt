@@ -115,7 +115,7 @@ const slice = createSlice({
 export default slice.reducer;
 
 export const updateUserProfile =
-  ({ UserId, Email, HoTen, KhoaID,NhanVienID, PhanQuyen, UserName, KhoaTaiChinh,UserHis }) =>
+  ({ UserId, Email, HoTen, KhoaID,NhanVienID, PhanQuyen, UserName, KhoaTaiChinh,UserHis,DashBoard }) =>
   async (dispatch) => {
     dispatch(slice.actions.startLoading());
     try {
@@ -128,6 +128,7 @@ export const updateUserProfile =
         UserName,
         KhoaTaiChinh,
         UserHis,
+        DashBoard,
       };
 
       const response = await apiService.put(`/user/${UserId}`, data);
