@@ -235,8 +235,7 @@ export const addBenhNhanToList = (benhnhan, images) => async (dispatch) => {
       }
     switch (benhnhan.LoaiBN) {
       case 1:
-        console.log("kkk");
-
+        
         dispatch(slice.actions.addTuVongSuccess(benhnhan));
         break;
       case 2:

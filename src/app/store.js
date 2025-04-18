@@ -12,6 +12,7 @@ import menuSlice from "features/Menu/menuSlice";
 import hinhthuccapnhatSlice from "../features/NhanVien/hinhthuccapnhatSlice";
 import fileSlice from "../features/File/fileSlice";
 import hisSlice from "../features/Slice/hisSlice";
+import khoaSlice from "../features/Daotao/Khoa/khoaSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -23,11 +24,12 @@ const rootReducer = {
   dashboardkhoa: dashboardkhoaSlice,
   mytheme: themeslice,
   daotao: daotaoSlice,
-  nhanvien:nhanvienSlice,
-  hinhthuccapnhat:hinhthuccapnhatSlice,
-  menu:menuSlice,
+  nhanvien: nhanvienSlice,
+  hinhthuccapnhat: hinhthuccapnhatSlice,
+  menu: menuSlice,
   file: fileSlice,
   his: hisSlice,
+  khoa: khoaSlice,
 };
 
 const store = configureStore({

@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { uploadFile, fetchFile } from '../features/File/fileSlice';
 import { Button, CircularProgress, Box, Typography } from '@mui/material';
-import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
-import { Document, Page, pdfjs } from "react-pdf";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-import FileViewerComponent from './FileViewerComponent';
+// import DocViewer, { DocViewerRenderers } from "@cyntler/react-doc-viewer";
+
+// import "react-pdf/dist/esm/Page/AnnotationLayer.css";
+// import FileViewerComponent from './FileViewerComponent';
 
 // Cấu hình worker của pdfjs qua CDN
 // pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -44,7 +44,7 @@ const FileUploadView = () => {
         <Box mt={2}>
           <Typography variant="h6">Uploaded File:</Typography>
           <Box mt={2}>
-            <FileViewerComponent fileUrl={fileURL} fileName={fileName} />
+            {/* <FileViewerComponent fileUrl={fileURL} fileName={fileName} /> */}
           </Box>
         </Box>
       {/* )} */}

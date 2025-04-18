@@ -56,6 +56,7 @@ import Function2 from "features/NoiBo/Function2";
 import TinhTable from "features/Daotao/DanhMucTinh/TinhTable";
 import HuyenTable from "features/Daotao/DanhMucHuyen/HuyenTable";
 import XaTable from "features/Daotao/DanhMucXa/XaTable";
+import KhoaTable from "features/Daotao/Khoa/KhoaTable";
 function Router() {
   return (
     <div>
@@ -161,6 +162,7 @@ function Router() {
           <Route path="/tinh" element={<TinhTable />} />
           <Route path="/Huyen" element={<HuyenTable />} />
           <Route path="/Xa" element={<XaTable />} />
+          <Route path="/khoas" element={<KhoaTable />} />
           
 
           {/* <Route path="*" element={<NotFoundPage />} /> */}

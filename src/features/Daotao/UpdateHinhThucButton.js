@@ -1,7 +1,7 @@
-import { Button, IconButton, Stack, Tooltip } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import {  IconButton,  Tooltip } from "@mui/material";
+import React, {  useState } from "react";
 
-import ThongTinNhanVien from "./ThongTinNhanVien";
+
 import { Edit } from "iconsax-react";
 import HinhThucCapNhatForm from "./HinhThucCapNhatForm";
 
@@ -22,7 +22,7 @@ setOpenForm(true)
       <HinhThucCapNhatForm
         open={openForm}
         handleClose={()=>setOpenForm(false)}
-        hinhthuccapnhat={hinhthuccapnhat}
+        hinhthuccapnhat={hinhthuccapnhat} 
       />
     </div>
   );

@@ -33,8 +33,6 @@ import dayjs from "dayjs";
 import CardTheoDoiBNVip from "./CardTheoDoiBNVip";
 
 import CardPhongThucHienCanLamSang from "./CardPhongThucHienCanLamSang";
-import VinhPhuc from "./Map/VinhPhuc";
-
 
 const colors = [
   { color: "#1939B7" },

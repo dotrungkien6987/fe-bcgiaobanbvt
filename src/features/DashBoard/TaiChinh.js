@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  Container,
+  
   Grid,
   Card,
   CardContent,
@@ -158,6 +158,13 @@ const TaiChinh = () => {
     color: "white",
   });
   dataEx_DuyetKeToan.push({
+    label: `CT 32 (phụ thu): ${VND.format(
+      calculateTotalForType("CLVT32PHUTHU", doanhthu_canlamsang_duyetketoan)
+    )}`,
+    value: 0,
+    color: "white",
+  });
+  dataEx_DuyetKeToan.push({
     label: `Cộng thu trực tiếp: ${VND.format(
       congthutructiep(Pie_DoanhThu_DuyetKeToan)
     )}`,
@@ -183,6 +190,13 @@ const TaiChinh = () => {
   dataEx_TheoChiDinh.push({
     label: `CT 32: ${VND.format(
       calculateTotalForType("CLVT32", doanhthu_canlamsang_theochidinh)
+    )}`,
+    value: 0,
+    color: "white",
+  });
+  dataEx_TheoChiDinh.push({
+    label: `CT 32 (phụ thu): ${VND.format(
+      calculateTotalForType("CLVT32PHUTHU", doanhthu_canlamsang_theochidinh)
     )}`,
     value: 0,
     color: "white",
@@ -230,6 +244,17 @@ const TaiChinh = () => {
     color: "white",
   });
   dataEx_ChenhLech_TheoChiDinh.push({
+    label: `CT 32 (phụ thu): ${VND.format(
+      calculateTotalForType("CLVT32PHUTHU", doanhthu_canlamsang_theochidinh) -
+        calculateTotalForType(
+          "CLVT32PHUTHU",
+          doanhthu_canlamsang_theochidinh_NgayChenhLech
+        )
+    )}`,
+    value: 0,
+    color: "white",
+  });
+  dataEx_ChenhLech_TheoChiDinh.push({
     label: `Cộng thu trực tiếp: ${VND.format(
       congthutructiep(Pie_DoanhThu_TheoChiDinh_ChenhLech)
     )}`,
@@ -266,6 +291,17 @@ const TaiChinh = () => {
       calculateTotalForType("CLVT32", doanhthu_canlamsang_duyetketoan) -
         calculateTotalForType(
           "CLVT32",
+          doanhthu_canlamsang_duyetketoan_NgayChenhLech
+        )
+    )}`,
+    value: 0,
+    color: "white",
+  });
+  dataEx_ChenhLech_DuyetKeToan.push({
+    label: `CT 32 (phụ thu): ${VND.format(
+      calculateTotalForType("CLVT32PHUTHU", doanhthu_canlamsang_duyetketoan) -
+        calculateTotalForType(
+          "CLVT32PHUTHU",
           doanhthu_canlamsang_duyetketoan_NgayChenhLech
         )
     )}`,
@@ -434,7 +470,7 @@ const TaiChinh = () => {
               mb: 1,
             }}
           >
-            <Typography variant="h6">Chưa duyệt kế toán tháng trước</Typography>
+            <Typography variant="h6">Chưa duyệt kế toán tháng trước </Typography>
 
             <Grid container>
               <Grid item xs={12} sm={12} md={6} spacing={1}>
@@ -669,14 +705,14 @@ const TaiChinh = () => {
                         <MyPieChartForMoney
                           data={Pie_DoanhThu_DuyetKeToan}
                           colors={colors}
-                          other={{ height: 300 }}
+                          other={{ height: 320 }}
                           dataEx={dataEx_DuyetKeToan}
                         />
                       ) : (
                         <MyPieChartForMoney
                           data={Pie_DoanhThu_TheoChiDinh}
                           colors={colors}
-                          other={{ height: 300 }}
+                          other={{ height: 320 }}
                           dataEx={dataEx_TheoChiDinh}
                         />
                       )}
@@ -701,7 +737,7 @@ const TaiChinh = () => {
                               : Pie_DoanhThu_DuyetKeToan_ChenhLech
                           }
                           colors={colors}
-                          other={{ height: 300 }}
+                          other={{ height: 320 }}
                           dataEx={
                             ngay === 1
                               ? dataEx_DuyetKeToan
@@ -716,7 +752,7 @@ const TaiChinh = () => {
                               : Pie_DoanhThu_TheoChiDinh_ChenhLech
                           }
                           colors={colors}
-                          other={{ height: 300 }}
+                          other={{ height: 320 }}
                           dataEx={
                             ngay === 1
                               ? dataEx_TheoChiDinh
@@ -732,7 +768,7 @@ const TaiChinh = () => {
                       sx={{
                         fontWeight: "bold",
                         color: darkMode ? "#FFF" : "#1939B7",
-                        height: 325,
+                        height: 340,
                         boxShadow: 10,
                         alignItems: "center",
                       }}

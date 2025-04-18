@@ -7,13 +7,13 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Container,
+  
   Typography,
   Card,
   useMediaQuery,
   Box,
 } from "@mui/material";
-import { commonStyle, commonStyleLeft, tinhChenhlech_CanLamSang } from "../../utils/heplFuntion";
+import { commonStyle, commonStyleLeft } from "../../utils/heplFuntion";
 import { useTheme } from "@emotion/react";
 import { useSelector } from "react-redux";
 
@@ -36,11 +36,6 @@ function TableDoanhThuCanLamSang({ canlamsangDuyetKeToan, canlamsangChiDinh,ngay
     ? { ...commonStyleLeftReponsive, color: "#FFF" }
     : { ...commonStyleLeftReponsive };
 
-  const commonStyleLeftReponsiveRed = {
-    ...commonStyleLeftReponsive,
-    color: "#bb1515",
-  };
- 
   const VND = new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
