@@ -1,6 +1,6 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select, TextField } from "@mui/material";
 import { useFormik } from "formik";
-import React from "react";
+import React, { useEffect } from "react";
 import * as Yup from "yup";
 import { useDispatch } from "react-redux";
 import { insertOneKhoa, updateOneKhoa } from "./khoaSlice";
@@ -14,7 +14,11 @@ function KhoaForm({ open, handleClose, khoa }) {
       STT: khoa?.STT || 0,
       LoaiKhoa: khoa?.LoaiKhoa || "kcc",
       MaKhoa: khoa?.MaKhoa || "",
+      HisDepartmentID: khoa?.HisDepartmentID || "",
+      HisDepartmentGroupID: khoa?.HisDepartmentGroupID || "",
+      HisDepartmentType: khoa?.HisDepartmentType || "",
     },
+    enableReinitialize: true, // Đảm bảo form khởi tạo lại khi props thay đổi
     validationSchema: Yup.object({
       TenKhoa: Yup.string().required("Vui lòng nhập tên khoa"),
       STT: Yup.number().required("Vui lòng nhập số thứ tự"),
@@ -24,6 +28,9 @@ function KhoaForm({ open, handleClose, khoa }) {
     onSubmit: (values) => {
       const khoaData = {
         ...values,
+        HisDepartmentID: values.HisDepartmentID || null,
+        HisDepartmentGroupID: values.HisDepartmentGroupID || null,
+        HisDepartmentType: values.HisDepartmentType || null
       };
 
       if (khoa && khoa._id !== 0) {
@@ -37,8 +44,15 @@ function KhoaForm({ open, handleClose, khoa }) {
     },
   });
 
+  // Reset form khi dialog đóng
+  useEffect(() => {
+    if (!open) {
+      formik.resetForm();
+    }
+  }, [open]);
+
   const loaiKhoaOptions = [
-    { value: "kcc", label: "Khám chữa bệnh" },
+    { value: "kcc", label: "Khoa cấp cứu" },
     { value: "kkb", label: "Khoa khám bệnh" },
     { value: "noi", label: "Nội" },
     { value: "ngoai", label: "Ngoại" },
@@ -49,6 +63,8 @@ function KhoaForm({ open, handleClose, khoa }) {
     { value: "clc", label: "Chất lượng cao" },
     { value: "xn", label: "Xét nghiệm" },
     { value: "hhtm", label: "Huyết học truyền máu" },
+    { value: "pkyc", label: "Phòng khám yêu cầu" },
+    { value: "khac", label: "Khác" },
   ];
 
   return (
@@ -115,6 +131,39 @@ function KhoaForm({ open, handleClose, khoa }) {
                   <FormHelperText>{formik.errors.LoaiKhoa}</FormHelperText>
                 )}
               </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                id="HisDepartmentID"
+                name="HisDepartmentID"
+                label="HIS Department ID"
+                type="number"
+                value={formik.values.HisDepartmentID}
+                onChange={formik.handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                id="HisDepartmentGroupID"
+                name="HisDepartmentGroupID"
+                label="HIS Department Group ID"
+                type="number"
+                value={formik.values.HisDepartmentGroupID}
+                onChange={formik.handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField
+                fullWidth
+                id="HisDepartmentType"
+                name="HisDepartmentType"
+                label="HIS Department Type"
+                type="number"
+                value={formik.values.HisDepartmentType}
+                onChange={formik.handleChange}
+              />
             </Grid>
           </Grid>
         </form>

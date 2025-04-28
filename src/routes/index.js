@@ -57,10 +57,17 @@ import TinhTable from "features/Daotao/DanhMucTinh/TinhTable";
 import HuyenTable from "features/Daotao/DanhMucHuyen/HuyenTable";
 import XaTable from "features/Daotao/DanhMucXa/XaTable";
 import KhoaTable from "features/Daotao/Khoa/KhoaTable";
+import LichTrucPage from "features/LichTruc/LichTrucPage";
+import SoThuTuTest from "components/SoThuTuTest";
+
+import NhomKhoaSoThuTuTable from "features/Daotao/NhomKhoaSoThuTu/NhomKhoaSoThuTuTable";
+import SoThuTuDashboard from "features/SoThuTuPhongKham/SoThuTuDashboard";
+
 function Router() {
   return (
     <div>
       <Routes>
+
         <Route
           path="/"
           element={
@@ -112,6 +119,9 @@ function Router() {
           <Route path="/daotao" element={<DataFixTable />} />
           <Route path="/testtonghop1" element={<TongHopHoatDong />} />
           <Route path="/hocvien" element={<QuanLyHocVienPage />} />
+          <Route path="/lichtruc" element={<LichTrucPage />} />
+          <Route path="/sothutu" element={<SoThuTuDashboard />} />
+          
         </Route>
 
         <Route element={<BlankLayout />}>
@@ -163,6 +173,7 @@ function Router() {
           <Route path="/Huyen" element={<HuyenTable />} />
           <Route path="/Xa" element={<XaTable />} />
           <Route path="/khoas" element={<KhoaTable />} />
+          <Route path="/nhomkhoas" element={<NhomKhoaSoThuTuTable />} />
           
 
           {/* <Route path="*" element={<NotFoundPage />} /> */}

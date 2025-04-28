@@ -4,10 +4,8 @@ import { Container } from '@mui/material'
 
 function TongTrucPage() {
   return (
-    <Container>
-      <h1>Lịch tổng trực</h1>
+    <Container maxWidth={false} disableGutters sx={{ height: '100%' }}>
       <NgayTongTruc/>
-      
     </Container>
   )
 }

@@ -9,20 +9,12 @@ import {
   CardHeader,
   Divider,
   Typography,
+  useMediaQuery
 } from "@mui/material";
 
 // project-imports
 import Highlighter from "./third-party/Highlighter";
 import useConfig from "../hooks/useConfig";
-import { color } from "framer-motion";
-
-// header style
-const headerSX = {
-  p: 2.5,
-  "& .MuiCardHeader-action": { m: "0px auto", alignSelf: "center" },
-  color:'white',
-  backgroundColor: '#1939B7',
-};
 
 // ==============================|| CUSTOM - MAIN CARD ||============================== //
 
@@ -51,6 +43,35 @@ const MainCard = forwardRef(
   ) => {
     const theme = useTheme();
     const { themeContrast } = useConfig();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+    
+    // Responsive header style
+    const headerSX = {
+      p: isMobile ? 1.5 : 2.5,
+      "& .MuiCardHeader-action": { m: "0px auto", alignSelf: "center" },
+      color: 'white',
+      backgroundColor: '#1939B7',
+      // Responsive title
+      "& .MuiCardHeader-title": {
+        fontSize: {
+          xs: '1.1rem',   // Mobile
+          sm: '1.3rem',   // Tablet
+          md: '1.5rem'    // Desktop
+        },
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: isMobile ? 'normal' : 'nowrap'
+      },
+      // Responsive subheader
+      "& .MuiCardHeader-subheader": {
+        fontSize: {
+          xs: '0.8rem',
+          sm: '0.9rem',
+          md: '1rem'
+        }
+      }
+    };
 
     return (
       <Card
@@ -63,7 +84,7 @@ const MainCard = forwardRef(
           borderRadius: 1.5,
           borderColor: theme.palette.divider,
           ...(((themeContrast && boxShadow) || shadow) && {
-            boxShadow: shadow ,
+            boxShadow: shadow,
           }),
           ...(codeHighlight && {
             "& pre": {
@@ -92,7 +113,9 @@ const MainCard = forwardRef(
         {!darkTitle && title && (
           <CardHeader
             sx={headerSX}
-            titleTypographyProps={{ variant: "h3" }}
+            titleTypographyProps={{ 
+              variant: isMobile ? "h5" : isTablet ? "h4" : "h3" 
+            }}
             title={title}
             action={secondary}
             subheader={subheader}
@@ -101,7 +124,14 @@ const MainCard = forwardRef(
         {darkTitle && title && (
           <CardHeader
             sx={headerSX}
-            title={<Typography variant="h4">{title}</Typography>}
+            title={
+              <Typography 
+                variant={isMobile ? "h6" : isTablet ? "h5" : "h4"}
+                noWrap={!isMobile}
+              >
+                {title}
+              </Typography>
+            }
             action={secondary}
           />
         )}
@@ -110,7 +140,10 @@ const MainCard = forwardRef(
         {title && divider && <Divider />}
 
         {/* card content */}
-        {content && <CardContent sx={contentSX}>{children}</CardContent>}
+        {content && <CardContent sx={{
+          p: isMobile ? 1.5 : 2.5,
+          ...contentSX
+        }}>{children}</CardContent>}
         {!content && children}
 
         {/* card footer - clipboard & highlighter  */}

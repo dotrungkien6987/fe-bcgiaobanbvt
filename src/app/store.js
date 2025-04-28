@@ -13,6 +13,9 @@ import hinhthuccapnhatSlice from "../features/NhanVien/hinhthuccapnhatSlice";
 import fileSlice from "../features/File/fileSlice";
 import hisSlice from "../features/Slice/hisSlice";
 import khoaSlice from "../features/Daotao/Khoa/khoaSlice";
+import lichtrucSlice from "../features/Slice/lichtrucSlice";
+import soThuTuSlice from "../features/Slice/soThuTuSlice";
+import nhomKhoaSoThuTuSlice from "../features/Slice/nhomkhoasothutuSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -30,6 +33,9 @@ const rootReducer = {
   file: fileSlice,
   his: hisSlice,
   khoa: khoaSlice,
+  lichtruc: lichtrucSlice,
+  soThuTu: soThuTuSlice,
+  nhomKhoaSoThuTu: nhomKhoaSoThuTuSlice,
 };
 
 const store = configureStore({

@@ -9,6 +9,7 @@ import hethong from './hethong';
 import baocao from './baocao';
 import daotaos from './daotaos';
 import admin from './admin';
+import lichtruc from './lichtruc';
 
 import newfeature from './NoiBo/newfeature';
 // Thêm thuộc tính roles cho từng menu item
@@ -18,11 +19,12 @@ baocao.roles = ['admin', 'daotao', 'manager'];
 hethong.roles = ['admin'];
 newfeature.roles = ['admin','noibo'];
 admin.roles = ['admin']; // Chỉ admin mới thấy
+lichtruc.roles = ['admin', 'default']; // Tất cả đều thấy menu lịch trực
 
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
-  items: [newfeature, daotaos, nghiencuukhoahocs, baocao, hethong, admin]
+  items: [newfeature, daotaos, nghiencuukhoahocs, baocao, lichtruc, hethong, admin]
 };
 
 export default menuItems;

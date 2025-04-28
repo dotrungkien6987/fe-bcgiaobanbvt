@@ -21,7 +21,7 @@ function KhoaTable() {
 
   const getLoaiKhoaLabel = (loaiKhoa) => {
     const loaiKhoaOptions = {
-      "kcc": "Khám chữa bệnh",
+      "kcc": "Khoa cấp cứu",
       "kkb": "Khoa khám bệnh",
       "noi": "Nội",
       "ngoai": "Ngoại",
@@ -32,6 +32,8 @@ function KhoaTable() {
       "clc": "Chất lượng cao",
       "xn": "Xét nghiệm",
       "hhtm": "Huyết học truyền máu",
+      "pkyc": "Phòng khám yêu cầu",
+      "khac": "Khác"
     };
     
     return loaiKhoaOptions[loaiKhoa] || loaiKhoa;
@@ -81,6 +83,24 @@ function KhoaTable() {
         accessor: "LoaiKhoa",
         disableGroupBy: true,
         Cell: ({ value }) => getLoaiKhoaLabel(value)
+      },
+      {
+        Header: "HIS Department ID",
+        Footer: "HIS Department ID",
+        accessor: "HisDepartmentID",
+        disableGroupBy: true,
+      },
+      {
+        Header: "HIS Department Group ID",
+        Footer: "HIS Department Group ID",
+        accessor: "HisDepartmentGroupID",
+        disableGroupBy: true,
+      },
+      {
+        Header: "HIS Department Type",
+        Footer: "HIS Department Type",
+        accessor: "HisDepartmentType",
+        disableGroupBy: true,
       },
     ],
     []

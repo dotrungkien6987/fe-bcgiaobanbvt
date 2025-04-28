@@ -50,9 +50,9 @@ const slice = createSlice({
 export default slice.reducer;
 
 export const getAllKhoa = () => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
+  dispatch(slice.actions.startLoading());
   try {
-    const response = await apiService.get("/khoa");
+    const response = await apiService.get("/khoa/all");
     
     dispatch(slice.actions.getAllKhoaSuccess(response.data.data.khoas));
   } catch (error) {
@@ -62,10 +62,10 @@ export const getAllKhoa = () => async (dispatch) => {
 };
 
 export const insertOneKhoa = (khoa) => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
+  dispatch(slice.actions.startLoading());
   try {
     const response = await apiService.post(`/khoa`, khoa);
-    dispatch(slice.actions.insertOneKhoaSuccess(response.data.data));
+    dispatch(slice.actions.insertOneKhoaSuccess(response.data.data.newKhoa));
     toast.success("Thêm mới thành công");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
@@ -74,9 +74,9 @@ export const insertOneKhoa = (khoa) => async (dispatch) => {
 };
 
 export const deleteOneKhoa = (khoaID) => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
+  dispatch(slice.actions.startLoading());
   try {
-    const response = await apiService.delete(`/khoa/${khoaID}`);
+    await apiService.delete(`/khoa/${khoaID}`);
     dispatch(slice.actions.deleteOneKhoaSuccess(khoaID));
     toast.success("Xóa thành công");
   } catch (error) {
@@ -86,10 +86,10 @@ export const deleteOneKhoa = (khoaID) => async (dispatch) => {
 };
 
 export const updateOneKhoa = (khoa) => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
+  dispatch(slice.actions.startLoading());
   try {
-    const response = await apiService.put(`/khoa`, {khoa});
-    dispatch(slice.actions.updateOneKhoaSuccess(response.data.data));
+    const response = await apiService.put(`/khoa/${khoa._id}`, khoa);
+    dispatch(slice.actions.updateOneKhoaSuccess(response.data.data.updatedKhoa));
     toast.success("Cập nhật thành công");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
