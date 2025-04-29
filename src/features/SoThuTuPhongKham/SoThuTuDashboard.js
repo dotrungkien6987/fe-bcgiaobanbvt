@@ -21,7 +21,11 @@ import {
   Chip,
   IconButton,
   AppBar,
-  Toolbar
+  Toolbar,
+  Autocomplete,
+  TextField,
+  ToggleButtonGroup,
+  ToggleButton
 } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -31,6 +35,10 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
+import ViewAgendaIcon from '@mui/icons-material/ViewAgenda';
+import ViewCompactIcon from '@mui/icons-material/ViewCompact';
 
 import { 
   getAllNhomKhoa, 
@@ -51,7 +59,6 @@ import {
 } from '../Slice/soThuTuSlice';
 
 import SoThuTuDataCard from './SoThuTuDataCard';
-import SoThuTuSummaryCard from './SoThuTuSummaryCard';
 
 // Configure dayjs plugins
 dayjs.extend(utc);
@@ -83,6 +90,11 @@ const SoThuTuDashboard = () => {
   });
   const [departmentIds, setDepartmentIds] = useState([]);
   
+  // Refs for DataCards - để reset scroll
+  const phongKhamCardRef = useRef(null);
+  const phongThucHienCardRef = useRef(null);
+  const phongLayMauCardRef = useRef(null);
+  
   // State để lưu trữ dữ liệu cũ khi đang tải dữ liệu mới
   const [cachedData, setCachedData] = useState({
     phongKham: [],
@@ -96,6 +108,10 @@ const SoThuTuDashboard = () => {
   const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(AUTO_REFRESH_INTERVAL / 1000);
   const [isAutoRefreshEnabled, setIsAutoRefreshEnabled] = useState(true);
   const [isCurrentDate, setIsCurrentDate] = useState(true); // Trạng thái để kiểm tra xem đang xem ngày hiện tại hay không
+  const [searchQuery, setSearchQuery] = useState(''); // State quản lý từ khóa tìm kiếm tên phòng
+  
+  // State để quản lý bố cục hiển thị của các card
+  const [layoutMode, setLayoutMode] = useState('stacked'); // 'stacked' = tất cả xs=12, 'split' = phân chia
   
   // Ref để giữ timer ID
   const autoRefreshTimerRef = useRef(null);
@@ -107,6 +123,7 @@ const SoThuTuDashboard = () => {
     dispatch(getAllNhomKhoa());
   }, [dispatch]);
 
+  // Cập nhật tên nhóm khi component được khởi tạo hoặc khi danh sách nhóm khoa thay đổi
   // Handle changes when selecting a different group
   useEffect(() => {
     if (selectedNhomKhoa && nhomKhoaList.length > 0) {
@@ -153,6 +170,14 @@ const SoThuTuDashboard = () => {
         const nextTime = new Date();
         nextTime.setTime(nextTime.getTime() + AUTO_REFRESH_INTERVAL);
         setNextUpdateTime(nextTime);
+
+        // Reset scroll position của các card sau khi dữ liệu được cập nhật
+        setTimeout(() => {
+          if (phongKhamCardRef.current) phongKhamCardRef.current.resetScroll();
+          if (phongThucHienCardRef.current) phongThucHienCardRef.current.resetScroll();
+          if (phongLayMauCardRef.current) phongLayMauCardRef.current.resetScroll();
+          console.log("Reset scroll position sau khi cập nhật dữ liệu");
+        }, 500); // Đợi một chút để đảm bảo dữ liệu đã render
       } else {
         isInitialFetchRef.current = false;
       }
@@ -259,15 +284,7 @@ const SoThuTuDashboard = () => {
       setIsAutoRefreshEnabled(false);
     }
     
-    // Khi thay đổi ngày, cần cập nhật dữ liệu
-    if (departmentIds.length > 0) {
-      fetchData(true);
-    }
-  };
-
-  // Handle nhom khoa change
-  const handleNhomKhoaChange = (e) => {
-    setSelectedNhomKhoa(e.target.value);
+    // Đã loại bỏ phần tự động fetch dữ liệu khi thay đổi ngày
   };
 
   // Toggle auto refresh
@@ -312,6 +329,22 @@ const SoThuTuDashboard = () => {
     phongLayMau: isLoading && cachedData.phongLayMau.length > 0 ? cachedData.phongLayMau : phongLayMauData
   };
 
+  // Lọc dữ liệu theo từ khóa tìm kiếm
+  const filteredData = {
+    phongKham: searchQuery.trim() === '' 
+      ? displayData.phongKham 
+      : displayData.phongKham.filter(item => 
+          item.departmentname?.toLowerCase().includes(searchQuery.toLowerCase())),
+    phongThucHien: searchQuery.trim() === '' 
+      ? displayData.phongThucHien 
+      : displayData.phongThucHien.filter(item => 
+          item.departmentname?.toLowerCase().includes(searchQuery.toLowerCase())),
+    phongLayMau: searchQuery.trim() === '' 
+      ? displayData.phongLayMau 
+      : displayData.phongLayMau.filter(item => 
+          item.departmentname?.toLowerCase().includes(searchQuery.toLowerCase()))
+  };
+
   return (
     <Box 
       sx={{ 
@@ -325,7 +358,7 @@ const SoThuTuDashboard = () => {
       {/* AppBar with Toolbar - Contains date picker and group selector */}
       <AppBar position="static" sx={{ boxShadow: theme.shadows[2] }}>
         <Toolbar sx={{ padding: '4px 16px', height: 'auto', minHeight: '72px' }}>
-          <Typography 
+          {/* <Typography 
             variant="h6" 
             component="h1" 
             sx={{ 
@@ -336,7 +369,7 @@ const SoThuTuDashboard = () => {
             }}
           >
            Dữ liệu các phòng
-          </Typography>
+          </Typography> */}
           
           <Box sx={{ 
             display: 'flex', 
@@ -376,47 +409,106 @@ const SoThuTuDashboard = () => {
             maxWidth: 450,
             flexShrink: 0
           }}>
-            <FormControl 
-              fullWidth 
-              variant="outlined" 
-              size="small"
-            >
-              <InputLabel id="nhom-khoa-select-label" 
-                sx={{ 
-                  color: theme.palette.mode === 'dark' ? '#ffffff' : theme.palette.primary.main, 
-                  fontWeight: 500,
-                  '&.Mui-focused': {
-                    color: theme.palette.primary.main,
-                    fontWeight: 600
-                  }
-                }}
-              >
-                Nhóm Khoa
-              </InputLabel>
-              <Select
-                labelId="nhom-khoa-select-label"
-                value={selectedNhomKhoa}
-                onChange={handleNhomKhoaChange}
-                label="Nhóm Khoa"
-                disabled={nhomKhoaLoading}
-                sx={{
+            <Autocomplete
+              id="nhom-khoa-select"
+              options={nhomKhoaList}
+              getOptionLabel={(option) => option.TenNhom}
+              value={nhomKhoaList.find(item => item._id === selectedNhomKhoa) || null}
+              onChange={(event, newValue) => {
+                if (newValue) {
+                  setSelectedNhomKhoa(newValue._id);
+                  console.log('Selected:', newValue.TenNhom);
+                } else {
+                  setSelectedNhomKhoa('');
+                }
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Nhóm phòng"
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    bgcolor: 'background.paper',
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 1,
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.primary.main,
+                        borderWidth: '2px',
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      backgroundColor: 'background.paper',
+                      px: 0.5,
+                      color: theme.palette.mode === 'dark' ? '#ffffff' : theme.palette.primary.main,
+                      fontWeight: 500,
+                      '&.Mui-focused': {
+                        color: theme.palette.primary.main,
+                        fontWeight: 600
+                      }
+                    }
+                  }}
+                />
+              )}
+              loading={nhomKhoaLoading}
+              loadingText="Đang tải..."
+              noOptionsText="Không có nhóm phòng"
+              disabled={nhomKhoaLoading}
+              sx={{
+                width: '100%',
+                '& .MuiAutocomplete-endAdornment': {
                   color: theme.palette.mode === 'dark' ? '#ffffff' : 'inherit',
-                  '.MuiSelect-icon': {
-                    color: theme.palette.mode === 'dark' ? '#ffffff' : 'inherit',
-                  },
+                }
+              }}
+            />
+          </Box>
+          
+          {/* SearchBar */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            bgcolor: 'background.paper', 
+            borderRadius: 1, 
+            p: 0.5,
+            ml: 2,
+            mr: 2,
+            width: 200,
+            flexShrink: 0
+          }}>
+            <TextField
+              size="small"
+              variant="outlined"
+              placeholder="Tìm tên phòng..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <SearchIcon fontSize="small" sx={{ color: 'text.secondary', mr: 1 }} />
+                ),
+                endAdornment: searchQuery ? (
+                  <IconButton 
+                    size="small" 
+                    onClick={() => setSearchQuery('')}
+                    sx={{ p: 0.5 }}
+                  >
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                ) : null,
+                sx: { 
+                  borderRadius: 1,
+                  fontSize: '0.875rem'
+                }
+              }}
+              fullWidth
+              sx={{
+                '& .MuiOutlinedInput-root': {
                   '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                     borderColor: theme.palette.primary.main,
                     borderWidth: '2px',
                   }
-                }}
-              >
-                {nhomKhoaList.map((nhomKhoa) => (
-                  <MenuItem key={nhomKhoa._id} value={nhomKhoa._id}>
-                    {nhomKhoa.TenNhom}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                }
+              }}
+            />
           </Box>
           
           <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center', ml: 2 }}>
@@ -441,7 +533,7 @@ const SoThuTuDashboard = () => {
                     fontSize: '0.75rem'
                   }}
                 >
-                  Cập nhật: {formatTime(lastUpdatedTime)}
+                  Cập nhật lúc: {formatTime(lastUpdatedTime)}
                 </Typography>
                 
                 <Tooltip title={isAutoRefreshEnabled ? "Tự động cập nhật mỗi phút" : "Đã tắt tự động cập nhật"}>
@@ -546,6 +638,130 @@ const SoThuTuDashboard = () => {
         </Alert>
       )}
       
+      {/* Tiêu đề hiển thị tên nhóm và thời gian */}
+      {selectedNhomKhoa && nhomKhoaList.length > 0 && (
+        <Box
+          sx={{
+            py: 2,
+            px: 3,
+            backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(235, 245, 255, 0.5)',
+            backgroundImage: theme.palette.mode === 'dark' 
+              ? 'linear-gradient(to right, rgba(25, 118, 210, 0.1), rgba(25, 118, 210, 0.2))' 
+              : 'linear-gradient(to right, rgba(235, 245, 255, 0.7), rgba(227, 242, 253, 0.9))',
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography
+              variant="h5"
+              component="h2"
+              sx={{
+                fontWeight: 600,
+                color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+                textTransform: 'uppercase',
+                fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
+                letterSpacing: '0.5px',
+                textShadow: theme.palette.mode === 'dark' ? '0 1px 3px rgba(0,0,0,0.6)' : '0 1px 1px rgba(0,0,0,0.1)',
+                mr: 1
+              }}
+            >
+              Dữ liệu số thứ tự cho người bệnh của{' '}
+              <Box 
+                component="span" 
+                sx={{ 
+                  color: theme.palette.secondary.main, 
+                  fontWeight: 700,
+                  textDecoration: 'underline',
+                  textDecorationColor: `rgba(${theme.palette.secondary.main}, 0.4)`,
+                  textDecorationThickness: '2px',
+                  textUnderlineOffset: '3px'
+                }}
+              >
+                {nhomKhoaList.find(item => item._id === selectedNhomKhoa)?.TenNhom || ''}
+              </Box>
+            </Typography>
+          </Box>
+          
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.7)',
+              py: 0.5,
+              px: 2,
+              borderRadius: '20px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            }}
+          >
+            <Typography
+              variant="body1"
+              sx={{ 
+                fontWeight: 500,
+                color: theme.palette.text.secondary,
+                fontSize: { xs: '0.85rem', md: '1rem' },
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              {selectedDate.format('DD/MM/YYYY')}
+              <Box component="span" sx={{ mx: 1, color: theme.palette.text.disabled }}>•</Box>
+              {lastUpdatedTime ? formatTime(lastUpdatedTime) : 'Chưa cập nhật'}
+            </Typography>
+          </Box>
+
+          {/* Điều khiển bố cục */}
+          <Box sx={{ ml: 2 }}>
+            <Tooltip title="Tùy chỉnh bố cục hiển thị">
+              <ToggleButtonGroup
+                value={layoutMode}
+                exclusive
+                onChange={(e, newValue) => {
+                  if (newValue !== null) {
+                    setLayoutMode(newValue);
+                  }
+                }}
+                size="small"
+                sx={{
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.8)',
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: '20px',
+                  '& .MuiToggleButton-root': {
+                    color: theme.palette.text.secondary,
+                    '&.Mui-selected': {
+                      color: theme.palette.primary.main,
+                      bgcolor: theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.2)' : 'rgba(25, 118, 210, 0.1)'
+                    }
+                  }
+                }}
+              >
+                <ToggleButton 
+                  value="stacked" 
+                  aria-label="stacked layout"
+                  sx={{ borderRadius: '20px 0 0 20px' }}
+                >
+                  <Tooltip title="Hiển thị mỗi loại phòng một hàng">
+                    <ViewAgendaIcon fontSize="small" />
+                  </Tooltip>
+                </ToggleButton>
+                <ToggleButton 
+                  value="split" 
+                  aria-label="split layout"
+                  sx={{ borderRadius: '0 20px 20px 0' }}
+                >
+                  <Tooltip title="Hiển thị phòng khám và phòng thực hiện trên cùng một hàng">
+                    <ViewCompactIcon fontSize="small" />
+                  </Tooltip>
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Tooltip>
+          </Box>
+        </Box>
+      )}
+      
       {/* Main Content Area - with Scrolling */}
       <Box sx={{ 
         flexGrow: 1, 
@@ -577,11 +793,17 @@ const SoThuTuDashboard = () => {
         {/* Detailed data cards */}
         <Grid container spacing={2}>
           {/* Phòng khám data */}
-          {roomTypes.phongKham && displayData.phongKham.length > 0 && (
-            <Grid item xs={12} lg={roomTypes.phongThucHien || roomTypes.phongLayMau ? 6 : 12}>
+          {roomTypes.phongKham && filteredData.phongKham.length > 0 && (
+            <Grid 
+              item 
+              xs={12} 
+              md={layoutMode === 'split' ? 6 : 12}
+              lg={layoutMode === 'split' ? 6 : 12}
+            >
               <SoThuTuDataCard
-                title="Dữ liệu Phòng khám (Type 2)"
-                data={displayData.phongKham}
+                ref={phongKhamCardRef}
+                title="Dữ liệu các phòng khám"
+                data={filteredData.phongKham}
                 type="phongKham"
                 backgroundColor="#e3f2fd"
                 isLoading={isLoading && cachedData.phongKham.length === 0}
@@ -590,11 +812,17 @@ const SoThuTuDashboard = () => {
           )}
           
           {/* Phòng thực hiện data */}
-          {roomTypes.phongThucHien && displayData.phongThucHien.length > 0 && (
-            <Grid item xs={12} lg={roomTypes.phongKham || roomTypes.phongLayMau ? 6 : 12}>
+          {roomTypes.phongThucHien && filteredData.phongThucHien.length > 0 && (
+            <Grid 
+              item 
+              xs={12} 
+              md={layoutMode === 'split' ? 6 : 12}
+              lg={layoutMode === 'split' ? 6 : 12}
+            >
               <SoThuTuDataCard
-                title="Dữ liệu Phòng thực hiện (Type 7)"
-                data={displayData.phongThucHien}
+                ref={phongThucHienCardRef}
+                title="Dữ liệu các phòng thực hiện"
+                data={filteredData.phongThucHien}
                 type="phongThucHien"
                 backgroundColor="#e8f5e9"
                 isLoading={isLoading && cachedData.phongThucHien.length === 0}
@@ -603,11 +831,17 @@ const SoThuTuDashboard = () => {
           )}
           
           {/* Phòng lấy mẫu data */}
-          {roomTypes.phongLayMau && displayData.phongLayMau.length > 0 && (
-            <Grid item xs={12} lg={roomTypes.phongKham || roomTypes.phongThucHien ? 6 : 12}>
+          {roomTypes.phongLayMau && filteredData.phongLayMau.length > 0 && (
+            <Grid 
+              item 
+              xs={12} 
+              md={12}
+              lg={12}
+            >
               <SoThuTuDataCard
-                title="Dữ liệu Phòng lấy mẫu (Type 38)"
-                data={displayData.phongLayMau}
+                ref={phongLayMauCardRef}
+                title="Dữ liệu các phòng lấy mẫu"
+                data={filteredData.phongLayMau}
                 type="phongLayMau"
                 backgroundColor="#fff8e1"
                 isLoading={isLoading && cachedData.phongLayMau.length === 0}
@@ -617,9 +851,9 @@ const SoThuTuDashboard = () => {
           
           {/* Empty state */}
           {!isLoading && 
-          displayData.phongKham.length === 0 && 
-          displayData.phongThucHien.length === 0 && 
-          displayData.phongLayMau.length === 0 && (
+          filteredData.phongKham.length === 0 && 
+          filteredData.phongThucHien.length === 0 && 
+          filteredData.phongLayMau.length === 0 && (
             <Grid item xs={12}>
               <Box 
                 sx={{ 
@@ -631,7 +865,7 @@ const SoThuTuDashboard = () => {
                 }}
               >
                 <Typography variant="h6" sx={{ color: theme.palette.text.secondary }}>
-                  Chọn Nhóm Khoa để xem thông tin
+                  Chọn nhóm phòng để xem thông tin
                 </Typography>
               </Box>
             </Grid>

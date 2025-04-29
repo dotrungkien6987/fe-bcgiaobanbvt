@@ -126,6 +126,15 @@ function MainHeader() {
         Lịch tổng trực
       </MenuItem>
 
+      <MenuItem
+        onClick={handleMenuClose}
+        to="/lichtruc"
+        component={RouterLink}
+        sx={{ mx: 1 }}
+      >
+        Lịch trực khoa/phòng khám/phòng CLS
+      </MenuItem>
+
       <Divider sx={{ borderStyle: "dashed" }} />
       
         <MenuItem

@@ -32,6 +32,7 @@ import DashBoardDaotao from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaotao
 import DashBoardDaotaoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaoTaoKhoa/DashBoardDaotaoKhoa";
 import DuocVatTu from "features/DashBoard/DuocVatTu/DuocVatTu";
 import BenhNhanNgoaiTinh from "features/His/BenhNhanNgoaiTinh/BenhNhanNgoaiTinh";
+import SoThuTuDashboard from "features/SoThuTuPhongKham/SoThuTuDashboard";
 
 const TabsWrapperStyled = styled("div")(({ theme }) => ({
   zIndex: 9,
@@ -59,7 +60,8 @@ const DASHBOARD_PERMISSION_MAP = {
   'TCKHOA': "THEO DÕI THEO KHOA",
   'DVT': "DƯỢC VẬT TƯ",
   'ĐT': "ĐÀO TẠO TOÀN VIỆN",
-  'ĐTKHOA': "ĐÀO TẠO THEO KHOA"
+  'ĐTKHOA': "ĐÀO TẠO THEO KHOA",
+  'SOTHUTU': "SỐ THỨ TỰ BỆNH NHÂN"
 };
 
 function DashBoardPage() {
@@ -96,6 +98,11 @@ function DashBoardPage() {
       value: "DƯỢC VẬT TƯ",
       component: <DuocVatTu />,
       permission: 'DVT'
+    },
+    {
+      value: "SỐ THỨ TỰ BỆNH NHÂN",
+      component: <SoThuTuDashboard />,
+      permission: 'SOTHUTU'
     },
     {
       value: "ĐÀO TẠO TOÀN VIỆN",

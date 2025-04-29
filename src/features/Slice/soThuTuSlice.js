@@ -107,17 +107,13 @@ export const getSoThuTuPhongLayMau = (date, departmentIds) => async (dispatch) =
 export const getAllSoThuTuStats = (date, departmentIds) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    // Request for all three types in parallel
-    const [phongKhamResponse, phongThucHienResponse, phongLayMauResponse] = await Promise.all([
-      apiService.post("/his/sothutu/stats", { date, departmentIds, type: '2' }),
-      apiService.post("/his/sothutu/stats", { date, departmentIds, type: '7' }),
-      apiService.post("/his/sothutu/stats", { date, departmentIds, type: '38' })
-    ]);
+    // Sử dụng API mới để lấy tất cả dữ liệu trong một lần gọi
+    const response = await apiService.post("/his/sothutu/all-stats", { date, departmentIds });
     
     // Update all states
-    dispatch(slice.actions.getPhongKhamSuccess(phongKhamResponse.data.data));
-    dispatch(slice.actions.getPhongThucHienSuccess(phongThucHienResponse.data.data));
-    dispatch(slice.actions.getPhongLayMauSuccess(phongLayMauResponse.data.data));
+    dispatch(slice.actions.getPhongKhamSuccess(response.data.data.phongKham));
+    dispatch(slice.actions.getPhongThucHienSuccess(response.data.data.phongThucHien));
+    dispatch(slice.actions.getPhongLayMauSuccess(response.data.data.phongLayMau));
   } catch (error) {
     dispatch(slice.actions.hasError(error.message || "Không thể lấy dữ liệu số thứ tự"));
     toast.error(error.message || "Không thể lấy dữ liệu số thứ tự");

@@ -119,7 +119,7 @@ export function findKhoasInBaocaongays(baocaongays, khoas) {
   // Tạo một Set để lưu trữ các _id của khoa đã xuất hiện trong baocaongays
   const khoaGiaoBan = khoas.filter(
     (khoa) =>
-      khoa.LoaiKhoa === "noi" ||
+      (khoa.LoaiKhoa === "noi" ||
       khoa.LoaiKhoa === "ngoai" ||
       khoa.LoaiKhoa === "pkyc" ||
       khoa.LoaiKhoa === "xnhh" ||
@@ -131,7 +131,7 @@ export function findKhoasInBaocaongays(baocaongays, khoas) {
       khoa.LoaiKhoa === "tdcn" ||
       khoa.LoaiKhoa === "clc" ||
       khoa.LoaiKhoa === "hhtm" ||
-      khoa.LoaiKhoa === "kkb" 
+      khoa.LoaiKhoa === "kkb" ) &&![2, 7, 38].includes(khoa.HisDepartmentType)
   );
   
   const khoaIdsInBaocaongays = new Set(
