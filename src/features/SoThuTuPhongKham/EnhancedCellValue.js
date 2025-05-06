@@ -3,7 +3,7 @@ import { Box, Typography, Tooltip } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 // Component hiển thị số liệu với màu sắc tùy biến theo giá trị
-const EnhancedCellValue = ({ value, type, label, maxValue, threshold }) => {
+const EnhancedCellValue = ({ value, type, label, maxValue, threshold, sx }) => {
   // Xác định màu sắc dựa trên loại và giá trị
   const getColorByValue = () => {
     // Nếu không có giá trị, hiển thị màu trung tính
@@ -60,6 +60,9 @@ const EnhancedCellValue = ({ value, type, label, maxValue, threshold }) => {
   
   const tooltipContent = getTooltipContent();
   
+  // Xác định kích thước dựa trên prop sx
+  const isSmallSize = sx && sx.fontSize && sx.fontSize === '0.75rem';
+  
   return (
     <Tooltip title={tooltipContent} arrow placement="top">
       <Box 
@@ -74,9 +77,9 @@ const EnhancedCellValue = ({ value, type, label, maxValue, threshold }) => {
           sx={{
             fontWeight: 'bold',
             color: color,
-            fontSize: '0.9rem',
+            fontSize: isSmallSize ? '0.75rem' : '0.9rem',
             position: 'relative',
-            padding: '4px 8px',
+            padding: isSmallSize ? '2px 4px' : '4px 8px',
             borderRadius: '4px',
             // Nền mờ với màu sắc tương ứng
             bgcolor: `${color}15`,
@@ -85,8 +88,9 @@ const EnhancedCellValue = ({ value, type, label, maxValue, threshold }) => {
             transition: 'all 0.2s ease',
             '&:hover': {
               bgcolor: `${color}25`,
-              transform: 'scale(1.05)'
-            }
+              transform: isSmallSize ? 'scale(1.03)' : 'scale(1.05)'
+            },
+            ...sx
           }}
         >
           {value !== undefined && value !== null ? value : '0'}

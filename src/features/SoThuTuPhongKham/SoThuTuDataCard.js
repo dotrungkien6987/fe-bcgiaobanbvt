@@ -15,7 +15,7 @@ import {
   IconButton,
   Tooltip,
   Chip,
-  Stack,
+  
   TableSortLabel,
   LinearProgress,
   Fade,
@@ -28,23 +28,37 @@ import {
   Divider,
   ListItemText,
   Slider,
-  Popover
+  Popover,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
 import HeightIcon from '@mui/icons-material/Height';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
 import StripedTableRow from './StripedTableRow';
 import NextNumberDisplay from './NextNumberDisplay';
 import EnhancedCellValue from './EnhancedCellValue';
 
+// Import cấu hình hiển thị cột
+import { generateInitialColumnVisibility, saveColumnVisibility, resetColumnVisibility } from './configs/columnConfig';
+
 // Định nghĩa hàm getColumns ở bên ngoài component để tránh lỗi
 const getColumnsDefinition = (type) => {
   // Cột chung cho tất cả các loại phòng, nhưng độ rộng có thể khác nhau dựa theo loại phòng
   const commonColumns = [
-    { id: 'departmentname', label: 'Tên phòng', minWidth: type === 'phongLayMau' ? 300 : 180, align: 'left', color: '#1939B7' }
+    { 
+      id: 'departmentname', 
+      label: 'Tên phòng', 
+      minWidth: type === 'phongLayMau' ? 350 : 240, // Tăng độ rộng lên 300px cho phòng lấy mẫu
+      align: 'left', 
+      color: '#1939B7',
+      // Thêm style trực tiếp để đảm bảo độ rộng được áp dụng
+      style: type === 'phongLayMau' ? { width: '350px', minWidth: '350px' } : undefined
+    }
   ];
 
   // Thêm cột STT tiếp theo ngay sau cột Tên phòng
@@ -59,56 +73,65 @@ const getColumnsDefinition = (type) => {
   if (type === 'phongKham') {
     // Type = 2: Phòng khám - theo thứ tự trong tài liệu
     typeColumns = [
-      { id: 'total_patients', label: 'Tổng BN', minWidth: 70, align: 'center',
+      { id: 'max_number', label: 'STT lớn nhất', minWidth: 70, align: 'center',
+        getValue: (row) => row.max_sothutunumber, color: '#1939B7' },
+        { id: 'latest_checked', label: 'STT vừa gọi', minWidth: 70, align: 'center',
+          getValue: (row) => row.latest_benh_nhan_da_kham, color: '#1939B7' },
+      { id: 'total_patients', label: 'Tổng người bệnh', minWidth: 70, align: 'center',
         getValue: (row) => row.tong_benh_nhan, color: '#1939B7' },
       { id: 'waiting', label: 'Chưa khám', minWidth: 60, align: 'center',
         getValue: (row) => row.so_benh_nhan_chua_kham, color: '#1939B7' },
-      { id: 'in_progress', label: 'Đã khám', minWidth: 60, align: 'center',
+      { id: 'in_progress', label: 'Đang khám', minWidth: 60, align: 'center',
         getValue: (row) => row.so_benh_nhan_da_kham, color: '#1939B7' },
       { id: 'completed', label: 'Khám xong', minWidth: 70, align: 'center',
         getValue: (row) => row.so_benh_nhan_kham_xong, color: '#1939B7' },
-      { id: 'max_number', label: 'STT lớn nhất', minWidth: 80, align: 'center',
-        getValue: (row) => row.max_sothutunumber, color: '#1939B7' },
+      
       { id: 'max_checked', label: 'STT lớn nhất đã khám', minWidth: 90, align: 'center',
         getValue: (row) => row.max_sothutunumber_da_kham, color: '#1939B7' },
-      { id: 'latest_checked', label: 'STT gần nhất đã khám', minWidth: 90, align: 'center',
-        getValue: (row) => row.latest_benh_nhan_da_kham, color: '#1939B7' }
+      
     ];
   } else if (type === 'phongThucHien') {
     // Type = 7: Phòng thực hiện - theo thứ tự trong tài liệu
     typeColumns = [
-      { id: 'total_cls', label: 'Tổng CLS', minWidth: 60, align: 'center',
+      { id: 'max_number', label: 'STT lớn nhất', minWidth: 70, align: 'center',
+        getValue: (row) => row.max_sothutunumber, color: '#1939B7' },
+        { id: 'latest_done', label: 'STT vừa gọi', minWidth: 90, align: 'center',
+          getValue: (row) => row.latest_sothutunumber_da_thuc_hien, color: '#1939B7' },
+      { id: 'total_cls', label: 'Tổng chỉ định', minWidth: 60, align: 'center',
         getValue: (row) => row.tong_mau_benh_pham, color: '#1939B7' },
-      { id: 'total_patients', label: 'Tổng BN', minWidth: 60, align: 'center',
+      { id: 'total_patients', label: 'Tổng người bệnh', minWidth: 60, align: 'center',
         getValue: (row) => row.tong_benh_nhan, color: '#1939B7' },
-      { id: 'waiting', label: 'Chưa TH', minWidth: 60, align: 'center',
+      { id: 'waiting', label: 'Chưa thực hiện', minWidth: 60, align: 'center',
         getValue: (row) => row.so_ca_chua_thuc_hien, color: '#1939B7' },
       { id: 'pending_result', label: 'Đợi KQ', minWidth: 60, align: 'center',
         getValue: (row) => row.so_ca_da_thuc_hien_cho_ket_qua, color: '#1939B7' },
       { id: 'completed', label: 'Đã trả KQ', minWidth: 60, align: 'center',
         getValue: (row) => row.so_ca_da_tra_ket_qua, color: '#1939B7' },
-      { id: 'max_number', label: 'STT lớn nhất', minWidth: 70, align: 'center',
-        getValue: (row) => row.max_sothutunumber, color: '#1939B7' },
+      
       { id: 'max_done', label: 'STT lớn nhất đã TH', minWidth: 90, align: 'center',
         getValue: (row) => row.max_sothutunumber_da_thuc_hien, color: '#1939B7' },
-      { id: 'latest_done', label: 'STT gần nhất đã TH', minWidth: 90, align: 'center',
-        getValue: (row) => row.latest_sothutunumber_da_thuc_hien, color: '#1939B7' }
+     
     ];
   } else if (type === 'phongLayMau') {
     // Type = 38: Phòng lấy mẫu - theo thứ tự trong tài liệu
     // Giảm minWidth của các cột số liệu để có thể hiển thị nhiều cột hơn
     typeColumns = [
-      { id: 'total_cls', label: 'Tổng CLS', minWidth: 60, align: 'center',
+      { id: 'max_number', label: 'STT lớn nhất', minWidth: 65, align: 'center',
+        getValue: (row) => row.max_sothutunumber, color: '#1939B7' },
+        
+      { id: 'latest_sampled', label: 'STT vừa gọi', minWidth: 75, align: 'center',
+        getValue: (row) => row.latest_sothutunumber_da_lay_mau, color: '#1939B7' },
+      { id: 'total_cls', label: 'Tổng số mẫu', minWidth: 60, align: 'center',
         getValue: (row) => row.tong_mau_benh_pham, color: '#1939B7' },
-      { id: 'total_patients', label: 'Tổng BN', minWidth: 60, align: 'center',
+      { id: 'total_patients', label: 'Tổng NB', minWidth: 60, align: 'center',
         getValue: (row) => row.tong_benh_nhan, color: '#1939B7' },
-      { id: 'cases_not_sampled', label: 'Ca chưa lấy', minWidth: 60, align: 'center',
+      { id: 'cases_not_sampled', label: 'Số mẫu chưa lấy', minWidth: 60, align: 'center',
         getValue: (row) => row.so_ca_chua_lay_mau, color: '#1939B7' },
-      { id: 'cases_sampled', label: 'Ca đã lấy', minWidth: 60, align: 'center',
+      { id: 'cases_sampled', label: 'Số mẫu đã lấy', minWidth: 60, align: 'center',
         getValue: (row) => row.so_ca_da_lay_mau, color: '#1939B7' },
-      { id: 'patients_sampled', label: 'BN đã lấy', minWidth: 60, align: 'center',
+      { id: 'patients_sampled', label: 'NB đã lấy', minWidth: 60, align: 'center',
         getValue: (row) => row.so_benh_nhan_da_lay_mau, color: '#1939B7' },
-      { id: 'patients_not_sampled', label: 'BN chưa lấy', minWidth: 60, align: 'center',
+      { id: 'patients_not_sampled', label: 'NB chưa lấy', minWidth: 60, align: 'center',
         getValue: (row) => row.so_benh_nhan_chua_lay_mau, color: '#1939B7' },
       { id: 'waiting', label: 'Ca chưa TH', minWidth: 60, align: 'center',
         getValue: (row) => row.so_ca_chua_thuc_hien, color: '#1939B7' },
@@ -118,10 +141,7 @@ const getColumnsDefinition = (type) => {
         getValue: (row) => row.so_ca_da_tra_ket_qua, color: '#1939B7' },
       { id: 'max_sampled', label: 'STT max đã lấy', minWidth: 75, align: 'center',
         getValue: (row) => row.max_sothutunumber_da_lay_mau, color: '#1939B7' },
-      { id: 'max_number', label: 'STT lớn nhất', minWidth: 65, align: 'center',
-        getValue: (row) => row.max_sothutunumber, color: '#1939B7' },
-      { id: 'latest_sampled', label: 'STT gần nhất đã lấy', minWidth: 75, align: 'center',
-        getValue: (row) => row.latest_sothutunumber_da_lay_mau, color: '#1939B7' }
+      
     ];
   }
 
@@ -134,9 +154,14 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
   const [autoScroll, setAutoScroll] = useState(true);
   const [scrollSpeed, setScrollSpeed] = useState(2);
   const tableRef = useRef(null);
+  const theme = useTheme();
+  
+  // Khả năng responsive - di chuyển các hooks này lên trước điều kiện return
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMediumScreen = useMediaQuery(theme.breakpoints.down('md'));
   
   // State để quản lý độ cao của bảng
-  const [tableHeight, setTableHeight] = useState(440);
+  const [tableHeight, setTableHeight] = useState(460);
   const [heightAdjustAnchor, setHeightAdjustAnchor] = useState(null);
   
   // Hàm xử lý mở/đóng popover điều chỉnh độ cao
@@ -163,31 +188,33 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
   
   // Cập nhật state trong component chính
   const [visibleColumns, setVisibleColumns] = useState(() => {
-    // Khởi tạo mặc định tất cả các cột đều hiển thị
-    const columns = getColumnsDefinition(type);
-    return columns.reduce((acc, column) => {
-      acc[column.id] = true;
-      return acc;
-    }, {});
+    return generateInitialColumnVisibility(type);
   });
-
+  
+  // Xử lý việc lưu cấu hình cột khi thay đổi
+  useEffect(() => {
+    // Lưu cấu hình khi người dùng thay đổi
+    saveColumnVisibility(type, visibleColumns);
+  }, [visibleColumns, type]);
+  
+  // State và xử lý cho menu hiển thị/ẩn cột
+  const [columnsMenuAnchor, setColumnsMenuAnchor] = useState(null);
+  
+  const handleOpenColumnsMenu = (event) => {
+    setColumnsMenuAnchor(event.currentTarget);
+  };
+  
+  const handleCloseColumnsMenu = () => {
+    setColumnsMenuAnchor(null);
+  };
+  
   const toggleColumnVisibility = (columnId) => {
     setVisibleColumns(prev => ({
       ...prev,
       [columnId]: !prev[columnId]
     }));
   };
-
-  const [columnsMenuAnchor, setColumnsMenuAnchor] = useState(null);
-
-  const handleOpenColumnsMenu = (event) => {
-    setColumnsMenuAnchor(event.currentTarget);
-  };
-
-  const handleCloseColumnsMenu = () => {
-    setColumnsMenuAnchor(null);
-  };
-
+  
   const showAllColumns = () => {
     const allVisible = columns.reduce((acc, column) => {
       acc[column.id] = true;
@@ -233,6 +260,11 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
     scrollIntervalRef.current = setInterval(() => {
       if (!tableRef.current) return;
       
+      // Tạm dừng khi đang ở cuối danh sách
+      if (isPausingRef.current) {
+        return;
+      }
+      
       // Tăng vị trí cuộn và lưu vào ref để giữ giữa các lần cập nhật data
       currentPositionRef.current += 1;
       tableRef.current.scrollTop = currentPositionRef.current;
@@ -253,26 +285,51 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
             currentPositionRef.current = 0;
             tableRef.current.scrollTop = 0;
             
-            // Đợi một chút trước khi cập nhật data và kích hoạt lại cuộn
             setTimeout(() => {
-              isPausingRef.current = false;
-              
-              // Nếu data đã thay đổi trong lúc tạm dừng, thì cập nhật lại
-              if (dataNeedsRefreshRef.current) {
-                dataNeedsRefreshRef.current = false;
-                // Ở đây không cần làm gì thêm vì useEffect sẽ tự cập nhật dataRef
-              }
-              
               if (tableRef.current) {
+                // Bật lại animation
                 tableRef.current.style.scrollBehavior = 'smooth';
-                // Khởi động lại quá trình cuộn
+                
+                // Bật lại auto-scroll sau khi ở đầu
+                isPausingRef.current = false;
+                
+                // Nếu data đã thay đổi trong lúc tạm dừng, cập nhật lại dataRef
+                if (dataNeedsRefreshRef.current) {
+                  dataRef.current = [...data];
+                  dataNeedsRefreshRef.current = false;
+                }
+                
+                // Bắt đầu lại auto-scroll
                 startScrolling();
               }
-            }, 500);
+            }, 100);
           }
-        }, 2000);
+        }, 2000); // Tạm dừng 2 giây ở cuối danh sách
       }
     }, intervalTime);
+  };
+  
+  // Function để reset vị trí cuộn về đầu
+  const resetScroll = () => {
+    // Chỉ resetScroll khi đang không ở trạng thái pause
+    if (!isPausingRef.current) {
+      // Reset vị trí cuộn
+      currentPositionRef.current = 0;
+      if (tableRef.current) tableRef.current.scrollTop = 0;
+      
+      // Xóa interval hiện tại nếu có
+      if (scrollIntervalRef.current) {
+        clearInterval(scrollIntervalRef.current);
+        scrollIntervalRef.current = null;
+      }
+      
+      // Khởi động lại quá trình cuộn sau một chút độ trễ
+      setTimeout(() => {
+        if (autoScroll && !scrollIntervalRef.current) {
+          startScrolling();
+        }
+      }, 300);
+    }
   };
   
   // Cập nhật dataRef khi data thay đổi
@@ -292,22 +349,7 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
         
         // Khởi động lại quá trình cuộn nếu cần
         if (autoScroll && tableRef.current && data.length > 8) {
-          // Reset vị trí cuộn
-          currentPositionRef.current = 0;
-          if (tableRef.current) tableRef.current.scrollTop = 0;
-          
-          // Xóa interval hiện tại nếu có
-          if (scrollIntervalRef.current) {
-            clearInterval(scrollIntervalRef.current);
-            scrollIntervalRef.current = null;
-          }
-          
-          // Khởi động lại quá trình cuộn sau một chút độ trễ
-          setTimeout(() => {
-            if (autoScroll && !scrollIntervalRef.current) {
-              startScrolling();
-            }
-          }, 300);
+          resetScroll();
         }
       }
     }
@@ -316,15 +358,16 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
   // Logic tự động cuộn tách biệt khỏi data
   useEffect(() => {
     if (!autoScroll || !tableRef.current || data.length <= 8) {
-      // Xóa interval nếu tắt cuộn hoặc không đủ dữ liệu
+      // Nếu không bật autoScroll hoặc không đủ dữ liệu, dừng cuộn
       if (scrollIntervalRef.current) {
         clearInterval(scrollIntervalRef.current);
       }
-      return;
+    } else {
+      // Thỏa điều kiện để auto-scroll nhưng chưa có interval
+      if (!scrollIntervalRef.current && !isPausingRef.current) {
+        startScrolling();
+      }
     }
-    
-    // Bắt đầu quá trình cuộn
-    startScrolling();
     
     // Cleanup
     return () => {
@@ -332,25 +375,21 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
         clearInterval(scrollIntervalRef.current);
       }
     };
-  }, [autoScroll, scrollSpeed]); // Loại bỏ data từ dependencies
+  }, [autoScroll, data.length]);
   
-  // Hàm công khai để reset và khởi động lại cuộn từ bên ngoài
-  const resetScroll = () => {
-    if (tableRef.current) {
-      // Reset position
-      currentPositionRef.current = 0;
-      tableRef.current.scrollTop = 0;
+  // Update cho scrollSpeed
+  useEffect(() => {
+    // Chỉ cập nhật tốc độ nếu đang có interval
+    if (scrollIntervalRef.current && autoScroll && !isPausingRef.current) {
+      // Restart để áp dụng tốc độ mới
+      clearInterval(scrollIntervalRef.current);
+      scrollIntervalRef.current = null;
       
-      // Restart scrolling
-      if (autoScroll && !isPausingRef.current) {
-        if (scrollIntervalRef.current) {
-          clearInterval(scrollIntervalRef.current);
-          scrollIntervalRef.current = null;
-        }
+      if (autoScroll) {
         startScrolling();
       }
     }
-  };
+  }, [scrollSpeed, autoScroll]);
   
   // Cung cấp phương thức resetScroll cho component cha thông qua ref
   useImperativeHandle(ref, () => ({
@@ -379,23 +418,10 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
     );
   }
 
-  // Sort function
-  const sortData = (array, comparator) => {
-    return [...array].sort(comparator);
-  };
-
-  const getComparator = (order, orderBy) => {
-    return order === 'desc'
-      ? (a, b) => descendingComparator(a, b, orderBy)
-      : (a, b) => -descendingComparator(a, b, orderBy);
-  };
-
+  // Các function hỗ trợ sắp xếp
   const descendingComparator = (a, b, orderBy) => {
-    // Field name differences based on API structure
+    // Map orderBy với trường thích hợp trong data
     const fieldMap = {
-      'departmentname': 'departmentname',
-      'patient_count': type === 'phongKham' ? 'tong_benh_nhan' : 
-                        type === 'phongThucHien' ? 'tong_benh_nhan' : 'tong_benh_nhan',
       'waiting': type === 'phongKham' ? 'so_benh_nhan_chua_kham' : 
                 type === 'phongThucHien' ? 'so_ca_chua_thuc_hien' : 'so_benh_nhan_chua_lay_mau',
       'processed': type === 'phongKham' ? 'so_benh_nhan_da_kham' : 
@@ -414,6 +440,22 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
       return 1;
     }
     return 0;
+  };
+
+  const getComparator = (order, orderBy) => {
+    return order === 'desc'
+      ? (a, b) => descendingComparator(a, b, orderBy)
+      : (a, b) => -descendingComparator(a, b, orderBy);
+  };
+
+  const sortData = (array, comparator) => {
+    const stabilizedThis = array.map((el, index) => [el, index]);
+    stabilizedThis.sort((a, b) => {
+      const order = comparator(a[0], b[0]);
+      if (order !== 0) return order;
+      return a[1] - b[1];
+    });
+    return stabilizedThis.map((el) => el[0]);
   };
 
   const handleRequestSort = (property) => {
@@ -461,74 +503,106 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
 
       <CardHeader 
         title={
-          <Box display="flex" alignItems="center">
-            <Typography variant="h6" component="div" color='#1939B7'>
+          <Box display="flex" alignItems="center" flexWrap="wrap">
+            <Typography 
+              variant={isSmallScreen ? "subtitle1" : "h6"} 
+              component="div" 
+              color='#1939B7'
+              sx={{ mr: 1 }}
+            >
               {title}
             </Typography>
             <Chip 
-              label={`${totalPatients} bệnh nhân`} 
+              label={`${data.length} phòng`} 
+              size="small" 
+              color="secondary" 
+              sx={{ 
+                fontSize: isSmallScreen ? '0.7rem' : '0.75rem',
+                height: isSmallScreen ? '22px' : '24px',
+                mr: 1
+              }} 
+            />
+            <Chip 
+              label={`${totalPatients} ${type === 'phongThucHien' ? 'chỉ định' : 'bệnh nhân'}` } 
               size="small" 
               color="primary" 
-              sx={{ ml: 2 }}
+              sx={{ 
+                fontSize: isSmallScreen ? '0.7rem' : '0.75rem',
+                height: isSmallScreen ? '22px' : '24px'
+              }} 
             />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={autoScroll}
-                  onChange={(e) => setAutoScroll(e.target.checked)}
-                  size="small"
-                />
-              }
-              label={<Typography variant="caption">Tự cuộn</Typography>}
-              sx={{ ml: 1 }}
-            />
-            <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
-              <Typography variant="caption" sx={{ mr: 1 }}>
-                Tốc độ
-              </Typography>
-              <Tooltip title="Điều chỉnh tốc độ cuộn">
-                <Box>
-                  <input
-                    type="range"
-                    min="1"
-                    max="5"
-                    step="1"
-                    value={scrollSpeed}
-                    onChange={(e) => setScrollSpeed(Number(e.target.value))}
-                    disabled={!autoScroll}
-                    style={{ width: '60px' }}
+          </Box>
+        }
+        action={
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={autoScroll}
+                    onChange={(e) => setAutoScroll(e.target.checked)}
+                    size="small"
                   />
-                </Box>
+                }
+                label={<Typography variant="caption" sx={{ fontSize: isSmallScreen ? '0.65rem' : '0.75rem' }}>Tự cuộn</Typography>}
+                sx={{ ml: 1 }}
+              />
+              <Box sx={{ 
+                ml: 2, 
+                display: 'flex', 
+                alignItems: 'center',
+                ...(isSmallScreen && { display: 'none' })
+              }}>
+                <Typography variant="caption" sx={{ mr: 1, fontSize: isSmallScreen ? '0.65rem' : '0.75rem' }}>
+                  Tốc độ
+                </Typography>
+                <Tooltip title="Điều chỉnh tốc độ cuộn">
+                  <Box>
+                    <input
+                      type="range"
+                      min="1"
+                      max="5"
+                      step="1"
+                      value={scrollSpeed}
+                      onChange={(e) => setScrollSpeed(Number(e.target.value))}
+                      disabled={!autoScroll}
+                      style={{ width: '60px' }}
+                    />
+                  </Box>
+                </Tooltip>
+              </Box>
+            </Box>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: isSmallScreen ? 1 : 0 }}>
+              <Tooltip title="Chi tiết số thứ tự theo phòng">
+                <IconButton size="small" sx={{ ml: 1 }}>
+                  <InfoOutlinedIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              
+              {/* Nút quản lý cột */}
+              <Tooltip title="Hiển thị/ẩn cột">
+                <IconButton 
+                  size="small" 
+                  sx={{ ml: 1, color: theme => theme.palette.info.main }}
+                  onClick={handleOpenColumnsMenu}
+                >
+                  <ViewColumnIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+              
+              {/* Nút điều chỉnh độ cao */}
+              <Tooltip title="Điều chỉnh độ cao bảng">
+                <IconButton 
+                  size="small"
+                  sx={{ ml: 1, color: theme => theme.palette.success.main }}
+                  onClick={handleOpenHeightAdjust}
+                  data-type={type} // Thêm thuộc tính data-type để dễ dàng xác định được loại phòng
+                >
+                  <HeightIcon fontSize="small" />
+                </IconButton>
               </Tooltip>
             </Box>
-            <Tooltip title="Chi tiết số thứ tự theo phòng">
-              <IconButton size="small" sx={{ ml: 1 }}>
-                <InfoOutlinedIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            
-            {/* Nút quản lý cột */}
-            <Tooltip title="Hiển thị/ẩn cột">
-              <IconButton 
-                size="small" 
-                sx={{ ml: 1, color: theme => theme.palette.info.main }}
-                onClick={handleOpenColumnsMenu}
-              >
-                <ViewColumnIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            
-            {/* Nút điều chỉnh độ cao */}
-            <Tooltip title="Điều chỉnh độ cao bảng">
-              <IconButton 
-                size="small"
-                sx={{ ml: 1, color: theme => theme.palette.success.main }}
-                onClick={handleOpenHeightAdjust}
-                data-type={type} // Thêm thuộc tính data-type để dễ dàng xác định được loại phòng
-              >
-                <HeightIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
             
             {/* Popover điều chỉnh độ cao */}
             <Popover
@@ -604,22 +678,62 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
                 sx: { maxHeight: 300, width: 250 }
               }}
             >
-              <Box sx={{ p: 1, display: 'flex', justifyContent: 'space-between' }}>
+              <Box sx={{ 
+                p: 1.5, 
+                display: 'flex', 
+                flexDirection: 'column',
+                gap: 1
+              }}>
                 <Button 
                   size="small" 
                   onClick={showAllColumns}
-                  variant="outlined"
-                  sx={{ fontSize: '0.75rem' }}
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  sx={{ 
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold',
+                    py: 0.8,
+                    color: 'white'
+                  }}
                 >
                   Hiện tất cả
                 </Button>
                 <Button 
                   size="small" 
                   onClick={hideAllColumns}
-                  variant="outlined"
-                  sx={{ fontSize: '0.75rem' }}
+                  variant="contained"
+                  color="info"
+                  fullWidth
+                  sx={{ 
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold',
+                    py: 0.8,
+                    color: 'white'
+                  }}
                 >
                   Ẩn tất cả
+                </Button>
+                <Button 
+                  size="small" 
+                  onClick={() => {
+                    // Reset cấu hình hiển thị cột về mặc định
+                    resetColumnVisibility(type);
+                    setVisibleColumns(generateInitialColumnVisibility(type));
+                    handleCloseColumnsMenu();
+                  }}
+                  variant="contained"
+                  color="secondary"
+                  startIcon={<RestartAltIcon />}
+                  fullWidth
+                  sx={{ 
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold',
+                    py: 0.8,
+                    color: 'white'
+                  }}
+                >
+                  Mặc định
                 </Button>
               </Box>
               <Divider />
@@ -655,9 +769,18 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
           pb: 1,
           '& .MuiCardHeader-content': { display: 'flex' },
           opacity: isLoading ? 0.8 : 1,
-          transition: 'opacity 0.3s ease'
+          transition: 'opacity 0.3s ease',
+          flexDirection: { xs: 'column', sm: 'row' },
+          '& .MuiCardHeader-action': { 
+            margin: 0, 
+            alignSelf: 'flex-end',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { xs: 'flex-end', md: 'center' },
+            mt: { xs: 1, sm: 0 }
+          }
         }}
       />
+      
       <CardContent sx={{ p: 0, flex: 1, overflow: 'auto' }}>
         <TableContainer 
           ref={tableRef} 
@@ -685,8 +808,13 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
                     align={column.align}
                     style={{ 
                       minWidth: column.minWidth, 
-                      fontWeight: 'normal', 
-                      color: '#1939B7'
+                      fontWeight: 'bold', 
+                      color: '#1939B7',
+                      ...(isSmallScreen && { 
+                        padding: '8px 4px', 
+                        fontSize: '0.75rem' 
+                      }),
+                      ...(column.style || {}) // Thêm vào style từ định nghĩa cột
                     }}
                   >
                     <TableSortLabel
@@ -705,7 +833,9 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
                         }
                       }}
                     >
-                      {column.label}
+                      {isSmallScreen ? 
+                        (column.shortLabel || column.label) : 
+                        column.label}
                     </TableSortLabel>
                   </TableCell>
                 ))}
@@ -728,7 +858,13 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
                     if (column.id === 'departmentname') {
                       return (
                         <TableCell key={column.id} align={column.align}>
-                          <Typography variant="subtitle2" sx={{ color: '#1939B7' }}>
+                          <Typography 
+                            variant="subtitle2" 
+                            sx={{ 
+                              color: '#1939B7',
+                              ...(isSmallScreen && { fontSize: '0.75rem' })
+                            }}
+                          >
                             {value}
                           </Typography>
                         </TableCell>
@@ -736,43 +872,97 @@ const SoThuTuDataCard = forwardRef(({ title, data, type, backgroundColor, isLoad
                     } else if (column.id === 'next_number') {
                       return (
                         <TableCell key={column.id} align={column.align}>
-                          <NextNumberDisplay value={value} type={type} />
+                          <NextNumberDisplay 
+                            value={value} 
+                            type={type} 
+                            isSmallScreen={isSmallScreen}
+                          />
                         </TableCell>
                       );
                     } else if (column.id === 'waiting' || column.id === 'cases_not_sampled' || column.id === 'patients_not_sampled') {
                       return (
                         <TableCell key={column.id} align={column.align}>
-                          <EnhancedCellValue value={value} type="waiting" label={column.label} sx={{ color: '#1939B7' }} />
+                          <EnhancedCellValue 
+                            value={value} 
+                            type="waiting" 
+                            label={column.label} 
+                            sx={{ 
+                              color: '#1939B7',
+                              ...(isSmallScreen && { fontSize: '0.75rem' })
+                            }} 
+                          />
                         </TableCell>
                       );
                     } else if (column.id === 'completed' || column.id === 'cases_sampled' || column.id === 'patients_sampled') {
                       return (
                         <TableCell key={column.id} align={column.align}>
-                          <EnhancedCellValue value={value} type="completed" label={column.label} sx={{ color: '#1939B7' }} />
+                          <EnhancedCellValue 
+                            value={value} 
+                            type="completed" 
+                            label={column.label} 
+                            sx={{ 
+                              color: '#1939B7',
+                              ...(isSmallScreen && { fontSize: '0.75rem' })
+                            }} 
+                          />
                         </TableCell>
                       );
                     } else if (column.id === 'pending_result' || column.id === 'in_progress') {
                       return (
                         <TableCell key={column.id} align={column.align}>
-                          <EnhancedCellValue value={value} type="info" label={column.label} sx={{ color: '#1939B7' }} />
+                          <EnhancedCellValue 
+                            value={value} 
+                            type="info" 
+                            label={column.label} 
+                            sx={{ 
+                              color: '#1939B7',
+                              ...(isSmallScreen && { fontSize: '0.75rem' })
+                            }} 
+                          />
                         </TableCell>
                       );
                     } else if (column.id === 'total_patients' || column.id === 'total_cls') {
                       return (
                         <TableCell key={column.id} align={column.align}>
-                          <EnhancedCellValue value={value} type="total" label={column.label} sx={{ color: '#1939B7' }} />
+                          <EnhancedCellValue 
+                            value={value} 
+                            type="total" 
+                            label={column.label} 
+                            sx={{ 
+                              color: '#1939B7',
+                              ...(isSmallScreen && { fontSize: '0.75rem' })
+                            }} 
+                          />
                         </TableCell>
                       );
                     } else if (column.id.includes('max_') || column.id.includes('latest_')) {
                       // Các cột STT lớn nhất hoặc gần nhất
                       return (
                         <TableCell key={column.id} align={column.align}>
-                          <EnhancedCellValue value={value} type="info" label={column.label} sx={{ color: '#1939B7' }} />
+                          <EnhancedCellValue 
+                            value={value} 
+                            type="info" 
+                            label={column.label} 
+                            sx={{ 
+                              color: '#1939B7',
+                              ...(isSmallScreen && { fontSize: '0.75rem' })
+                            }} 
+                          />
                         </TableCell>
                       );
                     } else {
                       return (
-                        <TableCell key={column.id} align={column.align} sx={{ color: '#1939B7' }}>
+                        <TableCell 
+                          key={column.id} 
+                          align={column.align} 
+                          sx={{ 
+                            color: '#1939B7',
+                            ...(isSmallScreen && { 
+                              padding: '8px 4px', 
+                              fontSize: '0.75rem' 
+                            })
+                          }}
+                        >
                           {value}
                         </TableCell>
                       );

@@ -16,7 +16,7 @@ import newfeature from './NoiBo/newfeature';
 nghiencuukhoahocs.roles = ['admin', 'daotao', 'default']; // Tất cả đều thấy
 daotaos.roles = ['admin', 'daotao'];
 baocao.roles = ['admin', 'daotao', 'manager'];
-hethong.roles = ['admin'];
+hethong.roles = ['admin','daotao'];
 newfeature.roles = ['admin','noibo'];
 admin.roles = ['admin']; // Chỉ admin mới thấy
 lichtruc.roles = ['admin', 'default']; // Tất cả đều thấy menu lịch trực

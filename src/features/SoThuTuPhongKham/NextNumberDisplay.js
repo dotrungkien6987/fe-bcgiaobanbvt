@@ -56,23 +56,23 @@ const AnimatedNextNumberChip = styled(Chip)(({ theme }) => ({
 }));
 
 // Số hiển thị độc lập với animation mạnh hơn
-const NumberDisplayBox = styled(Box)(({ bgcolor }) => ({
+const NumberDisplayBox = styled(Box)(({ bgcolor, isSmallScreen }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: '2px 8px',
+  padding: isSmallScreen ? '1px 6px' : '2px 8px',
   borderRadius: '12px',
   backgroundColor: bgcolor,
   color: '#ffffff',
   fontWeight: 'bold',
-  fontSize: '1.1rem',
+  fontSize: isSmallScreen ? '0.9rem' : '1.1rem',
   animation: `${pulse} 1.5s infinite`,
   boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
   margin: '0 3px',
 }));
 
 // Component hiển thị số thứ tự tiếp theo với animation
-const NextNumberDisplay = ({ value, type }) => {
+const NextNumberDisplay = ({ value, type, isSmallScreen = false }) => {
   const [isHighlighted, setIsHighlighted] = useState(false);
   
   // Xác định màu sắc dựa trên loại phòng
@@ -80,12 +80,14 @@ const NextNumberDisplay = ({ value, type }) => {
     switch(type) {
       case 'phongKham':
         return {
-          bg: '#1976d2',
+          bg: '#bb1515',
+          // bg: '#1976d2',
           text: '#ffffff'
         };
       case 'phongThucHien':
         return {
-          bg: '#388e3c',
+          bg: '#bb1515',
+          // bg: '#388e3c',
           text: '#ffffff'
         };
       case 'phongLayMau':
@@ -118,10 +120,10 @@ const NextNumberDisplay = ({ value, type }) => {
     return (
       <Chip
         label="Không có"
-        size="medium"
+        size={isSmallScreen ? "small" : "medium"}
         variant="outlined"
         color="default"
-        sx={{ fontStyle: 'italic' }}
+        sx={{ fontStyle: 'italic', fontSize: isSmallScreen ? '0.7rem' : 'inherit' }}
       />
     );
   }
@@ -139,7 +141,7 @@ const NextNumberDisplay = ({ value, type }) => {
         alignItems: 'center',
         backgroundColor: isHighlighted ? colors.bg : 'rgba(255,255,255,0.9)',
         borderRadius: '20px',
-        padding: '2px 8px',
+        padding: isSmallScreen ? '1px 6px' : '2px 8px',
         border: `2px solid ${colors.bg}`,
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         transition: 'all 0.3s ease',
@@ -147,24 +149,24 @@ const NextNumberDisplay = ({ value, type }) => {
         <UpdateIcon 
           sx={{ 
             color: isHighlighted ? colors.text : colors.bg,
-            mr: 1,
+            mr: isSmallScreen ? 0.5 : 1,
             animation: `${bounce} 1.5s infinite`,
-            fontSize: '1rem'
+            fontSize: isSmallScreen ? '0.8rem' : '1rem'
           }} 
         />
-        <NumberDisplayBox bgcolor={colors.bg}>
+        <NumberDisplayBox bgcolor={colors.bg} isSmallScreen={isSmallScreen}>
           {value}
         </NumberDisplayBox>
       </Box>
-      <ArrowForwardIosIcon 
+      {/* <ArrowForwardIosIcon 
         sx={{
-          ml: 1,
+          ml: isSmallScreen ? 0.5 : 1,
           color: colors.bg,
           animation: `${bounce} 1.5s infinite`,
-          fontSize: '1.25rem',
+          fontSize: isSmallScreen ? '0.9rem' : '1.25rem',
           fontWeight: 'bold'
         }}
-      />
+      /> */}
     </Box>
   );
 };

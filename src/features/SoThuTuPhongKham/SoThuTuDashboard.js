@@ -59,6 +59,7 @@ import {
 } from '../Slice/soThuTuSlice';
 
 import SoThuTuDataCard from './SoThuTuDataCard';
+import AbbreviationChips from './components/AbbreviationChips';
 
 // Configure dayjs plugins
 dayjs.extend(utc);
@@ -111,7 +112,7 @@ const SoThuTuDashboard = () => {
   const [searchQuery, setSearchQuery] = useState(''); // State quản lý từ khóa tìm kiếm tên phòng
   
   // State để quản lý bố cục hiển thị của các card
-  const [layoutMode, setLayoutMode] = useState('stacked'); // 'stacked' = tất cả xs=12, 'split' = phân chia
+  const [layoutMode, setLayoutMode] = useState('split'); // 'stacked' = tất cả xs=12, 'split' = phân chia
   
   // Ref để giữ timer ID
   const autoRefreshTimerRef = useRef(null);
@@ -357,276 +358,351 @@ const SoThuTuDashboard = () => {
     >
       {/* AppBar with Toolbar - Contains date picker and group selector */}
       <AppBar position="static" sx={{ boxShadow: theme.shadows[2] }}>
-        <Toolbar sx={{ padding: '4px 16px', height: 'auto', minHeight: '72px' }}>
-          {/* <Typography 
-            variant="h6" 
-            component="h1" 
-            sx={{ 
-              fontWeight: 'bold',
-              flexGrow: 0, 
-              mr: 2,
-              whiteSpace: 'nowrap'
-            }}
-          >
-           Dữ liệu các phòng
-          </Typography> */}
-          
+        <Toolbar 
+          sx={{ 
+            padding: { xs: '4px 8px', sm: '4px 16px' }, 
+            height: 'auto', 
+            minHeight: { xs: '64px', sm: '72px' },
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: 'center',
+            gap: { xs: 1, sm: 0 }
+          }}
+        >
           <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            bgcolor: 'background.paper', 
-            borderRadius: 1, 
-            p: 0.5,
-            mr: 2,
-            width: 240,
-            flexShrink: 0
-          }}>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker
-                label="Ngày"
-                value={selectedDate}
-                onChange={handleDateChange}
-                slotProps={{ 
-                  textField: { 
-                    fullWidth: true,
-                    variant: 'outlined',
-                    size: 'small',
-                    sx: { bgcolor: 'background.paper', borderRadius: 1 }
-                  } 
-                }}
-              />
-            </LocalizationProvider>
-          </Box>
-          
-          <Box sx={{ 
-            flexGrow: 1, 
             display: 'flex', 
             alignItems: 'center',
-            bgcolor: 'background.paper', 
-            borderRadius: 1, 
-            p: 0.5,
-            minWidth: 300,
-            maxWidth: 450,
-            flexShrink: 0
+            width: { xs: '100%', sm: 'auto' },
+            flexWrap: { xs: 'wrap', sm: 'nowrap' },
+            gap: 1
           }}>
-            <Autocomplete
-              id="nhom-khoa-select"
-              options={nhomKhoaList}
-              getOptionLabel={(option) => option.TenNhom}
-              value={nhomKhoaList.find(item => item._id === selectedNhomKhoa) || null}
-              onChange={(event, newValue) => {
-                if (newValue) {
-                  setSelectedNhomKhoa(newValue._id);
-                  console.log('Selected:', newValue.TenNhom);
-                } else {
-                  setSelectedNhomKhoa('');
-                }
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Nhóm phòng"
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    bgcolor: 'background.paper',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 1,
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.primary.main,
-                        borderWidth: '2px',
-                      },
-                    },
-                    '& .MuiInputLabel-root': {
-                      backgroundColor: 'background.paper',
-                      px: 0.5,
-                      color: theme.palette.mode === 'dark' ? '#ffffff' : theme.palette.primary.main,
-                      fontWeight: 500,
-                      '&.Mui-focused': {
-                        color: theme.palette.primary.main,
-                        fontWeight: 600
-                      }
-                    }
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              bgcolor: 'background.paper', 
+              borderRadius: 1, 
+              p: 0.5,
+              mr: { xs: 0, sm: 2 },
+              width: { xs: '100%', sm: 240 },
+              flexShrink: 0
+            }}>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DatePicker
+                  label="Ngày"
+                  value={selectedDate}
+                  onChange={handleDateChange}
+                  format="DD-MM-YYYY"
+                  slotProps={{ 
+                    textField: { 
+                      fullWidth: true,
+                      variant: 'outlined',
+                      size: 'small',
+                      sx: { bgcolor: 'background.paper', borderRadius: 1 }
+                    } 
                   }}
                 />
-              )}
-              loading={nhomKhoaLoading}
-              loadingText="Đang tải..."
-              noOptionsText="Không có nhóm phòng"
-              disabled={nhomKhoaLoading}
-              sx={{
-                width: '100%',
-                '& .MuiAutocomplete-endAdornment': {
-                  color: theme.palette.mode === 'dark' ? '#ffffff' : 'inherit',
-                }
-              }}
-            />
+              </LocalizationProvider>
+            </Box>
+            
+            <Box sx={{ 
+              flexGrow: 1, 
+              display: 'flex', 
+              alignItems: 'center',
+              bgcolor: 'background.paper', 
+              borderRadius: 1, 
+              p: 0.5,
+              width: { xs: '100%', sm: 'auto' },
+              minWidth: { xs: 'auto', sm: 300 },
+              maxWidth: { xs: '100%', sm: 450 },
+              flexShrink: 0
+            }}>
+              <Autocomplete
+                id="nhom-khoa-select"
+                options={nhomKhoaList}
+                getOptionLabel={(option) => option.TenNhom}
+                value={nhomKhoaList.find(item => item._id === selectedNhomKhoa) || null}
+                onChange={(event, newValue) => {
+                  if (newValue) {
+                    setSelectedNhomKhoa(newValue._id);
+                    console.log('Selected:', newValue.TenNhom);
+                  } else {
+                    setSelectedNhomKhoa('');
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Nhóm phòng"
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                      bgcolor: 'background.paper',
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 1,
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.primary.main,
+                          borderWidth: '2px',
+                        },
+                      },
+                      '& .MuiInputLabel-root': {
+                        backgroundColor: 'background.paper',
+                        px: 0.5,
+                        color: theme.palette.mode === 'dark' ? '#ffffff' : theme.palette.primary.main,
+                        fontWeight: 500,
+                        '&.Mui-focused': {
+                          color: theme.palette.primary.main,
+                          fontWeight: 600
+                        }
+                      }
+                    }}
+                  />
+                )}
+                loading={nhomKhoaLoading}
+                loadingText="Đang tải..."
+                noOptionsText="Không có nhóm phòng"
+                disabled={nhomKhoaLoading}
+                sx={{
+                  width: '100%',
+                  '& .MuiAutocomplete-endAdornment': {
+                    color: theme.palette.mode === 'dark' ? '#ffffff' : 'inherit',
+                  }
+                }}
+              />
+            </Box>
           </Box>
           
-          {/* SearchBar */}
           <Box sx={{ 
             display: 'flex', 
-            alignItems: 'center', 
-            bgcolor: 'background.paper', 
-            borderRadius: 1, 
-            p: 0.5,
-            ml: 2,
-            mr: 2,
-            width: 200,
-            flexShrink: 0
+            alignItems: 'center',
+            width: { xs: '100%', sm: 'auto' },
+            flexWrap: { xs: 'wrap', sm: 'nowrap' },
+            justifyContent: { xs: 'space-between', sm: 'flex-end' },
+            gap: 1,
+            mt: { xs: 1, sm: 0 }
           }}>
-            <TextField
-              size="small"
-              variant="outlined"
-              placeholder="Tìm tên phòng..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <SearchIcon fontSize="small" sx={{ color: 'text.secondary', mr: 1 }} />
-                ),
-                endAdornment: searchQuery ? (
-                  <IconButton 
-                    size="small" 
-                    onClick={() => setSearchQuery('')}
-                    sx={{ p: 0.5 }}
-                  >
-                    <ClearIcon fontSize="small" />
-                  </IconButton>
-                ) : null,
-                sx: { 
-                  borderRadius: 1,
-                  fontSize: '0.875rem'
-                }
-              }}
-              fullWidth
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: theme.palette.primary.main,
-                    borderWidth: '2px',
+            {/* SearchBar */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              bgcolor: 'background.paper', 
+              borderRadius: 1, 
+              p: 0.5,
+              ml: { xs: 0, sm: 2 },
+              mr: { xs: 0, sm: 2 },
+              width: { xs: '100%', sm: 200 },
+              flexShrink: 0,
+              order: { xs: 1, sm: 1 }
+            }}>
+              <TextField
+                size="small"
+                variant="outlined"
+                placeholder="Tìm tên phòng..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <SearchIcon fontSize="small" sx={{ color: 'text.secondary', mr: 1 }} />
+                  ),
+                  endAdornment: searchQuery ? (
+                    <IconButton 
+                      size="small" 
+                      onClick={() => setSearchQuery('')}
+                      sx={{ p: 0.5 }}
+                    >
+                      <ClearIcon fontSize="small" />
+                    </IconButton>
+                  ) : null,
+                  sx: { 
+                    borderRadius: 1,
+                    fontSize: '0.875rem'
                   }
-                }
-              }}
-            />
-          </Box>
-          
-          <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center', ml: 2 }}>
-            {lastUpdatedTime && (
-              <Box sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                mr: 1,
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
-                borderRadius: '8px',
-                padding: '4px 10px',
-                border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.1)' : 'none',
-              }}>
-                <Typography 
-                  variant="caption" 
+                }}
+                fullWidth
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.primary.main,
+                      borderWidth: '2px',
+                    }
+                  }
+                }}
+              />
+            </Box>
+            
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: { xs: 'flex-end', sm: 'flex-end' },
+              flexGrow: 0, 
+              ml: { xs: 0, sm: 2 },
+              order: { xs: 2, sm: 2 },
+              flexWrap: 'nowrap'
+            }}>
+              {lastUpdatedTime && (
+                <Box sx={{ 
+                  display: { xs: 'none', sm: 'flex' }, 
+                  alignItems: 'center', 
+                  mr: 1,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
+                  borderRadius: '8px',
+                  padding: '4px 10px',
+                  border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mr: 1, 
+                      fontWeight: 600, 
+                      color: '#fff',
+                      textShadow: '0px 1px 1px rgba(0,0,0,0.3)',
+                      letterSpacing: '0.5px',
+                      fontSize: '0.75rem'
+                    }}
+                  >
+                    Cập nhật: {formatTime(lastUpdatedTime)}
+                  </Typography>
+                  
+                  <Tooltip title={isAutoRefreshEnabled ? "Tự động cập nhật mỗi phút" : "Đã tắt tự động cập nhật"}>
+                    <Chip 
+                      size="small"
+                      icon={
+                        <AutorenewIcon 
+                          fontSize="small" 
+                          sx={{ 
+                            color: isAutoRefreshEnabled ? '#0d6f0d' : '#fff',
+                            animation: isAutoRefreshEnabled ? 'spin 4s linear infinite' : 'none',
+                            '@keyframes spin': {
+                              '0%': { transform: 'rotate(0deg)' },
+                              '100%': { transform: 'rotate(360deg)' }
+                            }
+                          }} 
+                        />
+                      }
+                      label={isAutoRefreshEnabled ? `${secondsUntilRefresh}s` : "Tắt"}
+                      onClick={toggleAutoRefresh}
+                      sx={{ 
+                        cursor: 'pointer', 
+                        fontWeight: 'bold',
+                        backgroundColor: isAutoRefreshEnabled 
+                          ? theme.palette.mode === 'dark' ? '#1b5e20' : '#e8f5e9' 
+                          : theme.palette.mode === 'dark' ? '#b71c1c' : '#f44336',
+                        color: isAutoRefreshEnabled 
+                          ? theme.palette.mode === 'dark' ? '#ffffff' : '#0d6f0d' 
+                          : '#fff',
+                        border: isAutoRefreshEnabled 
+                          ? theme.palette.mode === 'dark' ? '1px solid #4caf50' : '1px solid #81c784' 
+                          : 'none',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          backgroundColor: isAutoRefreshEnabled 
+                            ? theme.palette.mode === 'dark' ? '#2e7d32' : '#c8e6c9' 
+                            : theme.palette.mode === 'dark' ? '#d32f2f' : '#ef5350',
+                          transform: 'scale(1.05)'
+                        }
+                      }}
+                    />
+                  </Tooltip>
+                </Box>
+              )}
+              
+              {/* Hiển thị Chip ở màn hình nhỏ */}
+              {lastUpdatedTime && (
+                <Box sx={{ 
+                  display: { xs: 'flex', sm: 'none' }, 
+                  alignItems: 'center',
+                  mr: 1
+                }}>
+                  <Tooltip title={isAutoRefreshEnabled ? `Tự động cập nhật mỗi phút | Cập nhật lúc: ${formatTime(lastUpdatedTime)}` : `Đã tắt tự động cập nhật | Cập nhật lúc: ${formatTime(lastUpdatedTime)}`}>
+                    <Chip 
+                      size="small"
+                      icon={
+                        <AutorenewIcon 
+                          fontSize="small" 
+                          sx={{ 
+                            color: isAutoRefreshEnabled ? '#0d6f0d' : '#fff',
+                            animation: isAutoRefreshEnabled ? 'spin 4s linear infinite' : 'none',
+                            '@keyframes spin': {
+                              '0%': { transform: 'rotate(0deg)' },
+                              '100%': { transform: 'rotate(360deg)' }
+                            }
+                          }} 
+                        />
+                      }
+                      label={isAutoRefreshEnabled ? `${secondsUntilRefresh}s` : "Tắt"}
+                      onClick={toggleAutoRefresh}
+                      sx={{ 
+                        cursor: 'pointer', 
+                        fontWeight: 'bold',
+                        backgroundColor: isAutoRefreshEnabled 
+                          ? theme.palette.mode === 'dark' ? '#1b5e20' : '#e8f5e9' 
+                          : theme.palette.mode === 'dark' ? '#b71c1c' : '#f44336',
+                        color: isAutoRefreshEnabled 
+                          ? theme.palette.mode === 'dark' ? '#ffffff' : '#0d6f0d' 
+                          : '#fff',
+                        border: isAutoRefreshEnabled 
+                          ? theme.palette.mode === 'dark' ? '1px solid #4caf50' : '1px solid #81c784' 
+                          : 'none',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                          backgroundColor: isAutoRefreshEnabled 
+                            ? theme.palette.mode === 'dark' ? '#2e7d32' : '#c8e6c9' 
+                            : theme.palette.mode === 'dark' ? '#d32f2f' : '#ef5350',
+                          transform: 'scale(1.05)'
+                        }
+                      }}
+                    />
+                  </Tooltip>
+                </Box>
+              )}
+              
+              <Tooltip title="Cập nhật dữ liệu ngay">
+                <IconButton 
+                  onClick={handleManualRefresh} 
+                  disabled={isLoading || !departmentIds.length}
                   sx={{ 
-                    mr: 1, 
-                    fontWeight: 600, 
                     color: '#fff',
-                    textShadow: '0px 1px 1px rgba(0,0,0,0.3)',
-                    letterSpacing: '0.5px',
-                    fontSize: '0.75rem'
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(25, 118, 210, 0.2)',
+                    border: '1px solid rgba(255,255,255,0.3)',
+                    ml: 1,
+                    '&:hover': {
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)',
+                      transform: 'scale(1.05)'
+                    },
+                    '&.Mui-disabled': {
+                      color: 'rgba(255,255,255,0.4)',
+                      backgroundColor: 'rgba(255,255,255,0.05)'
+                    },
+                    transition: 'all 0.2s ease'
                   }}
                 >
-                  Cập nhật lúc: {formatTime(lastUpdatedTime)}
-                </Typography>
-                
-                <Tooltip title={isAutoRefreshEnabled ? "Tự động cập nhật mỗi phút" : "Đã tắt tự động cập nhật"}>
-                  <Chip 
+                  {isLoading ? (
+                    <CircularProgress size={20} thickness={4} sx={{ color: '#fff' }} />
+                  ) : (
+                    <RefreshIcon />
+                  )}
+                </IconButton>
+              </Tooltip>
+              
+              {error && (
+                <Tooltip title={error}>
+                  <Chip
+                    label="Lỗi"
+                    color="error"
                     size="small"
-                    icon={
-                      <AutorenewIcon 
-                        fontSize="small" 
-                        sx={{ 
-                          color: isAutoRefreshEnabled ? '#0d6f0d' : '#fff',
-                          animation: isAutoRefreshEnabled ? 'spin 4s linear infinite' : 'none',
-                          '@keyframes spin': {
-                            '0%': { transform: 'rotate(0deg)' },
-                            '100%': { transform: 'rotate(360deg)' }
-                          }
-                        }} 
-                      />
-                    }
-                    label={isAutoRefreshEnabled ? `${secondsUntilRefresh}s` : "Tắt"}
-                    onClick={toggleAutoRefresh}
+                    variant="outlined"
                     sx={{ 
-                      cursor: 'pointer', 
+                      ml: 1, 
                       fontWeight: 'bold',
-                      backgroundColor: isAutoRefreshEnabled 
-                        ? theme.palette.mode === 'dark' ? '#1b5e20' : '#e8f5e9' 
-                        : theme.palette.mode === 'dark' ? '#b71c1c' : '#f44336',
-                      color: isAutoRefreshEnabled 
-                        ? theme.palette.mode === 'dark' ? '#ffffff' : '#0d6f0d' 
-                        : '#fff',
-                      border: isAutoRefreshEnabled 
-                        ? theme.palette.mode === 'dark' ? '1px solid #4caf50' : '1px solid #81c784' 
-                        : 'none',
-                      transition: 'all 0.2s ease',
+                      border: '1px solid #f44336',
+                      color: '#fff',
+                      backgroundColor: 'rgba(244, 67, 54, 0.7)',
                       '&:hover': {
-                        backgroundColor: isAutoRefreshEnabled 
-                          ? theme.palette.mode === 'dark' ? '#2e7d32' : '#c8e6c9' 
-                          : theme.palette.mode === 'dark' ? '#d32f2f' : '#ef5350',
-                        transform: 'scale(1.05)'
+                        backgroundColor: 'rgba(244, 67, 54, 0.9)',
                       }
                     }}
                   />
                 </Tooltip>
-              </Box>
-            )}
-            
-            <Tooltip title="Cập nhật dữ liệu ngay">
-              <IconButton 
-                onClick={handleManualRefresh} 
-                disabled={isLoading || !departmentIds.length}
-                sx={{ 
-                  color: '#fff',
-                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(25, 118, 210, 0.2)',
-                  border: '1px solid rgba(255,255,255,0.3)',
-                  ml: 1,
-                  '&:hover': {
-                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)',
-                    transform: 'scale(1.05)'
-                  },
-                  '&.Mui-disabled': {
-                    color: 'rgba(255,255,255,0.4)',
-                    backgroundColor: 'rgba(255,255,255,0.05)'
-                  },
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                {isLoading ? (
-                  <CircularProgress size={20} thickness={4} sx={{ color: '#fff' }} />
-                ) : (
-                  <RefreshIcon />
-                )}
-              </IconButton>
-            </Tooltip>
-            
-            {error && (
-              <Tooltip title={error}>
-                <Chip
-                  label="Lỗi"
-                  color="error"
-                  size="small"
-                  variant="outlined"
-                  sx={{ 
-                    ml: 1, 
-                    fontWeight: 'bold',
-                    border: '1px solid #f44336',
-                    color: '#fff',
-                    backgroundColor: 'rgba(244, 67, 54, 0.7)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(244, 67, 54, 0.9)',
-                    }
-                  }}
-                />
-              </Tooltip>
-            )}
+              )}
+            </Box>
           </Box>
         </Toolbar>
       </AppBar>
@@ -642,28 +718,30 @@ const SoThuTuDashboard = () => {
       {selectedNhomKhoa && nhomKhoaList.length > 0 && (
         <Box
           sx={{
-            py: 2,
-            px: 3,
+            py: { xs: 1, sm: 2 },
+            px: { xs: 1.5, sm: 3 },
             backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(235, 245, 255, 0.5)',
             backgroundImage: theme.palette.mode === 'dark' 
               ? 'linear-gradient(to right, rgba(25, 118, 210, 0.1), rgba(25, 118, 210, 0.2))' 
               : 'linear-gradient(to right, rgba(235, 245, 255, 0.7), rgba(227, 242, 253, 0.9))',
             borderBottom: `1px solid ${theme.palette.divider}`,
             display: 'flex',
-            alignItems: 'center',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'flex-start', sm: 'center' },
             justifyContent: 'space-between',
             boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+            gap: { xs: 1, sm: 0 }
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', width: { xs: '100%', sm: 'auto' } }}>
             <Typography
               variant="h5"
               component="h2"
               sx={{
                 fontWeight: 600,
-                color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+                color: theme.palette.mode === 'dark' ? theme.palette.primary.light : '#1939B7',
                 textTransform: 'uppercase',
-                fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },
+                fontSize: { xs: '0.9rem', sm: '1.15rem', md: '1.35rem' },
                 letterSpacing: '0.5px',
                 textShadow: theme.palette.mode === 'dark' ? '0 1px 3px rgba(0,0,0,0.6)' : '0 1px 1px rgba(0,0,0,0.1)',
                 mr: 1
@@ -673,7 +751,7 @@ const SoThuTuDashboard = () => {
               <Box 
                 component="span" 
                 sx={{ 
-                  color: theme.palette.secondary.main, 
+                  color: '#bb1515', 
                   fontWeight: 700,
                   textDecoration: 'underline',
                   textDecorationColor: `rgba(${theme.palette.secondary.main}, 0.4)`,
@@ -684,80 +762,93 @@ const SoThuTuDashboard = () => {
                 {nhomKhoaList.find(item => item._id === selectedNhomKhoa)?.TenNhom || ''}
               </Box>
             </Typography>
+            
+            {/* Sử dụng component AbbreviationChips thay vì inline code */}
+            <AbbreviationChips />
           </Box>
           
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.7)',
-              py: 0.5,
-              px: 2,
-              borderRadius: '20px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-            }}
-          >
-            <Typography
-              variant="body1"
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            justifyContent: { xs: 'space-between', sm: 'flex-end' },
+            width: { xs: '100%', sm: 'auto' },
+            flexWrap: { xs: 'wrap', sm: 'nowrap' },
+            gap: 1
+          }}>
+            <Box 
               sx={{ 
-                fontWeight: 500,
-                color: theme.palette.text.secondary,
-                fontSize: { xs: '0.85rem', md: '1rem' },
-                display: 'flex',
-                alignItems: 'center'
+                display: 'flex', 
+                alignItems: 'center',
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.7)',
+                py: 0.5,
+                px: 2,
+                borderRadius: '20px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                order: { xs: 2, sm: 1 }
               }}
             >
-              {selectedDate.format('DD/MM/YYYY')}
-              <Box component="span" sx={{ mx: 1, color: theme.palette.text.disabled }}>•</Box>
-              {lastUpdatedTime ? formatTime(lastUpdatedTime) : 'Chưa cập nhật'}
-            </Typography>
-          </Box>
-
-          {/* Điều khiển bố cục */}
-          <Box sx={{ ml: 2 }}>
-            <Tooltip title="Tùy chỉnh bố cục hiển thị">
-              <ToggleButtonGroup
-                value={layoutMode}
-                exclusive
-                onChange={(e, newValue) => {
-                  if (newValue !== null) {
-                    setLayoutMode(newValue);
-                  }
-                }}
-                size="small"
-                sx={{
-                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.8)',
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: '20px',
-                  '& .MuiToggleButton-root': {
-                    color: theme.palette.text.secondary,
-                    '&.Mui-selected': {
-                      color: theme.palette.primary.main,
-                      bgcolor: theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.2)' : 'rgba(25, 118, 210, 0.1)'
-                    }
-                  }
+              <Typography
+                variant="body1"
+                sx={{ 
+                  fontWeight: 500,
+                  color: theme.palette.text.secondary,
+                  fontSize: { xs: '0.85rem', md: '1rem' },
+                  display: 'flex',
+                  alignItems: 'center'
                 }}
               >
-                <ToggleButton 
-                  value="stacked" 
-                  aria-label="stacked layout"
-                  sx={{ borderRadius: '20px 0 0 20px' }}
+                {selectedDate.format('DD/MM/YYYY')}
+                <Box component="span" sx={{ mx: 1, color: theme.palette.text.disabled }}>•</Box>
+                {lastUpdatedTime ? formatTime(lastUpdatedTime) : 'Chưa cập nhật'}
+              </Typography>
+            </Box>
+
+            {/* Điều khiển bố cục */}
+            <Box sx={{ ml: { xs: 0, sm: 2 }, order: { xs: 1, sm: 2 } }}>
+              <Tooltip title="Tùy chỉnh bố cục hiển thị">
+                <ToggleButtonGroup
+                  value={layoutMode}
+                  exclusive
+                  onChange={(e, newValue) => {
+                    if (newValue !== null) {
+                      setLayoutMode(newValue);
+                    }
+                  }}
+                  size="small"
+                  sx={{
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.8)',
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: '20px',
+                    '& .MuiToggleButton-root': {
+                      color: theme.palette.text.secondary,
+                      '&.Mui-selected': {
+                        color: theme.palette.primary.main,
+                        bgcolor: theme.palette.mode === 'dark' ? 'rgba(25, 118, 210, 0.2)' : 'rgba(25, 118, 210, 0.1)'
+                      }
+                    }
+                  }}
                 >
-                  <Tooltip title="Hiển thị mỗi loại phòng một hàng">
-                    <ViewAgendaIcon fontSize="small" />
-                  </Tooltip>
-                </ToggleButton>
-                <ToggleButton 
-                  value="split" 
-                  aria-label="split layout"
-                  sx={{ borderRadius: '0 20px 20px 0' }}
-                >
-                  <Tooltip title="Hiển thị phòng khám và phòng thực hiện trên cùng một hàng">
-                    <ViewCompactIcon fontSize="small" />
-                  </Tooltip>
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Tooltip>
+                  <ToggleButton 
+                    value="stacked" 
+                    aria-label="stacked layout"
+                    sx={{ borderRadius: '20px 0 0 20px' }}
+                  >
+                    <Tooltip title="Hiển thị mỗi loại phòng một hàng">
+                      <ViewAgendaIcon fontSize="small" />
+                    </Tooltip>
+                  </ToggleButton>
+                  <ToggleButton 
+                    value="split" 
+                    aria-label="split layout"
+                    sx={{ borderRadius: '0 20px 20px 0' }}
+                  >
+                    <Tooltip title="Hiển thị phòng khám và phòng thực hiện trên cùng một hàng">
+                      <ViewCompactIcon fontSize="small" />
+                    </Tooltip>
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Tooltip>
+            </Box>
           </Box>
         </Box>
       )}

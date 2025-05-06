@@ -103,6 +103,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
     { value: 'DVT', label: 'Dược vật tư', icon: <MedicalInformationIcon /> },
     { value: 'ĐT', label: 'Đào tạo toàn viện', icon: <MedicalInformationIcon /> },
     { value: 'ĐTKHOA', label: 'Đào tạo theo khoa', icon: <MedicalInformationIcon /> },
+    { value: 'SOTHUTU', label: 'Số thứ tự bệnh nhân', icon: <MedicalInformationIcon /> },
   ];
 
   useEffect(() => {
