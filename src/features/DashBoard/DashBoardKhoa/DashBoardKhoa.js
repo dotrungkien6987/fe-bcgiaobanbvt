@@ -52,9 +52,9 @@ import CardTongTienChuaDuyetKT from "../CardTongTienChuaDuyetKT";
 function DashBoardKhoa() {
   const { user } = useAuth();
   const { khoas } = useSelector((state) => state.baocaongay);
-
+const khoasFilter = khoas.filter((khoa) => ![2, 7, 38].includes(khoa.HisDepartmentType));
   const KhoaHienThi =
-    user.PhanQuyen !== "admin" ? LocKhoaHienThiTheoUser(khoas, user) : khoas;
+    user.PhanQuyen !== "admin" ? LocKhoaHienThiTheoUser(khoasFilter, user) : khoasFilter;
   const { chisokhoa, chisokhoa_NgayChenhLech } = useSelector(
     (state) => state.dashboardkhoa
   );

@@ -684,6 +684,10 @@ const khoaToDepartmentGroupMapping = [
     MaKhoa: "DQCT",
     departmentgroupid: 120,
   },
+  {
+    MaKhoa: "SKCB",
+    departmentgroupid: 159,
+  },
 
   // Thêm các mapping khác tùy theo cấu trúc và dữ liệu của bạn
 ];

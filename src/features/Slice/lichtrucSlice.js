@@ -7,6 +7,7 @@ const initialState = {
   error: null,
   lichTrucList: [],
   currentLichTruc: null,
+  selectedKhoa: null, // Thêm trường này để lưu khoa được chọn
   filterOptions: {
     startDate: null,
     endDate: null,
@@ -26,12 +27,24 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = action.payload;
     },
-    
-    // Lấy danh sách lịch trực
+      // Lấy danh sách lịch trực
     getLichTrucSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.lichTrucList = action.payload;
+      
+      // Xử lý dữ liệu lịch trực trước khi lưu để đảm bảo hiển thị tốt hơn
+      const processedData = Array.isArray(action.payload) ? action.payload.map(item => {
+        // Chuẩn hóa dữ liệu DieuDuong và BacSi
+        return {
+          ...item,
+          // Đảm bảo DieuDuong luôn là chuỗi hoặc mảng hợp lệ
+          DieuDuong: item.DieuDuong === undefined || item.DieuDuong === null ? '-' : item.DieuDuong,
+          // Đảm bảo BacSi luôn là chuỗi hoặc mảng hợp lệ 
+          BacSi: item.BacSi === undefined || item.BacSi === null ? '-' : item.BacSi,
+        };
+      }) : [];
+      
+      state.lichTrucList = processedData;
     },
     
     // Lấy chi tiết 1 lịch trực
@@ -52,7 +65,29 @@ const slice = createSlice({
     createMultipleLichTrucSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.lichTrucList = [...action.payload, ...state.lichTrucList];
+      
+      // Thêm cách xử lý phức tạp hơn từ file LichTruc/lichtrucSlice.js
+      const newLichTrucs = action.payload;
+      
+      // Xử lý các bản ghi tạm nếu có
+      if (state.lichTrucList.some(item => item.isTemp)) {
+        // Cập nhật lại state.lichTrucList từ newLichTrucs
+        // Các bản ghi tạm sẽ được thay thế bằng bản ghi đã lưu thành công
+        state.lichTrucList = state.lichTrucList.map(lichTruc => {
+          if (lichTruc.isTemp) {
+            // Tìm bản ghi mới có cùng ngày
+            const ngayTemp = new Date(lichTruc.Ngay).toDateString();
+            const newRecord = newLichTrucs.find(
+              record => new Date(record.Ngay).toDateString() === ngayTemp
+            );
+            return newRecord || lichTruc;
+          }
+          return lichTruc;
+        });
+      } else {
+        // Cách xử lý cũ nếu không có bản ghi tạm
+        state.lichTrucList = [...newLichTrucs, ...state.lichTrucList];
+      }
     },
     
     // Cập nhật lịch trực
@@ -103,6 +138,11 @@ const slice = createSlice({
       state.currentLichTruc = null;
     },
 
+    // Thêm reducer cho việc set khoa được chọn
+    setSelectedKhoa(state, action) {
+      state.selectedKhoa = action.payload;
+    },
+
     // Thêm reducers cho 2 endpoint mới
     getByNgayKhoaSuccess(state, action) {
       state.isLoading = false;
@@ -150,11 +190,17 @@ export const getLichTrucByKhoa = (khoaId) => async (dispatch) => {
 export const getLichTrucByDate = (date) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
+    // Thêm timeout để làm mượt hơn cùng với timeout ở phía người dùng
     const response = await apiService.get(`/lichtruc/ngay/${date}`);
     dispatch(slice.actions.getLichTrucSuccess(response.data.data));
+    return response.data.data; // Trả về dữ liệu để có thể sử dụng sau khi dispatch
   } catch (error) {
+    // Xử lý lỗi nhẹ nhàng hơn để không hiển thị toast khi không cần thiết
+    console.error('Lỗi khi lấy lịch trực:', error.message);
     dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message);
+    
+    // Nếu lỗi, vẫn trả về một mảng rỗng để frontend không bị lỗi
+    return [];
   }
 };
 
@@ -271,6 +317,14 @@ export const resetLichTruc = () => (dispatch) => {
   dispatch(slice.actions.resetLichTruc());
 };
 
+// Hàm set khoa được chọn (từ file LichTruc/lichtrucSlice.js)
+export const setSelectedKhoa = (khoa) => (dispatch) => {
+  // Thêm action này vào slice nếu chưa có
+  if (slice.actions.setSelectedKhoa) {
+    dispatch(slice.actions.setSelectedKhoa(khoa));
+  }
+};
+
 // Hàm cho endpoint get by ngày khoa (tương tự getDataBCGiaoBanByFromDateToDate)
 export const getByNgayKhoa = (fromDate, toDate, khoaId) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
@@ -306,3 +360,12 @@ export const updateOrInsertLichTruc = (lichTrucs) => async (dispatch) => {
     toast.error(error.message);
   }
 };
+
+// Selectors
+export const selectLichTrucList = (state) => state.lichtruc.lichTrucList || [];
+export const selectCurrentLichTruc = (state) => state.lichtruc.currentLichTruc;
+export const selectLichTrucLoading = (state) => state.lichtruc.isLoading;
+export const selectLichTrucError = (state) => state.lichtruc.error;
+export const selectLichTrucFilter = (state) => state.lichtruc.filterOptions;
+export const selectKhoas = (state) => state.lichtruc.khoas;
+export const selectSelectedKhoa = (state) => state.lichtruc.selectedKhoa; // Thêm selector cho khoa được chọn

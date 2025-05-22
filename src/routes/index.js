@@ -62,6 +62,8 @@ import SoThuTuTest from "components/SoThuTuTest";
 
 import NhomKhoaSoThuTuTable from "features/Daotao/NhomKhoaSoThuTu/NhomKhoaSoThuTuTable";
 import SoThuTuDashboard from "features/SoThuTuPhongKham/SoThuTuDashboard";
+import HoatDongDashboard from "features/HoatDongBenhVien/HoatDongDashboard";
+import DataSourceExplanation from "features/HoatDongBenhVien/DataSourceExplanation";
 
 function Router() {
   return (
@@ -119,8 +121,10 @@ function Router() {
           <Route path="/daotao" element={<DataFixTable />} />
           <Route path="/testtonghop1" element={<TongHopHoatDong />} />
           <Route path="/hocvien" element={<QuanLyHocVienPage />} />
-          <Route path="/lichtruc" element={<LichTrucPage />} />
-          <Route path="/sothutu" element={<SoThuTuDashboard />} />
+          <Route path="/lichtruc" element={<LichTrucPage />} />          <Route path="/sothutu" element={<SoThuTuDashboard />} />
+          <Route path="/hoatdongbenhvien" element={<HoatDongDashboard />} />
+          <Route path="/hoatdongchung" element={<HoatDongDashboard />} /> {/* Compatibility with old path */}
+          <Route path="/hoatdongbenhvien/schema" element={<DataSourceExplanation />} />
           
         </Route>
 
