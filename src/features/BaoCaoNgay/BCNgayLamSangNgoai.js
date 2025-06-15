@@ -2,17 +2,17 @@ import {
   Box,
   Button,
   Card,
-  CardHeader,
   Container,
-  Select,
   Stack,
   Typography,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
 import { useForm } from "react-hook-form";
 
-import { shallowEqual, useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { FTextField, FormProvider } from "../../components/form";
 import BenhNhanInsertForm from "../BenhNhan/BenhNhanInsertForm";
@@ -26,6 +26,7 @@ import dayjs from "dayjs";
 import { fDate } from "../../utils/formatTime";
 import { getDataBCGiaoBanCurent } from "../BCGiaoBan/bcgiaobanSlice";
 import { CheckDisplayKhoa } from "../../utils/heplFuntion";
+import BaoCaoKhoa from "./BaoCaoKhoa";
 
 const RegisterSchema = Yup.object().shape({
   // TongVP: Yup.number().typeError("Must be a number").required("Field is required"),
@@ -47,14 +48,13 @@ function BCNgayLamSangNgoai() {
     bcGiaoBanTheoNgay,
     khoas,
     ctChiSos,
-    isLoading,
   } = useSelector((state) => state.baocaongay);
-  const { bcGiaoBanCurent} = useSelector((state)=>state.bcgiaoban);
+  const { bcGiaoBanCurent } = useSelector((state) => state.bcgiaoban);
   console.log("bcGiaobantheongay", bcGiaoBanTheoNgay);
   const defaultValues = {
-    BSTruc:  "",
-    DDTruc:  "",
-    CBThemGio:"",
+    BSTruc: "",
+    DDTruc: "",
+    CBThemGio: "",
     TongVP: 0,
     TongBH: 0,
     TongNB: 0,
@@ -62,7 +62,12 @@ function BCNgayLamSangNgoai() {
   console.log("defaultvalue", defaultValues);
   const [tenkhoa, setTenkhoa] = useState("");
   const [ngay, setNgay] = useState();
-  
+  const [tabValue, setTabValue] = useState(0);
+  const [makhoaCurrent, setMakhoaCurrent] = useState(null);
+
+  const handleChangeTab = (event, newValue) => {
+    setTabValue(newValue);
+  };
 
   const methods = useForm({
     resolver: yupResolver(RegisterSchema),
@@ -70,43 +75,57 @@ function BCNgayLamSangNgoai() {
   });
   const {
     handleSubmit,
-    reset,
     setValue,
     formState: { isSubmitting },
   } = methods;
 
-  const [coQuyen,setCoQuyen] = useState(false )
+  const [coQuyen, setCoQuyen] = useState(false);
   const dispatch = useDispatch();
-  useEffect(()=>{
-    if(bcGiaoBanTheoNgay.Ngay)
-    {
-
-      dispatch(getDataBCGiaoBanCurent(bcGiaoBanTheoNgay.Ngay))   
+  useEffect(() => {
+    if (bcGiaoBanTheoNgay.Ngay) {
+      dispatch(getDataBCGiaoBanCurent(bcGiaoBanTheoNgay.Ngay));
     }
-    
-  },[bcGiaoBanTheoNgay])
-
+  }, [bcGiaoBanTheoNgay, dispatch]);
   useEffect(() => {
     if (bcGiaoBanCurent && user && user.KhoaID && bcGiaoBanTheoNgay && khoas) {
       const trangthai = bcGiaoBanCurent.TrangThai;
       const phanquyen = user.PhanQuyen;
       const makhoaUser = user.KhoaID.MaKhoa;
-      const foundKhoa = khoas.find((khoa) => khoa._id === bcGiaoBanTheoNgay.KhoaID);
+      const foundKhoa = khoas.find(
+        (khoa) => khoa._id === bcGiaoBanTheoNgay.KhoaID
+      );
       const makhoaCurent = foundKhoa ? foundKhoa.MaKhoa : null;
-      console.log("checkdisplay", trangthai, phanquyen, makhoaUser, makhoaCurent);
-      setCoQuyen(CheckDisplayKhoa(phanquyen,trangthai,makhoaUser,makhoaCurent))
+      console.log(
+        "checkdisplay",
+        trangthai,
+        phanquyen,
+        makhoaUser,
+        makhoaCurent
+      );
+      setCoQuyen(
+        CheckDisplayKhoa(phanquyen, trangthai, makhoaUser, makhoaCurent)
+      );
+      setMakhoaCurrent(makhoaCurent);
     }
   }, [bcGiaoBanCurent, user, bcGiaoBanTheoNgay, khoas]);
 
-
   useEffect(() => {
     //set value cho cac truong trong form
-    setValue('BSTruc', bcGiaoBanTheoNgay.BSTruc || "");
-  setValue('DDTruc', bcGiaoBanTheoNgay.DDTruc || "");
-  setValue('CBThemGio', bcGiaoBanTheoNgay.CBThemGio || "");
-  setValue('TongVP', ctChiSos.find(obj=>obj.ChiSoCode==="ls-VienPhi")?.SoLuong || 0);
-  setValue('TongBH', ctChiSos.find(obj=>obj.ChiSoCode==="ls-BaoHiem")?.SoLuong || 0);
-  setValue('TongNB', ctChiSos.find(obj=>obj.ChiSoCode==="ls-TongNB")?.SoLuong || 0);
+    setValue("BSTruc", bcGiaoBanTheoNgay.BSTruc || "");
+    setValue("DDTruc", bcGiaoBanTheoNgay.DDTruc || "");
+    setValue("CBThemGio", bcGiaoBanTheoNgay.CBThemGio || "");
+    setValue(
+      "TongVP",
+      ctChiSos.find((obj) => obj.ChiSoCode === "ls-VienPhi")?.SoLuong || 0
+    );
+    setValue(
+      "TongBH",
+      ctChiSos.find((obj) => obj.ChiSoCode === "ls-BaoHiem")?.SoLuong || 0
+    );
+    setValue(
+      "TongNB",
+      ctChiSos.find((obj) => obj.ChiSoCode === "ls-TongNB")?.SoLuong || 0
+    );
 
     //Hiển thị khoa và ngày
     if (bcGiaoBanTheoNgay.KhoaID) {
@@ -124,14 +143,12 @@ function BCNgayLamSangNgoai() {
       setNgay(ngayFns);
       if (TenKhoa) setTenkhoa(TenKhoa);
     }
-  }, [bcGiaoBanTheoNgay, khoas,ctChiSos,setValue]);
-
+  }, [bcGiaoBanTheoNgay, khoas, ctChiSos, setValue]);
   const [tenLoaiBN, setTenLoaiBN] = useState("");
   const [loaiBN, setLoaiBN] = useState(0);
   const [openEdit, setOpenEdit] = useState(false);
-  const handleClickOpenEditPostForm = () => {
-    setOpenEdit(true);
-  };
+
+  // Xử lý đóng/mở form
   const handleCloseEditPostForm = () => {
     setOpenEdit(false);
   };
@@ -139,7 +156,7 @@ function BCNgayLamSangNgoai() {
     // Code to save changes goes here
     setOpenEdit(false);
   };
-  
+
   const handleCapNhatDuLieu = (data) => {
     //Set ChitietChiSols-TongNB
 
@@ -162,6 +179,7 @@ function BCNgayLamSangNgoai() {
       BSTruc: data.BSTruc,
       DDTruc: data.DDTruc,
       CBThemGio: data.CBThemGio,
+      IsForKhoa: false,
       ChiTietBenhNhan: [
         ...bnTuVongs,
         ...bnChuyenViens,
@@ -174,9 +192,7 @@ function BCNgayLamSangNgoai() {
       ChiTietChiSo: ctChiSo,
     };
 
-    console.log("BaoCaoNgay", data);
-    console.log("user", user);
-    console.log("BaoCaoNgay", bcNgayKhoa);
+    console.log("BaoCaoNgay Khoa", bcNgayKhoa);
     dispatch(insertOrUpdateBaoCaoNgay(bcNgayKhoa));
   };
   const handleEdit = (tenloai, loaiBN) => {
@@ -187,193 +203,277 @@ function BCNgayLamSangNgoai() {
     console.log("click");
   };
 
-  
+  // Kiểm tra có hiển thị tab báo cáo riêng theo khoa không
+  const showBaoCaoKhoaTab = makhoaCurrent === "NgoaiYC";
 
   return (
     <Container>
       <Stack>
-        <FormProvider
-          methods={methods}
-          onSubmit={handleSubmit(handleCapNhatDuLieu)}
-        >
-          <Stack direction="row" spacing={2} mt={3}>
-            <Typography variant="h4" sx={{ mb: 3,textAlign:'center'}}>
-              Báo cáo {tenkhoa} ngày {ngay}
-            </Typography>
-            <Box sx={{ flexGrow: 1 }} />
-            {coQuyen&&(
-
-            <LoadingButton
-              type="submit"
-              variant="contained"
-              size="small"
-              loading={isSubmitting}
+        {" "}
+        {/* <Typography variant="h4" sx={{ mb: 3, textAlign: 'center' }}>
+          Báo cáo {tenkhoa} ngày {ngay}
+        </Typography>
+         */}
+        {showBaoCaoKhoaTab && (
+          <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
+            <Tabs
+              value={tabValue}
+              onChange={handleChangeTab}
+              aria-label="báo cáo tabs"
             >
-              Lưu
-            </LoadingButton>
-            )}
-          </Stack>
-
-          <Stack direction="row" spacing={5} my={3}>
-            <FTextField name="BSTruc" label="Bác sĩ trực" />
-            <FTextField name="DDTruc" label="Điều dưỡng trực" />
-            <FTextField name="CBThemGio" label="Cán bộ làm thêm giờ" />
-          </Stack>
-          <Stack direction="row" spacing={5} mb={3}>
-            <FTextField name="TongNB" label="Tổng số NB" />
-            <FTextField name="TongBH" label="Số NB bảo hiểm" />
-            <FTextField name="TongVP" label="Số NB viện phí" />
-          </Stack>
-        </FormProvider>
-        <Stack >
-          <Card sx={{display: 'flex', flexDirection: 'row', flexWrap:'wrap',p:2, justifyContent: "space-around" }}>
-          <Card variant="outlined" sx={{p:1,display: 'flex', flexDirection: 'column', alignItems:'center'}}>
-            {/* <CardHeader title="Tử vong" variant="h6" /> */}
-            <Typography variant="h6" m={1}>
-              Tử vong : {bnTuVongs.length}
-            </Typography>
-            
-            {coQuyen&&(
-
-            <Button
-              onClick={() => handleEdit("tử vong", 1)}
-              variant="contained"
+              <Tab label="Báo cáo toàn viện" />
+              <Tab label="Báo cáo riêng theo khoa" />
+            </Tabs>
+          </Box>
+        )}
+        {!showBaoCaoKhoaTab || tabValue === 0 ? (
+          <>
+            <FormProvider
+              methods={methods}
+              onSubmit={handleSubmit(handleCapNhatDuLieu)}
             >
-              Thêm
-            </Button>
+              <Stack direction="row" spacing={2} mt={3}>
+                <Box sx={{ flexGrow: 1 }} />
+                {coQuyen && (
+                  <LoadingButton
+                    type="submit"
+                    variant="contained"
+                    size="small"
+                    loading={isSubmitting}
+                  >
+                    Lưu
+                  </LoadingButton>
+                )}
+              </Stack>
+
+              <Stack direction="row" spacing={5} my={3}>
+                <FTextField name="BSTruc" label="Bác sĩ trực" />
+                <FTextField name="DDTruc" label="Điều dưỡng trực" />
+                <FTextField name="CBThemGio" label="Cán bộ làm thêm giờ" />
+              </Stack>
+              <Stack direction="row" spacing={5} mb={3}>
+                <FTextField name="TongNB" label="Tổng số NB" />
+                <FTextField name="TongBH" label="Số NB bảo hiểm" />
+                <FTextField name="TongVP" label="Số NB viện phí" />
+              </Stack>
+            </FormProvider>
+            <Stack>
+              <Card
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  p: 2,
+                  justifyContent: "space-around",
+                }}
+              >
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  {/* <CardHeader title="Tử vong" variant="h6" /> */}
+                  <Typography variant="h6" m={1}>
+                    Tử vong : {bnTuVongs.length}
+                  </Typography>
+
+                  {coQuyen && (
+                    <Button
+                      onClick={() => handleEdit("tử vong", 1)}
+                      variant="contained"
+                    >
+                      Thêm
+                    </Button>
+                  )}
+                </Card>
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="h6" m={1}>
+                    Chuyển viện: {bnChuyenViens.length}
+                  </Typography>
+                  {coQuyen && (
+                    <Button
+                      onClick={() => handleEdit("chuyển viện", 2)}
+                      variant="contained"
+                    >
+                      Thêm
+                    </Button>
+                  )}
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="h6" m={1}>
+                    Xin về: {bnXinVes.length}
+                  </Typography>
+                  {coQuyen && (
+                    <Button
+                      onClick={() => handleEdit("xin về", 3)}
+                      variant="contained"
+                    >
+                      Thêm
+                    </Button>
+                  )}
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="h6" m={1}>
+                    NB Nặng : {bnNangs.length}
+                  </Typography>
+                  {coQuyen && (
+                    <Button
+                      onClick={() => handleEdit("nặng", 4)}
+                      variant="contained"
+                    >
+                      Thêm
+                    </Button>
+                  )}
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="h6" m={1}>
+                    Phẫu thuật : {bnPhauThuats.length}
+                  </Typography>
+                  {coQuyen && (
+                    <Button
+                      onClick={() => handleEdit("phẫu thuật", 5)}
+                      variant="contained"
+                    >
+                      Thêm
+                    </Button>
+                  )}
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="h6" m={1}>
+                    Ngoài giờ: {bnNgoaiGios.length}
+                  </Typography>
+                  {coQuyen && (
+                    <Button
+                      onClick={() => handleEdit("ngoài giờ", 6)}
+                      variant="contained"
+                    >
+                      Thêm
+                    </Button>
+                  )}
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  sx={{
+                    p: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="h6" m={1}>
+                    Theo dõi: {bnTheoDois.length}
+                  </Typography>
+                  {coQuyen && (
+                    <Button
+                      onClick={() => handleEdit("theo giờ", 8)}
+                      variant="contained"
+                    >
+                      Thêm
+                    </Button>
+                  )}
+                </Card>
+              </Card>
+              <BenhNhanInsertForm
+                open={openEdit}
+                handleClose={handleCloseEditPostForm}
+                handleSave={handleSaveEditPostForm}
+                tenLoaiBN={tenLoaiBN}
+                loaiBN={loaiBN}
+                benhnhan={{}}
+              />
+            </Stack>
+            {bnTuVongs.length > 0 && (
+              <ListBenhNhanCard
+                benhnhans={bnTuVongs}
+                title="Người bệnh tử vong"
+              />
             )}
-          </Card>
-          <Card variant="outlined" sx={{p:1,display: 'flex', flexDirection: 'column', alignItems:'center'}}>
-            <Typography variant="h6" m={1}>
-              Chuyển viện: {bnChuyenViens.length}
-            </Typography>
-            {coQuyen&&(
-              
-            <Button
-              onClick={() => handleEdit("chuyển viện", 2)}
-              variant="contained"
-            >
-              Thêm
-            </Button>
-              )}
-          </Card>
-
-          <Card variant="outlined" sx={{p:1,display: 'flex', flexDirection: 'column', alignItems:'center'}}>
-            <Typography variant="h6" m={1}>
-              Xin về: {bnXinVes.length}
-            </Typography>
-            {coQuyen&&(
-              
-            <Button onClick={() => handleEdit("xin về", 3)} variant="contained">
-              Thêm
-            </Button>
+            {bnChuyenViens.length > 0 && (
+              <ListBenhNhanCard
+                benhnhans={bnChuyenViens}
+                title="Người bệnh chuyển viện"
+              />
             )}
-          </Card>
-
-          <Card variant="outlined" sx={{p:1,display: 'flex', flexDirection: 'column', alignItems:'center'}}>
-            <Typography variant="h6" m={1}>
-              NB Nặng : {bnNangs.length}
-            </Typography>
-            {coQuyen&&(
-              
-            <Button onClick={() => handleEdit("nặng", 4)} variant="contained">
-              Thêm
-            </Button>
+            {bnXinVes.length > 0 && (
+              <ListBenhNhanCard
+                benhnhans={bnXinVes}
+                title="Người bệnh nặng xin về"
+              />
             )}
-          </Card>
-
-          <Card variant="outlined" sx={{p:1,display: 'flex', flexDirection: 'column', alignItems:'center'}}>
-            <Typography variant="h6" m={1}>
-              Phẫu thuật : {bnPhauThuats.length}
-            </Typography>
-            {coQuyen&&(
-              
-            <Button
-              onClick={() => handleEdit("phẫu thuật", 5)}
-              variant="contained"
-            >
-              Thêm
-            </Button>
+            {bnNangs.length > 0 && (
+              <ListBenhNhanCard benhnhans={bnNangs} title="Người bệnh nặng" />
             )}
-          </Card>
-
-          <Card variant="outlined" sx={{p:1,display: 'flex', flexDirection: 'column', alignItems:'center'}}>
-            <Typography variant="h6" m={1}>
-              Ngoài giờ: {bnNgoaiGios.length}
-            </Typography>
-            {coQuyen&&(
-              
-            <Button
-              onClick={() => handleEdit("ngoài giờ", 6)}
-              variant="contained"
-            >
-              Thêm
-            </Button>
+            {bnPhauThuats.length > 0 && (
+              <ListBenhNhanCard
+                benhnhans={bnPhauThuats}
+                title="Người bệnh phẫu thuật"
+              />
             )}
-          </Card>
-
-          <Card variant="outlined" sx={{p:1,display: 'flex', flexDirection: 'column', alignItems:'center'}}>
-            <Typography variant="h6" m={1}>
-              Theo dõi: {bnTheoDois.length}
-            </Typography>
-            {coQuyen&&(
-              
-            <Button
-              onClick={() => handleEdit("theo giờ", 8)}
-              variant="contained"
-            >
-              Thêm
-            </Button>
+            {bnNgoaiGios.length > 0 && (
+              <ListBenhNhanCard
+                benhnhans={bnNgoaiGios}
+                title="Người bệnh vào viện ngoài giờ"
+              />
             )}
-          </Card>
-          </Card>
-          <BenhNhanInsertForm
-            open={openEdit}
-            handleClose={handleCloseEditPostForm}
-            handleSave={handleSaveEditPostForm}
-            tenLoaiBN={tenLoaiBN}
-            loaiBN={loaiBN}
-            benhnhan={{}}
-          />
-        </Stack>
-
-        {bnTuVongs.length > 0 && (
-          <ListBenhNhanCard benhnhans={bnTuVongs} title="Người bệnh tử vong" />
+            {bnTheoDois.length > 0 && (
+              <ListBenhNhanCard
+                benhnhans={bnTheoDois}
+                title="Người bệnh theo dõi"
+              />
+            )}
+          </>
+        ) : (
+          showBaoCaoKhoaTab && <BaoCaoKhoa />
         )}
-        {bnChuyenViens.length > 0 && (
-          <ListBenhNhanCard
-            benhnhans={bnChuyenViens}
-            title="Người bệnh chuyển viện"
-          />
-        )}
-        {bnXinVes.length > 0 && (
-          <ListBenhNhanCard
-            benhnhans={bnXinVes}
-            title="Người bệnh nặng xin về"
-          />
-        )}
-        {bnNangs.length > 0 && (
-          <ListBenhNhanCard benhnhans={bnNangs} title="Người bệnh nặng" />
-        )}
-        {bnPhauThuats.length > 0 && (
-          <ListBenhNhanCard
-            benhnhans={bnPhauThuats}
-            title="Người bệnh phẫu thuật"
-          />
-        )}
-        {bnNgoaiGios.length > 0 && (
-          <ListBenhNhanCard
-            benhnhans={bnNgoaiGios}
-            title="Người bệnh vào viện ngoài giờ"
-          />
-        )}
-        {bnTheoDois.length > 0 && (
-          <ListBenhNhanCard
-            benhnhans={bnTheoDois}
-            title="Người bệnh theo dõi"
-          />
-        )}
-
       </Stack>
     </Container>
   );

@@ -33,14 +33,15 @@ import ImageIcon from "@mui/icons-material/Image";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
-import { removeBenhNhanInList } from "../BaoCaoNgay/baocaongaySlice";
-import { transferBenhNhanFromChung } from "../BaoCaoNgay/baocaongay_riengtheokhoaSlice";
-import BenhNhanEditForm from "./BenhNhanEditForm";
+
+import { removeBenhNhanInList } from "features/BaoCaoNgay/baocaongay_riengtheokhoaSlice";
+import { transferBenhNhanFromRieng } from "features/BaoCaoNgay/baocaongaySlice";
+import BenhNhanEditFormRieng from "./BenhNhanEditFormRieng";
 
 // import useAuth from "../../hooks/useAuth";
 // import ActionButton from "./ActionButton";
 
-function BenhNhanCard({ benhnhan }) {
+function BenhNhanCardRieng({ benhnhan }) {
   const {
     TenBenhNhan,
     Tuoi,
@@ -79,8 +80,8 @@ function BenhNhanCard({ benhnhan }) {
   };
 
   const handleTransfer = () => {
-    dispatch(transferBenhNhanFromChung(benhnhan));
-    console.log("BN transfer to rieng", benhnhan);
+    dispatch(transferBenhNhanFromRieng(benhnhan));
+    console.log("BN transfer to chung", benhnhan);
     setAnchorEl(null);
   };
 
@@ -141,7 +142,7 @@ function BenhNhanCard({ benhnhan }) {
             ? "0 8px 25px rgba(0,0,0,0.15)"
             : "0 2px 10px rgba(0,0,0,0.08)",
           border: "1px solid",
-          borderColor: cardHover ? "primary.main" : alpha("#E0E0E0", 0.5),
+          borderColor: cardHover ? "secondary.main" : alpha("#E0E0E0", 0.5),
           transform: cardHover ? "translateY(-4px)" : "translateY(0px)",
           cursor: "pointer",
           overflow: "hidden",
@@ -152,7 +153,7 @@ function BenhNhanCard({ benhnhan }) {
             left: 0,
             width: "4px",
             height: "100%",
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
             opacity: cardHover ? 1 : 0.7,
             transition: "opacity 0.3s ease",
           },
@@ -166,7 +167,7 @@ function BenhNhanCard({ benhnhan }) {
           <Stack direction="row" alignItems="flex-start" spacing={2} mb={2}>
             <Avatar
               sx={{
-                bgcolor: "primary.main",
+                bgcolor: "secondary.main",
                 width: 48,
                 height: 48,
                 fontSize: "1.1rem",
@@ -196,9 +197,9 @@ function BenhNhanCard({ benhnhan }) {
                   size="small"
                   variant="outlined"
                   sx={{
-                    borderColor: "primary.main",
-                    color: "primary.main",
-                    "& .MuiChip-icon": { color: "primary.main" },
+                    borderColor: "secondary.main",
+                    color: "secondary.main",
+                    "& .MuiChip-icon": { color: "secondary.main" },
                     width: "fit-content",
                   }}
                 />
@@ -346,6 +347,7 @@ function BenhNhanCard({ benhnhan }) {
             </Box>
           )}
         </CardContent>
+
         {/* Menu */}
         <Menu
           anchorEl={anchorEl}
@@ -385,7 +387,7 @@ function BenhNhanCard({ benhnhan }) {
             <TransferWithinAStationIcon
               sx={{ fontSize: 18, color: "warning.main" }}
             />
-            <Typography variant="body2">Chuyển về khoa</Typography>
+            <Typography variant="body2">Chuyển lên toàn viện</Typography>
           </MenuItem>
 
           <Divider />
@@ -401,7 +403,8 @@ function BenhNhanCard({ benhnhan }) {
             <DeleteIcon sx={{ fontSize: 18, color: "error.main" }} />
             <Typography variant="body2">Xóa</Typography>
           </MenuItem>
-        </Menu>{" "}
+        </Menu>
+
         {/* Dialogs */}
         <Dialog
           open={open}
@@ -450,6 +453,7 @@ function BenhNhanCard({ benhnhan }) {
             </Button>
           </DialogActions>
         </Dialog>
+
         <Dialog
           open={showImages}
           onClose={handleCloseImages}
@@ -503,7 +507,8 @@ function BenhNhanCard({ benhnhan }) {
             </Button>
           </DialogActions>
         </Dialog>
-        <BenhNhanEditForm
+
+        <BenhNhanEditFormRieng
           open={openEdit}
           handleClose={handleCloseEditForm}
           benhnhan={benhnhan}
@@ -513,4 +518,4 @@ function BenhNhanCard({ benhnhan }) {
   );
 }
 
-export default BenhNhanCard;
+export default BenhNhanCardRieng;

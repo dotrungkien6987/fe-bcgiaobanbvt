@@ -64,6 +64,7 @@ function KhoaForm({ open, handleClose, khoa }) {
     { value: "xn", label: "Xét nghiệm" },
     { value: "hhtm", label: "Huyết học truyền máu" },
     { value: "pkyc", label: "Phòng khám yêu cầu" },
+    { value: "phong", label: "Phòng ban" },
     { value: "khac", label: "Khác" },
   ];
 

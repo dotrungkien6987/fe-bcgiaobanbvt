@@ -51,7 +51,8 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.phongNoiTru = action.payload;
-    },    getAllStatsSuccess(state, action) {
+    },   
+     getAllStatsSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
       state.allStats = action.payload;
@@ -142,10 +143,11 @@ export const getAllSoThuTuStats = (date, departmentIds) => async (dispatch) => {
     const response = await apiService.post("/his/sothutu/all-stats", { date, departmentIds });
     
     // Update all states
+    
     dispatch(slice.actions.getPhongKhamSuccess(response.data.data.phongKham));
     dispatch(slice.actions.getPhongThucHienSuccess(response.data.data.phongThucHien));
     dispatch(slice.actions.getPhongLayMauSuccess(response.data.data.phongLayMau));
-    // dispatch(slice.actions.getPhongNoiTruSuccess(response.data.data.phongNoiTru));
+    dispatch(slice.actions.getPhongNoiTruSuccess(response.data.data.phongDieuTri));
   } catch (error) {
     dispatch(slice.actions.hasError(error.message || "Không thể lấy dữ liệu số thứ tự"));
     toast.error(error.message || "Không thể lấy dữ liệu số thứ tự");

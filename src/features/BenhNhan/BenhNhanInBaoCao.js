@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 
 import {
-  
   Typography,
-  
   Divider,
-  
   Paper,
   Container,
   Grid,
@@ -26,12 +23,20 @@ import { useSelector } from "react-redux";
 
 function BenhNhanInBaoCao({ benhnhan, tenkhoa, loaibenhnhan }) {
   const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
-  const styleTextNomal = { color: "#1939B7",fontStyle: "italic",fontSize:"1.03rem" }
-  let commonStyleTextNomalReponsive = isSmallScreen ? {...styleTextNomal, fontSize: '0.8rem'} : {...styleTextNomal};
-  const {darkMode} = useSelector((state)=>state.mytheme)
-  commonStyleTextNomalReponsive = darkMode?{...commonStyleTextNomalReponsive,color:"#FFF"}:{...commonStyleTextNomalReponsive}
-  
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const styleTextNomal = {
+    color: "#1939B7",
+    fontStyle: "italic",
+    fontSize: "1.03rem",
+  };
+  let commonStyleTextNomalReponsive = isSmallScreen
+    ? { ...styleTextNomal, fontSize: "0.8rem" }
+    : { ...styleTextNomal };
+  const { darkMode } = useSelector((state) => state.mytheme);
+  commonStyleTextNomalReponsive = darkMode
+    ? { ...commonStyleTextNomalReponsive, color: "#FFF" }
+    : { ...commonStyleTextNomalReponsive };
+
   const {
     TenBenhNhan,
     Tuoi,
@@ -46,17 +51,25 @@ function BenhNhanInBaoCao({ benhnhan, tenkhoa, loaibenhnhan }) {
     HienTai,
     GhiChu,
     TenKhoa,
-    
+
     Stt,
   } = benhnhan;
   const [isOpen, setIsOpen] = useState(false);
   // const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   return (
-    <Container sx={{my:1}}>
+    <Container sx={{ my: 1 }}>
       <Paper elevation={3} sx={{ p: 3 }}>
         {/* Tiêu đề */}
-        <Typography variant="h6" align="center" sx={{ fontSize:isSmallScreen?'0.9rem':"1.03rem",color:darkMode? "#FFF" :"#1939B7", marginBottom: 1}}>
+        <Typography
+          variant="h6"
+          align="center"
+          sx={{
+            fontSize: isSmallScreen ? "0.9rem" : "1.03rem",
+            color: darkMode ? "#FFF" : "#1939B7",
+            marginBottom: 1,
+          }}
+        >
           Bệnh nhân {getTextFromNumber(LoaiBN)}
         </Typography>
 
@@ -67,12 +80,18 @@ function BenhNhanInBaoCao({ benhnhan, tenkhoa, loaibenhnhan }) {
         <Grid container spacing={1}>
           {/* Cột bên trái */}
           <Grid item xs={12} sm={1.2}>
-            <Container  variant="body2" sx={{ fontSize:isSmallScreen?'0.9rem':"1.03rem",wordWrap: "break-word",color:darkMode?"#FFF":"#1939B7",
-           display: 'flex',        
-           justifyContent: 'center', 
-           alignItems: 'center' 
-          }}>
-            {TenKhoa}
+            <Container
+              variant="body2"
+              sx={{
+                fontSize: isSmallScreen ? "0.9rem" : "1.03rem",
+                wordWrap: "break-word",
+                color: darkMode ? "#FFF" : "#1939B7",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              {TenKhoa}
             </Container>
           </Grid>
 
@@ -85,96 +104,76 @@ function BenhNhanInBaoCao({ benhnhan, tenkhoa, loaibenhnhan }) {
 
           {/* Cột bên phải */}
           <Grid item xs={12} sm={9.8}>
-           
-             <Typography
-          variant="body2"
-          sx={{  color: "#bb1515",fontSize:isSmallScreen?'0.8':"1.03rem" }}
-        >
-          {Stt}. {TenBenhNhan} - {GioiTinh}- {Tuoi} tuổi - {DiaChi}
-        </Typography>
-            <Divider sx={{my:1}} />
-            { DienBien.trim() !== "" && (
-
             <Typography
               variant="body2"
-              sx={commonStyleTextNomalReponsive}
+              sx={{
+                color: "#bb1515",
+                fontSize: isSmallScreen ? "0.8" : "1.03rem",
+              }}
             >
-              - Vaò viện: {VaoVien}
+              {Stt}. {TenBenhNhan} - {GioiTinh}- {Tuoi} tuổi - {DiaChi}
             </Typography>
+            <Divider sx={{ my: 1 }} />
+            {DienBien.trim() !== "" && (
+              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                - Vaò viện: {VaoVien}
+              </Typography>
             )}
 
-            { LyDoVV.trim() !== "" && (
-
-            <Typography
-              variant="body2"
-              sx={commonStyleTextNomalReponsive}
-            >
-              - Lý do vào viện: {LyDoVV}
-            </Typography>
+            {LyDoVV.trim() !== "" && (
+              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                - Lý do vào viện: {LyDoVV}
+              </Typography>
             )}
 
-            { DienBien.trim() !== "" && (
-
-            <Typography
-              variant="body2"
-              sx={commonStyleTextNomalReponsive}
-            >
-              - Diễn biến: {DienBien}
-            </Typography>
+            {DienBien.trim() !== "" && (
+              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                - Diễn biến: {DienBien}
+              </Typography>
             )}
 
-            { ChanDoan.trim() !== "" && (
-
-            <Typography
-              variant="body2"
-              sx={commonStyleTextNomalReponsive}
-            >
-              - Chẩn đoán: {ChanDoan}
-            </Typography>
+            {ChanDoan.trim() !== "" && (
+              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                - Chẩn đoán: {ChanDoan}
+              </Typography>
             )}
 
-            { XuTri.trim() !== "" && (
-
-            <Typography
-              variant="body2"
-              sx={commonStyleTextNomalReponsive}
-            >
-              - Xử trí: {XuTri}
-            </Typography>
+            {XuTri.trim() !== "" && (
+              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                - Xử trí: {XuTri}
+              </Typography>
             )}
 
-
-            { HienTai.trim() !== "" && (
-
-            <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
-              - Hiện tại: {HienTai}
-            </Typography>
+            {HienTai.trim() !== "" && (
+              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                - Hiện tại: {HienTai}
+              </Typography>
             )}
 
-{ GhiChu.trim() !== "" && (
-  
-            <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
-              - {GhiChu}
-            </Typography>
-)}
+            {GhiChu.trim() !== "" && (
+              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                - {GhiChu}
+              </Typography>
+            )}
           </Grid>
         </Grid>
         <ImageList cols={2}>
-      {benhnhan.Images.length >0 && (benhnhan.Images.map((item,index) => (
-        <ImageListItem key={index}>
-          <img
-            src={`${item}?w=164&h=164&fit=crop&auto=format`}
-            srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
-            alt={`Ảnh-${index}`}
-            loading="lazy"
-            // onClick={() => {
-            //   setCurrentImageIndex(index);
-            //   setIsOpen(true);
-            // }}
-          />
-        </ImageListItem>
-      )))}
-    </ImageList>
+          {benhnhan.Images.length > 0 &&
+            benhnhan.Images.map((item, index) => (
+              <ImageListItem key={index}>
+                <img
+                  src={`${item}?w=164&h=164&fit=crop&auto=format`}
+                  srcSet={`${item}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
+                  alt={`Ảnh-${index}`}
+                  loading="lazy"
+                  // onClick={() => {
+                  //   setCurrentImageIndex(index);
+                  //   setIsOpen(true);
+                  // }}
+                />
+              </ImageListItem>
+            ))}
+        </ImageList>
       </Paper>
       {/* {isOpen && (
         <Lightbox

@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import baocaongaySlice from "../features/BaoCaoNgay/baocaongaySlice";
+import baocaongay_riengtheokhoaSlice from "../features/BaoCaoNgay/baocaongay_riengtheokhoaSlice";
 import bcgiaobanSlice from "../features/BCGiaoBan/bcgiaobanSlice";
 import userSlice from "../features/User/userSlice";
 import baocaosucoSlice from "../features/BaoCaoSuCo/baocaosucoSlice";
@@ -20,6 +21,7 @@ import nhomKhoaSoThuTuSlice from "../features/Slice/nhomkhoasothutuSlice";
 
 const rootReducer = {
   baocaongay: baocaongaySlice,
+  baocaongay_riengtheokhoa: baocaongay_riengtheokhoaSlice,
   bcgiaoban: bcgiaobanSlice,
   user: userSlice,
   baocaosuco: baocaosucoSlice,

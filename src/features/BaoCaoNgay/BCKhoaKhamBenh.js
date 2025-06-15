@@ -207,9 +207,9 @@ function BCKhoaKhamBenh() {
           onSubmit={handleSubmit(handleCapNhatDuLieu)}
         >
           <Stack direction="row" spacing={2} mt={3}>
-            <Typography variant="h4" sx={{ mb: 3 }}>
+            {/* <Typography variant="h4" sx={{ mb: 3 }}>
               Báo cáo {tenkhoa} ngày {ngay}
-            </Typography>
+            </Typography> */}
             <Box sx={{ flexGrow: 1 }} />
             {coQuyen&&(
 

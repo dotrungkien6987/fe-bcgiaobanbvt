@@ -21,7 +21,7 @@ const initialState = {
 };
 
 const slice = createSlice({
-  name: "baocaongay",
+  name: "baocaongay_riengtheokhoa",
   initialState,
   reducers: {
     startLoading(state) {
@@ -353,21 +353,21 @@ export const insertOrUpdateBaoCaoNgay = (bcngayKhoa) => async (dispatch) => {
       Ngay: bcngayKhoa.Ngay,
       bcGiaoBanTheoNgay: bcngayKhoa,
     };
-    const response = await apiService.post("/baocaongay", body);
+    const response = await apiService.post("/baocaongay/rieng", body);
     dispatch(slice.actions.insertOrUpdateBaoCaoNgaySuccess(response.data.data));
     toast.success("Cập nhật thành công");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
   }
 };
-export const getDataBCNgay = (date, khoaId) => async (dispatch) => {
+export const getDataBCNgay_Rieng = (date, khoaId) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
     const params = {
       KhoaID: khoaId,
       Ngay: date,
     };
-    const response = await apiService.get(`/baocaongay`, { params });
+    const response = await apiService.get(`/baocaongay/rieng`, { params });
 
     dispatch(slice.actions.getDataBCNgaySuccess(response.data.data));
   } catch (error) {
@@ -387,13 +387,13 @@ export const getKhoas = () => async (dispatch) => {
   }
 };
 
-// Thêm action chuyển bệnh nhân từ slice riêng sang slice chung
-export const transferBenhNhanFromRieng = (benhnhan) => (dispatch) => {
+// Thêm action chuyển bệnh nhân từ slice chung sang slice riêng
+export const transferBenhNhanFromChung = (benhnhan) => (dispatch) => {
   try {
-    // Thêm vào slice chung với cùng LoaiBN
+    // Thêm vào slice riêng với cùng LoaiBN
     dispatch(addBenhNhanToList(benhnhan, []));
     toast.success(
-      `Đã chuyển bệnh nhân "${benhnhan.TenBenhNhan}" lên báo cáo toàn viện`
+      `Đã chuyển bệnh nhân "${benhnhan.TenBenhNhan}" về báo cáo khoa`
     );
   } catch (error) {
     toast.error("Có lỗi xảy ra khi chuyển bệnh nhân");
