@@ -1,31 +1,38 @@
-import React from 'react';
+import React from "react";
+import { Typography } from "@mui/material";
+import { highlightVietnameseText } from "../../../utils/vietnameseUtils";
 
-// Component để hiển thị văn bản có từ khóa được tô sáng
-const HighlightText = ({ text, searchTerm }) => {
-  if (!searchTerm || !text) return <>{text}</>;
-  
-  const searchTermLower = searchTerm.toLowerCase().trim();
-  const textLower = text.toLowerCase();
-  
-  // Nếu không có từ khóa trong văn bản, trả về văn bản gốc
-  if (!searchTermLower || textLower.indexOf(searchTermLower) === -1) {
-    return <>{text}</>;
-  }
-  
-  const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
-  
+// Component để hiển thị văn bản có từ khóa được tô sáng (hỗ trợ tiếng Việt không dấu)
+const HighlightText = ({
+  text,
+  searchTerm,
+  variant = "body2",
+  component = "span",
+  ...props
+}) => {
+  const parts = highlightVietnameseText(text || "", searchTerm);
+
   return (
-    <>
-      {parts.map((part, i) => (
-        part.toLowerCase() === searchTermLower ? (
-          <span key={i} style={{ backgroundColor: '#FFEB3B', fontWeight: 'bold' }}>
-            {part}
-          </span>
-        ) : (
-          part
-        )
-      ))}
-    </>
+    <Typography variant={variant} component={component} {...props}>
+      {parts.map((part, index) => {
+        if (typeof part === "object" && part.highlight) {
+          return (
+            <span
+              key={index}
+              style={{
+                backgroundColor: "#ffeb3b",
+                fontWeight: "bold",
+                padding: "1px 2px",
+                borderRadius: "2px",
+              }}
+            >
+              {part.text}
+            </span>
+          );
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </Typography>
   );
 };
 

@@ -1,32 +1,42 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState } from "react";
 
 // material-ui
-import { Avatar, Box, ButtonBase, Divider, IconButton, Menu, MenuItem, Typography, useMediaQuery } from '@mui/material';
+import {
+  Avatar,
+  Box,
+  ButtonBase,
+  Divider,
+  IconButton,
+  Menu,
+  MenuItem,
+  Typography,
+  useMediaQuery,
+} from "@mui/material";
 
 // project-imports
-import Search from './Search';
-import Message from './Message';
-import Profile from './Profile';
-import Localization from './Localization';
-import Notification from './Notification';
-import MobileSection from './MobileSection';
-import MegaMenuSection from './MegaMenuSection';
+import Search from "./Search";
+import Message from "./Message";
+import Profile from "./Profile";
+import Localization from "./Localization";
+import Notification from "./Notification";
+import MobileSection from "./MobileSection";
+import MegaMenuSection from "./MegaMenuSection";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import useConfig from 'hooks/useConfig';
-import DrawerHeader from 'layout/MainLayout/Drawer/DrawerHeader';
-import { MenuOrientation } from 'configAble';
-import { useTheme } from '@emotion/react';
-import useAuth from 'hooks/useAuth';
+import useConfig from "hooks/useConfig";
+import DrawerHeader from "layout/MainLayout/Drawer/DrawerHeader";
+import { MenuOrientation } from "configAble";
+import { useTheme } from "@emotion/react";
+import useAuth from "hooks/useAuth";
 import PersonIcon from "@mui/icons-material/Person";
-import { useDispatch } from 'react-redux';
-import UserResetPassForm from 'features/User/UserResetPassForm';
-import avatar1 from 'assets/images/users/avatar-6.png';
+import { useDispatch } from "react-redux";
+import UserResetPassForm from "features/User/UserResetPassForm";
+import avatar1 from "assets/images/users/avatar-6.png";
 // ==============================|| HEADER - CONTENT ||============================== //
 
 const HeaderContent = () => {
   const { i18n, menuOrientation } = useConfig();
 
-  const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
+  const downLG = useMediaQuery((theme) => theme.breakpoints.down("lg"));
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const localization = useMemo(() => <Localization />, [i18n]);
@@ -102,32 +112,30 @@ const HeaderContent = () => {
       >
         Home
       </MenuItem>
-      {(user.PhanQuyen === "admin"||user.PhanQuyen === "manager") && (
-        [
-          <MenuItem
-           key="dashboard"
-            onClick={handleMenuClose}
-            to="/dashboard"
-            component={RouterLink}
-            sx={{ mx: 1 }}
-          >
-            DashBoard
-          </MenuItem>,
+      {(user.PhanQuyen === "admin" || user.PhanQuyen === "manager") && [
+        <MenuItem
+          key="dashboard"
+          onClick={handleMenuClose}
+          to="/dashboard"
+          component={RouterLink}
+          sx={{ mx: 1 }}
+        >
+          DashBoard
+        </MenuItem>,
 
-          <MenuItem
+        <MenuItem
           key="khuyencaokhoa"
-            onClick={handleMenuClose}
-            to="/khuyencaokhoa"
-            component={RouterLink}
-            sx={{ mx: 1 }}
-          >
-            Khuyến cáo khoa
-          </MenuItem>
-        ]
-      )}
+          onClick={handleMenuClose}
+          to="/khuyencaokhoa"
+          component={RouterLink}
+          sx={{ mx: 1 }}
+        >
+          Khuyến cáo khoa
+        </MenuItem>,
+      ]}
       {user.PhanQuyen === "admin" && (
         <MenuItem
-        key="admin"
+          key="admin"
           onClick={handleMenuClose}
           to="/admin"
           component={RouterLink}
@@ -138,7 +146,7 @@ const HeaderContent = () => {
       )}
 
       <MenuItem
-      key="tongtruc"
+        key="tongtruc"
         onClick={handleMenuClose}
         to="/tongtruc"
         component={RouterLink}
@@ -146,7 +154,7 @@ const HeaderContent = () => {
       >
         Lịch tổng trực
       </MenuItem>
-<MenuItem
+      <MenuItem
         onClick={handleMenuClose}
         to="/lichtruc"
         component={RouterLink}
@@ -155,7 +163,7 @@ const HeaderContent = () => {
         Lịch trực khoa/phòng khám/phòng CLS
       </MenuItem>
       <Divider sx={{ borderStyle: "dashed" }} />
-     
+
       {/* <MenuItem
         onClick={handleMenuClose}
         to="/danhsach"
@@ -166,7 +174,7 @@ const HeaderContent = () => {
       </MenuItem> */}
 
       <MenuItem
-      key="baocaosuco"
+        key="baocaosuco"
         onClick={handleMenuClose}
         to="/baocaosuco"
         component={RouterLink}
@@ -176,7 +184,7 @@ const HeaderContent = () => {
       </MenuItem>
       <Divider sx={{ borderStyle: "dashed" }} />
       <MenuItem
-      key="lopdaotaos"
+        key="lopdaotaos"
         onClick={handleMenuClose}
         to="/lopdaotaos"
         component={RouterLink}
@@ -201,7 +209,9 @@ const HeaderContent = () => {
 
   return (
     <>
-      {menuOrientation === MenuOrientation.HORIZONTAL && !downLG && <DrawerHeader open={true} />}
+      {menuOrientation === MenuOrientation.HORIZONTAL && !downLG && (
+        <DrawerHeader open={true} />
+      )}
       {/* {!downLG && <Search />} */}
       {/* {!downLG && megaMenu} */}
       {/* {!downLG && localization} */}
@@ -210,22 +220,22 @@ const HeaderContent = () => {
       {/* <Notification /> */}
       {/* <Message /> */}
       <Box sx={{ flexGrow: 1 }} />
-     
-          {renderMenu}
-          <UserResetPassForm
+
+      {renderMenu}
+      <UserResetPassForm
         open={openResetPass}
         handleClose={handleCloseResetPassForm}
         user={user}
       />
-       <ButtonBase
+      <ButtonBase
         sx={{
           p: 0.25,
           borderRadius: 1,
-          '&:hover': { bgcolor:'secondary.lighter' },
-          '&:focus-visible': {
+          "&:hover": { bgcolor: "secondary.lighter" },
+          "&:focus-visible": {
             outline: `2px solid ${theme.palette.secondary.dark}`,
-            outlineOffset: 2
-          }
+            outlineOffset: 2,
+          },
         }}
         aria-label="open profile"
         // ref={anchorRef}

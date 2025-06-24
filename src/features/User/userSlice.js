@@ -11,8 +11,9 @@ const initialState = {
   users: [],
   totalPages: 1,
   KhoaTaiChinhCurent: [],
-NhanVienUserCurrent:{},
-  userCurrent:{}
+  KhoaLichTrucCurent: [],
+  NhanVienUserCurrent: {},
+  userCurrent: {},
 };
 
 const slice = createSlice({
@@ -32,7 +33,10 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       console.log("action payload", action.payload);
-      state.users.unshift({...action.payload.user,TenKhoa:action.payload.user.KhoaID.TenKhoa});
+      state.users.unshift({
+        ...action.payload.user,
+        TenKhoa: action.payload.user.KhoaID.TenKhoa,
+      });
     },
 
     getUserSuccess(state, action) {
@@ -88,19 +92,22 @@ const slice = createSlice({
         (user) => user._id !== action.payload._id
       );
     },
-
     setKhoaTaiChinhCurentSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
       state.KhoaTaiChinhCurent = action.payload;
+    },
+    setKhoaLichTrucCurentSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.KhoaLichTrucCurent = action.payload;
     },
     setNhanVienUserCurrentSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
       if (action.payload.length > 0) {
         state.NhanVienUserCurrent = action.payload[0];
-      }
-      else {
+      } else {
         state.NhanVienUserCurrent = {};
       }
     },
@@ -115,7 +122,19 @@ const slice = createSlice({
 export default slice.reducer;
 
 export const updateUserProfile =
-  ({ UserId, Email, HoTen, KhoaID,NhanVienID, PhanQuyen, UserName, KhoaTaiChinh,UserHis,DashBoard }) =>
+  ({
+    UserId,
+    Email,
+    HoTen,
+    KhoaID,
+    NhanVienID,
+    PhanQuyen,
+    UserName,
+    KhoaTaiChinh,
+    KhoaLichTruc,
+    UserHis,
+    DashBoard,
+  }) =>
   async (dispatch) => {
     dispatch(slice.actions.startLoading());
     try {
@@ -127,6 +146,7 @@ export const updateUserProfile =
         PhanQuyen,
         UserName,
         KhoaTaiChinh,
+        KhoaLichTruc,
         UserHis,
         DashBoard,
       };
@@ -215,7 +235,7 @@ export const getUsers =
       dispatch(slice.actions.hasError(error));
       toast.error(error.message);
     }
-  }; 
+  };
 export const getAllUsers = () => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
@@ -261,6 +281,17 @@ export const setKhoaTaiChinhCurent = (khoataichinh) => (dispatch) => {
     toast.error(error.message);
   }
 };
+
+export const setKhoaLichTrucCurent = (khoalichtruc) => (dispatch) => {
+  dispatch(slice.actions.startLoading());
+  try {
+    dispatch(slice.actions.setKhoaLichTrucCurentSuccess(khoalichtruc));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
 export const setUserCurent = (user) => (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {

@@ -55,7 +55,7 @@ const ViewControls = () => {
               size="small"
             />
           }
-          label="Thủ thuật/Lấy mẫu"
+          label="Phòng thực hiện/Lấy mẫu"
         />
       </FormGroup>
       

@@ -158,7 +158,7 @@ const DepartmentSchedules = () => {
         {/* Thủ thuật */}
       {visibleTypes.includes(DEPARTMENT_TYPES.THU_THUAT) && (
         <>
-          {renderSectionTitle('Phòng Thủ Thuật', getDepartmentsByType(DEPARTMENT_TYPES.THU_THUAT).length, true)}
+          {renderSectionTitle('Phòng Thực Hiện', getDepartmentsByType(DEPARTMENT_TYPES.THU_THUAT).length, true)}
           <Grid container spacing={2}>
             <ThuThuatSchedule isCompactView={isCompactView} />
           </Grid>

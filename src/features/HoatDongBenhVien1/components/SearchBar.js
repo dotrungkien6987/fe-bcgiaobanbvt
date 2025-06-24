@@ -1,8 +1,14 @@
-import React from 'react';
-import { Box, TextField, InputAdornment, IconButton, Tooltip } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import ClearIcon from '@mui/icons-material/Clear';
-import { useHoatDongBenhVien } from '../HoatDongBenhVienProvider';
+import React from "react";
+import {
+  Box,
+  TextField,
+  InputAdornment,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import ClearIcon from "@mui/icons-material/Clear";
+import { useHoatDongBenhVien } from "../HoatDongBenhVienProvider";
 
 const SearchBar = () => {
   const { searchTerm, setSearchTerm, departments } = useHoatDongBenhVien();
@@ -12,16 +18,16 @@ const SearchBar = () => {
   };
 
   const clearSearch = () => {
-    setSearchTerm('');
+    setSearchTerm("");
   };
 
   return (
-    <Box sx={{ width: '100%', mb: 2 }}>
+    <Box sx={{ width: "100%", mb: 2 }}>
       <TextField
         fullWidth
         size="small"
         variant="outlined"
-        placeholder="Tìm kiếm theo tên khoa, điều dưỡng, bác sĩ..."
+        placeholder="Tìm kiếm theo tên khoa, điều dưỡng, bác sĩ... (hỗ trợ không dấu)"
         value={searchTerm}
         onChange={handleSearchChange}
         InputProps={{
@@ -32,13 +38,16 @@ const SearchBar = () => {
           ),
           endAdornment: searchTerm ? (
             <InputAdornment position="end">
-              <Box component="span" sx={{ 
-                fontSize: '0.75rem', 
-                color: 'text.secondary',
-                mr: 1, 
-                display: 'flex', 
-                alignItems: 'center' 
-              }}>
+              <Box
+                component="span"
+                sx={{
+                  fontSize: "0.75rem",
+                  color: "text.secondary",
+                  mr: 1,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
                 {departments.length} kết quả
               </Box>
               <Tooltip title="Xóa tìm kiếm">
@@ -50,9 +59,9 @@ const SearchBar = () => {
           ) : null,
         }}
         sx={{
-          '& .MuiOutlinedInput-root': {
-            '&.Mui-focused': {
-              boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)',
+          "& .MuiOutlinedInput-root": {
+            "&.Mui-focused": {
+              boxShadow: "0 0 0 2px rgba(25, 118, 210, 0.2)",
             },
           },
         }}

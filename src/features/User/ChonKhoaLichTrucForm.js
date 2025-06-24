@@ -30,7 +30,7 @@ import {
 import {
   Close as CloseIcon,
   Search as SearchIcon,
-  Business as BusinessIcon,
+  Schedule as ScheduleIcon,
   CheckCircle as CheckCircleIcon,
   RadioButtonUnchecked as RadioButtonUncheckedIcon,
   ExpandMore as ExpandMoreIcon,
@@ -42,9 +42,9 @@ import {
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setKhoaTaiChinhCurent } from "./userSlice";
+import { setKhoaLichTrucCurent } from "./userSlice";
 
-function ChonKhoaForm({ KhoaTaiChinh }) {
+function ChonKhoaLichTrucForm({ KhoaLichTruc }) {
   const { khoas } = useSelector((state) => state.baocaongay);
   const [open, setOpen] = useState(false);
   const [selectedKhoas, setSelectedKhoas] = useState({});
@@ -57,13 +57,13 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
   // Initialize selected khoas
   useEffect(() => {
     const initialSelected = {};
-    if (khoas && Array.isArray(KhoaTaiChinh)) {
+    if (khoas && Array.isArray(KhoaLichTruc)) {
       khoas.forEach((khoa) => {
-        initialSelected[khoa.MaKhoa] = KhoaTaiChinh.includes(khoa.MaKhoa);
+        initialSelected[khoa.MaKhoa] = KhoaLichTruc.includes(khoa.MaKhoa);
       });
       setSelectedKhoas(initialSelected);
     }
-  }, [khoas, KhoaTaiChinh]);
+  }, [khoas, KhoaLichTruc]);
 
   // Filter khoas based on search text
   const filteredKhoas = useMemo(() => {
@@ -104,9 +104,9 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
   };
 
   const handleChon = () => {
-    const chonKhoaTaiChinh = getSelectedKhoaIds(selectedKhoas);
-    console.log("Khoa chon", chonKhoaTaiChinh);
-    dispatch(setKhoaTaiChinhCurent(chonKhoaTaiChinh));
+    const chonKhoaLichTruc = getSelectedKhoaIds(selectedKhoas);
+    console.log("Khoa lịch trực chọn", chonKhoaLichTruc);
+    dispatch(setKhoaLichTrucCurent(chonKhoaLichTruc));
     setOpen(false);
   };
 
@@ -139,17 +139,17 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
       <Button
         variant="contained"
         onClick={handleOpen}
-        startIcon={<BusinessIcon />}
+        startIcon={<ScheduleIcon />}
         sx={{
-          bgcolor: "#1939B7",
-          "&:hover": { bgcolor: "#1565C0" },
+          bgcolor: "#8E24AA",
+          "&:hover": { bgcolor: "#7B1FA2" },
           borderRadius: 2,
           px: 3,
           py: 1.5,
         }}
       >
         <Badge badgeContent={selectedCount} color="error" max={99}>
-          Chọn khoa ({selectedCount})
+          Chọn khoa lịch trực ({selectedCount})
         </Badge>
       </Button>
 
@@ -168,7 +168,7 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
       >
         <DialogTitle
           sx={{
-            bgcolor: "#1939B7",
+            bgcolor: "#8E24AA",
             color: "white",
             py: 2,
             display: "flex",
@@ -177,9 +177,9 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <BusinessIcon />
+            <ScheduleIcon />
             <Typography variant="h6" fontWeight={600}>
-              Chọn khoa báo cáo
+              Chọn khoa lịch trực
             </Typography>
             <Chip
               label={`${selectedCount} khoa`}
@@ -253,14 +253,14 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
           {/* Selected Khoas Section */}
           <Collapse in={showSelected && selectedCount > 0}>
             <Box sx={{ px: 3, pb: 2 }}>
-              <Card sx={{ bgcolor: "#e3f2fd", border: "1px solid #1976d2" }}>
+              <Card sx={{ bgcolor: "#f3e5f5", border: "1px solid #8E24AA" }}>
                 <CardContent sx={{ py: 2 }}>
                   <Typography
                     variant="subtitle2"
-                    sx={{ mb: 1, color: "#1976d2" }}
+                    sx={{ mb: 1, color: "#8E24AA" }}
                   >
                     <CheckCircleIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                    Khoa đã chọn:
+                    Khoa lịch trực đã chọn:
                   </Typography>
                   <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                     {selectedKhoasList.map((khoa) => (
@@ -268,7 +268,7 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
                         key={khoa.MaKhoa}
                         label={khoa.TenKhoa}
                         onDelete={() => handleRemoveSelected(khoa.MaKhoa)}
-                        color="primary"
+                        sx={{ bgcolor: "#8E24AA", color: "white" }}
                         variant="filled"
                         size="small"
                         icon={<LocationOnIcon />}
@@ -308,12 +308,12 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
                       elevation={selectedKhoas[khoa.MaKhoa] ? 3 : 1}
                       sx={{
                         border: selectedKhoas[khoa.MaKhoa]
-                          ? "2px solid #1939B7"
+                          ? "2px solid #8E24AA"
                           : "1px solid #e0e0e0",
                         borderRadius: 2,
                         transition: "all 0.2s",
                         "&:hover": {
-                          borderColor: "#1939B7",
+                          borderColor: "#8E24AA",
                           boxShadow: 2,
                         },
                       }}
@@ -325,7 +325,7 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
                         >
                           <ListItemIcon sx={{ minWidth: 40 }}>
                             {selectedKhoas[khoa.MaKhoa] ? (
-                              <CheckCircleIcon color="primary" />
+                              <CheckCircleIcon sx={{ color: "#8E24AA" }} />
                             ) : (
                               <RadioButtonUncheckedIcon color="disabled" />
                             )}
@@ -337,11 +337,11 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
                                 fontWeight={
                                   selectedKhoas[khoa.MaKhoa] ? 600 : 400
                                 }
-                                color={
-                                  selectedKhoas[khoa.MaKhoa]
-                                    ? "primary"
-                                    : "text.primary"
-                                }
+                                sx={{
+                                  color: selectedKhoas[khoa.MaKhoa]
+                                    ? "#8E24AA"
+                                    : "text.primary",
+                                }}
                               >
                                 {khoa.TenKhoa}
                               </Typography>
@@ -360,7 +360,7 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
                             onChange={() => handleCheckboxChange(khoa.MaKhoa)}
                             sx={{
                               color: selectedKhoas[khoa.MaKhoa]
-                                ? "#1939B7"
+                                ? "#8E24AA"
                                 : undefined,
                             }}
                           />
@@ -402,8 +402,8 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
             onClick={handleChon}
             startIcon={<CheckCircleIcon />}
             sx={{
-              bgcolor: "#1939B7",
-              "&:hover": { bgcolor: "#1565C0" },
+              bgcolor: "#8E24AA",
+              "&:hover": { bgcolor: "#7B1FA2" },
               minWidth: 120,
             }}
           >
@@ -415,4 +415,4 @@ function ChonKhoaForm({ KhoaTaiChinh }) {
   );
 }
 
-export default ChonKhoaForm;
+export default ChonKhoaLichTrucForm;
