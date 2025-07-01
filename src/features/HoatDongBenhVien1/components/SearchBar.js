@@ -27,7 +27,7 @@ const SearchBar = () => {
         fullWidth
         size="small"
         variant="outlined"
-        placeholder="Tìm kiếm theo tên khoa, điều dưỡng, bác sĩ... (hỗ trợ không dấu)"
+        placeholder="Tìm kiếm theo tên khoa, điều dưỡng, bác sĩ..."
         value={searchTerm}
         onChange={handleSearchChange}
         InputProps={{

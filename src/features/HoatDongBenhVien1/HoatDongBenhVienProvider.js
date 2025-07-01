@@ -5,7 +5,7 @@
   useEffect,
   useCallback,
 } from "react";
-import { DEPARTMENT_TYPES, VIEW_MODES } from "./constants";
+import { DEPARTMENT_TYPES, VIEW_MODES, DISPLAY_MODES } from "./constants";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getLichTrucByDate,
@@ -46,6 +46,9 @@ export const HoatDongBenhVienProvider = ({ children }) => {
 
   // State cho chế độ xem
   const [viewMode, setViewMode] = useState(VIEW_MODES.COMPACT);
+
+  // State cho chế độ hiển thị (card/table)
+  const [displayMode, setDisplayMode] = useState(DISPLAY_MODES.CARD);
 
   // State cho từ khóa tìm kiếm
   const [searchTerm, setSearchTerm] = useState("");
@@ -571,6 +574,8 @@ export const HoatDongBenhVienProvider = ({ children }) => {
     departmentGroups,
     viewMode,
     toggleViewMode,
+    displayMode,
+    setDisplayMode,
     visibleTypes,
     toggleDepartmentType,
     loading,

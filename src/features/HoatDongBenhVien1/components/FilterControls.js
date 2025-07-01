@@ -4,6 +4,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useHoatDongBenhVien } from "../HoatDongBenhVienProvider";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import SearchBar from "./SearchBar";
+import ViewToggle from "./ViewToggle";
 
 const FilterControls = () => {
   const {
@@ -15,6 +16,8 @@ const FilterControls = () => {
     refreshData,
     loading,
     loadingSoThuTu,
+    displayMode,
+    setDisplayMode,
   } = useHoatDongBenhVien();
   return (
     <>
@@ -103,19 +106,31 @@ const FilterControls = () => {
                     }}
                   />
                   {loadingSoThuTu
-                    ? "Đang tải số thứ tự..."
+                    ? "Đang tải dữ liệu..."
                     : "Đang tải dữ liệu..."}
                 </>
               ) : (
-                "Làm mới dữ liệu"
+                "Hoạt động chuyên môn"
               )}
             </Button>
           </Box>
         </Grid>
       </Grid>
 
-      {/* Thêm thanh tìm kiếm */}
-      <SearchBar />
+      {/* Thêm ViewToggle và thanh tìm kiếm */}
+      <Grid container spacing={2} alignItems="center" sx={{ mb: 1 }}>
+        <Grid item xs={12} md={6}>
+          <SearchBar />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Box display="flex" justifyContent="flex-end">
+            <ViewToggle
+              viewMode={displayMode}
+              onViewModeChange={setDisplayMode}
+            />
+          </Box>
+        </Grid>
+      </Grid>
     </>
   );
 };

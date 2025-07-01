@@ -133,7 +133,8 @@ const HeaderContent = () => {
           Khuyến cáo khoa
         </MenuItem>,
       ]}
-      {user.PhanQuyen === "admin" && (
+      <Divider sx={{ borderStyle: "dashed" }} />
+      {/* {user.PhanQuyen === "admin" && (
         <MenuItem
           key="admin"
           onClick={handleMenuClose}
@@ -143,7 +144,7 @@ const HeaderContent = () => {
         >
           Admin
         </MenuItem>
-      )}
+      )} */}
 
       <MenuItem
         key="tongtruc"
@@ -162,6 +163,14 @@ const HeaderContent = () => {
       >
         Lịch trực khoa/phòng khám/phòng CLS
       </MenuItem>
+      <MenuItem
+        onClick={handleMenuClose}
+        to="/hoatdongchung"
+        component={RouterLink}
+        sx={{ mx: 1 }}
+      >
+        Hoạt động chung bệnh viện
+      </MenuItem>
       <Divider sx={{ borderStyle: "dashed" }} />
 
       {/* <MenuItem
@@ -173,16 +182,6 @@ const HeaderContent = () => {
       Danh sách sự cố y khoa
       </MenuItem> */}
 
-      <MenuItem
-        key="baocaosuco"
-        onClick={handleMenuClose}
-        to="/baocaosuco"
-        component={RouterLink}
-        sx={{ mx: 1 }}
-      >
-        Tổng hợp sự cố y khoa
-      </MenuItem>
-      <Divider sx={{ borderStyle: "dashed" }} />
       <MenuItem
         key="lopdaotaos"
         onClick={handleMenuClose}

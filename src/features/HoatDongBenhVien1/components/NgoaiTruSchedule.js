@@ -11,7 +11,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { useHoatDongBenhVien } from "../HoatDongBenhVienProvider";
-import { DEPARTMENT_TYPES } from "../constants";
+import { DEPARTMENT_TYPES, DISPLAY_MODES } from "../constants";
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectSoThuTuPhongKham,
@@ -27,11 +27,18 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import NgoaiTruTable from "./NgoaiTruTable";
 
 const NgoaiTruSchedule = ({ isCompactView }) => {
   const dispatch = useDispatch();
-  const { getDepartmentsByType, schedules, loadingSoThuTu, selectedDate } =
-    useHoatDongBenhVien();
+  const {
+    getDepartmentsByType,
+    schedules,
+    loadingSoThuTu,
+    selectedDate,
+    searchTerm,
+    displayMode,
+  } = useHoatDongBenhVien();
   const phongKhamData = useSelector(selectSoThuTuPhongKham);
   const khoasFromRedux = useSelector(selectKhoas);
   const [refreshing, setRefreshing] = useState({});
@@ -91,6 +98,22 @@ const NgoaiTruSchedule = ({ isCompactView }) => {
       </Grid>
     );
   }
+
+  if (displayMode === DISPLAY_MODES.TABLE) {
+    return (
+      <Grid item xs={12}>
+        <NgoaiTruTable
+          ngoaiTruDepartments={ngoaiTruDepartments}
+          schedules={schedules}
+          searchTerm={searchTerm}
+          loadingSoThuTu={loadingSoThuTu}
+          refreshing={refreshing}
+          onRefreshDepartment={refreshDepartmentData}
+        />
+      </Grid>
+    );
+  }
+
   return ngoaiTruDepartments.map((department) => {
     const schedule = schedules[department.maKhoa] || {
       dieuDuong: "",

@@ -116,7 +116,7 @@ function MainHeader() {
         </div>
       {/* )} */}
     
-
+<Divider sx={{ borderStyle: "dashed" }} />
       <MenuItem
         onClick={handleMenuClose}
         to="/tongtruc"
@@ -133,6 +133,15 @@ function MainHeader() {
         sx={{ mx: 1 }}
       >
         Lịch trực khoa/phòng khám/phòng CLS
+      </MenuItem>
+
+      <MenuItem
+        onClick={handleMenuClose}
+        to="/hoatdongchung"
+        component={RouterLink}
+        sx={{ mx: 1 }}
+      >
+        Hoạt động chung bệnh viện
       </MenuItem>
 
       <Divider sx={{ borderStyle: "dashed" }} />
