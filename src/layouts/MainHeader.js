@@ -154,7 +154,7 @@ function MainHeader() {
         >
           Quản lý đào tạo
         </MenuItem>
-   
+{/*    
      
      <Divider sx={{ borderStyle: "dashed" }} />
 <MenuItem
@@ -164,7 +164,7 @@ function MainHeader() {
   sx={{ mx: 1 }}
 >
   Chức năng mới
-</MenuItem>
+</MenuItem> */}
 
       <Divider sx={{ borderStyle: "dashed" }} />
       <MenuItem onClick={handleResetPass} component={RouterLink} sx={{ mx: 1 }}>

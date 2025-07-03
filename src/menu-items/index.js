@@ -24,7 +24,7 @@ lichtruc.roles = ['admin', 'default']; // Tất cả đều thấy menu lịch t
 // ==============================|| MENU ITEMS ||============================== //
 
 const menuItems = {
-  items: [newfeature, daotaos, nghiencuukhoahocs, baocao, lichtruc, hethong, admin]
+  items: [ daotaos, nghiencuukhoahocs, baocao, lichtruc, hethong, admin]
 };
 
 export default menuItems;
