@@ -1,9 +1,9 @@
-import PropTypes from 'prop-types';
-import { useEffect, useState, Fragment } from 'react';
-import { useLocation } from 'react-router';
+import PropTypes from "prop-types";
+import { useEffect, useState, Fragment } from "react";
+import { useLocation } from "react-router";
 
 // material-ui
-import { useTheme, styled } from '@mui/material/styles';
+import { useTheme, styled } from "@mui/material/styles";
 import {
   Box,
   ClickAwayListener,
@@ -14,60 +14,86 @@ import {
   Paper,
   Popper,
   Typography,
-  useMediaQuery
-} from '@mui/material';
+  useMediaQuery,
+} from "@mui/material";
 
 // third-party
 
-
 // project-imports
-import NavItem from './NavItem';
-import NavCollapse from './NavCollapse';
-import SimpleBar from 'components/third-party/SimpleBar';
-import Transitions from 'components/@extended/Transitions';
+import NavItem from "./NavItem";
+import NavCollapse from "./NavCollapse";
+import SimpleBar from "components/third-party/SimpleBar";
+import Transitions from "components/@extended/Transitions";
 
-import useConfig from 'hooks/useConfig';
-import {  useDispatch, useSelector } from 'react-redux';
+import useConfig from "hooks/useConfig";
+import { useDispatch, useSelector } from "react-redux";
 
-import { MenuOrientation, ThemeMode } from 'configAble';
+import { MenuOrientation, ThemeMode } from "configAble";
 
 // assets
-import { More2 } from 'iconsax-react';
-import { activeID } from 'features/Menu/menuSlice';
+import { More2 } from "iconsax-react";
+import { activeID } from "features/Menu/menuSlice";
 
 // ==============================|| NAVIGATION - GROUP ||============================== //
 
 const PopperStyled = styled(Popper)(({ theme }) => ({
-  overflow: 'visible',
+  overflow: "visible",
   zIndex: 1202,
   minWidth: 180,
-  '&:before': {
+  "&:before": {
     background: theme.palette.background.paper,
     content: '""',
-    display: 'block',
-    position: 'absolute',
+    display: "block",
+    position: "absolute",
     top: 5,
     left: 32,
     width: 12,
     height: 12,
-    transform: 'translateY(-50%) rotate(45deg)',
+    transform: "translateY(-50%) rotate(45deg)",
     zIndex: 120,
-    borderWidth: '6px',
-    borderStyle: 'solid',
+    borderWidth: "6px",
+    borderStyle: "solid",
     borderColor: `${theme.palette.background.paper}  transparent transparent ${theme.palette.background.paper}`,
     borderLeft: `1px solid ${theme.palette.divider}`,
-    borderTop: `1px solid ${theme.palette.divider}`
-  }
+    borderTop: `1px solid ${theme.palette.divider}`,
+    boxShadow:
+      theme.palette.mode === ThemeMode.DARK
+        ? "-2px -2px 5px rgba(0,0,0,0.2)"
+        : "-2px -2px 5px rgba(0,0,0,0.1)",
+  },
+  "& .MuiPaper-root": {
+    backdropFilter: "blur(8px)",
+    background:
+      theme.palette.mode === ThemeMode.DARK
+        ? "rgba(30, 30, 30, 0.95)"
+        : "rgba(255, 255, 255, 0.95)",
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: 8,
+    boxShadow:
+      theme.palette.mode === ThemeMode.DARK
+        ? "0 8px 32px rgba(0,0,0,0.5)"
+        : "0 8px 32px rgba(0,0,0,0.15)",
+    overflow: "hidden",
+  },
 }));
 
-const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, selectedItems, setSelectedLevel, selectedLevel }) => {
+const NavGroup = ({
+  item,
+  lastItem,
+  remItems,
+  lastItemId,
+  setSelectedItems,
+  selectedItems,
+  setSelectedLevel,
+  selectedLevel,
+}) => {
   const theme = useTheme();
   const { pathname } = useLocation();
 
   const { menuOrientation, menuCaption } = useConfig();
   const { drawerOpen, selectedID } = useSelector((state) => state.menu);
 
-  const downLG = useMediaQuery(theme.breakpoints.down('lg'));
+  const downLG = useMediaQuery(theme.breakpoints.down("lg"));
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentItem, setCurrentItem] = useState(item);
@@ -88,7 +114,7 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item, lastItem, downLG]);
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const checkOpenForParent = (child, id) => {
     child.forEach((ele) => {
       if (ele.children?.length) {
@@ -131,12 +157,18 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
 
   const Icon = currentItem?.icon;
   const itemIcon = currentItem?.icon ? (
-    <Icon variant="Bulk" size={22} color={isSelected ? theme.palette.primary.main : theme.palette.secondary.main} />
+    <Icon
+      variant="Bulk"
+      size={24}
+      color={
+        isSelected ? theme.palette.primary.main : theme.palette.secondary.main
+      }
+    />
   ) : null;
 
   const navCollapse = item.children?.map((menuItem) => {
     switch (menuItem.type) {
-      case 'collapse':
+      case "collapse":
         return (
           <NavCollapse
             key={menuItem.id}
@@ -149,11 +181,16 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
             parentId={currentItem.id}
           />
         );
-      case 'item':
+      case "item":
         return <NavItem key={menuItem.id} item={menuItem} level={1} />;
       default:
         return (
-          <Typography key={menuItem.id} variant="h6" color="error" align="center">
+          <Typography
+            key={menuItem.id}
+            variant="h6"
+            color="error"
+            align="center"
+          >
             Fix - Group Collapse or Items
           </Typography>
         );
@@ -169,7 +206,7 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
       )}
       {itemRem?.elements?.map((menu) => {
         switch (menu.type) {
-          case 'collapse':
+          case "collapse":
             return (
               <NavCollapse
                 key={menu.id}
@@ -182,11 +219,16 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
                 selectedItems={selectedItems}
               />
             );
-          case 'item':
+          case "item":
             return <NavItem key={menu.id} item={menu} level={1} />;
           default:
             return (
-              <Typography key={menu.id} variant="h6" color="error" align="center">
+              <Typography
+                key={menu.id}
+                variant="h6"
+                color="error"
+                align="center"
+              >
                 Menu Items Error
               </Typography>
             );
@@ -198,7 +240,7 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
   // menu list collapse & items
   const items = currentItem.children?.map((menu) => {
     switch (menu.type) {
-      case 'collapse':
+      case "collapse":
         return (
           <NavCollapse
             key={menu.id}
@@ -211,7 +253,7 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
             selectedItems={selectedItems}
           />
         );
-      case 'item':
+      case "item":
         return <NavItem key={menu.id} item={menu} level={1} />;
       default:
         return (
@@ -223,7 +265,8 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
   });
 
   const popperId = openMini ? `group-pop-${item.id}` : undefined;
-  const textColor = theme.palette.mode === ThemeMode.DARK ? 'secondary.400' : 'secondary.main';
+  const textColor =
+    theme.palette.mode === ThemeMode.DARK ? "secondary.400" : "secondary.main";
 
   return (
     <>
@@ -233,23 +276,58 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
             item.title &&
             drawerOpen &&
             menuCaption && (
-              <Box sx={{ pl: 3, mb: 1.5 }}>
+              <Box sx={{ pl: 3, mb: 1.5, position: "relative" }}>
                 <Typography
                   variant="h5"
-                  color={theme.palette.mode === ThemeMode.DARK ? 'textSecondary' : 'secondary.dark'}
-                  sx={{ textTransform: 'uppercase', fontSize: '0.688rem' }}
+                  color={
+                    theme.palette.mode === ThemeMode.DARK
+                      ? "textSecondary"
+                      : "secondary.dark"
+                  }
+                  sx={{
+                    textTransform: "uppercase",
+                    fontSize: "0.688rem",
+                    fontWeight: 600,
+                    letterSpacing: "0.1em",
+                    position: "relative",
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      bottom: -4,
+                      left: 0,
+                      width: 24,
+                      height: 2,
+                      bgcolor: "primary.main",
+                      borderRadius: 1,
+                      opacity: 0.6,
+                    },
+                  }}
                 >
                   {item.title}
                 </Typography>
                 {item.caption && (
-                  <Typography variant="caption" color="secondary">
+                  <Typography
+                    variant="caption"
+                    color="secondary"
+                    sx={{
+                      fontSize: "0.75rem",
+                      fontStyle: "italic",
+                      opacity: 0.8,
+                      mt: 0.5,
+                      display: "block",
+                    }}
+                  >
                     {item.caption}
                   </Typography>
                 )}
               </Box>
             )
           }
-          sx={{ mt: drawerOpen && menuCaption && item.title ? 1.5 : 0, py: 0, zIndex: 0 }}
+          sx={{
+            mt: drawerOpen && menuCaption && item.title ? 1.5 : 0,
+            py: 0,
+            zIndex: 0,
+          }}
         >
           {navCollapse}
         </List>
@@ -262,9 +340,9 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
               px: 1.5,
               my: 0.5,
               mr: 1,
-              display: 'flex',
-              alignItems: 'center',
-              borderRadius: 1
+              display: "flex",
+              alignItems: "center",
+              borderRadius: 1,
             }}
             onMouseEnter={handleClick}
             onClick={handleClick}
@@ -273,14 +351,24 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
           >
             {itemIcon && (
               <ListItemIcon sx={{ minWidth: 32 }}>
-                {currentItem.id === lastItemId ? <More2 size={22} variant="Bulk" /> : itemIcon}
+                {currentItem.id === lastItemId ? (
+                  <More2 size={22} variant="Bulk" />
+                ) : (
+                  itemIcon
+                )}
               </ListItemIcon>
             )}
             <ListItemText
               sx={{ mr: 1 }}
               primary={
-                <Typography variant="h6" color={isSelected ? 'primary' : textColor} sx={{ fontWeight: isSelected ? 500 : 400 }}>
-                  {currentItem.id === lastItemId ? "FormattedMessage" : currentItem.title}
+                <Typography
+                  variant="h6"
+                  color={isSelected ? "primary" : textColor}
+                  sx={{ fontWeight: isSelected ? 500 : 400 }}
+                >
+                  {currentItem.id === lastItemId
+                    ? "FormattedMessage"
+                    : currentItem.title}
                 </Typography>
               }
             />
@@ -291,7 +379,7 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
                 anchorEl={anchorEl}
                 placement="bottom-start"
                 style={{
-                  zIndex: 2001
+                  zIndex: 2001,
                 }}
               >
                 {({ TransitionProps }) => (
@@ -302,7 +390,7 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
                         py: 1.25,
                         boxShadow: theme.customShadows.z1,
                         border: `1px solid ${theme.palette.divider}`,
-                        backgroundImage: 'none'
+                        backgroundImage: "none",
                       }}
                     >
                       <ClickAwayListener onClickAway={handleClose}>
@@ -310,8 +398,8 @@ const NavGroup = ({ item, lastItem, remItems, lastItemId, setSelectedItems, sele
                           <SimpleBar
                             sx={{
                               minWidth: 200,
-                              overflowY: 'auto',
-                              maxHeight: 'calc(100vh - 170px)'
+                              overflowY: "auto",
+                              maxHeight: "calc(100vh - 170px)",
                             }}
                           >
                             {currentItem.id !== lastItemId ? items : moreItems}
@@ -338,7 +426,7 @@ NavGroup.propTypes = {
   setSelectedItems: PropTypes.func,
   selectedItems: PropTypes.string,
   setSelectedLevel: PropTypes.func,
-  selectedLevel: PropTypes.number
+  selectedLevel: PropTypes.number,
 };
 
 export default NavGroup;

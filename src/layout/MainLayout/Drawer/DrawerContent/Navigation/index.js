@@ -1,39 +1,38 @@
-
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from "react";
 
 // material-ui
-import { useTheme } from '@mui/material/styles';
-import { Box, Typography, useMediaQuery } from '@mui/material';
+import { useTheme } from "@mui/material/styles";
+import { Box, Typography, useMediaQuery } from "@mui/material";
 
 // project-imports
-import NavGroup from './NavGroup';
-import menuItem from 'menu-items';
-import { Menu } from 'menu-items/dashboard';
+import NavGroup from "./NavGroup";
+import menuItem from "menu-items";
+import { Menu } from "menu-items/dashboard";
 
-import { useSelector } from 'react-redux';
-import useConfig from 'hooks/useConfig';
-import { HORIZONTAL_MAX_ITEM } from 'configAble';
-import { MenuOrientation } from 'configAble';
-import useAuth from 'hooks/useAuth';
+import { useSelector } from "react-redux";
+import useConfig from "hooks/useConfig";
+import { HORIZONTAL_MAX_ITEM } from "configAble";
+import { MenuOrientation } from "configAble";
+import useAuth from "hooks/useAuth";
 
 // ==============================|| DRAWER CONTENT - NAVIGATION ||============================== //
 
 const Navigation = () => {
-  const {user} = useAuth();
-  
+  const { user } = useAuth();
+
   const theme = useTheme();
-  const downLG = useMediaQuery(theme.breakpoints.down('lg'));
+  const downLG = useMediaQuery(theme.breakpoints.down("lg"));
   const { menuOrientation } = useConfig();
   const { drawerOpen } = useSelector((state) => state.menu);
 
-  const [selectedItems, setSelectedItems] = useState('');
+  const [selectedItems, setSelectedItems] = useState("");
   const [selectedLevel, setSelectedLevel] = useState(0);
   const [menuItems, setMenuItems] = useState({ items: [] });
 
   // Kiểm tra xem user có quyền truy cập menu item hay không
   const hasAccess = (item) => {
     if (!user || !user.PhanQuyen) return false;
-    const role = user.PhanQuyen || 'default';
+    const role = user.PhanQuyen || "default";
     return item.roles?.includes(role);
   };
 
@@ -51,12 +50,14 @@ const Navigation = () => {
   let getMenu = Menu();
   // Nếu getMenu có roles, đảm bảo gán nó
   if (getMenu && !getMenu.roles) {
-    getMenu.roles = ['noibo','admin', 'daotao', 'manager', 'default']; // Dashboard hiện cho tất cả
+    getMenu.roles = ["noibo", "admin", "daotao", "manager", "default"]; // Dashboard hiện cho tất cả
   }
-  
+
   const handlerMenuItem = () => {
     // Kiểm tra xem Dashboard đã được thêm vào chưa
-    const isFound = menuItems.items.some(element => element.id === 'group-dashboard');
+    const isFound = menuItems.items.some(
+      (element) => element.id === "group-dashboard"
+    );
 
     if (getMenu?.id !== undefined && !isFound) {
       // Thêm Dashboard menu vào đầu danh sách nếu chưa có
@@ -66,13 +67,14 @@ const Navigation = () => {
     }
   };
 
-  const isHorizontal = menuOrientation === MenuOrientation.HORIZONTAL && !downLG;
+  const isHorizontal =
+    menuOrientation === MenuOrientation.HORIZONTAL && !downLG;
 
   const lastItem = isHorizontal ? HORIZONTAL_MAX_ITEM : null;
-  
+
   // Lọc menu items dựa trên phân quyền trước khi xử lý
-  const visibleItems = menuItems.items.filter(item => hasAccess(item));
-  
+  const visibleItems = menuItems.items.filter((item) => hasAccess(item));
+
   let lastItemIndex = visibleItems.length - 1;
   let remItems = [];
   let lastItemId;
@@ -80,16 +82,18 @@ const Navigation = () => {
   if (lastItem && lastItem < visibleItems.length) {
     lastItemId = visibleItems[lastItem - 1].id;
     lastItemIndex = lastItem - 1;
-    remItems = visibleItems.slice(lastItem - 1, visibleItems.length).map((item) => ({
-      title: item.title,
-      elements: item.children,
-      icon: item.icon
-    }));
+    remItems = visibleItems
+      .slice(lastItem - 1, visibleItems.length)
+      .map((item) => ({
+        title: item.title,
+        elements: item.children,
+        icon: item.icon,
+      }));
   }
 
   const navGroups = visibleItems.slice(0, lastItemIndex + 1).map((item) => {
     switch (item.type) {
-      case 'group':
+      case "group":
         return (
           <NavGroup
             key={item.id}
@@ -115,12 +119,12 @@ const Navigation = () => {
   return (
     <Box
       sx={{
-        pt: drawerOpen ? (isHorizontal ? 0 : 2) : 0,
-        '& > ul:first-of-type': { mt: 0 },
-        display: isHorizontal ? { xs: 'block', lg: 'flex' } : 'block',
-        overflowY: 'auto', 
-        height: '100%',   
-        maxHeight: '100vh' 
+        pt: drawerOpen ? (isHorizontal ? 0 : 1.5) : 0,
+        pb: 1,
+        "& > ul:first-of-type": { mt: 0 },
+        display: isHorizontal ? { xs: "block", lg: "flex" } : "block",
+        flex: 1,
+        minHeight: 0,
       }}
     >
       {navGroups}

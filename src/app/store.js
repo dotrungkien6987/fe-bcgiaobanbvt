@@ -17,6 +17,7 @@ import khoaSlice from "../features/Daotao/Khoa/khoaSlice";
 import lichtrucSlice from "../features/Slice/lichtrucSlice";
 import soThuTuSlice from "../features/Slice/soThuTuSlice";
 import nhomKhoaSoThuTuSlice from "../features/Slice/nhomkhoasothutuSlice";
+import doanraSlice from "../features/Slice/doanraSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -38,6 +39,7 @@ const rootReducer = {
   lichtruc: lichtrucSlice,
   soThuTu: soThuTuSlice,
   nhomKhoaSoThuTu: nhomKhoaSoThuTuSlice,
+  doanra: doanraSlice,
 };
 
 const store = configureStore({
