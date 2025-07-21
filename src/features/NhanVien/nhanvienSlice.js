@@ -45,6 +45,7 @@ const initialState = {
   Tinh: [],
   Huyen: [],
   Xa: [],
+  QuocGia: [],
 };
 
 const slice = createSlice({
@@ -143,6 +144,7 @@ const slice = createSlice({
       state.Tinh = action.payload.Tinh;
       state.Huyen = action.payload.Huyen;
       state.Xa = action.payload.Xa;
+      state.QuocGia = action.payload.QuocGia;
     },
     updateOrInsertDatafixSuccess(state, action) {
       state.isLoading = false;
@@ -163,6 +165,7 @@ const slice = createSlice({
       state.Tinh = action.payload.Tinh;
       state.Huyen = action.payload.Huyen;
       state.Xa = action.payload.Xa;
+      state.QuocGia = action.payload.QuocGia;
     },
     importNhanViensSuccess(state, action) {
       state.isLoading = false;
@@ -207,7 +210,7 @@ const slice = createSlice({
     getTongHopTinChiTichLuyByKhoaSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-    
+
       //danh sach can bo theo khoa
       state.tonghoptinchitichluys = action.payload.map((item) => ({
         ...item,
@@ -215,20 +218,24 @@ const slice = createSlice({
         TenKhoa: item.nhanVien.KhoaID.TenKhoa,
       }));
 
-        //Xử lý chart tỷ lệ đạt khuyến cáo
-        state.pieChartDatKhuyenCao = [];
-        const dat = state.tonghoptinchitichluys.filter((item) => item.Dat === true).length;
-        const chuadat = state.tonghoptinchitichluys.filter((item) => item.Dat === false).length;
-        
-        state.pieChartDatKhuyenCao.push({
-          label: "Đạt",
-          value:dat,
-        });
-  
-        state.pieChartDatKhuyenCao.push({
-          label: "Chưa đạt",
-          value: chuadat,
-        });
+      //Xử lý chart tỷ lệ đạt khuyến cáo
+      state.pieChartDatKhuyenCao = [];
+      const dat = state.tonghoptinchitichluys.filter(
+        (item) => item.Dat === true
+      ).length;
+      const chuadat = state.tonghoptinchitichluys.filter(
+        (item) => item.Dat === false
+      ).length;
+
+      state.pieChartDatKhuyenCao.push({
+        label: "Đạt",
+        value: dat,
+      });
+
+      state.pieChartDatKhuyenCao.push({
+        label: "Chưa đạt",
+        value: chuadat,
+      });
     },
   },
 });
@@ -355,10 +362,15 @@ export const updateOrInsertDatafix = (datafix) => async (dispatch) => {
 
 // API tổng hợp số liệu
 export const getTongHopTinChiTichLuy =
-  (fromdate, todate, KhuyenCao,MaHinhThucCapNhatList) => async (dispatch) => {
+  (fromdate, todate, KhuyenCao, MaHinhThucCapNhatList) => async (dispatch) => {
     dispatch(slice.actions.startLoading);
     try {
-      const params = { FromDate: fromdate, ToDate: todate, KhuyenCao,MaHinhThucCapNhatList };
+      const params = {
+        FromDate: fromdate,
+        ToDate: todate,
+        KhuyenCao,
+        MaHinhThucCapNhatList,
+      };
 
       const response = await apiService.get(`/nhanvien/tichluytinchi`, {
         params,
@@ -373,10 +385,10 @@ export const getTongHopTinChiTichLuy =
     }
   };
 export const getTongHopTinChiTichLuyByKhoa =
-  (fromdate, todate, KhuyenCao,khoaID) => async (dispatch) => {
+  (fromdate, todate, KhuyenCao, khoaID) => async (dispatch) => {
     dispatch(slice.actions.startLoading);
     try {
-      const params = { FromDate: fromdate, ToDate: todate, KhuyenCao,khoaID };
+      const params = { FromDate: fromdate, ToDate: todate, KhuyenCao, khoaID };
 
       const response = await apiService.get(`/nhanvien/tichluytinchitheokhoa`, {
         params,
@@ -390,7 +402,6 @@ export const getTongHopTinChiTichLuyByKhoa =
       toast.error(error.message);
     }
   };
-
 
 export const getTongHopSoLuongHinhThucCapNhatThucHien =
   (fromdate, todate) => async (dispatch) => {
@@ -446,7 +457,9 @@ export const getCoCauNguonNhanLucToanVien = () => async (dispatch) => {
 export const getCoCauNguonNhanLucByKhoa = (khoaID) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
-    const response = await apiService.get(`/nhanvien/cocaunhanluctheokhoa/${khoaID}`);
+    const response = await apiService.get(
+      `/nhanvien/cocaunhanluctheokhoa/${khoaID}`
+    );
     console.log("response for get tong hop theo khoa", response.data.data);
     dispatch(
       slice.actions.getCoCauNguonNhanLucToanVienSuccess(response.data.data)

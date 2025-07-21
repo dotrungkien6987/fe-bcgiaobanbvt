@@ -17,7 +17,7 @@ import khoaSlice from "../features/Daotao/Khoa/khoaSlice";
 import lichtrucSlice from "../features/Slice/lichtrucSlice";
 import soThuTuSlice from "../features/Slice/soThuTuSlice";
 import nhomKhoaSoThuTuSlice from "../features/Slice/nhomkhoasothutuSlice";
-import doanraSlice from "../features/Slice/doanraSlice";
+import doanraSlice from "../features/NghienCuuKhoaHoc/DoanRa/doanraSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {

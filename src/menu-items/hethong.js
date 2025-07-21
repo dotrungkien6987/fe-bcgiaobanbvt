@@ -132,6 +132,12 @@ const hethong = {
           url: '/xa'
         },
         {
+          id: 'quocgia',
+          title: 'Quốc gia',
+          type: 'item',
+          url: '/quocgia'
+        },
+        {
           id: 'Khoa',
           title: 'Danh mục khoa',
           type: 'item',

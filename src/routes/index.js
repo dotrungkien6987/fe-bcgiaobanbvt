@@ -65,6 +65,8 @@ import SoThuTuDashboard from "features/SoThuTuPhongKham/SoThuTuDashboard";
 import HoatDongDashboard from "features/HoatDongBenhVien/HoatDongDashboard";
 import DataSourceExplanation from "features/HoatDongBenhVien/DataSourceExplanation";
 import HoatDongDashBoard1 from "features/HoatDongBenhVien1/HoatDongDashBoard1";
+import DoanRaTable from "features/NghienCuuKhoaHoc/DoanRa/DoanRaTable";
+import QuocGiaTable from "features/Daotao/QuocGia/QuocGiaTable";
 
 function Router() {
   return (
@@ -177,8 +179,10 @@ function Router() {
           <Route path="/tinh" element={<TinhTable />} />
           <Route path="/Huyen" element={<HuyenTable />} />
           <Route path="/Xa" element={<XaTable />} />
+          <Route path="/quocgia" element={<QuocGiaTable />} />
           <Route path="/khoas" element={<KhoaTable />} />
           <Route path="/nhomkhoas" element={<NhomKhoaSoThuTuTable />} />
+          <Route path="/doandi" element={<DoanRaTable />} />
           
 
           {/* <Route path="*" element={<NotFoundPage />} /> */}
