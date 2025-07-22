@@ -3,6 +3,8 @@ import apiService from "../../app/apiService";
 import { removeAndRenumber } from "../../utils/heplFuntion";
 import { uploadImagesToCloudinary } from "../../utils/cloudinary";
 import { toast } from "react-toastify";
+import { remove, update } from "lodash";
+import { ca } from "date-fns/locale";
 
 const initialState = {
   isLoading: false,
@@ -16,6 +18,7 @@ const initialState = {
   bnNgoaiGios: [],
   bnCanThieps: [],
   bnTheoDois: [],
+  bnMoCCs: [],
   ctChiSos: [],
   khoas: [],
 };
@@ -71,6 +74,10 @@ const slice = createSlice({
       const benhnhan = { ...action.payload, Stt: state.bnTheoDois.length + 1 };
       state.bnTheoDois.push(benhnhan);
     },
+    addMoCCSuccess(state, action) {
+      const benhnhan = { ...action.payload, Stt: state.bnMoCCs.length + 1 };
+      state.bnMoCCs.push(benhnhan);
+    },
     //Xử lý khi update 1 Bn vào trong các list BN
     updateTuVongSuccess(state, action) {
       state.bnTuVongs[action.payload.Stt - 1] = action.payload;
@@ -96,7 +103,9 @@ const slice = createSlice({
     updateTheoDoiSuccess(state, action) {
       state.bnTheoDois[action.payload.Stt - 1] = action.payload;
     },
-
+    updateMoCCSuccess(state, action) {
+      state.bnMoCCs[action.payload.Stt - 1] = action.payload;
+    },
     //Xử lý khi xóa 1 BN trong list BN
     removeBenhNhanInTuVongSuccess(state, action) {
       const stt = action.payload.Stt;
@@ -130,6 +139,10 @@ const slice = createSlice({
     removeBenhNhanInTheoDoiSuccess(state, action) {
       const stt = action.payload.Stt;
       state.bnTheoDois = removeAndRenumber(state.bnTheoDois, stt);
+    },
+    removeBenhNhanInMoCCSuccess(state, action) {
+      const stt = action.payload.Stt;
+      state.bnMoCCs = removeAndRenumber(state.bnMoCCs, stt);
     },
     getDataBCNgaySuccess(state, action) {
       state.isLoading = false;
@@ -173,6 +186,9 @@ const slice = createSlice({
         state.bnTheoDois = baocaongay.ChiTietBenhNhan.filter(
           (BN) => BN.LoaiBN === 8
         );
+        state.bnMoCCs = baocaongay.ChiTietBenhNhan.filter(
+          (BN) => BN.LoaiBN === 9
+        );
       } else {
         console.log("get BCngay insert", action.payload);
         state.bcGiaoBanTheoNgay = {
@@ -187,6 +203,7 @@ const slice = createSlice({
         state.bnNgoaiGios = [];
         state.bnCanThieps = [];
         state.bnTheoDois = [];
+        state.bnMoCCs = [];
         state.ctChiSos = [];
       }
     },
@@ -259,6 +276,9 @@ export const addBenhNhanToList = (benhnhan, images) => async (dispatch) => {
       case 8:
         dispatch(slice.actions.addTheoDoiSuccess(benhnhan));
         break;
+      case 9:
+        dispatch(slice.actions.addMoCCSuccess(benhnhan));
+        break;
       default:
         break;
     }
@@ -305,7 +325,9 @@ export const updateBenhNhanToList = (benhnhan, images) => async (dispatch) => {
       case 8:
         dispatch(slice.actions.updateTheoDoiSuccess(benhnhan));
         break;
-
+      case 9:
+        dispatch(slice.actions.updateMoCCSuccess(benhnhan));
+        break;
       default:
         break;
     }
@@ -339,7 +361,9 @@ export const removeBenhNhanInList = (benhnhan) => (dispatch) => {
     case 8:
       dispatch(slice.actions.removeBenhNhanInTheoDoiSuccess(benhnhan));
       break;
-
+    case 9:
+      dispatch(slice.actions.removeBenhNhanInMoCCSuccess(benhnhan));
+      break;
     default:
       break;
   }
