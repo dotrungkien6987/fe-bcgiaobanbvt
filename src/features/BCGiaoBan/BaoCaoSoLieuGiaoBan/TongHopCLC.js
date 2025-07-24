@@ -22,6 +22,7 @@ function TongHopCLC() {
     hsccycBNNgoaiGios,
     noiycBNNgoaiGios,
     ngoaiycBNNgoaiGios,
+    ngoaiycBNMoCCs,
     ngoaiycBNPhauThuats,
     chisoTong,
   } = useSelector((state) => state.bcgiaoban);
@@ -96,6 +97,12 @@ function TongHopCLC() {
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
         Xin về: {clcBNXinVes.length}
+      </Typography>
+      <Typography
+        variant="body2"
+        // sx={{ color: "text.secondary", fontStyle: "italic" }}
+      >
+        Mổ cấp cứu: {ngoaiycBNMoCCs.length}
       </Typography>
       <Typography
         variant="body2"

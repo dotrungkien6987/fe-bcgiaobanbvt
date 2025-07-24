@@ -66,6 +66,7 @@ function Sumary() {
     ngoaiBNChuyenViens,
     ngoaiBNXinVes,
     ngoaiBNNangs,
+    ngoaiBNMoCCs,
     ngoaiBNPhauThuats,
     ngoaiBNTheoDois,
 
@@ -82,6 +83,7 @@ function Sumary() {
     hsccycBNNgoaiGios,
     noiycBNNgoaiGios,
     ngoaiycBNNgoaiGios,
+    ngoaiycBNMoCCs,
     ngoaiycBNPhauThuats,
     baocaongays,
     chiso,
@@ -765,6 +767,7 @@ function Sumary() {
         "ls-TuVong": 0,
         "ls-Nang": 0,
         "ls-XinVe": 0,
+        "ls-MoCC": 0,
         "ls-PhauThuat": 0,
         "ls-TheoDoi": 0,
       };
@@ -782,6 +785,7 @@ function Sumary() {
           "ls-TuVong",
           "ls-Nang",
           "ls-XinVe",
+          "ls-MoCC",
           "ls-PhauThuat",
           "ls-TheoDoi",
         ].forEach((code) => {
@@ -807,48 +811,53 @@ function Sumary() {
     console.log("row tong truc he ngoai", rowTongTrucHeNgoai);
     const tableHeNgoai = [
       [
-        { text: "Khoa", options: { ...styleCenterCell, fontSize: 13 } },
-        { text: "Bác sĩ trực", options: { ...styleCenterCell, fontSize: 13 } },
-        { text: "Tổng số", options: { ...styleCenterCell, fontSize: 13 } },
-        { text: "Vào viện", options: { ...styleCenterCell, fontSize: 13 } },
-        { text: "Chuyển viện", options: { ...styleCenterCell, fontSize: 13 } },
-        { text: "Tử vong", options: { ...styleCenterCell, fontSize: 13 } },
-        { text: "NB nặng", options: { ...styleCenterCell, fontSize: 13 } },
-        { text: "Xin về", options: { ...styleCenterCell, fontSize: 13 } },
-        { text: "Phẫu thuật", options: { ...styleCenterCell, fontSize: 13 } },
-        { text: "Theo dõi", options: { ...styleCenterCell, fontSize: 13 } },
+        { text: "Khoa", options: { ...styleCenterCell, fontSize: 12 } },
+        { text: "Bác sĩ trực", options: { ...styleCenterCell, fontSize: 12 } },
+        { text: "Tổng số", options: { ...styleCenterCell, fontSize: 12 } },
+        { text: "Vào viện", options: { ...styleCenterCell, fontSize: 12 } },
+        { text: "Chuyển viện", options: { ...styleCenterCell, fontSize: 12 } },
+        { text: "Tử vong", options: { ...styleCenterCell, fontSize: 12 } },
+        { text: "NB nặng", options: { ...styleCenterCell, fontSize: 12 } },
+        { text: "Xin về", options: { ...styleCenterCell, fontSize: 12 } },
+        { text: "Mổ cấp cứu", options: { ...styleCenterCell, fontSize: 12 } },
+        { text: "Phẫu thuật", options: { ...styleCenterCell, fontSize: 12 } },
+        { text: "Theo dõi", options: { ...styleCenterCell, fontSize: 12 } },
       ],
       ...rowTongTrucHeNgoai.map((row, index) => [
-        { text: row.TenKhoa, options: { ...styleLeftCell, fontSize: 13 } },
-        { text: row.BSTruc, options: { ...styleLeftCell, fontSize: 13 } },
+        { text: row.TenKhoa, options: { ...styleLeftCell, fontSize: 12 } },
+        { text: row.BSTruc, options: { ...styleLeftCell, fontSize: 12 } },
         {
           text: row["ls-TongNB"],
-          options: { ...styleCenterCell, fontSize: 13 },
+          options: { ...styleCenterCell, fontSize: 12 },
         },
         {
           text: row["ls-NgoaiGio"],
-          options: { ...styleCenterCell, fontSize: 13 },
+          options: { ...styleCenterCell, fontSize: 12 },
         },
         {
           text: row["ls-ChuyenVien"],
-          options: { ...styleCenterCell, fontSize: 13 },
+          options: { ...styleCenterCell, fontSize: 12 },
         },
         {
           text: row["ls-TuVong"],
-          options: { ...styleCenterCell, fontSize: 13 },
+          options: { ...styleCenterCell, fontSize: 12 },
         },
-        { text: row["ls-Nang"], options: { ...styleCenterCell, fontSize: 13 } },
+        { text: row["ls-Nang"], options: { ...styleCenterCell, fontSize: 12 } },
         {
           text: row["ls-XinVe"],
-          options: { ...styleCenterCell, fontSize: 13 },
+          options: { ...styleCenterCell, fontSize: 12 },
+        },
+        {
+          text: row["ls-MoCC"],
+          options: { ...styleCenterCell, fontSize: 12 },
         },
         {
           text: row["ls-PhauThuat"],
-          options: { ...styleCenterCell, fontSize: 13 },
+          options: { ...styleCenterCell, fontSize: 12 },
         },
         {
           text: row["ls-TheoDoi"],
-          options: { ...styleCenterCell, fontSize: 13 },
+          options: { ...styleCenterCell, fontSize: 12 },
         },
       ]),
     ];
@@ -858,7 +867,7 @@ function Sumary() {
       w: 10,
       h: 4.2,
       border: { type: "solid", color: "1939B7", pt: 1 },
-      colW: [2.2, 2, 0.7, 0.7, 0.9, 0.7, 0.7, 0.7, 0.7, 0.7],
+      colW: [2.2, 2, 0.6, 0.6, 0.9, 0.6, 0.6, 0.6, 0.6, 0.6, 0.7],
       color: "1939B7",
       fontFace: "Times New Roman",
       autoPage: true,
@@ -907,6 +916,7 @@ function Sumary() {
       ngoaiBNChuyenViens,
       ngoaiBNXinVes,
       ngoaiBNNangs,
+      ngoaiBNMoCCs,
       ngoaiBNPhauThuats,
       ngoaiBNTheoDois,
       ngoaiBNNgoaiGiosKhongGomCLC,
@@ -917,6 +927,7 @@ function Sumary() {
       "Người bệnh chuyển viện",
       "Người bệnh xin về",
       "Người bệnh nặng tại khoa",
+      "Người bệnh mổ cấp cứu",
       "Người bệnh phẫu thuật",
       "Người bệnh theo dõi",
       "Người bệnh vào viện ngoài giờ",
@@ -925,7 +936,7 @@ function Sumary() {
       //Export lstBenhNhan
       if (lstBenhNhan.length > 0) {
         //Slide chuyen ngoai gio he ngoai
-        if (index === 6) {
+        if (index === 7) {
           let slideChuyenNgoaiGio = pres.addSlide();
           slideChuyenNgoaiGio.addText("BÁO CÁO GIAO BAN TOÀN VIỆN", {
             ...styleTitle,
@@ -1771,6 +1782,7 @@ function Sumary() {
       "ls-TuVong": 0,
       "ls-Nang": 0,
       "ls-XinVe": 0,
+      "ls-MoCC": 0,
       "ls-PhauThuat": 0,
       "ls-TheoDoi": 0,
     };
@@ -1788,6 +1800,7 @@ function Sumary() {
         "ls-TuVong",
         "ls-Nang",
         "ls-XinVe",
+        "ls-MoCC",
         "ls-PhauThuat",
         "ls-TheoDoi",
       ].forEach((code) => {
@@ -1816,6 +1829,7 @@ function Sumary() {
         "Tử vong",
         "NB nặng",
         "Xin về",
+        "Mổ cấp cứu",
         "Phẫu thuật",
         "Theo dõi",
       ],
@@ -1828,6 +1842,7 @@ function Sumary() {
         row["ls-TuVong"],
         row["ls-Nang"],
         row["ls-XinVe"],
+        row["ls-MoCC"],
         row["ls-PhauThuat"],
         row["ls-TheoDoi"],
       ]),
@@ -1839,13 +1854,13 @@ function Sumary() {
       w: 10,
       h: 3.5,
       // margin: [0.5, 0.5, 0.5, 0.5],
-      colW: [2.2, 2.1, 0.7, 0.7, 0.8, 0.7, 0.7, 0.7, 0.7,0.7],
+      colW: [2.2, 2.1, 0.6, 0.6, 0.8, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6],
       align: "center",
       valign: "middle",
       border: { type: "solid", color: "1939B7", pt: 1 },
       color: "1939B7",
       fontFace: "Times New Roman",
-      fontSize: 14,
+      fontSize: 12,
       bold: true,
     });
 
@@ -2058,9 +2073,11 @@ function Sumary() {
           for (let img of benhnhan.Images) {
             let imgSlide = pres.addSlide();
             imgSlide.addText(
-              `Người bệnh vào viện ngoài giờ : ${ hsccycBNNgoaiGios.length +
+              `Người bệnh vào viện ngoài giờ : ${
+                hsccycBNNgoaiGios.length +
                 noiycBNNgoaiGios.length +
-                ngoaiycBNNgoaiGios.length}`,
+                ngoaiycBNNgoaiGios.length
+              }`,
               { ...styleTitle, h: 1 }
             );
             imgSlide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
@@ -2265,7 +2282,7 @@ function Sumary() {
       w: 10,
       h: 3.5,
       // margin: [0.5, 0.5, 0.5, 0.5],
-      colW: [2.2, 2, 0.7, 0.7, 0.9, 0.7, 0.7, 0.7, 0.7,0.7],
+      colW: [2.2, 2, 0.7, 0.7, 0.9, 0.7, 0.7, 0.7, 0.7, 0.7],
       align: "center",
       valign: "middle",
       border: { type: "solid", color: "1939B7", pt: 1 },
@@ -2617,6 +2634,7 @@ function Sumary() {
       clcBNXinVes,
       clcBNNangs,
       clcBNCanThieps,
+      // ngoaiycBNMoCCs,
       ngoaiycBNPhauThuats,
       clcBNTheoDois,
     ];

@@ -1,0 +1,102 @@
+/* Custom animations for BC Ngay component */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .statistic-card {
+    min-height: 100px !important;
+  }
+
+  .statistic-card .MuiTypography-h3 {
+    font-size: 1.8rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .statistic-card {
+    min-height: 80px !important;
+  }
+
+  .statistic-card .MuiTypography-h3 {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* Custom scrollbar */
+.patient-list-container {
+  scrollbar-width: thin;
+  scrollbar-color: #bbb #f1f1f1;
+}
+
+.patient-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.patient-list-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.patient-list-container::-webkit-scrollbar-thumb {
+  background: #bbb;
+  border-radius: 4px;
+}
+
+.patient-list-container::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Hover effects */
+.patient-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.loading-card {
+  animation: pulse 1.5s ease-in-out infinite;
+}

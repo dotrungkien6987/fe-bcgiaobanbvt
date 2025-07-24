@@ -1,29 +1,20 @@
 import React from "react";
-import {  useSelector } from "react-redux";
-import {
-  
-  Card,
-  Typography,
-  
-  Divider,
-  Stack,
- 
-} from "@mui/material";
+import { useSelector } from "react-redux";
+import { Card, Typography, Divider, Stack } from "@mui/material";
 // import { useTheme } from "@emotion/react";
 // import { commonStyle, commonStyleLeft } from "../../../utils/heplFuntion";
 
 function TongHopHeNgoai() {
-  
   const {
-    
     ngoaiBNTuvongs,
     ngoaiBNChuyenViens,
     ngoaiBNXinVes,
     ngoaiBNNangs,
+    ngoaiBNMoCCs,
     ngoaiBNPhauThuats,
     ngoaiBNTheoDois,
     ngoaiBNNgoaiGios,
-chisoTong,
+    chisoTong,
   } = useSelector((state) => state.bcgiaoban);
 
   return (
@@ -44,27 +35,27 @@ chisoTong,
         </Typography>
       </Stack>
 
-      <Divider sx={{mb:1}}/>
+      <Divider sx={{ mb: 1 }} />
 
       <Typography
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Tổng NB: {chisoTong?.TongNgoai||''}
+        Tổng NB: {chisoTong?.TongNgoai || ""}
       </Typography>
       <Typography
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        BHYT: {chisoTong?.BHYTNgoai||''}
+        BHYT: {chisoTong?.BHYTNgoai || ""}
       </Typography>
       <Typography
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-       Viện phí: {chisoTong?.VienPhiNgoai||''}
+        Viện phí: {chisoTong?.VienPhiNgoai || ""}
       </Typography>
-<Divider sx={{mb:1}}/>
+      <Divider sx={{ mb: 1 }} />
 
       <Typography
         variant="body2"
@@ -72,7 +63,7 @@ chisoTong,
       >
         Vào viện: {ngoaiBNNgoaiGios.length}
       </Typography>
-      
+
       <Typography
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
@@ -90,6 +81,12 @@ chisoTong,
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
         Nặng: {ngoaiBNNangs.length}
+      </Typography>
+      <Typography
+        variant="body2"
+        // sx={{ color: "text.secondary", fontStyle: "italic" }}
+      >
+        Mổ cấp cứu: {ngoaiBNMoCCs.length}
       </Typography>
       <Typography
         variant="body2"

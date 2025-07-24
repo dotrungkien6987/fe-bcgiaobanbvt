@@ -1,14 +1,6 @@
 import React from "react";
-import {  useSelector } from "react-redux";
-import {
- 
-  Card,
-  Typography,
- 
-  Divider,
-  Stack,
- 
-} from "@mui/material";
+import { useSelector } from "react-redux";
+import { Card, Typography, Divider, Stack } from "@mui/material";
 
 function TongHopToanVien() {
   const {
@@ -24,6 +16,7 @@ function TongHopToanVien() {
     ngoaiBNChuyenViens,
     ngoaiBNXinVes,
     ngoaiBNNangs,
+    ngoaiBNMoCCs,
     ngoaiBNPhauThuats,
     ngoaiBNTheoDois,
     ngoaiBNNgoaiGios,
@@ -46,43 +39,43 @@ function TongHopToanVien() {
           variant="body2"
           sx={{ fontWeight: "bold", color: "primary.main" }}
         >
-         Toàn viện 
+          Toàn viện
         </Typography>
       </Stack>
 
-      <Divider sx={{mb:1}}/>
-      
+      <Divider sx={{ mb: 1 }} />
+
       <Typography
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Tổng NB: {chisoTong?.TongToanVien||''}
+        Tổng NB: {chisoTong?.TongToanVien || ""}
       </Typography>
       <Typography
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        BHYT: {chisoTong?.BHYTToanVien||''}
+        BHYT: {chisoTong?.BHYTToanVien || ""}
       </Typography>
       <Typography
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-       Viện phí: {chisoTong?.VienPhiToanVien||''}
+        Viện phí: {chisoTong?.VienPhiToanVien || ""}
       </Typography>
-<Divider sx={{mb:1}}/>
+      <Divider sx={{ mb: 1 }} />
       <Typography
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Vào viện: {noiBNNgoaiGios.length +ngoaiBNNgoaiGios.length}
+        Vào viện: {noiBNNgoaiGios.length + ngoaiBNNgoaiGios.length}
       </Typography>
 
       <Typography
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Chuyển viện: {noiBNChuyenViens.length +ngoaiBNChuyenViens.length}
+        Chuyển viện: {noiBNChuyenViens.length + ngoaiBNChuyenViens.length}
       </Typography>
       <Typography
         variant="body2"
@@ -90,7 +83,6 @@ function TongHopToanVien() {
       >
         Tử vong: {noiBNTuvongs.length + ngoaiBNTuvongs.length}
       </Typography>
-      
 
       <Typography
         variant="body2"
@@ -98,11 +90,19 @@ function TongHopToanVien() {
       >
         Nặng: {noiBNNangs.length + ngoaiBNNangs.length}
       </Typography>
+
       <Typography
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Xin về: {noiBNXinVes.length +ngoaiBNXinVes.length}
+        Mổ cấp cứu: {ngoaiBNMoCCs.length}
+      </Typography>
+
+      <Typography
+        variant="body2"
+        // sx={{ color: "text.secondary", fontStyle: "italic" }}
+      >
+        Xin về: {noiBNXinVes.length + ngoaiBNXinVes.length}
       </Typography>
       <Typography
         variant="body2"

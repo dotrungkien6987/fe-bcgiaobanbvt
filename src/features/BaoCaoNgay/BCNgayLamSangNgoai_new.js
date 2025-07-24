@@ -10,7 +10,10 @@ import {
   Grid,
   Paper,
   Divider,
+  Chip,
   alpha,
+  useTheme,
+  CardContent,
   CardHeader,
   Fade,
   Zoom,
@@ -23,6 +26,7 @@ import {
   MedicalServices,
   AccessTime,
   Visibility,
+  CalendarToday,
   Business,
   Save,
   Group,
@@ -31,7 +35,6 @@ import {
   Assignment,
 } from "@mui/icons-material";
 import React, { useEffect, useState } from "react";
-import "./BCNgayLamSangNgoai.css";
 
 import { useForm } from "react-hook-form";
 
@@ -45,6 +48,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { LoadingButton } from "@mui/lab";
 import { insertOrUpdateBaoCaoNgay } from "./baocaongaySlice";
+import dayjs from "dayjs";
 import { fDate } from "../../utils/formatTime";
 import { getDataBCGiaoBanCurent } from "../BCGiaoBan/bcgiaobanSlice";
 import { CheckDisplayKhoa } from "../../utils/heplFuntion";
@@ -72,6 +76,8 @@ function BCNgayLamSangNgoai() {
     ctChiSos,
   } = useSelector((state) => state.baocaongay);
   const { bcGiaoBanCurent } = useSelector((state) => state.bcgiaoban);
+
+  const theme = useTheme();
 
   const defaultValues = {
     BSTruc: "",
@@ -217,7 +223,6 @@ function BCNgayLamSangNgoai() {
     return (
       <Zoom in={true} style={{ transitionDelay: "100ms" }}>
         <Card
-          className="statistic-card"
           sx={{
             p: 2,
             display: "flex",
@@ -282,12 +287,8 @@ function BCNgayLamSangNgoai() {
                 mt: 1,
                 minWidth: 80,
                 backgroundColor: color,
-                textTransform: "none",
-                fontWeight: 600,
-                borderRadius: 2,
                 "&:hover": {
                   backgroundColor: alpha(color, 0.8),
-                  transform: "scale(1.05)",
                 },
               }}
             >

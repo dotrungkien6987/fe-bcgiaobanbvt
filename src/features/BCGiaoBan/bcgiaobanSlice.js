@@ -30,6 +30,7 @@ const initialState = {
   ngoaiBNChuyenViens: [],
   ngoaiBNXinVes: [],
   ngoaiBNNangs: [],
+  ngoaiBNMoCCs: [],
   ngoaiBNPhauThuats: [],
   ngoaiBNNgoaiGios: [],
   ngoaiBNTheoDois: [],
@@ -44,6 +45,7 @@ const initialState = {
 
   hsccycBNNgoaiGios: [],
   noiycBNNgoaiGios: [],
+  ngoaiycBNMoCCs: [],
   ngoaiycBNPhauThuats: [],
   ngoaiycBNNgoaiGios: [],
 
@@ -138,6 +140,11 @@ const slice = createSlice({
         4,
         "ngoai"
       );
+      state.ngoaiBNMoCCs = filterChiTietBenhNhansNotExcludeTTCLC(
+        state.baocaongays,
+        9,
+        "ngoai"
+      );
       state.ngoaiBNPhauThuats = filterChiTietBenhNhansNotExcludeTTCLC(
         state.baocaongays,
         5,
@@ -201,6 +208,11 @@ const slice = createSlice({
       state.ngoaiycBNNgoaiGios = filterChiTietBenhNhansCLC(
         state.baocaongays,
         6,
+        ["NgoaiYC"]
+      );
+      state.ngoaiycBNMoCCs = filterChiTietBenhNhansCLC(
+        state.baocaongays,
+        9,
         ["NgoaiYC"]
       );
       state.ngoaiycBNPhauThuats = filterChiTietBenhNhansCLC(

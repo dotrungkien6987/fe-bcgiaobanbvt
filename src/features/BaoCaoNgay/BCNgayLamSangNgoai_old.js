@@ -10,7 +10,10 @@ import {
   Grid,
   Paper,
   Divider,
+  Chip,
   alpha,
+  useTheme,
+  CardContent,
   CardHeader,
   Fade,
   Zoom,
@@ -23,6 +26,7 @@ import {
   MedicalServices,
   AccessTime,
   Visibility,
+  CalendarToday,
   Business,
   Save,
   Group,
@@ -31,7 +35,6 @@ import {
   Assignment,
 } from "@mui/icons-material";
 import React, { useEffect, useState } from "react";
-import "./BCNgayLamSangNgoai.css";
 
 import { useForm } from "react-hook-form";
 
@@ -45,12 +48,14 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { LoadingButton } from "@mui/lab";
 import { insertOrUpdateBaoCaoNgay } from "./baocaongaySlice";
+import dayjs from "dayjs";
 import { fDate } from "../../utils/formatTime";
 import { getDataBCGiaoBanCurent } from "../BCGiaoBan/bcgiaobanSlice";
 import { CheckDisplayKhoa } from "../../utils/heplFuntion";
 import BaoCaoKhoa from "./BaoCaoKhoa";
 
 const RegisterSchema = Yup.object().shape({
+  // TongVP: Yup.number().typeError("Must be a number").required("Field is required"),
   TongVP: Yup.number().typeError("Bạn phải nhập 1 số"),
   TongBH: Yup.number().typeError("Bạn phải nhập 1 số"),
   TongNB: Yup.number().typeError("Bạn phải nhập 1 số"),
@@ -72,7 +77,7 @@ function BCNgayLamSangNgoai() {
     ctChiSos,
   } = useSelector((state) => state.baocaongay);
   const { bcGiaoBanCurent } = useSelector((state) => state.bcgiaoban);
-
+  console.log("bcGiaobantheongay", bcGiaoBanTheoNgay);
   const defaultValues = {
     BSTruc: "",
     DDTruc: "",
@@ -81,7 +86,7 @@ function BCNgayLamSangNgoai() {
     TongBH: 0,
     TongNB: 0,
   };
-
+  console.log("defaultvalue", defaultValues);
   const [tenkhoa, setTenkhoa] = useState("");
   const [ngay, setNgay] = useState();
   const [tabValue, setTabValue] = useState(0);
@@ -103,13 +108,11 @@ function BCNgayLamSangNgoai() {
 
   const [coQuyen, setCoQuyen] = useState(false);
   const dispatch = useDispatch();
-
   useEffect(() => {
     if (bcGiaoBanTheoNgay.Ngay) {
       dispatch(getDataBCGiaoBanCurent(bcGiaoBanTheoNgay.Ngay));
     }
   }, [bcGiaoBanTheoNgay, dispatch]);
-
   useEffect(() => {
     if (bcGiaoBanCurent && user && user.KhoaID && bcGiaoBanTheoNgay && khoas) {
       const trangthai = bcGiaoBanCurent.TrangThai;
@@ -119,6 +122,13 @@ function BCNgayLamSangNgoai() {
         (khoa) => khoa._id === bcGiaoBanTheoNgay.KhoaID
       );
       const makhoaCurent = foundKhoa ? foundKhoa.MaKhoa : null;
+      console.log(
+        "checkdisplay",
+        trangthai,
+        phanquyen,
+        makhoaUser,
+        makhoaCurent
+      );
       setCoQuyen(
         CheckDisplayKhoa(phanquyen, trangthai, makhoaUser, makhoaCurent)
       );
@@ -127,6 +137,7 @@ function BCNgayLamSangNgoai() {
   }, [bcGiaoBanCurent, user, bcGiaoBanTheoNgay, khoas]);
 
   useEffect(() => {
+    //set value cho cac truong trong form
     setValue("BSTruc", bcGiaoBanTheoNgay.BSTruc || "");
     setValue("DDTruc", bcGiaoBanTheoNgay.DDTruc || "");
     setValue("CBThemGio", bcGiaoBanTheoNgay.CBThemGio || "");
@@ -143,6 +154,7 @@ function BCNgayLamSangNgoai() {
       ctChiSos.find((obj) => obj.ChiSoCode === "ls-TongNB")?.SoLuong || 0
     );
 
+    //Hiển thị khoa và ngày
     if (bcGiaoBanTheoNgay.KhoaID) {
       const TenKhoa = khoas.find(
         (khoa) => khoa._id === bcGiaoBanTheoNgay.KhoaID
@@ -150,23 +162,31 @@ function BCNgayLamSangNgoai() {
       const ngayISO = bcGiaoBanTheoNgay.Ngay;
       const ngay = new Date(ngayISO);
       const ngayFns = fDate(ngay);
+      const ngayJS = dayjs(ngay);
+      console.log("ngay", ngay);
+      console.log("ngayISO", ngayISO);
+      console.log("ngayFns", ngayFns);
+      console.log("ngayJs", ngayJS);
       setNgay(ngayFns);
       if (TenKhoa) setTenkhoa(TenKhoa);
     }
   }, [bcGiaoBanTheoNgay, khoas, ctChiSos, setValue]);
-
   const [tenLoaiBN, setTenLoaiBN] = useState("");
   const [loaiBN, setLoaiBN] = useState(0);
   const [openEdit, setOpenEdit] = useState(false);
 
+  // Xử lý đóng/mở form
   const handleCloseEditPostForm = () => {
     setOpenEdit(false);
   };
   const handleSaveEditPostForm = () => {
+    // Code to save changes goes here
     setOpenEdit(false);
   };
 
   const handleCapNhatDuLieu = (data) => {
+    //Set ChitietChiSols-TongNB
+
     const ctChiSo = [
       { ChiSoCode: "ls-TongNB", SoLuong: data.TongNB },
       { ChiSoCode: "ls-BaoHiem", SoLuong: data.TongBH },
@@ -180,7 +200,7 @@ function BCNgayLamSangNgoai() {
       { ChiSoCode: "ls-TheoDoi", SoLuong: bnTheoDois.length },
       { ChiSoCode: "ls-MoCC", SoLuong: bnMoCCs.length },
     ];
-
+    // set BaoCaoNgay cap nhat
     const bcNgayKhoa = {
       ...bcGiaoBanTheoNgay,
       UserID: user._id,
@@ -201,74 +221,68 @@ function BCNgayLamSangNgoai() {
       ChiTietChiSo: ctChiSo,
     };
 
+    console.log("BaoCaoNgay Khoa", bcNgayKhoa);
     dispatch(insertOrUpdateBaoCaoNgay(bcNgayKhoa));
   };
-
   const handleEdit = (tenloai, loaiBN) => {
     setTenLoaiBN(tenloai);
     setLoaiBN(loaiBN);
+    console.log(tenLoaiBN);
     setOpenEdit(true);
+    console.log("click");
   };
 
+  // Kiểm tra có hiển thị tab báo cáo riêng theo khoa không
   const showBaoCaoKhoaTab = makhoaCurrent === "NgoaiYC";
 
   // Component thống kê card với icon và màu sắc
   const StatisticCard = ({ title, count, icon, color, onClick, disabled }) => {
+    const theme = useTheme();
+    
     return (
-      <Zoom in={true} style={{ transitionDelay: "100ms" }}>
+      <Zoom in={true} style={{ transitionDelay: '100ms' }}>
         <Card
-          className="statistic-card"
           sx={{
             p: 2,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
             minHeight: 120,
-            background: `linear-gradient(135deg, ${alpha(
-              color,
-              0.1
-            )} 0%, ${alpha(color, 0.05)} 100%)`,
+            background: `linear-gradient(135deg, ${alpha(color, 0.1)} 0%, ${alpha(color, 0.05)} 100%)`,
             border: `1px solid ${alpha(color, 0.2)}`,
-            transition: "all 0.3s ease-in-out",
-            cursor: disabled ? "default" : "pointer",
-            "&:hover": {
-              transform: disabled ? "none" : "translateY(-4px)",
-              boxShadow: disabled ? "none" : `0 8px 25px ${alpha(color, 0.3)}`,
-              background: disabled
-                ? undefined
-                : `linear-gradient(135deg, ${alpha(color, 0.15)} 0%, ${alpha(
-                    color,
-                    0.08
-                  )} 100%)`,
-            },
+            transition: 'all 0.3s ease-in-out',
+            cursor: disabled ? 'default' : 'pointer',
+            '&:hover': {
+              transform: disabled ? 'none' : 'translateY(-4px)',
+              boxShadow: disabled ? 'none' : `0 8px 25px ${alpha(color, 0.3)}`,
+              background: disabled ? undefined : `linear-gradient(135deg, ${alpha(color, 0.15)} 0%, ${alpha(color, 0.08)} 100%)`,
+            }
           }}
         >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              mb: 1,
-              color: color,
-            }}
-          >
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            mb: 1,
+            color: color 
+          }}>
             {icon}
-            <Typography
-              variant="h3"
-              sx={{
-                ml: 1,
-                fontWeight: "bold",
-                color: color,
+            <Typography 
+              variant="h3" 
+              sx={{ 
+                ml: 1, 
+                fontWeight: 'bold',
+                color: color 
               }}
             >
               {count}
             </Typography>
           </Box>
-          <Typography
-            variant="body2"
-            sx={{
-              textAlign: "center",
-              color: "text.secondary",
-              fontWeight: 500,
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              textAlign: 'center',
+              color: 'text.secondary',
+              fontWeight: 500 
             }}
           >
             {title}
@@ -282,13 +296,9 @@ function BCNgayLamSangNgoai() {
                 mt: 1,
                 minWidth: 80,
                 backgroundColor: color,
-                textTransform: "none",
-                fontWeight: 600,
-                borderRadius: 2,
-                "&:hover": {
+                '&:hover': {
                   backgroundColor: alpha(color, 0.8),
-                  transform: "scale(1.05)",
-                },
+                }
               }}
             >
               Thêm
@@ -303,13 +313,13 @@ function BCNgayLamSangNgoai() {
     <Container maxWidth="xl">
       <Stack spacing={3}>
         {/* Header với thông tin báo cáo */}
-        <Paper
+        <Paper 
           elevation={0}
-          sx={{
-            p: 3,
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            color: "white",
-            borderRadius: 2,
+          sx={{ 
+            p: 3, 
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            color: 'white',
+            borderRadius: 2
           }}
         >
           <Stack direction="row" alignItems="center" spacing={2}>
@@ -324,7 +334,12 @@ function BCNgayLamSangNgoai() {
             </Box>
           </Stack>
         </Paper>
-
+      <Stack>
+        {" "}
+        {/* <Typography variant="h4" sx={{ mb: 3, textAlign: 'center' }}>
+          Báo cáo {tenkhoa} ngày {ngay}
+        </Typography>
+         */}
         {/* Tabs navigation */}
         {showBaoCaoKhoaTab && (
           <Paper elevation={1} sx={{ borderRadius: 2 }}>
@@ -333,31 +348,30 @@ function BCNgayLamSangNgoai() {
               onChange={handleChangeTab}
               aria-label="báo cáo tabs"
               sx={{
-                "& .MuiTab-root": {
-                  textTransform: "none",
+                '& .MuiTab-root': {
+                  textTransform: 'none',
                   fontWeight: 600,
-                  fontSize: "1rem",
+                  fontSize: '1rem',
                   minWidth: 180,
                 },
-                "& .Mui-selected": {
-                  background: alpha("#1976d2", 0.1),
-                },
+                '& .Mui-selected': {
+                  background: alpha('#1976d2', 0.1),
+                }
               }}
             >
-              <Tab
-                label="Báo cáo toàn viện"
+              <Tab 
+                label="Báo cáo toàn viện" 
                 icon={<Business />}
                 iconPosition="start"
               />
-              <Tab
-                label="Báo cáo riêng theo khoa"
+              <Tab 
+                label="Báo cáo riêng theo khoa" 
                 icon={<LocalHospital />}
                 iconPosition="start"
               />
             </Tabs>
           </Paper>
         )}
-
         {!showBaoCaoKhoaTab || tabValue === 0 ? (
           <Fade in={true}>
             <Stack spacing={3}>
@@ -367,26 +381,30 @@ function BCNgayLamSangNgoai() {
                 onSubmit={handleSubmit(handleCapNhatDuLieu)}
               >
                 <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
-                  <CardHeader
+                  <CardHeader 
                     title="Thông tin trực"
-                    titleTypographyProps={{ variant: "h6", fontWeight: "bold" }}
+                    titleTypographyProps={{ variant: 'h6', fontWeight: 'bold' }}
                     sx={{ pb: 2 }}
                   />
-
+                  
                   <Grid container spacing={3}>
                     <Grid item xs={12} md={4}>
-                      <FTextField name="BSTruc" label="Bác sĩ trực" fullWidth />
+                      <FTextField 
+                        name="BSTruc" 
+                        label="Bác sĩ trực"
+                        fullWidth
+                      />
                     </Grid>
                     <Grid item xs={12} md={4}>
-                      <FTextField
-                        name="DDTruc"
+                      <FTextField 
+                        name="DDTruc" 
                         label="Điều dưỡng trực"
                         fullWidth
                       />
                     </Grid>
                     <Grid item xs={12} md={4}>
-                      <FTextField
-                        name="CBThemGio"
+                      <FTextField 
+                        name="CBThemGio" 
                         label="Cán bộ làm thêm giờ"
                         fullWidth
                       />
@@ -395,18 +413,18 @@ function BCNgayLamSangNgoai() {
 
                   <Divider sx={{ my: 3 }} />
 
-                  <CardHeader
+                  <CardHeader 
                     title="Thống kê bệnh nhân"
-                    titleTypographyProps={{ variant: "h6", fontWeight: "bold" }}
+                    titleTypographyProps={{ variant: 'h6', fontWeight: 'bold' }}
                     sx={{ pb: 2 }}
                   />
-
+                  
                   <Grid container spacing={3}>
                     <Grid item xs={12} md={4}>
                       <Stack direction="row" alignItems="center" spacing={1}>
                         <Group color="primary" />
-                        <FTextField
-                          name="TongNB"
+                        <FTextField 
+                          name="TongNB" 
                           label="Tổng số NB"
                           type="number"
                           fullWidth
@@ -416,8 +434,8 @@ function BCNgayLamSangNgoai() {
                     <Grid item xs={12} md={4}>
                       <Stack direction="row" alignItems="center" spacing={1}>
                         <AccountBalance color="success" />
-                        <FTextField
-                          name="TongBH"
+                        <FTextField 
+                          name="TongBH" 
                           label="Số NB bảo hiểm"
                           type="number"
                           fullWidth
@@ -427,8 +445,8 @@ function BCNgayLamSangNgoai() {
                     <Grid item xs={12} md={4}>
                       <Stack direction="row" alignItems="center" spacing={1}>
                         <MonetizationOn color="warning" />
-                        <FTextField
-                          name="TongVP"
+                        <FTextField 
+                          name="TongVP" 
                           label="Số NB viện phí"
                           type="number"
                           fullWidth
@@ -438,11 +456,7 @@ function BCNgayLamSangNgoai() {
                   </Grid>
 
                   {coQuyen && (
-                    <Stack
-                      direction="row"
-                      justifyContent="flex-end"
-                      sx={{ mt: 3 }}
-                    >
+                    <Stack direction="row" justifyContent="flex-end" sx={{ mt: 3 }}>
                       <LoadingButton
                         type="submit"
                         variant="contained"
@@ -452,8 +466,8 @@ function BCNgayLamSangNgoai() {
                         sx={{
                           minWidth: 120,
                           borderRadius: 2,
-                          textTransform: "none",
-                          fontWeight: 600,
+                          textTransform: 'none',
+                          fontWeight: 600
                         }}
                       >
                         Lưu thông tin
@@ -462,15 +476,14 @@ function BCNgayLamSangNgoai() {
                   )}
                 </Paper>
               </FormProvider>
-
               {/* Thống kê các loại bệnh nhân */}
               <Paper elevation={1} sx={{ p: 3, borderRadius: 2 }}>
-                <CardHeader
+                <CardHeader 
                   title="Thống kê tình hình bệnh nhân"
-                  titleTypographyProps={{ variant: "h6", fontWeight: "bold" }}
+                  titleTypographyProps={{ variant: 'h6', fontWeight: 'bold' }}
                   sx={{ pb: 2 }}
                 />
-
+                
                 <Grid container spacing={3}>
                   <Grid item xs={12} sm={6} md={4} lg={3}>
                     <StatisticCard
@@ -482,7 +495,7 @@ function BCNgayLamSangNgoai() {
                       disabled={!coQuyen}
                     />
                   </Grid>
-
+                  
                   <Grid item xs={12} sm={6} md={4} lg={3}>
                     <StatisticCard
                       title="Chuyển viện"
@@ -493,7 +506,7 @@ function BCNgayLamSangNgoai() {
                       disabled={!coQuyen}
                     />
                   </Grid>
-
+                  
                   <Grid item xs={12} sm={6} md={4} lg={3}>
                     <StatisticCard
                       title="Xin về"
@@ -504,7 +517,7 @@ function BCNgayLamSangNgoai() {
                       disabled={!coQuyen}
                     />
                   </Grid>
-
+                  
                   <Grid item xs={12} sm={6} md={4} lg={3}>
                     <StatisticCard
                       title="NB Nặng"
@@ -515,7 +528,7 @@ function BCNgayLamSangNgoai() {
                       disabled={!coQuyen}
                     />
                   </Grid>
-
+                  
                   <Grid item xs={12} sm={6} md={4} lg={3}>
                     <StatisticCard
                       title="Mổ cấp cứu"
@@ -526,7 +539,7 @@ function BCNgayLamSangNgoai() {
                       disabled={!coQuyen}
                     />
                   </Grid>
-
+                  
                   <Grid item xs={12} sm={6} md={4} lg={3}>
                     <StatisticCard
                       title="Phẫu thuật"
@@ -537,18 +550,18 @@ function BCNgayLamSangNgoai() {
                       disabled={!coQuyen}
                     />
                   </Grid>
-
+                  
                   <Grid item xs={12} sm={6} md={4} lg={3}>
                     <StatisticCard
                       title="Ngoài giờ"
-                      count={bnNgoaiGios.length}
+                      count={bnNgoaiGios.length}  
                       icon={<AccessTime sx={{ fontSize: 28 }} />}
                       color="#607d8b"
                       onClick={() => handleEdit("ngoài giờ", 6)}
                       disabled={!coQuyen}
                     />
                   </Grid>
-
+                  
                   <Grid item xs={12} sm={6} md={4} lg={3}>
                     <StatisticCard
                       title="Theo dõi"
@@ -570,10 +583,9 @@ function BCNgayLamSangNgoai() {
                 loaiBN={loaiBN}
                 benhnhan={{}}
               />
-
               {/* Danh sách chi tiết bệnh nhân */}
               {bnTuVongs.length > 0 && (
-                <Fade in={true} style={{ transitionDelay: "200ms" }}>
+                <Fade in={true} style={{ transitionDelay: '200ms' }}>
                   <div>
                     <ListBenhNhanCard
                       benhnhans={bnTuVongs}
@@ -582,9 +594,9 @@ function BCNgayLamSangNgoai() {
                   </div>
                 </Fade>
               )}
-
+              
               {bnChuyenViens.length > 0 && (
-                <Fade in={true} style={{ transitionDelay: "300ms" }}>
+                <Fade in={true} style={{ transitionDelay: '300ms' }}>
                   <div>
                     <ListBenhNhanCard
                       benhnhans={bnChuyenViens}
@@ -593,9 +605,9 @@ function BCNgayLamSangNgoai() {
                   </div>
                 </Fade>
               )}
-
+              
               {bnXinVes.length > 0 && (
-                <Fade in={true} style={{ transitionDelay: "400ms" }}>
+                <Fade in={true} style={{ transitionDelay: '400ms' }}>
                   <div>
                     <ListBenhNhanCard
                       benhnhans={bnXinVes}
@@ -604,31 +616,31 @@ function BCNgayLamSangNgoai() {
                   </div>
                 </Fade>
               )}
-
+              
               {bnNangs.length > 0 && (
-                <Fade in={true} style={{ transitionDelay: "500ms" }}>
+                <Fade in={true} style={{ transitionDelay: '500ms' }}>
                   <div>
-                    <ListBenhNhanCard
-                      benhnhans={bnNangs}
-                      title="Người bệnh nặng"
+                    <ListBenhNhanCard 
+                      benhnhans={bnNangs} 
+                      title="Người bệnh nặng" 
                     />
                   </div>
                 </Fade>
               )}
-
+              
               {bnMoCCs.length > 0 && (
-                <Fade in={true} style={{ transitionDelay: "600ms" }}>
+                <Fade in={true} style={{ transitionDelay: '600ms' }}>
                   <div>
-                    <ListBenhNhanCard
-                      benhnhans={bnMoCCs}
-                      title="Người bệnh mổ cấp cứu"
+                    <ListBenhNhanCard 
+                      benhnhans={bnMoCCs} 
+                      title="Người bệnh mổ cấp cứu" 
                     />
                   </div>
                 </Fade>
               )}
-
+              
               {bnPhauThuats.length > 0 && (
-                <Fade in={true} style={{ transitionDelay: "700ms" }}>
+                <Fade in={true} style={{ transitionDelay: '700ms' }}>
                   <div>
                     <ListBenhNhanCard
                       benhnhans={bnPhauThuats}
@@ -637,9 +649,9 @@ function BCNgayLamSangNgoai() {
                   </div>
                 </Fade>
               )}
-
+              
               {bnNgoaiGios.length > 0 && (
-                <Fade in={true} style={{ transitionDelay: "800ms" }}>
+                <Fade in={true} style={{ transitionDelay: '800ms' }}>
                   <div>
                     <ListBenhNhanCard
                       benhnhans={bnNgoaiGios}
@@ -648,9 +660,9 @@ function BCNgayLamSangNgoai() {
                   </div>
                 </Fade>
               )}
-
+              
               {bnTheoDois.length > 0 && (
-                <Fade in={true} style={{ transitionDelay: "900ms" }}>
+                <Fade in={true} style={{ transitionDelay: '900ms' }}>
                   <div>
                     <ListBenhNhanCard
                       benhnhans={bnTheoDois}
