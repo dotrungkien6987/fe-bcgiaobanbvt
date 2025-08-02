@@ -18,6 +18,8 @@ import lichtrucSlice from "../features/Slice/lichtrucSlice";
 import soThuTuSlice from "../features/Slice/soThuTuSlice";
 import nhomKhoaSoThuTuSlice from "../features/Slice/nhomkhoasothutuSlice";
 import doanraSlice from "../features/NghienCuuKhoaHoc/DoanRa/doanraSlice";
+import nhomViecUserSlice from "../features/QuanLyCongViec/NhomViecUser/nhomViecUserSlice";
+import nhiemvuThuongQuySlice from "../features/QuanLyCongViec/NhiemVuThuongQuy/nhiemvuThuongQuySlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -40,6 +42,8 @@ const rootReducer = {
   soThuTu: soThuTuSlice,
   nhomKhoaSoThuTu: nhomKhoaSoThuTuSlice,
   doanra: doanraSlice,
+  nhomViecUser: nhomViecUserSlice,
+  nhiemvuThuongQuy: nhiemvuThuongQuySlice,
 };
 
 const store = configureStore({

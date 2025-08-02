@@ -67,12 +67,13 @@ import DataSourceExplanation from "features/HoatDongBenhVien/DataSourceExplanati
 import HoatDongDashBoard1 from "features/HoatDongBenhVien1/HoatDongDashBoard1";
 import DoanRaTable from "features/NghienCuuKhoaHoc/DoanRa/DoanRaTable";
 import QuocGiaTable from "features/Daotao/QuocGia/QuocGiaTable";
+import NhomViecUserList from "features/QuanLyCongViec/NhomViecUser/NhomViecUserList";
+import NhiemVuThuongQuyList from "features/QuanLyCongViec/NhiemVuThuongQuy/NhiemVuThuongQuyList";
 
 function Router() {
   return (
     <div>
       <Routes>
-
         <Route
           path="/"
           element={
@@ -97,13 +98,7 @@ function Router() {
               </AdminRequire>
             }
           />
-          <Route
-            path="/dashboard"
-            element={
-             
-                <DashBoardPage />
-            }
-          />
+          <Route path="/dashboard" element={<DashBoardPage />} />
           <Route
             path="/khuyencaokhoa"
             element={
@@ -124,11 +119,15 @@ function Router() {
           <Route path="/daotao" element={<DataFixTable />} />
           <Route path="/testtonghop1" element={<TongHopHoatDong />} />
           <Route path="/hocvien" element={<QuanLyHocVienPage />} />
-          <Route path="/lichtruc" element={<LichTrucPage />} />          <Route path="/sothutu" element={<SoThuTuDashboard />} />
+          <Route path="/lichtruc" element={<LichTrucPage />} />{" "}
+          <Route path="/sothutu" element={<SoThuTuDashboard />} />
           <Route path="/hoatdongbenhvien" element={<HoatDongDashboard />} />
-          <Route path="/hoatdongchung" element={<HoatDongDashBoard1 />} /> {/* Compatibility with old path */}
-          <Route path="/hoatdongbenhvien/schema" element={<DataSourceExplanation />} />
-          
+          <Route path="/hoatdongchung" element={<HoatDongDashBoard1 />} />{" "}
+          {/* Compatibility with old path */}
+          <Route
+            path="/hoatdongbenhvien/schema"
+            element={<DataSourceExplanation />}
+          />
         </Route>
 
         <Route element={<BlankLayout />}>
@@ -143,7 +142,6 @@ function Router() {
             <AuthRequire>
               <ThemeCustomization>
                 <MainLayoutAble />
-                
               </ThemeCustomization>
             </AuthRequire>
           }
@@ -158,20 +156,35 @@ function Router() {
           <Route path="/hinhthuc" element={<HinhThucTable />} />
           <Route path="/lopdaotaos" element={<LopDaoTaoTable />} />
           <Route path="/lopdaotaos/:type" element={<LopDaoTaoTableByType />} />
-          <Route path="/lopdaotao/:lopdaotaoID/:type" element={<LopDaoTaoForm />} />
-          <Route path="/diemdanh/:lopdaotaoID" element={<DiemDanhLopDaoTaoForm />} />
-          <Route path="/quatrinhdaotao/:nhanvienID" element={<NhanVienView1 />} />
+          <Route
+            path="/lopdaotao/:lopdaotaoID/:type"
+            element={<LopDaoTaoForm />}
+          />
+          <Route
+            path="/diemdanh/:lopdaotaoID"
+            element={<DiemDanhLopDaoTaoForm />}
+          />
+          <Route
+            path="/quatrinhdaotao/:nhanvienID"
+            element={<NhanVienView1 />}
+          />
           <Route path="/lopdaotao/:type" element={<LopDaoTaoForm />} />
 
           <Route path="/dashboarddaotao" element={<DashBoardDaotao />} />
-          <Route path="/dashboarddaotaotheokhoa" element={<DashBoardDaotaoKhoa />} />
+          <Route
+            path="/dashboarddaotaotheokhoa"
+            element={<DashBoardDaotaoKhoa />}
+          />
           <Route path="/tonghopdaotao" element={<TinChiTichLuyNhanVien />} />
           <Route path="/tonghopsoluong" element={<TongHopSoLuongThucHien />} />
           <Route path="/soluongtheokhoa" element={<BaoCaoSoLuongTheoKhoa />} />
 
           <Route path="/hoidong" element={<HoiDongTable />} />
           <Route path="/usersable" element={<UserThemeAbleTable />} />
-          <Route path="/lopdaotaotam/:lopdaotaoID" element={<LopDaoTaoFormTam />} />
+          <Route
+            path="/lopdaotaotam/:lopdaotaoID"
+            element={<LopDaoTaoFormTam />}
+          />
           <Route path="/newfeature" element={<TongHopHoatDong />} />
           <Route path="/newfeature/function1" element={<Function1 />} />
           <Route path="/newfeature/function2" element={<Function2 />} />
@@ -183,7 +196,8 @@ function Router() {
           <Route path="/khoas" element={<KhoaTable />} />
           <Route path="/nhomkhoas" element={<NhomKhoaSoThuTuTable />} />
           <Route path="/doandi" element={<DoanRaTable />} />
-          
+          <Route path="/quanlycongviec/nhomviec-user" element={<NhomViecUserList />} />
+          <Route path="/quanlycongviec/nhiemvu-thuongquy" element={<NhiemVuThuongQuyList />} />
 
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
