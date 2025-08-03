@@ -102,13 +102,13 @@ function TongHopCLC() {
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Mổ cấp cứu: {ngoaiycBNMoCCs.length}
+        PT CC trong giờ: {chisoTong?.MoCC_CLC || ""}
       </Typography>
       <Typography
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Phẫu thuật: {ngoaiycBNPhauThuats.length}
+        PT ngoài giờ: {ngoaiycBNPhauThuats.length}
       </Typography>
       <Typography
         variant="body2"

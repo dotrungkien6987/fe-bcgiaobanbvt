@@ -54,6 +54,7 @@ const RegisterSchema = Yup.object().shape({
   TongVP: Yup.number().typeError("Bạn phải nhập 1 số"),
   TongBH: Yup.number().typeError("Bạn phải nhập 1 số"),
   TongNB: Yup.number().typeError("Bạn phải nhập 1 số"),
+  MoCC: Yup.number().typeError("Bạn phải nhập 1 số"),
 });
 
 function BCNgayLamSangNgoai() {
@@ -142,6 +143,10 @@ function BCNgayLamSangNgoai() {
       "TongNB",
       ctChiSos.find((obj) => obj.ChiSoCode === "ls-TongNB")?.SoLuong || 0
     );
+    setValue(
+      "MoCC",
+      ctChiSos.find((obj) => obj.ChiSoCode === "ls-MoCC")?.SoLuong || 0
+    );
 
     if (bcGiaoBanTheoNgay.KhoaID) {
       const TenKhoa = khoas.find(
@@ -171,6 +176,7 @@ function BCNgayLamSangNgoai() {
       { ChiSoCode: "ls-TongNB", SoLuong: data.TongNB },
       { ChiSoCode: "ls-BaoHiem", SoLuong: data.TongBH },
       { ChiSoCode: "ls-VienPhi", SoLuong: data.TongVP },
+      { ChiSoCode: "ls-MoCC", SoLuong: data.MoCC },
       { ChiSoCode: "ls-TuVong", SoLuong: bnTuVongs.length },
       { ChiSoCode: "ls-XinVe", SoLuong: bnXinVes.length },
       { ChiSoCode: "ls-Nang", SoLuong: bnNangs.length },
@@ -178,7 +184,7 @@ function BCNgayLamSangNgoai() {
       { ChiSoCode: "ls-PhauThuat", SoLuong: bnPhauThuats.length },
       { ChiSoCode: "ls-ChuyenVien", SoLuong: bnChuyenViens.length },
       { ChiSoCode: "ls-TheoDoi", SoLuong: bnTheoDois.length },
-      { ChiSoCode: "ls-MoCC", SoLuong: bnMoCCs.length },
+      // { ChiSoCode: "ls-MoCC", SoLuong: bnMoCCs.length },
     ];
 
     const bcNgayKhoa = {
@@ -435,6 +441,17 @@ function BCNgayLamSangNgoai() {
                         />
                       </Stack>
                     </Grid>
+                    <Grid item xs={12} md={4}>
+                      <Stack direction="row" alignItems="center" spacing={1}>
+                        <MonetizationOn color="warning" />
+                        <FTextField
+                          name="MoCC"
+                          label="Số NB phẫu thuât cấp cứu trong giờ"
+                          type="number"
+                          fullWidth
+                        />
+                      </Stack>
+                    </Grid>
                   </Grid>
 
                   {coQuyen && (
@@ -516,7 +533,7 @@ function BCNgayLamSangNgoai() {
                     />
                   </Grid>
 
-                  <Grid item xs={12} sm={6} md={4} lg={3}>
+                  {/* <Grid item xs={12} sm={6} md={4} lg={3}>
                     <StatisticCard
                       title="Mổ cấp cứu"
                       count={bnMoCCs.length}
@@ -525,15 +542,15 @@ function BCNgayLamSangNgoai() {
                       onClick={() => handleEdit("mổ cấp cứu", 9)}
                       disabled={!coQuyen}
                     />
-                  </Grid>
+                  </Grid> */}
 
                   <Grid item xs={12} sm={6} md={4} lg={3}>
                     <StatisticCard
-                      title="Phẫu thuật"
+                      title="Phẫu thuật ngoài giờ"
                       count={bnPhauThuats.length}
                       icon={<MedicalServices sx={{ fontSize: 28 }} />}
                       color="#9c27b0"
-                      onClick={() => handleEdit("phẫu thuật", 5)}
+                      onClick={() => handleEdit("phẫu thuật ngoài giờ", 5)}
                       disabled={!coQuyen}
                     />
                   </Grid>
@@ -616,7 +633,7 @@ function BCNgayLamSangNgoai() {
                 </Fade>
               )}
 
-              {bnMoCCs.length > 0 && (
+              {/* {bnMoCCs.length > 0 && (
                 <Fade in={true} style={{ transitionDelay: "600ms" }}>
                   <div>
                     <ListBenhNhanCard
@@ -625,14 +642,14 @@ function BCNgayLamSangNgoai() {
                     />
                   </div>
                 </Fade>
-              )}
+              )} */}
 
               {bnPhauThuats.length > 0 && (
                 <Fade in={true} style={{ transitionDelay: "700ms" }}>
                   <div>
                     <ListBenhNhanCard
                       benhnhans={bnPhauThuats}
-                      title="Người bệnh phẫu thuật"
+                      title="Người bệnh phẫu thuật ngoài giờ"
                     />
                   </div>
                 </Fade>

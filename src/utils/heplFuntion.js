@@ -277,18 +277,22 @@ export function calculateTongChiSo(baocaongays) {
   let TongToanVien = 0;
   let BHYTToanVien = 0;
   let VienPhiToanVien = 0;
+  
 
   let TongNoi = 0;
   let BHYTNoi = 0;
   let VienPhiNoi = 0;
+  let MoCCNoi = 0;
 
   let TongNgoai = 0;
   let BHYTNgoai = 0;
   let VienPhiNgoai = 0;
+  let MoCCNgoai = 0;
 
   let TongCLC = 0;
   let BHYTCLC = 0;
   let VienPhiCLC = 0;
+  let MoCC_CLC = 0;
 
   for (const baocao of baocaongays) {
     for (const chiSo of baocao.ChiTietChiSo) {
@@ -329,6 +333,16 @@ export function calculateTongChiSo(baocaongays) {
           }
           VienPhiToanVien += chiSo.SoLuong;
           break;
+        case "ls-MoCC":
+          if (baocao.KhoaID.LoaiKhoa === "noi") {
+            MoCCNoi += chiSo.SoLuong;
+          } else if (baocao.KhoaID.LoaiKhoa === "ngoai") {
+            MoCCNgoai += chiSo.SoLuong;
+          }
+          if (isCLC) {
+            MoCC_CLC += chiSo.SoLuong;
+          }
+          break;
         default:
           break;
       }
@@ -348,6 +362,9 @@ export function calculateTongChiSo(baocaongays) {
     TongCLC: TongCLC,
     BHYTCLC: BHYTCLC,
     VienPhiCLC: VienPhiCLC,
+    MoCCNoi: MoCCNoi,
+    MoCCNgoai: MoCCNgoai,
+    MoCC_CLC: MoCC_CLC,
   };
 }
 

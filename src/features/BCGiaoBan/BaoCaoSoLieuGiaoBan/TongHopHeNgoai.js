@@ -86,19 +86,20 @@ function TongHopHeNgoai() {
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
-        Mổ cấp cứu: {ngoaiBNMoCCs.length}
+        PT CC trong giờ: {chisoTong?.MoCCNgoai || ""}
       </Typography>
+     
       <Typography
+        variant="body2"
+        // sx={{ color: "text.secondary", fontStyle: "italic" }}
+      >
+        PT ngoài giờ: {ngoaiBNPhauThuats.length}
+      </Typography>
+       <Typography
         variant="body2"
         // sx={{ color: "text.secondary", fontStyle: "italic" }}
       >
         Xin về: {ngoaiBNXinVes.length}
-      </Typography>
-      <Typography
-        variant="body2"
-        // sx={{ color: "text.secondary", fontStyle: "italic" }}
-      >
-        Phẫu thuật: {ngoaiBNPhauThuats.length}
       </Typography>
       <Typography
         variant="body2"

@@ -78,8 +78,8 @@ function ThongKeHeNgoai({ baocaongays }){
             <TableCell style={commonStyleReponsive}>Tử vong</TableCell>
             <TableCell style={commonStyleReponsive}>NB nặng</TableCell>
             <TableCell style={commonStyleReponsive}>Xin về</TableCell>
-            <TableCell style={commonStyleReponsive}>Phẫu thuật</TableCell>
-            <TableCell style={commonStyleReponsive}>Mổ cấp cứu</TableCell>
+            <TableCell style={commonStyleReponsive}>PT ngoài giờ</TableCell>
+            <TableCell style={commonStyleReponsive}>PT CC trong giờ</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
