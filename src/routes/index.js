@@ -69,6 +69,8 @@ import DoanRaTable from "features/NghienCuuKhoaHoc/DoanRa/DoanRaTable";
 import QuocGiaTable from "features/Daotao/QuocGia/QuocGiaTable";
 import NhomViecUserList from "features/QuanLyCongViec/NhomViecUser/NhomViecUserList";
 import NhiemVuThuongQuyList from "features/QuanLyCongViec/NhiemVuThuongQuy/NhiemVuThuongQuyList";
+import QuanLyNhanVienPage from "features/QuanLyCongViec/QuanLyNhanVien/QuanLyNhanVienPage";
+import GiaoNhiemVuPage from "features/QuanLyCongViec/GiaoNhiemVu/GiaoNhiemVuPage";
 
 function Router() {
   return (
@@ -196,9 +198,23 @@ function Router() {
           <Route path="/khoas" element={<KhoaTable />} />
           <Route path="/nhomkhoas" element={<NhomKhoaSoThuTuTable />} />
           <Route path="/doandi" element={<DoanRaTable />} />
-          <Route path="/quanlycongviec/nhomviec-user" element={<NhomViecUserList />} />
-          <Route path="/quanlycongviec/nhiemvu-thuongquy" element={<NhiemVuThuongQuyList />} />
-
+          <Route
+            path="/quanlycongviec/nhomviec-user"
+            element={<NhomViecUserList />}
+          />
+          <Route
+            path="/quanlycongviec/nhiemvu-thuongquy"
+            element={<NhiemVuThuongQuyList />}
+          />
+          <Route path="/workmanagement/nhanvien" element={<NhanVienList />} />
+          <Route
+            path="/workmanagement/nhanvien/:nhanVienId/quanly"
+            element={<QuanLyNhanVienPage />}
+          />
+          <Route
+            path="/quanlycongviec/giao-nhiem-vu/:NhanVienID"
+            element={<GiaoNhiemVuPage />}
+          />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
       </Routes>

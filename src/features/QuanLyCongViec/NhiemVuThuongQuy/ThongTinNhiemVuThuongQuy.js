@@ -21,7 +21,7 @@ import {
   updateOneNhiemVuThuongQuy,
 } from "./nhiemvuThuongQuySlice";
 import { getAllKhoa } from "../../Daotao/Khoa/khoaSlice";
-import { getNhomViecUserByKhoaId } from "../NhomViecUser/nhomViecUserSlice";
+import { getAllNhomViecUser } from "../NhomViecUser/nhomViecUserSlice";
 
 function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
   const dispatch = useDispatch();
@@ -50,6 +50,8 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
 
   useEffect(() => {
     dispatch(getAllKhoa());
+    // Tải tất cả nhóm việc người dùng (không lọc theo khoa nữa)
+    dispatch(getAllNhomViecUser());
   }, [dispatch]);
 
   useEffect(() => {
@@ -73,10 +75,7 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
         );
         setSelectedKhoa(khoa || null);
 
-        // Load nhomviecuser for this khoa if editing
-        if (khoa?._id) {
-          dispatch(getNhomViecUserByKhoaId(khoa._id));
-        }
+        // Không tải theo khoa nữa
       } else {
         // Create mode with defaults
         setFormData({
@@ -92,10 +91,7 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
         setSelectedKhoa(defaultKhoa || null);
         setSelectedNhomViecUser(null);
 
-        // Load nhomviecuser for default khoa
-        if (defaultKhoa?._id) {
-          dispatch(getNhomViecUserByKhoaId(defaultKhoa._id));
-        }
+        // Nhóm việc đã được tải ở effect trên
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -103,7 +99,11 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
 
   // Separate useEffect for setting NhomViecUser when data is loaded
   useEffect(() => {
-    if (isEdit && nhomViecUsers.length > 0 && nhiemvuThuongQuy?.NhomViecUserID) {
+    if (
+      isEdit &&
+      nhomViecUsers.length > 0 &&
+      nhiemvuThuongQuy?.NhomViecUserID
+    ) {
       const nhomViecUser = nhomViecUsers.find(
         (n) =>
           n._id ===
@@ -125,11 +125,6 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
     // Reset nhomviecuser when khoa changes
     setSelectedNhomViecUser(null);
     handleInputChange("NhomViecUserID", "");
-
-    // Load nhomviecuser for new khoa
-    if (newValue?._id) {
-      dispatch(getNhomViecUserByKhoaId(newValue._id));
-    }
   };
 
   const handleNhomViecUserChange = (event, newValue) => {
@@ -155,10 +150,10 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={() => {}} 
-      maxWidth="md" 
+    <Dialog
+      open={open}
+      onClose={() => {}}
+      maxWidth="md"
       fullWidth
       disableEscapeKeyDown
     >
@@ -206,7 +201,7 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
               isOptionEqualToValue={(option, value) =>
                 option._id === value?._id
               }
-              disabled={!formData.KhoaID}
+              // Không phụ thuộc vào Khoa nữa
               renderInput={(params) => (
                 <TextField {...params} label="Nhóm việc" />
               )}

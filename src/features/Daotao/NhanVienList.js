@@ -4,6 +4,7 @@ import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import UpdateNhanVienButton from "./UpdateNhanVienButton";
 import DeleteNhanVienButton from "./DeleteNhanVienButton";
 import MainCard from "components/MainCard";
@@ -16,10 +17,12 @@ import { ThemeMode } from "configAble";
 import NhanVienView from "features/NhanVien/NhanVienView";
 import { formatDate_getDate } from "utils/formatTime";
 import QuaTrinhDaoTaoNhanVienButon from "features/NhanVien/QuaTrinhDaoTaoNhanVienButon";
+import QuanLyNhanVienButton from "features/QuanLyCongViec/QuanLyNhanVien/QuanLyNhanVienButton";
 import ScrollX from "components/ScrollX";
 function NhanVienList() {
   const theme = useTheme();
   const mode = theme.palette.mode;
+  const navigate = useNavigate();
   const columns = useMemo(
     () => [
       {
@@ -49,6 +52,33 @@ function NhanVienList() {
               <UpdateNhanVienButton nhanvien={row.original} />
               <DeleteNhanVienButton nhanvienID={row.original._id} />
               <QuaTrinhDaoTaoNhanVienButon nhanvienID={row.original._id} />
+              <QuanLyNhanVienButton nhanvienID={row.original._id} />
+              <Tooltip
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      backgroundColor:
+                        mode === ThemeMode.DARK
+                          ? theme.palette.grey[50]
+                          : theme.palette.grey[700],
+                      opacity: 0.9,
+                    },
+                  },
+                }}
+                title="Giao nhiệm vụ"
+              >
+                <IconButton
+                  color="secondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(
+                      `/quanlycongviec/giao-nhiem-vu/${row.original._id}`
+                    );
+                  }}
+                >
+                  <Eye />
+                </IconButton>
+              </Tooltip>
               <Tooltip
                 componentsProps={{
                   tooltip: {
@@ -123,7 +153,7 @@ function NhanVienList() {
         accessor: "TenKhoa",
         minWidth: 200,
         // filter: 'fuzzyText',
-        disableGroupBy: true
+        disableGroupBy: true,
       },
       {
         Header: "Trình độ chuyên môn",
@@ -212,16 +242,16 @@ function NhanVienList() {
         disableGroupBy: true,
       },
     ],
-    []
+    [mode, theme.palette.grey, navigate]
   );
 
   const dispatch = useDispatch();
+  const { nhanviens } = useSelector((state) => state.nhanvien);
+
   useEffect(() => {
     // Gọi hàm để lấy danh sách cán bộ khi component được tạo
     if (nhanviens.length === 0) dispatch(getAllNhanVien());
-  }, [dispatch]);
-
-  const { nhanviens } = useSelector((state) => state.nhanvien);
+  }, [dispatch, nhanviens.length]);
 
   const data = useMemo(() => nhanviens, [nhanviens]);
 

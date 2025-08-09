@@ -20,6 +20,8 @@ import nhomKhoaSoThuTuSlice from "../features/Slice/nhomkhoasothutuSlice";
 import doanraSlice from "../features/NghienCuuKhoaHoc/DoanRa/doanraSlice";
 import nhomViecUserSlice from "../features/QuanLyCongViec/NhomViecUser/nhomViecUserSlice";
 import nhiemvuThuongQuySlice from "../features/QuanLyCongViec/NhiemVuThuongQuy/nhiemvuThuongQuySlice";
+import quanLyNhanVienSlice from "../features/QuanLyCongViec/QuanLyNhanVien/quanLyNhanVienSlice";
+import giaoNhiemVuSlice from "../features/QuanLyCongViec/GiaoNhiemVu/giaoNhiemVuSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -44,6 +46,8 @@ const rootReducer = {
   doanra: doanraSlice,
   nhomViecUser: nhomViecUserSlice,
   nhiemvuThuongQuy: nhiemvuThuongQuySlice,
+  quanLyNhanVien: quanLyNhanVienSlice,
+  giaoNhiemVu: giaoNhiemVuSlice,
 };
 
 const store = configureStore({

@@ -42,14 +42,7 @@ function NhomViecUserView({ data }) {
           <Divider sx={{ my: 1 }} />
         </Grid>
 
-        <Grid item xs={12} md={4}>
-          <Typography variant="subtitle2" color="textSecondary">
-            Khoa:
-          </Typography>
-          <Typography variant="body1">
-            {data.KhoaID?.TenKhoa || "Không xác định"}
-          </Typography>
-        </Grid>
+        {/* Khoa field removed */}
 
         <Grid item xs={12} md={4}>
           <Typography variant="subtitle2" color="textSecondary">

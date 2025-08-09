@@ -106,14 +106,3 @@ export const deleteOneNhomViecUser = (nhomViecUserID) => async (dispatch) => {
     toast.error(error.message);
   }
 };
-
-export const getNhomViecUserByKhoaId = (khoaId) => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
-  try {
-    const response = await apiService.get(`/nhomviec-user/khoa/${khoaId}`);
-    dispatch(slice.actions.getAllNhomViecUserSuccess(response.data.data));
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message);
-  }
-};

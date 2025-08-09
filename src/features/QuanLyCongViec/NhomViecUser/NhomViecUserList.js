@@ -67,12 +67,6 @@ function NhomViecUserList() {
         disableGroupBy: true,
       },
       {
-        Header: "Khoa",
-        Footer: "Khoa",
-        accessor: "KhoaID.TenKhoa", // Truy cập nested field
-        disableGroupBy: true,
-      },
-      {
         Header: "Người tạo",
         Footer: "Người tạo",
         accessor: "NguoiTaoID.HoTen",

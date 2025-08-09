@@ -9,37 +9,26 @@ import {
   Switch,
   FormControlLabel,
   Grid,
-  Autocomplete,
 } from "@mui/material";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import {
   insertOneNhomViecUser,
   updateOneNhomViecUser,
 } from "./nhomViecUserSlice";
-import { getAllKhoa } from "../../Daotao/Khoa/khoaSlice";
 import { toast } from "react-toastify";
 import useAuth from "../../../hooks/useAuth";
 
 function ThongTinNhomViecUser({ open, handleClose, nhomViecUser }) {
   const dispatch = useDispatch();
-  const { Khoa } = useSelector((state) => state.khoa || { Khoa: [] });
   const { user } = useAuth();
 
   const [formData, setFormData] = useState({
     TenNhom: "",
     MoTa: "",
-    KhoaID: "",
     TrangThaiHoatDong: true,
   });
 
-  const [selectedKhoa, setSelectedKhoa] = useState(null);
-
   const isEdit = nhomViecUser?._id && nhomViecUser._id !== 0;
-
-  // Load danh sách khoa
-  useEffect(() => {
-    dispatch(getAllKhoa());
-  }, [dispatch]);
 
   useEffect(() => {
     if (open) {
@@ -47,29 +36,17 @@ function ThongTinNhomViecUser({ open, handleClose, nhomViecUser }) {
         setFormData({
           TenNhom: nhomViecUser.TenNhom || "",
           MoTa: nhomViecUser.MoTa || "",
-          KhoaID: nhomViecUser.KhoaID?._id || nhomViecUser.KhoaID || "",
           TrangThaiHoatDong: nhomViecUser.TrangThaiHoatDong ?? true,
         });
-        // Set khoa được chọn cho edit
-        const khoaEdit = Khoa.find(
-          (k) => k._id === (nhomViecUser.KhoaID?._id || nhomViecUser.KhoaID)
-        );
-        setSelectedKhoa(khoaEdit || null);
       } else {
-        // Khoa mặc định là khoa của user hiện tại
-        const userKhoaId = user?.KhoaID?._id || user?.KhoaID || "";
-        const defaultKhoa = Khoa.find((k) => k._id === userKhoaId);
-
         setFormData({
           TenNhom: "",
           MoTa: "",
-          KhoaID: userKhoaId,
           TrangThaiHoatDong: true,
         });
-        setSelectedKhoa(defaultKhoa || null);
       }
     }
-  }, [open, nhomViecUser, isEdit, user, Khoa]);
+  }, [open, nhomViecUser, isEdit, user]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -86,11 +63,6 @@ function ThongTinNhomViecUser({ open, handleClose, nhomViecUser }) {
 
     if (!formData.TenNhom.trim()) {
       toast.error("Vui lòng nhập tên nhóm việc");
-      return;
-    }
-
-    if (!formData.KhoaID) {
-      toast.error("Vui lòng chọn khoa");
       return;
     }
 
@@ -128,30 +100,6 @@ function ThongTinNhomViecUser({ open, handleClose, nhomViecUser }) {
               value={formData.TenNhom}
               onChange={(e) => handleInputChange("TenNhom", e.target.value)}
               required
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <Autocomplete
-              fullWidth
-              options={Khoa || []}
-              getOptionLabel={(option) => option.TenKhoa || ""}
-              value={selectedKhoa}
-              onChange={(event, newValue) => {
-                setSelectedKhoa(newValue);
-                setFormData({ ...formData, KhoaID: newValue?._id || "" });
-              }}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Khoa *"
-                  required
-                  helperText="Chọn khoa cho nhóm việc"
-                />
-              )}
-              isOptionEqualToValue={(option, value) =>
-                option._id === value?._id
-              }
             />
           </Grid>
 
