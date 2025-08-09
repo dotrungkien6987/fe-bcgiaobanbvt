@@ -46,41 +46,41 @@ const DutyPicker = ({ duties = [], onPick }) => {
         }}
         sx={{
           mb: 2,
-          '& .MuiOutlinedInput-root': {
+          "& .MuiOutlinedInput-root": {
             borderRadius: 2,
             backgroundColor: alpha(theme.palette.secondary.main, 0.04),
-            '&:hover': {
+            "&:hover": {
               backgroundColor: alpha(theme.palette.secondary.main, 0.08),
             },
-            '&.Mui-focused': {
-              backgroundColor: 'transparent',
-            }
-          }
+            "&.Mui-focused": {
+              backgroundColor: "transparent",
+            },
+          },
         }}
       />
 
-      <List 
-        dense 
-        sx={{ 
-          maxHeight: 400, 
+      <List
+        dense
+        sx={{
+          maxHeight: 400,
           overflowY: "auto",
-          '& .MuiListItemButton-root': {
+          "& .MuiListItemButton-root": {
             borderRadius: 1.5,
             mb: 0.5,
             border: `1px solid ${alpha(theme.palette.secondary.main, 0.12)}`,
-            transition: 'all 0.2s ease-in-out',
-            '&:hover': {
+            transition: "all 0.2s ease-in-out",
+            "&:hover": {
               backgroundColor: alpha(theme.palette.secondary.main, 0.08),
               borderColor: alpha(theme.palette.secondary.main, 0.3),
-              transform: 'translateY(-1px)',
+              transform: "translateY(-1px)",
               boxShadow: theme.shadows[2],
-            }
-          }
+            },
+          },
         }}
       >
         {filtered.map((d) => (
-          <ListItemButton 
-            key={d._id} 
+          <ListItemButton
+            key={d._id}
             onClick={() => onPick?.(d)}
             sx={{ pl: 2, pr: 1.5 }}
           >
@@ -90,24 +90,32 @@ const DutyPicker = ({ duties = [], onPick }) => {
                 height: 32,
                 mr: 1.5,
                 bgcolor: theme.palette.secondary.main,
-                fontSize: '0.875rem'
+                fontSize: "0.875rem",
               }}
             >
               <Assignment fontSize="small" />
             </Avatar>
             <ListItemText
               primary={
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                  <Typography variant="body2" fontWeight={600} color="text.primary">
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <Typography
+                    variant="body2"
+                    fontWeight={600}
+                    color="text.primary"
+                  >
                     {d.TenNhiemVu || d.Ten}
                   </Typography>
                   <Tooltip title="Gán nhiệm vụ này">
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       color="secondary"
-                      sx={{ 
+                      sx={{
                         opacity: 0.7,
-                        '&:hover': { opacity: 1 }
+                        "&:hover": { opacity: 1 },
                       }}
                     >
                       <Add fontSize="small" />
@@ -122,11 +130,11 @@ const DutyPicker = ({ duties = [], onPick }) => {
                     label={d.KhoaID.TenKhoa}
                     variant="outlined"
                     color="default"
-                    sx={{ 
+                    sx={{
                       mt: 0.5,
-                      fontSize: '0.75rem',
+                      fontSize: "0.75rem",
                       height: 20,
-                      '& .MuiChip-label': { px: 1 }
+                      "& .MuiChip-label": { px: 1 },
                     }}
                   />
                 ) : (
@@ -143,14 +151,16 @@ const DutyPicker = ({ duties = [], onPick }) => {
             variant="outlined"
             sx={{
               p: 3,
-              textAlign: 'center',
+              textAlign: "center",
               backgroundColor: alpha(theme.palette.grey[500], 0.04),
               border: `1px dashed ${alpha(theme.palette.grey[500], 0.3)}`,
             }}
           >
             <Assignment color="disabled" sx={{ fontSize: 48, mb: 1 }} />
             <Typography variant="body2" color="text.secondary" fontWeight={500}>
-              {search ? "Không tìm thấy nhiệm vụ phù hợp" : "Chưa có nhiệm vụ nào"}
+              {search
+                ? "Không tìm thấy nhiệm vụ phù hợp"
+                : "Chưa có nhiệm vụ nào"}
             </Typography>
             {search && (
               <Typography variant="caption" color="text.disabled">

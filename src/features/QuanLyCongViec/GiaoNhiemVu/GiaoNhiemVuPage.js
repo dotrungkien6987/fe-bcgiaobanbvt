@@ -43,9 +43,9 @@ const GiaoNhiemVuPage = () => {
 
   useEffect(() => {
     if (!selectedEmployeeId && employees?.length > 0) {
-  const raw = employees[0]?.ThongTinNhanVienDuocQuanLy;
-  const info = Array.isArray(raw) ? raw[0] : raw;
-  const first = info?._id || employees[0]?.NhanVienDuocQuanLy;
+      const raw = employees[0]?.ThongTinNhanVienDuocQuanLy;
+      const info = Array.isArray(raw) ? raw[0] : raw;
+      const first = info?._id || employees[0]?.NhanVienDuocQuanLy;
       if (first) dispatch(setSelectedEmployee(first));
     }
   }, [employees, selectedEmployeeId, dispatch]);
@@ -58,44 +58,71 @@ const GiaoNhiemVuPage = () => {
   }, [selectedEmployeeId, dispatch]);
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh',
-      backgroundColor: alpha(theme.palette.grey[100], 0.4),
-      py: 3
-    }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        backgroundColor: alpha(theme.palette.grey[100], 0.4),
+        py: 3,
+      }}
+    >
       <Container maxWidth="xl">
         {/* Header */}
         <Box mb={3}>
           <Breadcrumbs separator="›" sx={{ mb: 2 }}>
-            <Link color="inherit" href="#" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Link
+              color="inherit"
+              href="#"
+              sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+            >
               <Home fontSize="small" />
               Trang chủ
             </Link>
-            <Typography color="text.primary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Typography
+              color="text.primary"
+              sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+            >
               <Assignment fontSize="small" />
               Giao nhiệm vụ
             </Typography>
           </Breadcrumbs>
-          
-          <Box display="flex" alignItems="center" justifyContent="space-between">
+
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+          >
             <Box>
-              <Typography variant="h4" fontWeight={700} color="text.primary" gutterBottom>
+              <Typography
+                variant="h4"
+                fontWeight={700}
+                color="text.primary"
+                gutterBottom
+              >
                 Giao nhiệm vụ thường quy
               </Typography>
               <Typography variant="body1" color="text.secondary">
                 Quản lý và phân công nhiệm vụ cho nhân viên trong đơn vị
               </Typography>
             </Box>
-            
+
             {isLoading && (
-              <Box display="flex" alignItems="center" gap={1} 
-                sx={{ 
+              <Box
+                display="flex"
+                alignItems="center"
+                gap={1}
+                sx={{
                   backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  py: 1, px: 2, borderRadius: 2 
+                  py: 1,
+                  px: 2,
+                  borderRadius: 2,
                 }}
               >
                 <CircularProgress size={20} />
-                <Typography variant="body2" color="primary.main" fontWeight={500}>
+                <Typography
+                  variant="body2"
+                  color="primary.main"
+                  fontWeight={500}
+                >
                   Đang tải dữ liệu...
                 </Typography>
               </Box>
@@ -116,12 +143,12 @@ const GiaoNhiemVuPage = () => {
             isLoading ? (
               <CircularProgress size={24} />
             ) : (
-              <Chip 
-                size="small" 
-                label="Đang hoạt động" 
+              <Chip
+                size="small"
+                label="Đang hoạt động"
                 color="success"
                 variant="filled"
-                sx={{ color: 'white' }}
+                sx={{ color: "white" }}
               />
             )
           }
@@ -129,12 +156,12 @@ const GiaoNhiemVuPage = () => {
           <Grid container spacing={3}>
             {/* Employee List Section */}
             <Grid item xs={12} lg={4}>
-              <Card 
-                variant="outlined" 
-                sx={{ 
-                  height: 'fit-content',
+              <Card
+                variant="outlined"
+                sx={{
+                  height: "fit-content",
                   borderRadius: 2,
-                  '&:hover': { boxShadow: theme.shadows[4] }
+                  "&:hover": { boxShadow: theme.shadows[4] },
                 }}
               >
                 <CardHeader
@@ -147,9 +174,9 @@ const GiaoNhiemVuPage = () => {
                     </Box>
                   }
                   action={
-                    <Chip 
-                      size="small" 
-                      label={employees.length} 
+                    <Chip
+                      size="small"
+                      label={employees.length}
                       color="primary"
                       variant="outlined"
                     />
@@ -171,11 +198,11 @@ const GiaoNhiemVuPage = () => {
               <Grid container spacing={3}>
                 {/* Task Picker */}
                 <Grid item xs={12}>
-                  <Card 
+                  <Card
                     variant="outlined"
-                    sx={{ 
+                    sx={{
                       borderRadius: 2,
-                      '&:hover': { boxShadow: theme.shadows[4] }
+                      "&:hover": { boxShadow: theme.shadows[4] },
                     }}
                   >
                     <CardHeader
@@ -188,9 +215,9 @@ const GiaoNhiemVuPage = () => {
                         </Box>
                       }
                       action={
-                        <Chip 
-                          size="small" 
-                          label={`${duties.length} nhiệm vụ`} 
+                        <Chip
+                          size="small"
+                          label={`${duties.length} nhiệm vụ`}
                           color="secondary"
                           variant="outlined"
                         />
@@ -216,11 +243,11 @@ const GiaoNhiemVuPage = () => {
 
                 {/* Assignment Table */}
                 <Grid item xs={12}>
-                  <Card 
+                  <Card
                     variant="outlined"
-                    sx={{ 
+                    sx={{
                       borderRadius: 2,
-                      '&:hover': { boxShadow: theme.shadows[4] }
+                      "&:hover": { boxShadow: theme.shadows[4] },
                     }}
                   >
                     <CardHeader
@@ -234,9 +261,9 @@ const GiaoNhiemVuPage = () => {
                       }
                       subheader="Danh sách nhiệm vụ đang được thực hiện"
                       action={
-                        <Chip 
-                          size="small" 
-                          label={`${assignments.length} nhiệm vụ`} 
+                        <Chip
+                          size="small"
+                          label={`${assignments.length} nhiệm vụ`}
                           color="success"
                           variant="outlined"
                         />

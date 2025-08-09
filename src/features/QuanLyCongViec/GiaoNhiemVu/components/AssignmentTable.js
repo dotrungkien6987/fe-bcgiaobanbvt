@@ -22,15 +22,15 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
   const theme = useTheme();
 
   return (
-    <TableContainer 
-      component={Paper} 
+    <TableContainer
+      component={Paper}
       variant="outlined"
       sx={{
         borderRadius: 2,
-        overflow: 'hidden',
-        '& .MuiTable-root': {
+        overflow: "hidden",
+        "& .MuiTable-root": {
           minWidth: 650,
-        }
+        },
       }}
     >
       <Table size="small">
@@ -38,11 +38,14 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
           <TableRow
             sx={{
               backgroundColor: alpha(theme.palette.primary.main, 0.08),
-              '& .MuiTableCell-head': {
+              "& .MuiTableCell-head": {
                 fontWeight: 600,
                 color: theme.palette.primary.dark,
-                borderBottom: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-              }
+                borderBottom: `2px solid ${alpha(
+                  theme.palette.primary.main,
+                  0.2
+                )}`,
+              },
             }}
           >
             <TableCell>Tên nhiệm vụ</TableCell>
@@ -54,21 +57,24 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
         </TableHead>
         <TableBody>
           {assignments.map((a, index) => (
-            <TableRow 
-              key={a._id} 
+            <TableRow
+              key={a._id}
               hover
               sx={{
-                '&:nth-of-type(odd)': {
+                "&:nth-of-type(odd)": {
                   backgroundColor: alpha(theme.palette.grey[500], 0.04),
                 },
-                '&:hover': {
+                "&:hover": {
                   backgroundColor: alpha(theme.palette.primary.main, 0.04),
-                  transform: 'scale(1.002)',
-                  transition: 'all 0.2s ease-in-out',
+                  transform: "scale(1.002)",
+                  transition: "all 0.2s ease-in-out",
                 },
-                '& .MuiTableCell-root': {
-                  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.5)}`,
-                }
+                "& .MuiTableCell-root": {
+                  borderBottom: `1px solid ${alpha(
+                    theme.palette.divider,
+                    0.5
+                  )}`,
+                },
               }}
             >
               <TableCell>
@@ -78,7 +84,7 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
                       width: 32,
                       height: 32,
                       bgcolor: theme.palette.primary.main,
-                      fontSize: '0.875rem'
+                      fontSize: "0.875rem",
                     }}
                   >
                     <Assignment fontSize="small" />
@@ -94,18 +100,19 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
                       {/* Indicator cho assignment được khôi phục gần đây */}
                       {(() => {
                         const assignedDate = new Date(a.NgayGan || a.createdAt);
-                        const diffHours = (new Date() - assignedDate) / (1000 * 60 * 60);
+                        const diffHours =
+                          (new Date() - assignedDate) / (1000 * 60 * 60);
                         if (diffHours < 24) {
                           return (
-                            <Chip 
-                              size="small" 
-                              label="Mới gán" 
-                              color="success" 
+                            <Chip
+                              size="small"
+                              label="Mới gán"
+                              color="success"
                               variant="outlined"
-                              sx={{ 
-                                fontSize: '0.6rem', 
+                              sx={{
+                                fontSize: "0.6rem",
                                 height: 16,
-                                '& .MuiChip-label': { px: 0.5 }
+                                "& .MuiChip-label": { px: 0.5 },
                               }}
                             />
                           );
@@ -125,7 +132,7 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
                     variant="outlined"
                     sx={{
                       fontWeight: 500,
-                      '& .MuiChip-label': { px: 1.5 }
+                      "& .MuiChip-label": { px: 1.5 },
                     }}
                   />
                 ) : (
@@ -141,7 +148,7 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
                       width: 24,
                       height: 24,
                       bgcolor: theme.palette.grey[400],
-                      fontSize: '0.75rem'
+                      fontSize: "0.75rem",
                     }}
                   >
                     <Person fontSize="small" />
@@ -158,13 +165,16 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
               <TableCell>
                 <Typography variant="caption" color="text.secondary">
                   {a?.NgayGan || a?.createdAt
-                    ? new Date(a.NgayGan || a.createdAt).toLocaleDateString('vi-VN', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })
+                    ? new Date(a.NgayGan || a.createdAt).toLocaleDateString(
+                        "vi-VN",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )
                     : "Chưa rõ"}
                 </Typography>
               </TableCell>
@@ -175,10 +185,10 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
                     size="small"
                     onClick={() => onUnassign?.(a._id)}
                     sx={{
-                      '&:hover': {
+                      "&:hover": {
                         backgroundColor: alpha(theme.palette.error.main, 0.1),
-                        transform: 'scale(1.1)',
-                      }
+                        transform: "scale(1.1)",
+                      },
                     }}
                   >
                     <DeleteOutline fontSize="small" />
@@ -194,17 +204,21 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
                   variant="outlined"
                   sx={{
                     py: 4,
-                    textAlign: 'center',
+                    textAlign: "center",
                     backgroundColor: alpha(theme.palette.grey[500], 0.04),
                     border: `1px dashed ${alpha(theme.palette.grey[500], 0.3)}`,
                     borderRadius: 2,
                   }}
                 >
-                  <Assignment 
-                    color="disabled" 
-                    sx={{ fontSize: 48, mb: 1, opacity: 0.5 }} 
+                  <Assignment
+                    color="disabled"
+                    sx={{ fontSize: 48, mb: 1, opacity: 0.5 }}
                   />
-                  <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    fontWeight={500}
+                  >
                     Chưa có nhiệm vụ nào được gán
                   </Typography>
                   <Typography variant="caption" color="text.disabled">

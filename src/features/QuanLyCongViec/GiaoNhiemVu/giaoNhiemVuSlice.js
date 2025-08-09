@@ -128,21 +128,21 @@ export const assignDuty =
         { NhanVienID: employeeId, NhiemVuThuongQuyID: dutyId }
       );
       dispatch(slice.actions.assignDutySuccess(res.data.data));
-      
+
       // Kiểm tra xem có phải là khôi phục assignment hay không
       const assignment = res.data.data;
       if (assignment.NgayGan) {
         const assignedDate = new Date(assignment.NgayGan);
         const now = new Date();
         const diffMinutes = (now - assignedDate) / (1000 * 60);
-        
+
         if (diffMinutes < 1) {
           // Vừa được gán -> có thể là tạo mới hoặc khôi phục
           toast.success("Gán nhiệm vụ thành công");
         } else {
           // Đã có từ trước -> khôi phục
           toast.success("Khôi phục nhiệm vụ thành công", {
-            description: "Nhiệm vụ đã được gán trước đó và vừa được khôi phục"
+            description: "Nhiệm vụ đã được gán trước đó và vừa được khôi phục",
           });
         }
       } else {
