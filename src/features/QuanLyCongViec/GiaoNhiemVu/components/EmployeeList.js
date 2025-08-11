@@ -16,7 +16,12 @@ import {
 } from "@mui/material";
 import { Search, Person } from "@mui/icons-material";
 
-const EmployeeList = ({ employees = [], selectedEmployeeId, onSelect }) => {
+const EmployeeList = ({
+  employees = [],
+  selectedEmployeeId,
+  onSelect,
+  totalsByEmployeeId = {},
+}) => {
   const [search, setSearch] = useState("");
   const theme = useTheme();
 
@@ -86,9 +91,12 @@ const EmployeeList = ({ employees = [], selectedEmployeeId, onSelect }) => {
         sx={{
           maxHeight: 480,
           overflowY: "auto",
+          overflowX: "auto", // Thanh cuộn ngang chung cho toàn bộ danh sách
+          minWidth: 280,
           "& .MuiListItemButton-root": {
             borderRadius: 1.5,
             mb: 0.5,
+            minWidth: 350, // Tăng width để đảm bảo nội dung không bị wrap
             transition: "all 0.2s ease-in-out",
             "&:hover": {
               backgroundColor: alpha(theme.palette.primary.main, 0.08),
@@ -116,6 +124,7 @@ const EmployeeList = ({ employees = [], selectedEmployeeId, onSelect }) => {
           const id = nv._id || e.NhanVienDuocQuanLy;
           const khoaName = nv?.KhoaID?.TenKhoa || nv?.TenKhoa;
           const isSelected = id === selectedEmployeeId;
+          const totals = totalsByEmployeeId[id];
 
           // Debug log đã được loại bỏ sau khi xác nhận dữ liệu
 
@@ -123,7 +132,7 @@ const EmployeeList = ({ employees = [], selectedEmployeeId, onSelect }) => {
             <ListItemButton
               key={id}
               selected={isSelected}
-              onClick={() => onSelect?.(id)}
+              onClick={() => onSelect?.(id, nv)}
               sx={{ pl: 2, pr: 2 }}
             >
               <Avatar
@@ -145,13 +154,17 @@ const EmployeeList = ({ employees = [], selectedEmployeeId, onSelect }) => {
                     display="flex"
                     alignItems="center"
                     gap={1}
-                    flexWrap="wrap"
+                    flexWrap="nowrap" // Không wrap để có thanh cuộn chung
+                    sx={{ minWidth: 300 }} // Loại bỏ overflowX riêng lẻ, để thanh cuộn chung xử lý
                   >
                     <Typography
                       variant="body2"
                       fontWeight={isSelected ? 600 : 500}
                       color={isSelected ? "primary.main" : "text.primary"}
-                      sx={{ minWidth: 0, flex: 1 }}
+                      sx={{
+                        minWidth: 140, // Tăng width cho tên
+                        whiteSpace: "nowrap",
+                      }}
                     >
                       {nv.Ten || `Nhân viên (${id})`}
                     </Typography>
@@ -164,6 +177,25 @@ const EmployeeList = ({ employees = [], selectedEmployeeId, onSelect }) => {
                         sx={{
                           fontSize: "0.75rem",
                           height: 20,
+                          minWidth: 70,
+                          flexShrink: 0,
+                          "& .MuiChip-label": { px: 1 },
+                        }}
+                      />
+                    )}
+                    {totals && (
+                      <Chip
+                        size="small"
+                        label={`${Number(totals.totalMucDoKho || 0).toFixed(
+                          1
+                        )} • ${totals.assignments} NVụ`}
+                        color="success"
+                        variant={isSelected ? "filled" : "outlined"}
+                        sx={{
+                          fontSize: "0.7rem",
+                          height: 20,
+                          minWidth: 90,
+                          flexShrink: 0,
                           "& .MuiChip-label": { px: 1 },
                         }}
                       />

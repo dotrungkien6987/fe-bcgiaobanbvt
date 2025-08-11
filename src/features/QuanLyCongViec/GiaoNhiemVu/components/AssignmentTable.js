@@ -16,9 +16,13 @@ import {
   useTheme,
   Avatar,
 } from "@mui/material";
-import { DeleteOutline, Assignment, Person } from "@mui/icons-material";
+import { DeleteOutline, Assignment } from "@mui/icons-material";
 
-const AssignmentTable = ({ assignments = [], onUnassign }) => {
+const AssignmentTable = ({
+  assignments = [],
+  onUnassign,
+  selectedEmployeeId,
+}) => {
   const theme = useTheme();
 
   return (
@@ -27,9 +31,10 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
       variant="outlined"
       sx={{
         borderRadius: 2,
-        overflow: "hidden",
+        overflow: "auto", // Thay đổi từ "hidden" thành "auto" để có cả cuộn ngang và dọc
+        maxHeight: "100%", // Giới hạn chiều cao
         "& .MuiTable-root": {
-          minWidth: 650,
+          minWidth: 650, // Width tối thiểu để table không bị nén quá
         },
       }}
     >
@@ -49,10 +54,12 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
             }}
           >
             <TableCell>Tên nhiệm vụ</TableCell>
-            <TableCell>Khoa</TableCell>
-            <TableCell>Người gán</TableCell>
-            <TableCell>Ngày gán</TableCell>
-            <TableCell align="right">Thao tác</TableCell>
+            <TableCell sx={{ minWidth: 100 }}>Mức độ khó</TableCell>
+            <TableCell sx={{ minWidth: 120 }}>Khoa</TableCell>
+            <TableCell sx={{ minWidth: 140 }}>Ngày gán</TableCell>
+            <TableCell align="right" sx={{ minWidth: 80 }}>
+              Thao tác
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -78,26 +85,40 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
               }}
             >
               <TableCell>
-                <Box display="flex" alignItems="center" gap={1.5}>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap={1.5}
+                  sx={{ minWidth: 200 }}
+                >
                   <Avatar
                     sx={{
                       width: 32,
                       height: 32,
                       bgcolor: theme.palette.primary.main,
                       fontSize: "0.875rem",
+                      flexShrink: 0,
                     }}
                   >
                     <Assignment fontSize="small" />
                   </Avatar>
-                  <Box>
-                    <Typography variant="body2" fontWeight={600} noWrap>
+                  <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      sx={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
                       {a?.NhiemVuThuongQuyID?.TenNhiemVu || "Nhiệm vụ"}
                     </Typography>
                     <Box display="flex" alignItems="center" gap={0.5} mt={0.5}>
                       <Typography variant="caption" color="text.secondary">
                         #{index + 1}
                       </Typography>
-                      {/* Indicator cho assignment được khôi phục gần đây */}
+                      {/* Indicator cho assignment được gán gần đây */}
                       {(() => {
                         const assignedDate = new Date(a.NgayGan || a.createdAt);
                         const diffHours =
@@ -112,6 +133,7 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
                               sx={{
                                 fontSize: "0.6rem",
                                 height: 16,
+                                flexShrink: 0,
                                 "& .MuiChip-label": { px: 0.5 },
                               }}
                             />
@@ -122,6 +144,25 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
                     </Box>
                   </Box>
                 </Box>
+              </TableCell>
+              <TableCell>
+                {a?.NhiemVuThuongQuyID?.MucDoKho ? (
+                  <Chip
+                    size="small"
+                    label={Number(a.NhiemVuThuongQuyID.MucDoKho).toFixed(1)}
+                    color="warning"
+                    variant="filled"
+                    sx={{
+                      fontWeight: 600,
+                      minWidth: 40,
+                      "& .MuiChip-label": { px: 1 },
+                    }}
+                  />
+                ) : (
+                  <Typography variant="caption" color="text.secondary">
+                    N/A
+                  </Typography>
+                )}
               </TableCell>
               <TableCell>
                 {a?.NhiemVuThuongQuyID?.KhoaID?.TenKhoa ? (
@@ -140,27 +181,6 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
                     Chưa phân khoa
                   </Typography>
                 )}
-              </TableCell>
-              <TableCell>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <Avatar
-                    sx={{
-                      width: 24,
-                      height: 24,
-                      bgcolor: theme.palette.grey[400],
-                      fontSize: "0.75rem",
-                    }}
-                  >
-                    <Person fontSize="small" />
-                  </Avatar>
-                  <Typography variant="body2">
-                    {a?.NguoiGanID?.Ten || (
-                      <span style={{ color: theme.palette.text.secondary }}>
-                        Chưa xác định
-                      </span>
-                    )}
-                  </Typography>
-                </Box>
               </TableCell>
               <TableCell>
                 <Typography variant="caption" color="text.secondary">
@@ -219,10 +239,14 @@ const AssignmentTable = ({ assignments = [], onUnassign }) => {
                     color="text.secondary"
                     fontWeight={500}
                   >
-                    Chưa có nhiệm vụ nào được gán
+                    {selectedEmployeeId
+                      ? "Chưa có nhiệm vụ nào được gán"
+                      : "Chọn nhân viên để xem nhiệm vụ đã gán"}
                   </Typography>
                   <Typography variant="caption" color="text.disabled">
-                    Chọn nhiệm vụ từ danh sách bên trái để gán cho nhân viên
+                    {selectedEmployeeId
+                      ? "Chọn nhiệm vụ từ danh sách bên trái để gán cho nhân viên"
+                      : "Sử dụng menu bên trái để chọn nhân viên"}
                   </Typography>
                 </Paper>
               </TableCell>

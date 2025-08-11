@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { Search, Assignment, Add } from "@mui/icons-material";
 
-const DutyPicker = ({ duties = [], onPick }) => {
+const DutyPicker = ({ duties = [], onPick, selectedEmployeeId }) => {
   const [search, setSearch] = useState("");
   const theme = useTheme();
 
@@ -64,9 +64,12 @@ const DutyPicker = ({ duties = [], onPick }) => {
         sx={{
           maxHeight: 400,
           overflowY: "auto",
+          overflowX: "auto", // Thêm cuộn ngang
+          minWidth: 300, // Width tối thiểu
           "& .MuiListItemButton-root": {
             borderRadius: 1.5,
             mb: 0.5,
+            minWidth: 280, // Width tối thiểu cho item
             border: `1px solid ${alpha(theme.palette.secondary.main, 0.12)}`,
             transition: "all 0.2s ease-in-out",
             "&:hover": {
@@ -82,14 +85,21 @@ const DutyPicker = ({ duties = [], onPick }) => {
           <ListItemButton
             key={d._id}
             onClick={() => onPick?.(d)}
-            sx={{ pl: 2, pr: 1.5 }}
+            disabled={!selectedEmployeeId}
+            sx={{
+              pl: 2,
+              pr: 1.5,
+              opacity: selectedEmployeeId ? 1 : 0.6,
+            }}
           >
             <Avatar
               sx={{
                 width: 32,
                 height: 32,
                 mr: 1.5,
-                bgcolor: theme.palette.secondary.main,
+                bgcolor: selectedEmployeeId
+                  ? theme.palette.secondary.main
+                  : theme.palette.grey[400],
                 fontSize: "0.875rem",
               }}
             >
@@ -101,47 +111,102 @@ const DutyPicker = ({ duties = [], onPick }) => {
                   display="flex"
                   alignItems="center"
                   justifyContent="space-between"
+                  sx={{ minWidth: 0, overflowX: "auto" }} // Cuộn ngang cho primary content
                 >
                   <Typography
                     variant="body2"
                     fontWeight={600}
                     color="text.primary"
+                    sx={{
+                      flex: 1,
+                      minWidth: 150, // Width tối thiểu cho tên nhiệm vụ
+                      mr: 1,
+                      whiteSpace: "nowrap",
+                    }}
                   >
                     {d.TenNhiemVu || d.Ten}
                   </Typography>
-                  <Tooltip title="Gán nhiệm vụ này">
-                    <IconButton
-                      size="small"
-                      color="secondary"
-                      sx={{
-                        opacity: 0.7,
-                        "&:hover": { opacity: 1 },
-                      }}
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    gap={1}
+                    sx={{ flexShrink: 0 }}
+                  >
+                    {d.MucDoKho && (
+                      <Chip
+                        size="small"
+                        label={`${Number(d.MucDoKho).toFixed(1)}`}
+                        color="warning"
+                        variant="filled"
+                        sx={{
+                          fontSize: "0.7rem",
+                          height: 18,
+                          minWidth: 35,
+                          "& .MuiChip-label": { px: 0.5 },
+                        }}
+                      />
+                    )}
+                    <Tooltip
+                      title={
+                        selectedEmployeeId
+                          ? "Gán nhiệm vụ này"
+                          : "Chọn nhân viên trước"
+                      }
                     >
-                      <Add fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                      <IconButton
+                        size="small"
+                        color="secondary"
+                        disabled={!selectedEmployeeId}
+                        sx={{
+                          opacity: selectedEmployeeId ? 0.7 : 0.3,
+                          "&:hover": { opacity: selectedEmployeeId ? 1 : 0.3 },
+                        }}
+                      >
+                        <Add fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
                 </Box>
               }
               secondary={
-                d?.KhoaID?.TenKhoa ? (
-                  <Chip
-                    size="small"
-                    label={d.KhoaID.TenKhoa}
-                    variant="outlined"
-                    color="default"
-                    sx={{
-                      mt: 0.5,
-                      fontSize: "0.75rem",
-                      height: 20,
-                      "& .MuiChip-label": { px: 1 },
-                    }}
-                  />
-                ) : (
-                  <Typography variant="caption" color="text.disabled">
-                    Chưa phân khoa
-                  </Typography>
-                )
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap={1}
+                  mt={0.5}
+                  sx={{ overflowX: "auto", minWidth: 0 }} // Cuộn ngang cho secondary content
+                >
+                  {d?.KhoaID?.TenKhoa && (
+                    <Chip
+                      size="small"
+                      label={d.KhoaID.TenKhoa}
+                      variant="outlined"
+                      color="default"
+                      sx={{
+                        fontSize: "0.7rem",
+                        height: 18,
+                        minWidth: 50,
+                        flexShrink: 0,
+                        "& .MuiChip-label": { px: 0.5 },
+                      }}
+                    />
+                  )}
+                  {d.MoTa && (
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{
+                        flex: 1,
+                        minWidth: 0,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {d.MoTa}
+                    </Typography>
+                  )}
+                </Box>
               }
             />
           </ListItemButton>
@@ -160,9 +225,11 @@ const DutyPicker = ({ duties = [], onPick }) => {
             <Typography variant="body2" color="text.secondary" fontWeight={500}>
               {search
                 ? "Không tìm thấy nhiệm vụ phù hợp"
-                : "Chưa có nhiệm vụ nào"}
+                : selectedEmployeeId
+                ? "Chưa có nhiệm vụ khả dụng"
+                : "Chọn nhân viên để xem nhiệm vụ"}
             </Typography>
-            {search && (
+            {search && selectedEmployeeId && (
               <Typography variant="caption" color="text.disabled">
                 Thử tìm kiếm với từ khóa khác
               </Typography>

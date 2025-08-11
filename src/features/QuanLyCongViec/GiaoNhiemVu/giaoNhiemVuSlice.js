@@ -6,12 +6,14 @@ const initialState = {
   isLoading: false,
   error: null,
   managerId: null,
+  managerInfo: null,
 
   employees: [],
   selectedEmployeeId: null,
 
   duties: [],
   assignments: [],
+  totalsByEmployeeId: {},
 
   creating: false,
   deleting: false,
@@ -33,6 +35,11 @@ const slice = createSlice({
     setManagerId(state, action) {
       state.managerId = action.payload;
     },
+    getManagerInfoSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.managerInfo = action.payload || null;
+    },
     setSelectedEmployee(state, action) {
       state.selectedEmployeeId = action.payload;
     },
@@ -51,6 +58,17 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.assignments = action.payload || [];
+    },
+    getAssignmentTotalsSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      const arr = action.payload || [];
+      const map = {};
+      arr.forEach((x) => {
+        const id = x.NhanVienID || x._id || x?.nhanvien?._id;
+        if (id) map[id] = x;
+      });
+      state.totalsByEmployeeId = { ...state.totalsByEmployeeId, ...map };
     },
 
     assignDutySuccess(state, action) {
@@ -102,6 +120,18 @@ export const setSelectedEmployee = (employeeId) => async (dispatch) => {
   dispatch(slice.actions.setSelectedEmployee(employeeId));
 };
 
+// Manager info
+export const fetchManagerInfo = (managerId) => async (dispatch) => {
+  dispatch(slice.actions.startLoading());
+  try {
+    const res = await apiService.get(`/nhanvien/simple/${managerId}`);
+    dispatch(slice.actions.getManagerInfoSuccess(res?.data?.data));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
 // Fetchers
 export const fetchManagedEmployees =
   (managerId, loaiQuanLy) => async (dispatch) => {
@@ -145,6 +175,27 @@ export const fetchAssignmentsByEmployee = (employeeId) => async (dispatch) => {
   }
 };
 
+// Fetch totals for one or many employees
+export const fetchAssignmentTotals =
+  (employeeIds, selectedOnly = false) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const params = {};
+      if (Array.isArray(employeeIds) && employeeIds.length > 0)
+        params.NhanVienIDs = employeeIds.join(",");
+      if (selectedOnly) params.selectedOnly = true;
+      const res = await apiService.get(
+        `/workmanagement/giao-nhiem-vu/assignments/totals`,
+        { params }
+      );
+      dispatch(slice.actions.getAssignmentTotalsSuccess(res?.data?.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      // optional toast suppressed to avoid noise
+    }
+  };
+
 // Mutations
 export const assignDuty =
   ({ employeeId, dutyId }) =>
@@ -162,6 +213,7 @@ export const assignDuty =
       dispatch(slice.actions.assignDutySuccess(assignment));
       // Ensure sync for restored assignments
       await dispatch(fetchAssignmentsByEmployee(employeeId));
+      await dispatch(fetchAssignmentTotals([employeeId]));
       toast.success("Đã gán nhiệm vụ");
     } catch (error) {
       const status = error?.response?.status;
@@ -189,6 +241,7 @@ export const unassignById = (assignmentId) => async (dispatch, getState) => {
     dispatch(slice.actions.unassignSuccess(assignmentId));
     const employeeId = getState()?.giaoNhiemVu?.selectedEmployeeId;
     if (employeeId) await dispatch(fetchAssignmentsByEmployee(employeeId));
+    if (employeeId) await dispatch(fetchAssignmentTotals([employeeId]));
     toast.success("Đã gỡ gán nhiệm vụ");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
@@ -236,6 +289,7 @@ export const bulkAssign =
 
       const empId = getState()?.giaoNhiemVu?.selectedEmployeeId;
       if (empId) await dispatch(fetchAssignmentsByEmployee(empId));
+      if (empId) await dispatch(fetchAssignmentTotals([empId]));
 
       toast.success(
         `Gán nhiệm vụ: tạo mới ${created}, khôi phục ${restored}, bỏ qua ${skipped}`
