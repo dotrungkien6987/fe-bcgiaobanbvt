@@ -21,7 +21,7 @@ import {
   updateOneNhiemVuThuongQuy,
 } from "./nhiemvuThuongQuySlice";
 import { getAllKhoa } from "../../Daotao/Khoa/khoaSlice";
-import { getAllNhomViecUser } from "../NhomViecUser/nhomViecUserSlice";
+// import { getAllNhomViecUser } from "../NhomViecUser/nhomViecUserSlice";
 
 function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
   const dispatch = useDispatch();
@@ -29,29 +29,27 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
 
   // Reference data selectors
   const { Khoa: khoas } = useSelector((state) => state.khoa || { Khoa: [] });
-  const { nhomViecUsers } = useSelector(
-    (state) => state.nhomViecUser || { nhomViecUsers: [] }
-  );
+  // const { nhomViecUsers } = useSelector(
+  //   (state) => state.nhomViecUser || { nhomViecUsers: [] }
+  // );
 
   const [formData, setFormData] = useState({
     TenNhiemVu: "",
     MoTa: "",
     KhoaID: "",
-    NhomViecUserID: "",
     MucDoKho: 5.0,
     TrangThaiHoatDong: true,
   });
 
   // Autocomplete states for references
   const [selectedKhoa, setSelectedKhoa] = useState(null);
-  const [selectedNhomViecUser, setSelectedNhomViecUser] = useState(null);
+  // const [selectedNhomViecUser, setSelectedNhomViecUser] = useState(null);
 
   const isEdit = nhiemvuThuongQuy?._id && nhiemvuThuongQuy._id !== 0;
 
   useEffect(() => {
     dispatch(getAllKhoa());
-    // Tải tất cả nhóm việc người dùng (không lọc theo khoa nữa)
-    dispatch(getAllNhomViecUser());
+    // Không còn sử dụng NhomViecUserID
   }, [dispatch]);
 
   useEffect(() => {
@@ -61,10 +59,6 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
           TenNhiemVu: nhiemvuThuongQuy.TenNhiemVu || "",
           MoTa: nhiemvuThuongQuy.MoTa || "",
           KhoaID: nhiemvuThuongQuy.KhoaID?._id || nhiemvuThuongQuy.KhoaID || "",
-          NhomViecUserID:
-            nhiemvuThuongQuy.NhomViecUserID?._id ||
-            nhiemvuThuongQuy.NhomViecUserID ||
-            "",
           MucDoKho: nhiemvuThuongQuy.MucDoKho || 5.0,
           TrangThaiHoatDong: nhiemvuThuongQuy.TrangThaiHoatDong ?? true,
         });
@@ -74,45 +68,25 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
             k._id === (nhiemvuThuongQuy.KhoaID?._id || nhiemvuThuongQuy.KhoaID)
         );
         setSelectedKhoa(khoa || null);
-
-        // Không tải theo khoa nữa
       } else {
         // Create mode with defaults
         setFormData({
           TenNhiemVu: "",
           MoTa: "",
           KhoaID: user?.KhoaID || "",
-          NhomViecUserID: "",
           MucDoKho: 5.0,
           TrangThaiHoatDong: true,
         });
         // Set default selected khoa
         const defaultKhoa = khoas.find((k) => k._id === user?.KhoaID);
         setSelectedKhoa(defaultKhoa || null);
-        setSelectedNhomViecUser(null);
-
-        // Nhóm việc đã được tải ở effect trên
+        // Không còn trường NhomViecUserID
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, nhiemvuThuongQuy, isEdit, user?.KhoaID, khoas, dispatch]);
 
-  // Separate useEffect for setting NhomViecUser when data is loaded
-  useEffect(() => {
-    if (
-      isEdit &&
-      nhomViecUsers.length > 0 &&
-      nhiemvuThuongQuy?.NhomViecUserID
-    ) {
-      const nhomViecUser = nhomViecUsers.find(
-        (n) =>
-          n._id ===
-          (nhiemvuThuongQuy.NhomViecUserID?._id ||
-            nhiemvuThuongQuy.NhomViecUserID)
-      );
-      setSelectedNhomViecUser(nhomViecUser || null);
-    }
-  }, [nhomViecUsers, nhiemvuThuongQuy?.NhomViecUserID, isEdit]);
+  // Bỏ thiết lập NhomViecUser khi load dữ liệu
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -121,15 +95,6 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
   const handleKhoaChange = (event, newValue) => {
     setSelectedKhoa(newValue);
     handleInputChange("KhoaID", newValue?._id || "");
-
-    // Reset nhomviecuser when khoa changes
-    setSelectedNhomViecUser(null);
-    handleInputChange("NhomViecUserID", "");
-  };
-
-  const handleNhomViecUserChange = (event, newValue) => {
-    setSelectedNhomViecUser(newValue);
-    handleInputChange("NhomViecUserID", newValue?._id || "");
   };
 
   const handleSubmit = () => {
@@ -187,23 +152,6 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
               }
               renderInput={(params) => (
                 <TextField {...params} label="Khoa *" required />
-              )}
-            />
-          </Grid>
-
-          <Grid item xs={12}>
-            <Autocomplete
-              fullWidth
-              options={nhomViecUsers}
-              getOptionLabel={(option) => option.TenNhom || ""}
-              value={selectedNhomViecUser}
-              onChange={handleNhomViecUserChange}
-              isOptionEqualToValue={(option, value) =>
-                option._id === value?._id
-              }
-              // Không phụ thuộc vào Khoa nữa
-              renderInput={(params) => (
-                <TextField {...params} label="Nhóm việc" />
               )}
             />
           </Grid>
