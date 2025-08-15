@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useEffect, useCallback } from "react";
+import React, { forwardRef, useState, useEffect, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 // Material-UI
@@ -44,7 +44,7 @@ const Transition = forwardRef((props, ref) => (
 // Component hiển thị thông tin nhân viên đã chọn
 const SelectedEmployeeCard = ({ employee, onRemove, onEdit }) => {
   const theme = useTheme();
-
+  
   if (!employee || !employee._id) {
     return (
       <Card
@@ -233,9 +233,7 @@ const SelectedEmployeeCard = ({ employee, onRemove, onEdit }) => {
               {employee.SoDienThoai && (
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <PhoneIcon fontSize="small" color="action" />
-                  <Typography variant="body2">
-                    {employee.SoDienThoai}
-                  </Typography>
+                  <Typography variant="body2">{employee.SoDienThoai}</Typography>
                 </Box>
               )}
             </Box>
@@ -254,6 +252,21 @@ export default function SelectNhanVienForUserForm() {
   // State
   const [open, setOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Refs để tránh dependency issues
+  const isFirstMount = useRef(true);
+  const selectedEmployeeRef = useRef(null);
+  const isLoadingRef = useRef(false);
+
+  // Cập nhật refs khi state thay đổi
+  useEffect(() => {
+    selectedEmployeeRef.current = selectedEmployee;
+  }, [selectedEmployee]);
+
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
 
   // Redux state
   const { NhanVienUserCurrent } = useSelector((state) => state.user);
@@ -281,33 +294,51 @@ export default function SelectNhanVienForUserForm() {
     dispatch(setNhanVienUserCurrent(null));
   };
 
-  const handleSelectedRowsChange = useCallback(
-    (rows) => {
-      console.log("handleSelectedRowsChange called with:", rows);
-
-      if (rows && rows.length > 0) {
-        const employee = rows[0]; // Chỉ lấy nhân viên đầu tiên
-
-        if (employee && employee._id) {
-          console.log("Processing employee selection:", employee.Ten);
-
-          // Kiểm tra xem có phải employee đã chọn rồi không
-          if (selectedEmployee?._id === employee._id) {
-            console.log(
-              "Employee already selected in parent, skipping redux update"
-            );
-            return;
-          }
-
-          console.log("Updating Redux with new employee:", employee.Ten);
-          setSelectedEmployee(employee);
-          dispatch(setNhanVienUserCurrent(employee));
-        }
+  const handleSelectedRowsChange = useCallback((rows) => {
+    // Bỏ qua lần đầu tiên component mount
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      if (!rows || rows.length === 0) {
+        return; // Không làm gì nếu lần đầu không có selection
       }
-      // Không reset khi rows rỗng để tránh conflict
-    },
-    [dispatch, selectedEmployee]
-  );
+    }
+    
+    // Tránh xử lý khi đang load
+    if (isLoadingRef.current) {
+      return;
+    }
+    
+    // Nếu không có rows được chọn, không làm gì
+    if (!rows || rows.length === 0) {
+      return;
+    }
+    
+    // Chỉ lấy nhân viên đầu tiên vì chỉ cho phép chọn 1
+    const firstEmployee = Array.isArray(rows) ? rows[0] : rows;
+    
+    // Chỉ xử lý nếu là nhân viên khác với nhân viên hiện tại
+    if (firstEmployee && firstEmployee._id && 
+        (!selectedEmployeeRef.current || selectedEmployeeRef.current._id !== firstEmployee._id)) {
+      console.log("Selecting employee:", firstEmployee.Ten);
+      
+      // Gọi handleSelectEmployee trực tiếp thay vì qua useCallback
+      if (!firstEmployee || !firstEmployee._id) {
+        return;
+      }
+
+      setIsLoading(true);
+      
+      try {
+        setSelectedEmployee(firstEmployee);
+        dispatch(setNhanVienUserCurrent(firstEmployee));
+        setOpen(false);
+      } catch (error) {
+        console.error("Error selecting employee:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [dispatch]); // Chỉ phụ thuộc vào dispatch
 
   return (
     <Box>
@@ -385,46 +416,19 @@ export default function SelectNhanVienForUserForm() {
             <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
               Chọn nhân viên liên kết
             </Typography>
-
-            {/* Hiển thị thông tin nhân viên đã chọn */}
-            {selectedEmployee ? (
-              <Box
-                sx={{ display: "flex", alignItems: "center", gap: 1, mr: 2 }}
-              >
-                <Chip
-                  icon={<CheckCircleIcon />}
-                  label={`✓ ${selectedEmployee.Ten} (${selectedEmployee.MaNhanVien})`}
-                  color="secondary"
-                  sx={{
-                    maxWidth: 250,
-                    "& .MuiChip-label": {
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    },
-                  }}
-                />
-                <Button
-                  color="inherit"
-                  variant="contained"
-                  onClick={() => setOpen(false)}
-                  sx={{
-                    bgcolor: "success.main",
-                    "&:hover": { bgcolor: "success.dark" },
-                  }}
-                >
-                  Hoàn tất
-                </Button>
-              </Box>
-            ) : (
-              <Typography variant="body2" sx={{ mr: 2, opacity: 0.8 }}>
-                Chưa chọn nhân viên nào
-              </Typography>
+            {selectedEmployee && (
+              <Chip
+                icon={<CheckCircleIcon />}
+                label={`Đã chọn: ${selectedEmployee.Ten}`}
+                color="secondary"
+                sx={{ mr: 1, maxWidth: 200 }}
+              />
             )}
-
             <Button
               color="inherit"
               variant="outlined"
               onClick={handleClose}
+              disabled={isLoading}
               sx={{
                 bgcolor: "rgba(255,255,255,0.1)",
                 "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
@@ -435,136 +439,25 @@ export default function SelectNhanVienForUserForm() {
           </Toolbar>
         </AppBar>
 
-        <Box sx={{ height: "100%", overflow: "auto" }}>
+        <Box sx={{ p: 2, height: "100%", overflow: "auto" }}>
           {/* Hướng dẫn */}
-          <Alert severity="info" sx={{ m: 2 }} icon={<PersonIcon />}>
+          <Alert
+            severity="info"
+            sx={{ mb: 2 }}
+            icon={<PersonIcon />}
+          >
             <Typography variant="body2">
-              <strong>Hướng dẫn:</strong>
-              {selectedEmployee ? (
-                <>
-                  Nhân viên <strong>{selectedEmployee.Ten}</strong> đã được
-                  chọn. Click <strong>"Hoàn tất"</strong> để xác nhận hoặc chọn
-                  nhân viên khác từ bảng.
-                </>
-              ) : (
-                <>
-                  Chọn 1 nhân viên từ danh sách bên dưới để liên kết với tài
-                  khoản người dùng. Bạn có thể tìm kiếm theo tên, mã NV, khoa,
-                  chức danh, SĐT hoặc email.
-                </>
-              )}
+              <strong>Hướng dẫn:</strong> Chọn 1 nhân viên từ danh sách bên dưới để liên kết với tài khoản người dùng. 
+              Nhân viên đã chọn sẽ được tự động cập nhật.
             </Typography>
           </Alert>
 
           {/* Bảng chọn nhân viên */}
-          <Card sx={{ m: 2, boxShadow: 2 }}>
+          <Card sx={{ boxShadow: 2 }}>
             <SeLectNhanVienTable
               onSelectedRowsChange={handleSelectedRowsChange}
-              selectedEmployeeId={selectedEmployee?._id}
             />
           </Card>
-
-          {/* Hiển thị thông tin nhân viên đã chọn trong dialog */}
-          {selectedEmployee && (
-            <Card sx={{ m: 2, mt: 1, boxShadow: 2 }}>
-              <CardContent>
-                <Typography
-                  variant="h6"
-                  sx={{ mb: 2, color: "primary.main", fontWeight: 600 }}
-                >
-                  🎯 Nhân viên đã chọn
-                </Typography>
-
-                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-                  {/* Avatar */}
-                  <Avatar
-                    sx={{
-                      width: 60,
-                      height: 60,
-                      bgcolor: "primary.main",
-                      fontSize: "1.4rem",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {selectedEmployee.Ten?.charAt(0)?.toUpperCase() || "?"}
-                  </Avatar>
-
-                  {/* Thông tin */}
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                      {selectedEmployee.Ten}
-                    </Typography>
-
-                    <Box
-                      sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 1 }}
-                    >
-                      <Chip
-                        label={`Mã: ${selectedEmployee.MaNhanVien}`}
-                        size="small"
-                        variant="outlined"
-                      />
-                      <Chip
-                        label={selectedEmployee.TenKhoa || "Chưa có khoa"}
-                        size="small"
-                        color="info"
-                        variant="outlined"
-                      />
-                      {selectedEmployee.ChucDanh && (
-                        <Chip
-                          label={selectedEmployee.ChucDanh}
-                          size="small"
-                          color="secondary"
-                          variant="outlined"
-                        />
-                      )}
-                    </Box>
-
-                    <Typography variant="body2" color="text.secondary">
-                      {selectedEmployee.Email && `📧 ${selectedEmployee.Email}`}
-                      {selectedEmployee.Email &&
-                        selectedEmployee.SoDienThoai &&
-                        " • "}
-                      {selectedEmployee.SoDienThoai &&
-                        `📞 ${selectedEmployee.SoDienThoai}`}
-                    </Typography>
-                  </Box>
-
-                  {/* Nút hành động */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 1,
-                      ml: 2,
-                    }}
-                  >
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => setOpen(false)}
-                      startIcon={<CheckCircleIcon />}
-                      fullWidth
-                    >
-                      Xác nhận chọn
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={() => {
-                        setSelectedEmployee(null);
-                        dispatch(setNhanVienUserCurrent(null));
-                      }}
-                      startIcon={<ClearIcon />}
-                      fullWidth
-                      size="small"
-                    >
-                      Bỏ chọn
-                    </Button>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          )}
         </Box>
       </Dialog>
     </Box>

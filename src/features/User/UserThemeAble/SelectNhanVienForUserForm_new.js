@@ -283,30 +283,18 @@ export default function SelectNhanVienForUserForm() {
 
   const handleSelectedRowsChange = useCallback(
     (rows) => {
-      console.log("handleSelectedRowsChange called with:", rows);
-
       if (rows && rows.length > 0) {
         const employee = rows[0]; // Chỉ lấy nhân viên đầu tiên
 
         if (employee && employee._id) {
-          console.log("Processing employee selection:", employee.Ten);
-
-          // Kiểm tra xem có phải employee đã chọn rồi không
-          if (selectedEmployee?._id === employee._id) {
-            console.log(
-              "Employee already selected in parent, skipping redux update"
-            );
-            return;
-          }
-
-          console.log("Updating Redux with new employee:", employee.Ten);
+          console.log("Selecting employee:", employee.Ten);
           setSelectedEmployee(employee);
           dispatch(setNhanVienUserCurrent(employee));
+          setOpen(false); // Đóng dialog sau khi chọn
         }
       }
-      // Không reset khi rows rỗng để tránh conflict
     },
-    [dispatch, selectedEmployee]
+    [dispatch]
   );
 
   return (
@@ -385,42 +373,14 @@ export default function SelectNhanVienForUserForm() {
             <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
               Chọn nhân viên liên kết
             </Typography>
-
-            {/* Hiển thị thông tin nhân viên đã chọn */}
-            {selectedEmployee ? (
-              <Box
-                sx={{ display: "flex", alignItems: "center", gap: 1, mr: 2 }}
-              >
-                <Chip
-                  icon={<CheckCircleIcon />}
-                  label={`✓ ${selectedEmployee.Ten} (${selectedEmployee.MaNhanVien})`}
-                  color="secondary"
-                  sx={{
-                    maxWidth: 250,
-                    "& .MuiChip-label": {
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    },
-                  }}
-                />
-                <Button
-                  color="inherit"
-                  variant="contained"
-                  onClick={() => setOpen(false)}
-                  sx={{
-                    bgcolor: "success.main",
-                    "&:hover": { bgcolor: "success.dark" },
-                  }}
-                >
-                  Hoàn tất
-                </Button>
-              </Box>
-            ) : (
-              <Typography variant="body2" sx={{ mr: 2, opacity: 0.8 }}>
-                Chưa chọn nhân viên nào
-              </Typography>
+            {selectedEmployee && (
+              <Chip
+                icon={<CheckCircleIcon />}
+                label={`Đã chọn: ${selectedEmployee.Ten}`}
+                color="secondary"
+                sx={{ mr: 1, maxWidth: 200 }}
+              />
             )}
-
             <Button
               color="inherit"
               variant="outlined"
@@ -439,20 +399,9 @@ export default function SelectNhanVienForUserForm() {
           {/* Hướng dẫn */}
           <Alert severity="info" sx={{ m: 2 }} icon={<PersonIcon />}>
             <Typography variant="body2">
-              <strong>Hướng dẫn:</strong>
-              {selectedEmployee ? (
-                <>
-                  Nhân viên <strong>{selectedEmployee.Ten}</strong> đã được
-                  chọn. Click <strong>"Hoàn tất"</strong> để xác nhận hoặc chọn
-                  nhân viên khác từ bảng.
-                </>
-              ) : (
-                <>
-                  Chọn 1 nhân viên từ danh sách bên dưới để liên kết với tài
-                  khoản người dùng. Bạn có thể tìm kiếm theo tên, mã NV, khoa,
-                  chức danh, SĐT hoặc email.
-                </>
-              )}
+              <strong>Hướng dẫn:</strong> Chọn 1 nhân viên từ danh sách bên dưới
+              để liên kết với tài khoản người dùng. Nhân viên đã chọn sẽ được tự
+              động cập nhật và dialog sẽ đóng.
             </Typography>
           </Alert>
 
@@ -460,111 +409,8 @@ export default function SelectNhanVienForUserForm() {
           <Card sx={{ m: 2, boxShadow: 2 }}>
             <SeLectNhanVienTable
               onSelectedRowsChange={handleSelectedRowsChange}
-              selectedEmployeeId={selectedEmployee?._id}
             />
           </Card>
-
-          {/* Hiển thị thông tin nhân viên đã chọn trong dialog */}
-          {selectedEmployee && (
-            <Card sx={{ m: 2, mt: 1, boxShadow: 2 }}>
-              <CardContent>
-                <Typography
-                  variant="h6"
-                  sx={{ mb: 2, color: "primary.main", fontWeight: 600 }}
-                >
-                  🎯 Nhân viên đã chọn
-                </Typography>
-
-                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-                  {/* Avatar */}
-                  <Avatar
-                    sx={{
-                      width: 60,
-                      height: 60,
-                      bgcolor: "primary.main",
-                      fontSize: "1.4rem",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {selectedEmployee.Ten?.charAt(0)?.toUpperCase() || "?"}
-                  </Avatar>
-
-                  {/* Thông tin */}
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                      {selectedEmployee.Ten}
-                    </Typography>
-
-                    <Box
-                      sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 1 }}
-                    >
-                      <Chip
-                        label={`Mã: ${selectedEmployee.MaNhanVien}`}
-                        size="small"
-                        variant="outlined"
-                      />
-                      <Chip
-                        label={selectedEmployee.TenKhoa || "Chưa có khoa"}
-                        size="small"
-                        color="info"
-                        variant="outlined"
-                      />
-                      {selectedEmployee.ChucDanh && (
-                        <Chip
-                          label={selectedEmployee.ChucDanh}
-                          size="small"
-                          color="secondary"
-                          variant="outlined"
-                        />
-                      )}
-                    </Box>
-
-                    <Typography variant="body2" color="text.secondary">
-                      {selectedEmployee.Email && `📧 ${selectedEmployee.Email}`}
-                      {selectedEmployee.Email &&
-                        selectedEmployee.SoDienThoai &&
-                        " • "}
-                      {selectedEmployee.SoDienThoai &&
-                        `📞 ${selectedEmployee.SoDienThoai}`}
-                    </Typography>
-                  </Box>
-
-                  {/* Nút hành động */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 1,
-                      ml: 2,
-                    }}
-                  >
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={() => setOpen(false)}
-                      startIcon={<CheckCircleIcon />}
-                      fullWidth
-                    >
-                      Xác nhận chọn
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      onClick={() => {
-                        setSelectedEmployee(null);
-                        dispatch(setNhanVienUserCurrent(null));
-                      }}
-                      startIcon={<ClearIcon />}
-                      fullWidth
-                      size="small"
-                    >
-                      Bỏ chọn
-                    </Button>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          )}
         </Box>
       </Dialog>
     </Box>

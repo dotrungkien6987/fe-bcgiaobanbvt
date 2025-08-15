@@ -71,6 +71,7 @@ import NhomViecUserList from "features/QuanLyCongViec/NhomViecUser/NhomViecUserL
 import NhiemVuThuongQuyList from "features/QuanLyCongViec/NhiemVuThuongQuy/NhiemVuThuongQuyList";
 import QuanLyNhanVienPage from "features/QuanLyCongViec/QuanLyNhanVien/QuanLyNhanVienPage";
 import GiaoNhiemVuPage from "features/QuanLyCongViec/GiaoNhiemVu/GiaoNhiemVuPage";
+import CongViecByNhanVienPage from "features/QuanLyCongViec/CongViec/CongViecByNhanVienPage";
 
 function Router() {
   return (
@@ -214,6 +215,10 @@ function Router() {
           <Route
             path="/quanlycongviec/giao-nhiem-vu/:NhanVienID"
             element={<GiaoNhiemVuPage />}
+          />
+          <Route
+            path="/quan-ly-cong-viec/nhan-vien/:nhanVienId"
+            element={<CongViecByNhanVienPage />}
           />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>

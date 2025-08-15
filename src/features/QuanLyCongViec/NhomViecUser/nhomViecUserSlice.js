@@ -7,6 +7,7 @@ const initialState = {
   error: null,
   nhomViecUsers: [],
   nhomViecUserCurrent: {},
+  myNhomViecs: [], // Thêm state cho nhóm việc của user hiện tại
 };
 
 const slice = createSlice({
@@ -51,6 +52,12 @@ const slice = createSlice({
       state.nhomViecUsers = state.nhomViecUsers.filter(
         (item) => item._id !== action.payload
       );
+    },
+
+    getMyNhomViecsSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.myNhomViecs = action.payload;
     },
   },
 });
@@ -104,5 +111,19 @@ export const deleteOneNhomViecUser = (nhomViecUserID) => async (dispatch) => {
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
+  }
+};
+
+// Lấy danh sách nhóm việc của user hiện tại
+export const getMyNhomViecs = () => async (dispatch) => {
+  dispatch(slice.actions.startLoading());
+  try {
+    const response = await apiService.get(
+      "/workmanagement/nhom-viec-user/my-groups"
+    );
+    dispatch(slice.actions.getMyNhomViecsSuccess(response.data.data));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    console.error("Error fetching my nhom viecs:", error.message);
   }
 };

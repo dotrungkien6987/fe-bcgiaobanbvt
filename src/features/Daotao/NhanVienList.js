@@ -12,7 +12,7 @@ import CommonTable from "pages/tables/MyTable/CommonTable";
 import AddNhanVienButton from "./AddNhanVienButton";
 import ExcelButton from "components/ExcelButton";
 import IconButton from "components/@extended/IconButton";
-import { Add, Eye } from "iconsax-react";
+import { Add, Eye, Task } from "iconsax-react";
 import { ThemeMode } from "configAble";
 import NhanVienView from "features/NhanVien/NhanVienView";
 import { formatDate_getDate } from "utils/formatTime";
@@ -53,6 +53,32 @@ function NhanVienList() {
               <DeleteNhanVienButton nhanvienID={row.original._id} />
               <QuaTrinhDaoTaoNhanVienButon nhanvienID={row.original._id} />
               <QuanLyNhanVienButton nhanvienID={row.original._id} />
+              <Tooltip
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      backgroundColor:
+                        mode === ThemeMode.DARK
+                          ? theme.palette.grey[50]
+                          : theme.palette.grey[700],
+                      opacity: 0.9,
+                    },
+                  },
+                }}
+                title="Quản lý công việc"
+              >
+                <IconButton
+                  color="primary"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(
+                      `/quan-ly-cong-viec/nhan-vien/${row.original._id}`
+                    );
+                  }}
+                >
+                  <Task />
+                </IconButton>
+              </Tooltip>
               <Tooltip
                 componentsProps={{
                   tooltip: {

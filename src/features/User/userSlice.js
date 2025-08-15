@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 import apiService from "../../app/apiService";
-import { cloudinaryUpload } from "../../utils/cloudinary";
 
 const initialState = {
   isLoading: false,
@@ -105,10 +104,18 @@ const slice = createSlice({
     setNhanVienUserCurrentSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      if (action.payload.length > 0) {
-        state.NhanVienUserCurrent = action.payload[0];
+      const payload = action.payload;
+      // Hỗ trợ cả 3 dạng: null/undefined, object, array
+      if (Array.isArray(payload)) {
+        if (payload.length > 0) {
+          state.NhanVienUserCurrent = payload[0];
+        } else {
+          state.NhanVienUserCurrent = {};
+        }
+      } else if (payload && typeof payload === "object" && payload._id) {
+        state.NhanVienUserCurrent = payload; // truyền trực tiếp object nhân viên
       } else {
-        state.NhanVienUserCurrent = {};
+        state.NhanVienUserCurrent = {}; // reset
       }
     },
     setUserCurentSuccess(state, action) {
@@ -302,8 +309,9 @@ export const setUserCurent = (user) => (dispatch) => {
   }
 };
 
-export const setNhanVienUserCurrent = (nhanvien) => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
+export const setNhanVienUserCurrent = (nhanvien) => (dispatch) => {
+  // Đảm bảo gọi đúng startLoading() (trước đây thiếu ngoặc nên không chạy)
+  dispatch(slice.actions.startLoading());
   try {
     dispatch(slice.actions.setNhanVienUserCurrentSuccess(nhanvien));
   } catch (error) {

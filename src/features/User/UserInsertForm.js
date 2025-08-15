@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
@@ -40,13 +40,15 @@ import {
   updateUserProfile,
   setKhoaTaiChinhCurent,
   setKhoaLichTrucCurent,
+  setNhanVienUserCurrent,
 } from "./userSlice";
 import ChonKhoaForm from "./ChonKhoaForm";
 import ChonKhoaLichTrucForm from "./ChonKhoaLichTrucForm";
 import { useTheme } from "@emotion/react";
 import FAutocomplete from "components/form/FAutocomplete";
 import SelectNhanVienForUserForm from "./UserThemeAble/SelectNhanVienForUserForm";
-import NhanVienViewDT06 from "features/NhanVien/NhanVienViewDT06";
+
+import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 
 // Icons
 import SaveIcon from "@mui/icons-material/Save";
@@ -84,12 +86,16 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
     userCurrent,
     NhanVienUserCurrent,
   } = useSelector((state) => state.user);
+  const { nhanviens } = useSelector(
+    (state) => state.nhanvien || { nhanviens: [] }
+  );
 
   const dispatch = useDispatch();
   useEffect(() => {
-    if (khoas && khoas.length > 0) return;
-    dispatch(getKhoas());
-  }, []);
+    if (!khoas || khoas.length === 0) {
+      dispatch(getKhoas());
+    }
+  }, [khoas, dispatch]);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -148,13 +154,15 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
   const {
     handleSubmit,
     reset,
-    setValue,
+    // setValue removed (unused),
     formState: { isSubmitting },
   } = methods;
 
   const resetForm = () => {
     reset();
     setDashboardPermissions([]);
+    // Reset nhân viên đã chọn khi làm mới form (tránh lưu từ form trước)
+    dispatch(setNhanVienUserCurrent(null));
   };
 
   // Hàm xử lý khi checkbox Dashboard thay đổi
@@ -191,6 +199,8 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
         DashBoard: dashboardPermissions, // Thêm quyền dashboard
       };
       dispatch(CreateUser(userUpdate));
+      // Sau khi thêm mới thành công (optimistic reset để lần mở sau sạch)
+      dispatch(setNhanVienUserCurrent(null));
     }
     handleClose();
   };
@@ -222,6 +232,38 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
       } else {
         dispatch(setKhoaLichTrucCurent([]));
       }
+
+      // Nạp lại nhân viên liên kết hiện có (nếu có). userCurrent.NhanVienID phải là object có _id
+      // Xử lý nhân viên liên kết:
+      // Trường hợp backend trả object populate: { _id, Ten, ... }
+      if (
+        userCurrent.NhanVienID &&
+        typeof userCurrent.NhanVienID === "object" &&
+        userCurrent.NhanVienID._id
+      ) {
+        dispatch(setNhanVienUserCurrent(userCurrent.NhanVienID));
+      }
+      // Trường hợp chỉ trả về string ID -> cần tìm trong store hoặc load danh sách
+      else if (
+        userCurrent.NhanVienID &&
+        typeof userCurrent.NhanVienID === "string"
+      ) {
+        // Nếu danh sách nhân viên chưa có -> load
+        if (!nhanviens || nhanviens.length === 0) {
+          dispatch(getAllNhanVien());
+        } else {
+          const emp = nhanviens.find((nv) => nv._id === userCurrent.NhanVienID);
+          if (emp) {
+            dispatch(setNhanVienUserCurrent(emp));
+          } else {
+            // Không tìm thấy -> giữ nguyên (có thể do paging / quyền), reset để user chọn lại
+            dispatch(setNhanVienUserCurrent(null));
+          }
+        }
+      } else {
+        // Không có NhanVienID -> reset
+        dispatch(setNhanVienUserCurrent(null));
+      }
     } else {
       setIsEditing(false);
       setDashboardPermissions([]);
@@ -239,8 +281,26 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
       // Reset về mảng rỗng khi tạo mới
       dispatch(setKhoaTaiChinhCurent([]));
       dispatch(setKhoaLichTrucCurent([]));
+      // Reset luôn nhân viên khi bắt đầu tạo mới
+      dispatch(setNhanVienUserCurrent(null));
     }
-  }, [userCurrent, reset, dispatch]);
+  }, [userCurrent, reset, dispatch, nhanviens]);
+
+  // Side-effect bổ sung: khi danh sách nhân viên vừa được load mà userCurrent có NhanVienID dạng string nhưng chưa map được trước đó.
+  useEffect(() => {
+    if (
+      userCurrent &&
+      userCurrent._id &&
+      userCurrent.NhanVienID &&
+      typeof userCurrent.NhanVienID === "string" &&
+      (!NhanVienUserCurrent || !NhanVienUserCurrent._id) &&
+      nhanviens &&
+      nhanviens.length > 0
+    ) {
+      const emp = nhanviens.find((nv) => nv._id === userCurrent.NhanVienID);
+      if (emp) dispatch(setNhanVienUserCurrent(emp));
+    }
+  }, [userCurrent, NhanVienUserCurrent, nhanviens, dispatch]);
 
   const [valueQuyen, setValueQuyen] = useState("nomal");
 
@@ -630,21 +690,6 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                 </Box>
 
                 <SelectNhanVienForUserForm />
-
-                {NhanVienUserCurrent && NhanVienUserCurrent._id && (
-                  <Box
-                    sx={{
-                      mt: 2,
-                      p: 2,
-                      bgcolor: "#f5f5f5",
-                      borderRadius: 2,
-                      border: "1px solid #e0e0e0",
-                      boxShadow: 1,
-                    }}
-                  >
-                    <NhanVienViewDT06 data={NhanVienUserCurrent} />
-                  </Box>
-                )}
               </Box>
 
               <Divider sx={{ my: 2 }} />
