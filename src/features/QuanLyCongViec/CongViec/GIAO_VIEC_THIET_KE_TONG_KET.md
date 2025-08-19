@@ -544,6 +544,12 @@ Phạm vi: Chuẩn hóa mô hình dữ liệu và luồng nghiệp vụ cho giao
 
 **Lưu ý**: Mỗi component sẽ được implement với Material-UI components, responsive design, và tuân thủ design system nhất quán cho friendly/modern experience phù hợp với React + MUI stack.
 
+### Đồng bộ với backend hiện có
+
+- Backend đã mount module tại: `/api/workmanagement`.
+- Các endpoint hiện đã sẵn sàng: `GET /nhanvien/:nhanvienid`, `GET /congviec/:nhanvienid/received`, `GET /congviec/:nhanvienid/assigned`, `GET /congviec/detail/:id`, `POST /congviec`, `PUT /congviec/:id`, `DELETE /congviec/:id`, `POST /congviec/:id/comment`, `GET /nhom-viec-user/my-groups`, `GET /quanlynhanvien/:nhanvienid/info`, `GET /quanlynhanvien/:nhanvienid/managed`.
+- Khi gửi filter từ FE, sử dụng đúng key viết hoa: `TrangThai`, `MucDoUuTien`, `NgayBatDau`, `NgayHetHan`.
+
 ## Kiểm thử gợi ý
 
 - Unit: validate schema (VaiTro 'CHINH' duy nhất, thời gian hợp lệ, ràng buộc TepTin theo PhamVi, softDeleteWithFiles).
@@ -568,3 +574,25 @@ Phạm vi: Chuẩn hóa mô hình dữ liệu và luồng nghiệp vụ cho giao
 ---
 
 Tài liệu này tóm lược các quyết định và thiết kế đã thống nhất để triển khai tính năng giao việc trong module Work Management. Khi cần, có thể mở rộng phần API/Service/Controller cụ thể theo khung ở trên.
+
+## Phụ lục: Cập nhật đã triển khai gần đây
+
+### Quy tắc xóa (đã triển khai)
+
+- Quyền xóa: chỉ Admin/Manager/Chủ sở hữu (NguoiGiaoViecID) được phép.
+- Nếu trạng thái HOAN_THANH: chỉ Admin mới được xóa.
+- Nếu còn công việc con: chặn xóa, yêu cầu xóa công việc con trước.
+- Xóa mềm công việc; cascade-soft-delete bình luận (trả về meta: commentCount, fileCount).
+- FE vô hiệu nút Xóa theo quy tắc trên; ConfirmDialog hiển thị cảnh báo và hậu quả.
+
+### Mã công việc (MaCongViec) & Số thứ tự (SoThuTu)
+
+- Định dạng: MaCongViec = "CV" + số thứ tự; padding 5 chữ số đến 99999 (VD: CV00001). Từ 100000 không padding.
+- SoThuTu: số nguyên tăng dần, dùng cho sắp xếp/báo cáo.
+- Cơ chế sinh mã: sử dụng collection `counters` với document `_id = "congviec"`, tăng `seq` atomically bằng findOneAndUpdate `$inc`.
+- Lưu vào CongViec.MaCongViec (unique, sparse) và CongViec.SoThuTu (indexed).
+- Hiển thị FE:
+  - Bảng danh sách: thêm cột "Mã" ở đầu.
+  - Dialog chi tiết: hiển thị Mã ở tiêu đề.
+  - Form: ở chế độ tạo mới hiển thị nhắc "Mã sẽ tạo khi lưu"; ở chế độ sửa hiển thị trường đọc-only Mã.
+- Thông báo sau tạo: Toast kèm MaCongViec nếu có.

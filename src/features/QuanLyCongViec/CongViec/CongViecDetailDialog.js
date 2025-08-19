@@ -115,9 +115,16 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
           pb: 1,
         }}
       >
-        <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
-          Chi tiết công việc
-        </Typography>
+        <Box>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 600 }}>
+            Chi tiết công việc
+          </Typography>
+          {congViec?.MaCongViec && (
+            <Typography variant="caption" color="text.secondary">
+              Mã: {congViec.MaCongViec}
+            </Typography>
+          )}
+        </Box>
         <Box>
           <Tooltip title="Chỉnh sửa">
             <IconButton
@@ -382,7 +389,7 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
                         <PersonIcon />
                       </Avatar>
                       <Typography variant="body2">
-                        {congViec.NguoiGiaoViec?.Ten || "Chưa xác định"}
+                        {congViec.NguoiGiaoProfile?.Ten || "Chưa xác định"}
                       </Typography>
                     </Box>
                   </Box>
@@ -401,7 +408,7 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
                         <PersonIcon />
                       </Avatar>
                       <Typography variant="body2">
-                        {congViec.NguoiChinh?.Ten || "Chưa xác định"}
+                        {congViec.NguoiChinhProfile?.Ten || "Chưa xác định"}
                       </Typography>
                     </Box>
                   </Box>

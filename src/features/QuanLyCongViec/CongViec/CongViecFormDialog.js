@@ -161,11 +161,7 @@ const CongViecFormDialog = ({
         "Bình thường",
       TrangThai:
         statusMapBE2FE[congViec.TrangThai] || congViec.TrangThai || "Mới",
-      NguoiChinh:
-        congViec.NguoiChinh?._id ||
-        congViec.NguoiChinhID?._id ||
-        congViec.NguoiChinhID ||
-        "",
+      NguoiChinh: congViec.NguoiChinhID || "",
       TienDo: congViec.TienDo || congViec.PhanTramTienDoTong || 0,
       NhomViecUserID:
         congViec.NhomViecUserID?._id || congViec.NhomViecUserID || "",
@@ -257,6 +253,22 @@ const CongViecFormDialog = ({
               </Alert>
             )}
             <Grid container spacing={2}>
+              {isEdit ? (
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Mã công việc"
+                    value={congViec?.MaCongViec || "—"}
+                    InputProps={{ readOnly: true }}
+                  />
+                </Grid>
+              ) : (
+                <Grid item xs={12}>
+                  <Typography variant="caption" color="text.secondary">
+                    Mã công việc sẽ được tạo tự động khi lưu.
+                  </Typography>
+                </Grid>
+              )}
               <Grid item xs={12}>
                 <TextField
                   fullWidth

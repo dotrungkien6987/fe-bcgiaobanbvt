@@ -11,26 +11,26 @@ import {
   Divider,
   Chip,
 } from "@mui/material";
-import {
-  Add as AddIcon,
-  Refresh as RefreshIcon,
-  People as PeopleIcon,
-} from "@mui/icons-material";
+import { Add as AddIcon, Refresh as RefreshIcon } from "@mui/icons-material";
 
 import CongViecTabs from "./CongViecTabs";
 import CongViecFilterPanel from "./CongViecFilterPanel";
 import CongViecTable from "./CongViecTable";
 import CongViecDetailDialog from "./CongViecDetailDialog";
 import CongViecFormDialog from "./CongViecFormDialog";
+import ConfirmDialog from "components/ConfirmDialog";
+import useAuth from "hooks/useAuth";
 
 import {
   getReceivedCongViecs,
   getAssignedCongViecs,
   getCongViecDetail,
+  deleteCongViec,
   setActiveTab,
   setCurrentPage,
   setFilters,
   clearState,
+  resetFilters,
 } from "./congViecSlice";
 
 // Import thêm cho quản lý nhân viên
@@ -42,6 +42,7 @@ import {
 const CongViecByNhanVienPage = () => {
   const dispatch = useDispatch();
   const { nhanVienId } = useParams();
+  const { user } = useAuth();
 
   const {
     receivedCongViecs,
@@ -78,6 +79,11 @@ const CongViecByNhanVienPage = () => {
     open: false,
     isEdit: false,
     congViec: null,
+  });
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    congViec: null,
+    loading: false,
   });
 
   // Get current filters based on active tab
@@ -196,6 +202,10 @@ const CongViecByNhanVienPage = () => {
     dispatch(setFilters({ tab: activeTab, filters: newFilters }));
   };
 
+  const handleResetFilters = () => {
+    dispatch(resetFilters(activeTab));
+  };
+
   // Step 2: Dialog handlers
   const handleViewDetail = (congViecId) => {
     setDetailDialog({
@@ -242,9 +252,41 @@ const CongViecByNhanVienPage = () => {
     setRefreshKey((prev) => prev + 1);
   };
 
-  const handleDelete = (congViecId) => {
-    // TODO: Implement delete functionality with confirmation dialog
-    console.log("Delete:", congViecId);
+  const handleDelete = (congViec) => {
+    // Xác định cảnh báo/điều kiện dựa trên trạng thái hiện tại
+    const status = congViec?.TrangThai;
+    const isLocked = ["DANG_THUC_HIEN", "CHO_DUYET", "HOAN_THANH"].includes(
+      status
+    );
+    const severity = isLocked ? "error" : "warning";
+    const details = isLocked
+      ? "Công việc đang ở trạng thái quan trọng (Đang thực hiện/Chờ duyệt/Hoàn thành). Vẫn muốn xóa?"
+      : "Hành động này sẽ xóa mềm công việc. Bạn có thể tạo lại nếu cần.";
+
+    setConfirmDialog({
+      open: true,
+      congViec,
+      loading: false,
+      severity,
+      details,
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    const target = confirmDialog.congViec;
+    if (!target?._id) {
+      setConfirmDialog({ open: false, congViec: null, loading: false });
+      return;
+    }
+    try {
+      setConfirmDialog((s) => ({ ...s, loading: true }));
+      await dispatch(deleteCongViec(target._id));
+      setConfirmDialog({ open: false, congViec: null, loading: false });
+      // Refresh current tab data
+      setRefreshKey((prev) => prev + 1);
+    } catch (e) {
+      setConfirmDialog({ open: false, congViec: null, loading: false });
+    }
   };
 
   return (
@@ -338,8 +380,12 @@ const CongViecByNhanVienPage = () => {
         <Box sx={{ p: 3, pb: 2 }}>
           <CongViecFilterPanel
             filters={getCurrentData().filters}
-            onFilterChange={handleFilterChange}
+            onFilterChange={(field, value) =>
+              handleFilterChange({ [field]: value })
+            }
             activeTab={activeTab}
+            managedEmployees={managedEmployees || []}
+            onResetFilters={handleResetFilters}
           />
         </Box>
 
@@ -360,6 +406,8 @@ const CongViecByNhanVienPage = () => {
             onEdit={handleEdit}
             onDelete={handleDelete}
             activeTab={activeTab}
+            currentUserRole={user?.PhanQuyen}
+            currentUserNhanVienId={user?.NhanVienID}
           />
         </Box>
       </Paper>
@@ -378,6 +426,25 @@ const CongViecByNhanVienPage = () => {
         congViec={formDialog.congViec}
         isEdit={formDialog.isEdit}
         nhanVienId={nhanVienId}
+      />
+
+      {/* Confirm delete */}
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onClose={() =>
+          setConfirmDialog({ open: false, congViec: null, loading: false })
+        }
+        onConfirm={handleConfirmDelete}
+        title="Xóa công việc"
+        message={`Bạn có chắc muốn xóa công việc: "${
+          confirmDialog.congViec?.TieuDe || ""
+        }"?`}
+        details={confirmDialog.details}
+        confirmText="Xóa"
+        cancelText="Hủy"
+        confirmColor="error"
+        severity={confirmDialog.severity || "warning"}
+        loading={confirmDialog.loading}
       />
     </Box>
   );

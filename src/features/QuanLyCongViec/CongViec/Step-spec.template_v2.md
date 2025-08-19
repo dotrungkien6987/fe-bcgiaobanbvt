@@ -2,6 +2,8 @@
 
 ## Mục tiêu + Phạm vi
 
+Ghi chú endpoint (nếu thuộc module workmanagement): dùng prefix `/api/workmanagement` và giữ đúng key filter viết hoa: `TrangThai`, `MucDoUuTien`, `NgayBatDau`, `NgayHetHan`.
+
 **Mục tiêu người dùng:** {Mô tả những gì người dùng sẽ thấy/thực hiện được sau bước này}
 **Phạm vi:**
 

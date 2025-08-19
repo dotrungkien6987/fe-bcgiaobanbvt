@@ -31,6 +31,8 @@ const initialState = {
       MucDoUuTien: "",
       NgayBatDau: null,
       NgayHetHan: null,
+      MaCongViec: "",
+      NguoiChinhID: "",
     },
     assigned: {
       search: "",
@@ -38,6 +40,8 @@ const initialState = {
       MucDoUuTien: "",
       NgayBatDau: null,
       NgayHetHan: null,
+      MaCongViec: "",
+      NguoiChinhID: "",
     },
   },
 };
@@ -94,6 +98,8 @@ const slice = createSlice({
         MucDoUuTien: "",
         NgayBatDau: null,
         NgayHetHan: null,
+        MaCongViec: "",
+        NguoiChinhID: "",
       };
       state.currentPage[tab] = 1;
     },
@@ -301,9 +307,17 @@ export const getAssignedCongViecs =
 export const deleteCongViec = (id) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    await congViecAPI.delete(id);
+    const res = await congViecAPI.delete(id);
+    const meta = res?.data?.data;
     dispatch(slice.actions.deleteCongViecSuccess(id));
     toast.success("Xóa công việc thành công");
+    if (meta) {
+      const { commentCount, fileCount } = meta;
+      const parts = [];
+      if (commentCount > 0) parts.push(`${commentCount} bình luận đã được ẩn`);
+      if (fileCount > 0) parts.push(`${fileCount} tệp đã được ẩn`);
+      if (parts.length > 0) toast.info(parts.join("; "));
+    }
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
@@ -329,7 +343,10 @@ export const createCongViec = (data) => async (dispatch) => {
   try {
     const response = await congViecAPI.create(data);
     dispatch(slice.actions.createCongViecSuccess(response.data.data));
-    toast.success("Tạo công việc thành công");
+    const cv = response.data.data;
+    toast.success(
+      `Tạo công việc thành công${cv?.MaCongViec ? `: ${cv.MaCongViec}` : ""}`
+    );
     return response.data.data;
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));

@@ -56,6 +56,7 @@ const CongViecFilterPanel = ({
   onFilterChange,
   onResetFilters,
   isLoading = false,
+  managedEmployees = [],
 }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -120,17 +121,31 @@ const CongViecFilterPanel = ({
 
         <Divider sx={{ my: 1 }} />
 
-        {/* Always visible search */}
-        <TextField
-          fullWidth
-          label="Tìm kiếm trong tiêu đề, mô tả..."
-          variant="outlined"
-          size="small"
-          value={filters.search || ""}
-          onChange={handleSearchChange}
-          disabled={isLoading}
-          sx={{ mb: expanded ? 2 : 0 }}
-        />
+        {/* Always visible: Mã + Search */}
+        <Grid container spacing={2} sx={{ mb: expanded ? 2 : 0 }}>
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Mã công việc"
+              variant="outlined"
+              size="small"
+              value={filters.MaCongViec || ""}
+              onChange={(e) => onFilterChange("MaCongViec", e.target.value)}
+              disabled={isLoading}
+            />
+          </Grid>
+          <Grid item xs={12} md={8}>
+            <TextField
+              fullWidth
+              label="Tìm kiếm trong tiêu đề, mô tả..."
+              variant="outlined"
+              size="small"
+              value={filters.search || ""}
+              onChange={handleSearchChange}
+              disabled={isLoading}
+            />
+          </Grid>
+        </Grid>
 
         {/* Collapsible advanced filters */}
         <Collapse in={expanded}>
@@ -199,6 +214,29 @@ const CongViecFilterPanel = ({
                   },
                 }}
               />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Người xử lý chính</InputLabel>
+                <Select
+                  value={filters.NguoiChinhID || ""}
+                  onChange={handleSelectChange("NguoiChinhID")}
+                  label="Người xử lý chính"
+                  disabled={isLoading}
+                  displayEmpty
+                >
+                  <MenuItem value="">
+                    <em>Tất cả</em>
+                  </MenuItem>
+                  {managedEmployees.map((nv) => (
+                    <MenuItem key={nv._id} value={nv._id}>
+                      {nv.Ten}{" "}
+                      {nv.KhoaID?.TenKhoa ? `- ${nv.KhoaID.TenKhoa}` : ""}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
         </Collapse>

@@ -12,7 +12,7 @@ import CommonTable from "pages/tables/MyTable/CommonTable";
 import AddNhanVienButton from "./AddNhanVienButton";
 import ExcelButton from "components/ExcelButton";
 import IconButton from "components/@extended/IconButton";
-import { Add, Eye, Task } from "iconsax-react";
+import { Add, Eye, Task, Send } from "iconsax-react";
 import { ThemeMode } from "configAble";
 import NhanVienView from "features/NhanVien/NhanVienView";
 import { formatDate_getDate } from "utils/formatTime";
@@ -102,7 +102,7 @@ function NhanVienList() {
                     );
                   }}
                 >
-                  <Eye />
+                  <Send />
                 </IconButton>
               </Tooltip>
               <Tooltip

@@ -94,6 +94,8 @@ const CongViecTable = ({
   onEdit,
   onDelete,
   activeTab,
+  currentUserRole, // optional: 'admin' | 'manager' | 'nomal' | ...
+  currentUserNhanVienId, // optional: for owner check
 }) => {
   const theme = useTheme();
 
@@ -146,6 +148,7 @@ const CongViecTable = ({
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>Mã</TableCell>
               <TableCell>Tiêu đề</TableCell>
               <TableCell>Trạng thái</TableCell>
               <TableCell>Ưu tiên</TableCell>
@@ -159,153 +162,189 @@ const CongViecTable = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {congViecs.map((congViec) => (
-              <TableRow
-                key={congViec._id}
-                hover
-                sx={{
-                  ...(isOverdue(congViec.NgayHetHan, congViec.TrangThai) && {
-                    backgroundColor: theme.palette.error.light + "20",
-                  }),
-                }}
-              >
-                <TableCell>
-                  <Box>
-                    <Typography variant="body2" fontWeight={600}>
-                      {congViec.TieuDe}
-                    </Typography>
-                    {congViec.MoTa && (
-                      <Typography
-                        variant="caption"
-                        color="textSecondary"
-                        noWrap
-                      >
-                        {congViec.MoTa.length > 50
-                          ? `${congViec.MoTa.substring(0, 50)}...`
-                          : congViec.MoTa}
-                      </Typography>
-                    )}
-                  </Box>
-                </TableCell>
-
-                <TableCell>
-                  <Chip
-                    label={getStatusLabel(congViec.TrangThai)}
-                    color={getStatusColor(congViec.TrangThai)}
-                    size="small"
-                  />
-                </TableCell>
-
-                <TableCell>
-                  <Chip
-                    label={getPriorityLabel(congViec.MucDoUuTien)}
-                    size="small"
-                    sx={{
-                      backgroundColor: getPriorityColor(congViec.MucDoUuTien),
-                      color: "white",
-                    }}
-                  />
-                </TableCell>
-
-                <TableCell>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Avatar
-                      sx={{ width: 32, height: 32, fontSize: "0.875rem" }}
+            {congViecs.map((congViec) => {
+              const isAdmin = currentUserRole === "admin";
+              const isManager = currentUserRole === "manager";
+              const isOwner =
+                currentUserNhanVienId &&
+                congViec?.NguoiGiaoViecID &&
+                String(currentUserNhanVienId) ===
+                  String(congViec.NguoiGiaoViecID);
+              const completed = congViec.TrangThai === "HOAN_THANH";
+              const deleteDisabled =
+                (completed && !isAdmin) || !(isAdmin || isManager || isOwner);
+              return (
+                <TableRow
+                  key={congViec._id}
+                  hover
+                  sx={{
+                    ...(isOverdue(congViec.NgayHetHan, congViec.TrangThai) && {
+                      backgroundColor: theme.palette.error.light + "20",
+                    }),
+                  }}
+                >
+                  <TableCell>
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      color="text.secondary"
                     >
-                      {activeTab === "received"
-                        ? congViec.NguoiGiaoViecID?.Ten?.charAt(0)
-                        : congViec.NguoiChinhID?.Ten?.charAt(0)}
-                    </Avatar>
-                    <Typography variant="body2">
-                      {activeTab === "received"
-                        ? congViec.NguoiGiaoViecID?.Ten
-                        : congViec.NguoiChinhID?.Ten}
+                      {congViec.MaCongViec || "—"}
                     </Typography>
-                  </Box>
-                </TableCell>
-
-                <TableCell>
-                  <Typography
-                    variant="body2"
-                    color={
-                      isOverdue(congViec.NgayHetHan, congViec.TrangThai)
-                        ? "error"
-                        : "inherit"
-                    }
-                  >
-                    {formatDate(congViec.NgayHetHan)}
-                  </Typography>
-                </TableCell>
-
-                <TableCell>
-                  <Box width={80}>
-                    <Box display="flex" alignItems="center" gap={1} mb={0.5}>
-                      <Typography variant="caption">
-                        {congViec.PhanTramTienDoTong}%
+                  </TableCell>
+                  <TableCell sx={{ maxWidth: 360 }}>
+                    <Tooltip
+                      title={congViec.TieuDe || ""}
+                      placement="top-start"
+                    >
+                      <Typography
+                        variant="body2"
+                        fontWeight={600}
+                        noWrap
+                        sx={{ maxWidth: 360 }}
+                      >
+                        {congViec.TieuDe}
                       </Typography>
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={congViec.PhanTramTienDoTong}
-                      sx={{ height: 6, borderRadius: 3 }}
+                    </Tooltip>
+                  </TableCell>
+
+                  <TableCell>
+                    <Chip
+                      label={getStatusLabel(congViec.TrangThai)}
+                      color={getStatusColor(congViec.TrangThai)}
+                      size="small"
                     />
-                  </Box>
-                </TableCell>
+                  </TableCell>
 
-                <TableCell>
-                  <Stack direction="row" spacing={0.5} alignItems="center">
-                    <Box display="flex" alignItems="center" gap={0.5}>
-                      <CommentIcon
-                        sx={{ fontSize: 16, color: "text.secondary" }}
-                      />
-                      <Typography variant="caption">
-                        {congViec.SoLuongBinhLuan || 0}
-                      </Typography>
-                    </Box>
-                    <Box display="flex" alignItems="center" gap={0.5}>
-                      <AttachmentIcon
-                        sx={{ fontSize: 16, color: "text.secondary" }}
-                      />
-                      <Typography variant="caption">
-                        {congViec.SoLuongNguoiThamGia || 0}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </TableCell>
+                  <TableCell>
+                    <Chip
+                      label={getPriorityLabel(congViec.MucDoUuTien)}
+                      size="small"
+                      sx={{
+                        backgroundColor: getPriorityColor(congViec.MucDoUuTien),
+                        color: "white",
+                      }}
+                    />
+                  </TableCell>
 
-                <TableCell>
-                  <Stack direction="row" spacing={0.5}>
-                    <Tooltip title="Xem chi tiết">
-                      <IconButton
-                        size="small"
-                        onClick={() => onView?.(congViec._id)}
-                        color="primary"
-                      >
-                        <VisibilityIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Chỉnh sửa">
-                      <IconButton
-                        size="small"
-                        onClick={() => onEdit?.(congViec)}
-                        color="primary"
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Xóa">
-                      <IconButton
-                        size="small"
-                        onClick={() => onDelete?.(congViec._id)}
-                        color="error"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                </TableCell>
-              </TableRow>
-            ))}
+                  <TableCell>
+                    {(() => {
+                      const person =
+                        activeTab === "received"
+                          ? congViec.NguoiGiaoProfile
+                          : congViec.NguoiChinhProfile;
+                      const initial = person?.Ten?.charAt(0) || "?";
+                      const subText = person?.Email || person?.Khoa?.TenKhoa;
+                      return (
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Avatar
+                            sx={{ width: 32, height: 32, fontSize: "0.875rem" }}
+                          >
+                            {initial}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body2" fontWeight={500} noWrap>
+                              {person?.Ten || "Chưa xác định"}
+                            </Typography>
+                            {subText ? (
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                noWrap
+                              >
+                                {subText}
+                              </Typography>
+                            ) : null}
+                          </Box>
+                        </Box>
+                      );
+                    })()}
+                  </TableCell>
+
+                  <TableCell>
+                    <Typography
+                      variant="body2"
+                      color={
+                        isOverdue(congViec.NgayHetHan, congViec.TrangThai)
+                          ? "error"
+                          : "inherit"
+                      }
+                    >
+                      {formatDate(congViec.NgayHetHan)}
+                    </Typography>
+                  </TableCell>
+
+                  <TableCell>
+                    <Box width={80}>
+                      <Box display="flex" alignItems="center" gap={1} mb={0.5}>
+                        <Typography variant="caption">
+                          {congViec.PhanTramTienDoTong}%
+                        </Typography>
+                      </Box>
+                      <LinearProgress
+                        variant="determinate"
+                        value={congViec.PhanTramTienDoTong}
+                        sx={{ height: 6, borderRadius: 3 }}
+                      />
+                    </Box>
+                  </TableCell>
+
+                  <TableCell>
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <CommentIcon
+                          sx={{ fontSize: 16, color: "text.secondary" }}
+                        />
+                        <Typography variant="caption">
+                          {congViec.SoLuongBinhLuan || 0}
+                        </Typography>
+                      </Box>
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <AttachmentIcon
+                          sx={{ fontSize: 16, color: "text.secondary" }}
+                        />
+                        <Typography variant="caption">
+                          {congViec.SoLuongNguoiThamGia || 0}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </TableCell>
+
+                  <TableCell>
+                    <Stack direction="row" spacing={0.5}>
+                      <Tooltip title="Xem chi tiết">
+                        <IconButton
+                          size="small"
+                          onClick={() => onView?.(congViec._id)}
+                          color="primary"
+                        >
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Chỉnh sửa">
+                        <IconButton
+                          size="small"
+                          onClick={() => onEdit?.(congViec)}
+                          color="primary"
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Xóa">
+                        <IconButton
+                          size="small"
+                          onClick={() => onDelete?.(congViec)}
+                          color="error"
+                          disabled={deleteDisabled}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

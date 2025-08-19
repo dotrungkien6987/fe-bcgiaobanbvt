@@ -76,7 +76,7 @@
 
 ## Backend Implementation
 
-### API Endpoints
+### API Endpoints (đã triển khai trong backend workmanagement)
 
 ```javascript
 // Method: GET
@@ -97,6 +97,36 @@
 // Route: /api/workmanagement/nhanvien/:nhanvienid
 // Authentication: required
 // Mô tả: Lấy thông tin nhân viên để hiển thị header
+
+// Bổ sung (hiện có trong backend):
+// Method: GET
+// Route: /api/workmanagement/congviec/detail/:id
+// Mô tả: Lấy chi tiết công việc
+
+// Method: POST
+// Route: /api/workmanagement/congviec
+// Mô tả: Tạo công việc
+
+// Method: PUT
+// Route: /api/workmanagement/congviec/:id
+// Mô tả: Cập nhật công việc
+
+// Method: DELETE
+// Route: /api/workmanagement/congviec/:id
+// Mô tả: Xóa công việc (soft delete)
+
+// Method: POST
+// Route: /api/workmanagement/congviec/:id/comment
+// Mô tả: Thêm bình luận
+
+// Method: GET
+// Route: /api/workmanagement/nhom-viec-user/my-groups
+// Mô tả: Lấy nhóm việc của user hiện tại
+
+// Method: GET
+// Route: /api/workmanagement/quanlynhanvien/:nhanvienid/info
+// Route: /api/workmanagement/quanlynhanvien/:nhanvienid/managed
+// Mô tả: Lấy thông tin quản lý và danh sách nhân viên được quản lý
 ```
 
 ### Request/Response DTOs
@@ -217,17 +247,17 @@ const initialState = {
   filters: {
     received: {
       search: "",
-      trangThai: "",
-      mucDoUuTien: "",
-      ngayBatDau: null,
-      ngayHetHan: null,
+      TrangThai: "",
+      MucDoUuTien: "",
+      NgayBatDau: null,
+      NgayHetHan: null,
     },
     assigned: {
       search: "",
-      trangThai: "",
-      mucDoUuTien: "",
-      ngayBatDau: null,
-      ngayHetHan: null,
+      TrangThai: "",
+      MucDoUuTien: "",
+      NgayBatDau: null,
+      NgayHetHan: null,
     },
   },
 };
@@ -281,8 +311,8 @@ const FilterPanel = ({ activeTab, nhanvienid }) => {
       <FormControl>
         <InputLabel>Trạng thái</InputLabel>
         <Select
-          value={currentFilters.trangThai}
-          onChange={(e) => handleFilterChange("trangThai", e.target.value)}
+          value={currentFilters.TrangThai}
+          onChange={(e) => handleFilterChange("TrangThai", e.target.value)}
         >
           <MenuItem value="">Tất cả</MenuItem>
           <MenuItem value="TAO_MOI">Tạo mới</MenuItem>

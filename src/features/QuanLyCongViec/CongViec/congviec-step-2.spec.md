@@ -1,11 +1,13 @@
 # 🎯 Step 2: Detailed Work View and Editing - Implementation Complete
 
 ## 📋 Overview
+
 **Step 2** mở rộng hệ thống quản lý công việc với khả năng xem chi tiết, chỉnh sửa và tạo mới công việc. Bước này tập trung vào trải nghiệm người dùng và quản lý dữ liệu chi tiết.
 
 ## ✅ Completed Features
 
 ### 1. 🔍 Chi tiết công việc (CongViecDetailDialog)
+
 - **Full-screen responsive dialog** cho mobile và desktop
 - **Comprehensive work information display**:
   - Tiêu đề và trạng thái với color-coded chips
@@ -26,6 +28,7 @@
   - Empty state handling
 
 ### 2. ✏️ Form chỉnh sửa và tạo mới (CongViecFormDialog)
+
 - **Dual-mode form**: Create và Edit với cùng một component
 - **Complete form validation** với Formik + Yup:
   - Required field validation
@@ -48,6 +51,7 @@
   - NhanVien loading integration
 
 ### 3. 🔧 Redux State Management Enhancement
+
 - **Extended state structure**:
   ```javascript
   {
@@ -68,6 +72,7 @@
   - `addCongViecComment({congViecId, noiDung})` - Add comment
 
 ### 4. 🛠 Utility Functions (congViecUtils.js)
+
 - **Date/Time formatting**:
   - `formatDateTime()` - DD/MM/YYYY HH:mm display
   - `formatDate()` - Date only format
@@ -84,6 +89,7 @@
   - `getCongViecStats()` - Statistics calculation
 
 ### 5. 🌐 Backend API Extensions
+
 - **New controller methods**:
   - `getCongViecDetail(id)` - Chi tiết với full populate
   - `createCongViec(data)` - Tạo mới với validation
@@ -104,6 +110,7 @@
 ## 🎨 UI/UX Improvements
 
 ### Design System Integration
+
 - **Material-UI v5 components** với consistent theming
 - **Responsive design** với useMediaQuery hooks
 - **Loading states** cho tất cả async operations
@@ -111,6 +118,7 @@
 - **Toast notifications** cho success/error feedback
 
 ### User Experience Enhancements
+
 - **Modal workflow**: View detail → Edit seamlessly
 - **Keyboard support**: Enter để add tags, Escape để close
 - **Auto-refresh**: Tự động reload data sau create/update
@@ -120,12 +128,14 @@
 ## 🔄 Integration với Step 1
 
 ### Seamless Workflow
+
 - **Table actions** integrate với new dialogs
 - **Tab system** updates sau khi create/edit
 - **Filter state** preserved across operations
 - **Pagination** maintained với smart refresh
 
 ### Data Consistency
+
 - **Real-time updates** trong both received/assigned lists
 - **Optimistic updates** cho fast UI response
 - **Error rollback** mechanisms
@@ -134,6 +144,7 @@
 ## 🚀 Technical Excellence
 
 ### Performance Optimizations
+
 - **useCallback** cho event handlers
 - **useMemo** cho expensive calculations
 - **Proper dependency arrays** cho useEffect
@@ -141,6 +152,7 @@
 - **Minimal re-renders** với careful state design
 
 ### Code Quality
+
 - **TypeScript-ready** structure
 - **Consistent naming conventions**
 - **Comprehensive error handling**
@@ -148,6 +160,7 @@
 - **Clean separation of concerns**
 
 ### Security & Validation
+
 - **Client + Server validation**
 - **XSS protection** trong comment system
 - **Authorization checks** trong API
@@ -159,6 +172,7 @@
 Step 2 provides the foundation for:
 
 ### Step 3: Advanced Comment & Collaboration System
+
 - File attachments trong comments
 - @mentions và notifications
 - Comment editing/deletion
@@ -166,6 +180,7 @@ Step 2 provides the foundation for:
 - Collaboration indicators
 
 ### Future Enhancements Ready
+
 - **Subtask management**: Form structure supports nested tasks
 - **Time tracking**: Progress percentage foundation
 - **Workflow automation**: Status change hooks ready
@@ -175,6 +190,7 @@ Step 2 provides the foundation for:
 ## 🎉 Summary
 
 **Step 2 Successfully Implemented** với:
+
 - ✅ **4 new major components** (Detail Dialog, Form Dialog, Enhanced Redux, Utils)
 - ✅ **5 new backend endpoints** với full CRUD operations
 - ✅ **15+ utility functions** cho data processing
@@ -184,3 +200,22 @@ Step 2 provides the foundation for:
 - ✅ **Professional error handling** và user feedback
 
 The system now provides a **complete work management experience** với detailed viewing, comprehensive editing, và professional-grade user interface. Ready to proceed với **Step 3: Advanced Collaboration Features**!
+
+---
+
+## Phụ lục: Đồng bộ endpoint với Backend workmanagement
+
+- Base prefix: `/api/workmanagement` (đã mount trong `routes/index.js` của backend)
+- Endpoints đang dùng ở FE và đã có ở backend:
+  - GET `/nhanvien/:nhanvienid`
+  - GET `/congviec/:nhanvienid/received`
+  - GET `/congviec/:nhanvienid/assigned`
+  - GET `/congviec/detail/:id`
+  - POST `/congviec`
+  - PUT `/congviec/:id`
+  - DELETE `/congviec/:id`
+  - POST `/congviec/:id/comment`
+  - GET `/nhom-viec-user/my-groups`
+  - GET `/quanlynhanvien/:nhanvienid/info`, GET `/quanlynhanvien/:nhanvienid/managed`
+
+Lưu ý filter/query phải dùng key viết hoa đúng theo backend: `TrangThai`, `MucDoUuTien`, `NgayBatDau`, `NgayHetHan`. Khi hiển thị, nên map các mã BE (TAO_MOI, DANG_THUC_HIEN, … / THAP, BINH_THUONG, …) sang nhãn tiếng Việt ở `utils/congViecUtils` để thống nhất màu sắc/label giữa Table và Detail.
