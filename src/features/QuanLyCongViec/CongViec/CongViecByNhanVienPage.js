@@ -10,6 +10,7 @@ import {
   Stack,
   Divider,
   Chip,
+  Tooltip,
 } from "@mui/material";
 import { Add as AddIcon, Refresh as RefreshIcon } from "@mui/icons-material";
 
@@ -327,14 +328,28 @@ const CongViecByNhanVienPage = () => {
             >
               Làm mới
             </Button>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleCreateNew}
-              disabled={totalManagedEmployees === 0}
-            >
-              Tạo công việc mới
-            </Button>
+            {totalManagedEmployees === 0 ? (
+              <Tooltip title="Bạn chưa được phân quyền quản lý nhân viên nên không thể tạo công việc mới.">
+                <span>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={handleCreateNew}
+                    disabled
+                  >
+                    Tạo công việc mới
+                  </Button>
+                </span>
+              </Tooltip>
+            ) : (
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleCreateNew}
+              >
+                Tạo công việc mới
+              </Button>
+            )}
           </Stack>
         </Stack>
 

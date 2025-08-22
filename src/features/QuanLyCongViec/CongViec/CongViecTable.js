@@ -26,60 +26,13 @@ import {
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
-
-// Status colors mapping
-const getStatusColor = (status) => {
-  const statusColors = {
-    TAO_MOI: "default",
-    DA_GIAO: "info",
-    CHAP_NHAN: "primary",
-    TU_CHOI: "error",
-    DANG_THUC_HIEN: "warning",
-    CHO_DUYET: "secondary",
-    HOAN_THANH: "success",
-    QUA_HAN: "error",
-    HUY: "default",
-  };
-  return statusColors[status] || "default";
-};
-
-// Priority colors mapping
-const getPriorityColor = (priority) => {
-  const priorityColors = {
-    THAP: "#4caf50",
-    BINH_THUONG: "#2196f3",
-    CAO: "#ff9800",
-    KHAN_CAP: "#f44336",
-  };
-  return priorityColors[priority] || "#2196f3";
-};
-
-// Status labels mapping
-const getStatusLabel = (status) => {
-  const statusLabels = {
-    TAO_MOI: "Tạo mới",
-    DA_GIAO: "Đã giao",
-    CHAP_NHAN: "Chấp nhận",
-    TU_CHOI: "Từ chối",
-    DANG_THUC_HIEN: "Đang thực hiện",
-    CHO_DUYET: "Chờ duyệt",
-    HOAN_THANH: "Hoàn thành",
-    QUA_HAN: "Quá hạn",
-    HUY: "Hủy",
-  };
-  return statusLabels[status] || status;
-};
-
-// Priority labels mapping
-const getPriorityLabel = (priority) => {
-  const priorityLabels = {
-    THAP: "Thấp",
-    BINH_THUONG: "Bình thường",
-    CAO: "Cao",
-    KHAN_CAP: "Khẩn cấp",
-  };
-  return priorityLabels[priority] || priority;
-};
+import {
+  getStatusColor,
+  getPriorityColor,
+  getStatusText as getStatusLabel,
+  getPriorityText as getPriorityLabel,
+} from "../../../utils/congViecUtils";
+import { useSelector } from "react-redux";
 
 const CongViecTable = ({
   congViecs = [],
@@ -98,6 +51,8 @@ const CongViecTable = ({
   currentUserNhanVienId, // optional: for owner check
 }) => {
   const theme = useTheme();
+  const statusOverrides = useSelector((s) => s.colorConfig?.statusColors);
+  const priorityOverrides = useSelector((s) => s.colorConfig?.priorityColors);
 
   const handleChangePage = (event, newPage) => {
     onPageChange(newPage + 1); // MUI pagination is 0-based, our API is 1-based
@@ -211,8 +166,14 @@ const CongViecTable = ({
                   <TableCell>
                     <Chip
                       label={getStatusLabel(congViec.TrangThai)}
-                      color={getStatusColor(congViec.TrangThai)}
                       size="small"
+                      sx={{
+                        backgroundColor: getStatusColor(
+                          congViec.TrangThai,
+                          statusOverrides
+                        ),
+                        color: "white",
+                      }}
                     />
                   </TableCell>
 
@@ -221,7 +182,10 @@ const CongViecTable = ({
                       label={getPriorityLabel(congViec.MucDoUuTien)}
                       size="small"
                       sx={{
-                        backgroundColor: getPriorityColor(congViec.MucDoUuTien),
+                        backgroundColor: getPriorityColor(
+                          congViec.MucDoUuTien,
+                          priorityOverrides
+                        ),
                         color: "white",
                       }}
                     />

@@ -1,7 +1,8 @@
 import { createContext, useReducer, useEffect } from "react";
 import apiService from "../app/apiService";
 import { isValidToken } from "../utils/jwt";
-import { useSelector } from "react-redux";
+import { useDispatch as useReduxDispatch } from "react-redux";
+import { fetchColorConfig } from "features/QuanLyCongViec/CongViec/colorConfigSlice";
 
 const initialState = {
   isInitialize: false,
@@ -43,8 +44,15 @@ const reducer = (state, action) => {
         user: null,
       };
     case UPDATE_PROFILE:
-      const { UserName, PassWord, PhanQuyen, KhoaID, HoTen, Email,KhoaTaiChinh } =
-        action.payload;
+      const {
+        UserName,
+        PassWord,
+        PhanQuyen,
+        KhoaID,
+        HoTen,
+        Email,
+        KhoaTaiChinh,
+      } = action.payload;
       return {
         ...state,
         user: {
@@ -74,6 +82,7 @@ const setSecsion = (accessToken) => {
 const AuthContext = createContext({ ...initialState });
 function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const reduxDispatch = useReduxDispatch();
   // const updatedProfile = useSelector((state) => state.user.updatedProfile);
   useEffect(() => {
     const initialize = async () => {
@@ -89,6 +98,8 @@ function AuthProvider({ children }) {
             type: INITIALIZE,
             payload: { isAuthenticated: true, user },
           });
+          // Load global color config after auth is ready
+          reduxDispatch(fetchColorConfig());
         } else {
           setSecsion(null);
           dispatch({
@@ -105,7 +116,7 @@ function AuthProvider({ children }) {
       }
     };
     initialize();
-  }, []);
+  }, [reduxDispatch]);
 
   // useEffect(() => {
   //   if (updatedProfile)
@@ -127,6 +138,8 @@ function AuthProvider({ children }) {
       type: LOGIN_SUCSESS,
       payload: { user },
     });
+    // Ensure color config is loaded after login
+    reduxDispatch(fetchColorConfig());
     // console.log(`isAuth after dispatch login ${state.isAuthenticated}`);
     callback();
   };
