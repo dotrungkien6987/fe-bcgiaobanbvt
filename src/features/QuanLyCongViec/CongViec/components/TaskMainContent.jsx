@@ -1,5 +1,13 @@
 import React from "react";
-import { Box, Typography, Card, CardContent } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  Slider,
+  TextField,
+} from "@mui/material";
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
 import { LoadingButton } from "@mui/lab";
 import CommentIcon from "@mui/icons-material/Comment";
@@ -13,6 +21,11 @@ import { ACTION_META } from "../congViecSlice";
 const TaskMainContent = ({
   congViec,
   theme,
+  quickProgress,
+  canEditProgress,
+  handleProgressChange,
+  handleProgressInputChange,
+  commitProgressUpdate,
   availableActions,
   actionLoading,
   triggerAction,
@@ -97,7 +110,77 @@ const TaskMainContent = ({
           </Box>
         </Box>
 
-        {/* Quick progress display removed; progress is now managed via history section */}
+        {(congViec.PhanTramTienDoTong !== undefined ||
+          congViec.TienDo !== undefined) && (
+          <Box sx={{ mb: 4 }}>
+            <Typography
+              variant="h6"
+              sx={{
+                mb: 2,
+                fontWeight: 600,
+                color: theme.palette.text.primary,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              📊 Tiến độ: {quickProgress}%
+            </Typography>
+            <Box
+              sx={{
+                width: "100%",
+                height: 12,
+                backgroundColor: theme.palette.grey[200],
+                borderRadius: 6,
+                overflow: "hidden",
+                border: `1px solid ${theme.palette.grey[300]}`,
+                mb: canEditProgress ? 2 : 0,
+                opacity: canEditProgress ? 1 : 0.85,
+              }}
+            >
+              <Box
+                sx={{
+                  width: `${quickProgress}%`,
+                  height: "100%",
+                  background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                  transition: "width 0.3s ease",
+                  borderRadius: 6,
+                }}
+              />
+            </Box>
+            {canEditProgress && (
+              <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} lg={8}>
+                  <Slider
+                    size="small"
+                    value={quickProgress}
+                    onChange={handleProgressChange}
+                    onChangeCommitted={(e, val) =>
+                      commitProgressUpdate(Array.isArray(val) ? val[0] : val)
+                    }
+                    valueLabelDisplay="auto"
+                    step={1}
+                    min={0}
+                    max={100}
+                    aria-label="Tiến độ công việc"
+                  />
+                </Grid>
+                <Grid item xs={12} lg={4}>
+                  <TextField
+                    label="%"
+                    size="small"
+                    type="number"
+                    value={quickProgress}
+                    onChange={handleProgressInputChange}
+                    onBlur={(e) => commitProgressUpdate(e.target.value)}
+                    inputProps={{ min: 0, max: 100 }}
+                    sx={{ width: 120 }}
+                  />
+                </Grid>
+              </Grid>
+            )}
+          </Box>
+        )}
 
         {availableActions.length > 0 && (
           <Box
@@ -143,7 +226,54 @@ const TaskMainContent = ({
         <WarningConfigBlock cv={congViec} />
         <MetricsBlock cv={congViec} />
 
-        {/* Quick edit card removed */}
+        <Card
+          elevation={0}
+          sx={{
+            mt: 3,
+            borderRadius: 2,
+            border: `1px solid ${theme.palette.grey[200]}`,
+            backgroundColor: theme.palette.grey[25] || theme.palette.grey[50],
+          }}
+        >
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
+              Chỉnh sửa nhanh
+            </Typography>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} lg={6}>
+                <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Tiến độ tổng (%)
+                    </Typography>
+                    <Slider
+                      size="small"
+                      value={quickProgress}
+                      onChange={handleProgressChange}
+                      onChangeCommitted={(e, val) =>
+                        commitProgressUpdate(Array.isArray(val) ? val[0] : val)
+                      }
+                      valueLabelDisplay="auto"
+                      step={1}
+                      min={0}
+                      max={100}
+                    />
+                  </Box>
+                  <TextField
+                    label="%"
+                    size="small"
+                    type="number"
+                    value={quickProgress}
+                    onChange={handleProgressInputChange}
+                    onBlur={(e) => commitProgressUpdate(e.target.value)}
+                    inputProps={{ min: 0, max: 100 }}
+                    sx={{ width: 100 }}
+                  />
+                </Box>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
       </CardContent>
     </Card>
   );
