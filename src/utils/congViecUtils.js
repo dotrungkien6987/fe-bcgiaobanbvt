@@ -54,6 +54,28 @@ export const STATUS_LABEL_MAP = {
   HOAN_THANH: "Hoàn thành",
 };
 
+// Nhãn hành động workflow / lịch sử – dùng chung cho UI (table, toast)
+export const ACTION_LABEL_MAP = {
+  CREATE: "Tạo",
+  ASSIGN: "Giao việc",
+  GIAO_VIEC: "Giao việc",
+  HUY_GIAO: "Hủy giao",
+  ACCEPT: "Chấp nhận",
+  TIEP_NHAN: "Tiếp nhận",
+  START: "Bắt đầu",
+  SUBMIT: "Trình duyệt",
+  APPROVE: "Duyệt",
+  DUYET_HOAN_THANH: "Duyệt hoàn thành",
+  COMPLETE: "Hoàn thành",
+  HOAN_THANH: "Hoàn thành",
+  HOAN_THANH_TAM: "Hoàn thành tạm",
+  HUY_HOAN_THANH_TAM: "Hủy hoàn thành tạm",
+  REOPEN: "Mở lại",
+  MO_LAI_HOAN_THANH: "Mở lại",
+  CANCEL: "Hủy",
+  UPDATE: "Cập nhật",
+};
+
 // Nhãn hiển thị tiếng Việt cho mức ưu tiên (theo code chuẩn hóa)
 export const PRIORITY_LABEL_MAP = {
   THAP: "Thấp",
@@ -137,6 +159,19 @@ export const getStatusText = (status) => {
   const code = normalizeStatus(status);
   if (!code) return "";
   return STATUS_LABEL_MAP[code] || status || "";
+};
+
+// Lấy nhãn hành động tiếng Việt chuẩn hóa
+export const getActionLabel = (action) => {
+  if (!action) return "";
+  const up = action.toString().toUpperCase();
+  const label = ACTION_LABEL_MAP[up];
+  if (label) return label;
+  // fallback: chuyển underscore thành space, viết hoa chữ đầu mỗi từ
+  return up
+    .split("_")
+    .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
+    .join(" ");
 };
 
 // Due status helpers

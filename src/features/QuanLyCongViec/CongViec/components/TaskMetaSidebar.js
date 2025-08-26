@@ -5,27 +5,30 @@ import {
   Box,
   Chip,
   Typography,
-  Divider,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
   Tooltip,
   Paper,
+  Grid,
 } from "@mui/material";
 import {
   Person as PersonIcon,
   DateRange as CalendarIcon,
   Group as GroupIcon,
 } from "@mui/icons-material";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-const TaskMetaSidebar = ({
-  theme,
-  congViec,
-  overdue,
-  formatDateTime,
-  cooperators = [],
-}) => {
+// Extend dayjs with relativeTime plugin
+dayjs.extend(relativeTime);
+
+// Helper function for formatting datetime with relative time
+const formatRel = (d) =>
+  d ? `${dayjs(d).format("DD/MM/YYYY HH:mm")} · ${dayjs(d).fromNow()}` : "—";
+
+const TaskMetaSidebar = ({ theme, congViec, overdue, cooperators = [] }) => {
   return (
     <>
       {/* Người giao việc */}
@@ -259,7 +262,7 @@ const TaskMetaSidebar = ({
         )}
       </Box>
 
-      {/* Thời gian */}
+      {/* Timeline */}
       <Box sx={{ mb: 3 }}>
         <Typography
           variant="subtitle2"
@@ -267,72 +270,55 @@ const TaskMetaSidebar = ({
           sx={{ mb: 1.5, fontWeight: 600 }}
         >
           <CalendarIcon sx={{ mr: 1, verticalAlign: "middle", fontSize: 18 }} />
-          Thời gian
+          Timeline
         </Typography>
-        <Paper
-          variant="outlined"
-          sx={{
-            p: 1.5,
-            borderRadius: 2,
-            backgroundColor: theme.palette.grey[50],
-            border: `1px solid ${theme.palette.grey[200]}`,
-          }}
-        >
-          <Box sx={{ mb: 1 }}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ fontWeight: 600, textTransform: "uppercase" }}
-            >
-              Ngày tạo
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              {formatDateTime(congViec.NgayTao || congViec.createdAt)}
-            </Typography>
-          </Box>
-          <Divider sx={{ my: 1 }} />
-          <Box sx={{ mb: 1 }}>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ fontWeight: 600, textTransform: "uppercase" }}
-            >
-              Ngày bắt đầu
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              {formatDateTime(congViec.NgayBatDau)}
-            </Typography>
-          </Box>
-          <Divider sx={{ my: 1 }} />
-          <Box>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ fontWeight: 600, textTransform: "uppercase" }}
-            >
-              Hạn hoàn thành
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: overdue
-                  ? theme.palette.error.main
-                  : theme.palette.success.main,
-                fontWeight: 600,
-              }}
-            >
-              {formatDateTime(congViec.NgayHetHan)}
-              {overdue && (
-                <Chip
-                  label="Quá hạn"
-                  size="small"
-                  color="error"
-                  sx={{ ml: 1, height: 20, fontSize: "0.7rem" }}
-                />
-              )}
-            </Typography>
-          </Box>
-        </Paper>
+        <Grid container spacing={1}>
+          {[
+            {
+              label: "Bắt đầu (kế hoạch)",
+              v: congViec.NgayBatDau,
+            },
+            {
+              label: "Hết hạn (kế hoạch)",
+              v: congViec.NgayHetHan,
+            },
+            { label: "Giao việc", v: congViec.NgayGiaoViec },
+            {
+              label: "Tiếp nhận thực tế",
+              v: congViec.NgayTiepNhanThucTe,
+            },
+            {
+              label: "Hoàn thành tạm",
+              v: congViec.NgayHoanThanhTam,
+            },
+            { label: "Hoàn thành", v: congViec.NgayHoanThanh },
+          ].map((t) => (
+            <Grid key={t.label} item xs={12}>
+              <Box
+                sx={{
+                  p: 1.2,
+                  border: `1px solid ${theme.palette.grey[200]}`,
+                  borderRadius: 1.2,
+                  backgroundColor: theme.palette.grey[50],
+                  minHeight: 54,
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 600,
+                    color: "text.secondary",
+                  }}
+                >
+                  {t.label}
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 0.5 }}>
+                  {formatRel(t.v)}
+                </Typography>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
       </Box>
 
       {/* Tags */}

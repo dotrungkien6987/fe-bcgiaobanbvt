@@ -5,43 +5,24 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  DialogContentText,
   Typography,
   Box,
-  Chip,
-  Grid,
-  Card,
-  CardContent,
-  IconButton,
-  Tooltip,
-  Slider,
-  TextField,
   useTheme,
-  useMediaQuery,
-  Autocomplete,
+  Grid,
 } from "@mui/material";
-import { LoadingButton } from "@mui/lab";
-import WarningConfigBlock from "./components/WarningConfigBlock";
-import MetricsBlock from "./components/MetricsBlock";
-import HistoryAccordion from "./components/HistoryAccordion";
+import TaskDialogHeader from "./components/TaskDialogHeader";
+import RoutineTaskSelector from "./components/RoutineTaskSelector";
+import VersionConflictNotice from "./components/VersionConflictNotice";
+import TaskMainContent, { CommentsSection } from "./components/TaskMainContent";
+import TaskSidebarPanel from "./components/TaskSidebarPanel";
+import HistorySection from "./components/HistorySection";
+import ConfirmActionDialog from "./components/ConfirmActionDialog";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  Close as CloseIcon,
-  Edit as EditIcon,
-  Flag as FlagIcon,
-  Comment as CommentIcon,
-  CheckCircle as CheckCircleIcon,
-  Palette as PaletteIcon,
-  Tune as TuneIcon,
-} from "@mui/icons-material";
+// Icons now handled inside extracted components
 import relativeTime from "dayjs/plugin/relativeTime";
 import {
   formatDateTime,
-  getStatusColor,
-  getPriorityColor,
-  getStatusText,
-  getPriorityText,
   DUE_LABEL_MAP,
   getExtendedDueStatus,
   EXT_DUE_LABEL_MAP,
@@ -59,6 +40,7 @@ import {
   ACTION_META,
   getAvailableActions,
   fetchMyRoutineTasks,
+  // updateProgress removed with quick progress UI
 } from "./congViecSlice";
 import {
   fetchFilesByTask,
@@ -68,10 +50,6 @@ import {
   createCommentWithFiles,
 } from "./QuanLyTepTin/quanLyTepTinSlice";
 import useAuth from "hooks/useAuth";
-import CommentComposer from "./components/CommentComposer";
-import CommentsList from "./components/CommentsList";
-import FilesSidebar from "./components/FilesSidebar";
-import TaskMetaSidebar from "./components/TaskMetaSidebar";
 import ColorLegendDialog from "./components/ColorLegendDialog";
 import AdminColorSettingsDialog from "./components/AdminColorSettingsDialog";
 import { fetchColorConfig } from "./colorConfigSlice";
@@ -81,8 +59,6 @@ import useFilePreview from "./hooks/useFilePreview";
 dayjs.extend(relativeTime);
 
 // ---- Helpers ----
-const formatRel = (d) =>
-  d ? `${dayjs(d).format("DD/MM/YYYY HH:mm")} · ${dayjs(d).fromNow()}` : "—";
 const deriveDueInfo = (cv) => {
   if (!cv) return { extDue: null, soGioTre: 0, hoursLeft: null };
   const extDue = getExtendedDueStatus(cv);
@@ -99,14 +75,15 @@ const deriveDueInfo = (cv) => {
 
 const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
   const theme = useTheme();
-  const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
+  const fullScreen = true; // Always full screen
   const dispatch = useDispatch();
   const { user } = useAuth();
   console.log("User:", user);
   const { congViecDetail, loading, error } = useSelector(
     (state) => state.congViec
   );
-  const { myRoutineTasks } = useSelector((s) => s.congViec);
+  const { myRoutineTasks, loadingRoutineTasks, myRoutineTasksError } =
+    useSelector((s) => s.congViec);
   const versionConflict = useSelector((s) => s.congViec.versionConflict);
   const statusOverrides = useSelector((s) => s.colorConfig?.statusColors);
   const priorityOverrides = useSelector((s) => s.colorConfig?.priorityColors);
@@ -135,50 +112,17 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [colorLegendOpen, setColorLegendOpen] = useState(false);
   const [adminColorsOpen, setAdminColorsOpen] = useState(false);
-  // Quick edit local state
-  // const [quickStatus, setQuickStatus] = useState("");
-  const [quickProgress, setQuickProgress] = useState(0);
+  // Quick edit local state removed (quick progress & quick status deprecated)
   const [actionLoading, setActionLoading] = useState(null); // unified action key
   const [confirm, setConfirm] = useState(null); // action key waiting confirm
+  // Quick progress editing removed – progress history & updates managed elsewhere
 
-  // helpers moved into child components
-
+  // File preview handlers
   const { handleViewFile, handleDownloadFile } = useFilePreview();
-
-  useEffect(() => {
-    if (open && congViecId) {
-      dispatch(getCongViecDetail(congViecId));
-      dispatch(fetchFilesByTask(congViecId));
-      dispatch(countFilesByTask(congViecId));
-      dispatch(fetchColorConfig());
-      dispatch(fetchMyRoutineTasks());
-    }
-  }, [open, congViecId, dispatch]);
-
-  // When version conflict occurs, auto-refetch newest detail in background so user can choose refresh.
-  useEffect(() => {
-    if (versionConflict?.id === congViecId) {
-      // silent refresh detail
-      dispatch(getCongViecDetail(congViecId));
-    }
-  }, [versionConflict, congViecId, dispatch]);
-
-  // Sync quick-edit progress when detail loads/changes
-  useEffect(() => {
-    if (!congViecDetail) return;
-    const p =
-      typeof congViecDetail.PhanTramTienDoTong === "number"
-        ? congViecDetail.PhanTramTienDoTong
-        : typeof congViecDetail.TienDo === "number"
-        ? congViecDetail.TienDo
-        : 0;
-    setQuickProgress(Math.max(0, Math.min(100, Math.round(p))));
-  }, [congViecDetail]);
 
   const handleAddComment = async () => {
     // Cho phép gửi bình luận chỉ có tệp đính kèm (không bắt buộc nhập chữ)
     if (!newComment.trim() && pendingFiles.length === 0) return;
-
     setSubmittingComment(true);
     try {
       await dispatch(
@@ -203,45 +147,47 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
   // Hidden: chỉnh trực tiếp trạng thái qua Select
   // const handleQuickStatusChange = async (e) => { ... };
 
-  const handleProgressChange = (e, val) => {
-    setQuickProgress(Array.isArray(val) ? val[0] : val);
-  };
-
-  const handleProgressInputChange = (e) => {
-    const v = e.target.value === "" ? 0 : Number(e.target.value);
-    if (Number.isNaN(v)) return;
-    setQuickProgress(Math.max(0, Math.min(100, v)));
-  };
-
-  const commitProgressUpdate = async (value) => {
-    const v = Math.max(0, Math.min(100, Math.round(value)));
-    try {
-      await dispatch(
-        updateCongViec({ id: congViecId, data: { PhanTramTienDoTong: v } })
-      );
-    } catch (err) {
-      // revert on error
-      const current =
-        congViecDetail?.PhanTramTienDoTong ?? congViecDetail?.TienDo ?? 0;
-      setQuickProgress(Math.max(0, Math.min(100, Math.round(current))));
-    }
-  };
-
-  // Routine task selection (single-select) UI (minimal placeholder)
-  const handleSelectRoutine = async (nvId) => {
+  // (Removed) quick progress handlers
+  // Routine task selection (single-select) with enhanced feedback
+  // Distinguish 3 states: linked (id), Khác (FlagNVTQKhac=true), and none selected (both null/false)
+  const handleSelectRoutine = async (
+    nvId,
+    { isKhac = false, isClear = false } = {}
+  ) => {
     if (!isMain) return;
     try {
-      const payload = nvId
-        ? { NhiemVuThuongQuyID: nvId, FlagNVTQKhac: false }
-        : { NhiemVuThuongQuyID: null, FlagNVTQKhac: true }; // treat null as 'Khác'
+      let payload;
+      if (nvId) {
+        payload = { NhiemVuThuongQuyID: nvId, FlagNVTQKhac: false };
+      } else if (isKhac) {
+        payload = { NhiemVuThuongQuyID: null, FlagNVTQKhac: true };
+      } else if (isClear) {
+        payload = { NhiemVuThuongQuyID: null, FlagNVTQKhac: false };
+      } else {
+        // default fallback (clear)
+        payload = { NhiemVuThuongQuyID: null, FlagNVTQKhac: false };
+      }
+
       await dispatch(
         updateCongViec({
           id: congViecId,
           data: { ...payload, expectedVersion: congViecDetail?.updatedAt },
         })
       );
+
+      const selectedTask = nvId
+        ? myRoutineTasks?.find((t) => t._id === nvId)
+        : null;
+      let message;
+      if (nvId)
+        message = `Đã liên kết với nhiệm vụ: ${
+          selectedTask?.Ten || "Nhiệm vụ đã chọn"
+        }`;
+      else if (isKhac) message = 'Đã chọn "Nhiệm vụ khác"';
+      else if (isClear) message = "Đã bỏ chọn nhiệm vụ thường quy";
+      if (message) console.log(message);
     } catch (e) {
-      /* ignore */
+      console.error("Error updating routine task:", e);
     }
   };
 
@@ -261,17 +207,14 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
     preventDefaults(e);
     setDragSidebarActive(true);
   };
-
   const handleSidebarDragEnter = (e) => {
     preventDefaults(e);
     setDragSidebarActive(true);
   };
-
   const handleSidebarDragLeave = (e) => {
     preventDefaults(e);
     setDragSidebarActive(false);
   };
-
   const handleSidebarDrop = async (e) => {
     preventDefaults(e);
     const dt = e.dataTransfer;
@@ -284,7 +227,6 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
       console.error("Upload via drop failed:", err);
     }
   };
-
   const handleSidebarPaste = async (e) => {
     const items = Array.from(e.clipboardData?.items || []);
     const files = items
@@ -371,7 +313,6 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
     (String(congViec?.NguoiGiaoViecID) === String(currentNhanVienId) ||
       congViec?.NguoiGiaoViecID?._id === currentNhanVienId)
   );
-  const canEditProgress = congViec.TrangThai === "DANG_THUC_HIEN" && isMain;
   const availableActions = useMemo(
     () => getAvailableActions(congViec, { isAssigner, isMain }),
     [congViec, isAssigner, isMain]
@@ -427,6 +368,18 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
     }
     return arr;
   }, [extDue, hoursLeft, soGioTre, congViec, theme.palette]);
+
+  // Fetch supporting data when dialog opens (must be before any conditional returns)
+  useEffect(() => {
+    if (!open || !congViecId) return;
+    dispatch(fetchFilesByTask(congViecId));
+    dispatch(countFilesByTask(congViecId));
+  }, [open, congViecId, dispatch]);
+
+  // Ensure color configuration loaded
+  useEffect(() => {
+    if (open) dispatch(fetchColorConfig());
+  }, [open, dispatch]);
 
   if (!congViecDetail && !loading) return null;
 
@@ -499,11 +452,19 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="lg"
-      fullWidth
+      maxWidth={false}
+      fullWidth={false}
       fullScreen={fullScreen}
       PaperProps={{
-        sx: { minHeight: "80vh" },
+        sx: {
+          minHeight: "100vh",
+          height: "100vh",
+          maxHeight: "100vh",
+          width: "100vw",
+          maxWidth: "100vw",
+          margin: 0,
+          borderRadius: 0,
+        },
       }}
     >
       <DialogTitle
@@ -515,234 +476,26 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
           borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
-        <Box sx={{ flex: 1 }}>
-          <Typography
-            variant="h5"
-            component="div"
-            sx={{ fontWeight: 700, mb: 1 }}
-          >
-            {congViec?.MaCongViec || "Công việc"}
-          </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              gap: 2,
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ fontWeight: 500 }}
-              >
-                Trạng thái:
-              </Typography>
-              <Chip
-                label={getStatusText(congViec.TrangThai) || "Tạo mới"}
-                size="small"
-                sx={{
-                  backgroundColor: getStatusColor(
-                    congViec.TrangThai,
-                    statusOverrides
-                  ),
-                  color: "white",
-                  fontWeight: 600,
-                }}
-              />
-            </Box>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ fontWeight: 500 }}
-              >
-                Ưu tiên:
-              </Typography>
-              <Chip
-                icon={<FlagIcon />}
-                label={getPriorityText(congViec.MucDoUuTien) || "Bình thường"}
-                size="small"
-                sx={{
-                  backgroundColor: getPriorityColor(
-                    congViec.MucDoUuTien,
-                    priorityOverrides
-                  ),
-                  color: "white",
-                  fontWeight: 600,
-                  "& .MuiChip-icon": {
-                    color: "white",
-                  },
-                }}
-              />
-            </Box>
-            {dueChips.map((c) => (
-              <Chip
-                key={c.key}
-                label={c.label}
-                size="small"
-                sx={{
-                  fontWeight: 700,
-                  backgroundColor: c.color,
-                  color: theme.palette.getContrastText(c.color),
-                }}
-              />
-            ))}
-          </Box>
-        </Box>
-        <Box>
-          <Tooltip title="Ghi chú màu sắc">
-            <IconButton
-              onClick={() => setColorLegendOpen(true)}
-              size="small"
-              sx={{ mr: 1 }}
-            >
-              <PaletteIcon />
-            </IconButton>
-          </Tooltip>
-          {user?.PhanQuyen === "admin" && (
-            <Tooltip title="Thiết lập màu (Admin)">
-              <IconButton
-                onClick={() => setAdminColorsOpen(true)}
-                size="small"
-                sx={{ mr: 1 }}
-              >
-                <TuneIcon />
-              </IconButton>
-            </Tooltip>
-          )}
-          <Tooltip title="Chỉnh sửa">
-            <IconButton
-              onClick={() => onEdit(congViec)}
-              size="small"
-              sx={{ mr: 1 }}
-            >
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <IconButton onClick={onClose} size="small">
-            <CloseIcon />
-          </IconButton>
-        </Box>
+        <TaskDialogHeader
+          congViec={congViec}
+          user={user}
+          statusOverrides={statusOverrides}
+          priorityOverrides={priorityOverrides}
+          dueChips={dueChips}
+          onOpenColorLegend={() => setColorLegendOpen(true)}
+          onOpenAdminColors={() => setAdminColorsOpen(true)}
+          onEdit={onEdit}
+          onClose={onClose}
+          theme={theme}
+        />
       </DialogTitle>
 
-      <DialogContent dividers sx={{ p: 0 }}>
-        {/* Routine task selector (single-select) */}
-        {congViecDetail && (
-          <Box
-            sx={{ p: 2, borderBottom: `1px dashed ${theme.palette.divider}` }}
-          >
-            <Typography variant="subtitle2" gutterBottom>
-              Nhiệm vụ thường quy
-            </Typography>
-            {(() => {
-              const THRESHOLD = 12;
-              const list = myRoutineTasks || [];
-              const showAutocomplete = list.length > THRESHOLD && isMain;
-              if (showAutocomplete) {
-                const khacOption = { _id: "__KHAC__", Ten: "Khác" };
-                const options = [...list, khacOption];
-                const currentValue = congViecDetail.FlagNVTQKhac
-                  ? khacOption
-                  : options.find(
-                      (o) => o._id === congViecDetail.NhiemVuThuongQuyID
-                    ) || null;
-                return (
-                  <Autocomplete
-                    size="small"
-                    options={options}
-                    value={currentValue}
-                    getOptionLabel={(o) => o?.Ten || ""}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Chọn nhiệm vụ"
-                        placeholder="Gõ để tìm..."
-                      />
-                    )}
-                    sx={{ maxWidth: 360, mb: 1 }}
-                    onChange={(e, val) => {
-                      if (!isMain) return;
-                      if (!val) return; // (có thể xử lý clear sau)
-                      if (val._id === "__KHAC__") handleSelectRoutine(null);
-                      else handleSelectRoutine(val._id);
-                    }}
-                  />
-                );
-              }
-              // Fallback (chips) luôn hiển thị cả khi rỗng để có lựa chọn "Khác"
-              return (
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {(list || []).map((rt) => {
-                    const active = congViecDetail.NhiemVuThuongQuyID === rt._id;
-                    return (
-                      <Chip
-                        key={rt._id}
-                        label={rt.Ten || rt._id}
-                        color={active ? "primary" : "default"}
-                        size="small"
-                        variant={active ? "filled" : "outlined"}
-                        onClick={
-                          isMain ? () => handleSelectRoutine(rt._id) : undefined
-                        }
-                      />
-                    );
-                  })}
-                  <Chip
-                    label="Khác"
-                    color={congViecDetail.FlagNVTQKhac ? "primary" : "default"}
-                    size="small"
-                    variant={
-                      congViecDetail.FlagNVTQKhac ? "filled" : "outlined"
-                    }
-                    onClick={
-                      isMain ? () => handleSelectRoutine(null) : undefined
-                    }
-                  />
-                </Box>
-              );
-            })()}
-            {!isMain && (
-              <Typography variant="caption" color="text.secondary">
-                Chỉ Người Chính được phép thay đổi.
-              </Typography>
-            )}
-          </Box>
-        )}
+      <DialogContent
+        dividers
+        sx={{ p: 0, height: "calc(100vh - 120px)", overflow: "auto" }}
+      >
         {showConflict && (
-          <Box
-            sx={{
-              m: 2,
-              mb: 0,
-              p: 2,
-              border: "1px solid",
-              borderColor: "warning.main",
-              borderRadius: 1,
-              bgcolor: "warning.light",
-            }}
-          >
-            <Typography
-              variant="subtitle2"
-              sx={{ fontWeight: 600 }}
-              gutterBottom
-            >
-              Xung đột phiên bản / Version conflict
-            </Typography>
-            <Typography variant="body2" paragraph>
-              Dữ liệu công việc đã thay đổi bởi người khác trước thao tác của
-              bạn. Bản mới nhất đã được tải lại. Vui lòng kiểm tra trước khi
-              thực hiện lại.
-            </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              color="warning"
-              onClick={handleResolveConflict}
-            >
-              Đã hiểu
-            </Button>
-          </Box>
+          <VersionConflictNotice onResolve={handleResolveConflict} />
         )}
         {loading ? (
           <Box sx={{ p: 3, textAlign: "center" }}>
@@ -754,498 +507,112 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
           </Box>
         ) : (
           <>
-            <Grid container spacing={3} sx={{ p: 3 }}>
-              {/* Main Content */}
-              <Grid item xs={12} md={8}>
-                <Card
-                  elevation={2}
-                  sx={{
-                    borderRadius: 2,
-                    border: `1px solid ${theme.palette.divider}`,
-                  }}
-                >
-                  <CardContent sx={{ p: 3 }}>
-                    {/* Timeline */}
-                    <Box sx={{ mb: 4 }}>
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          mb: 3,
-                          fontWeight: 600,
-                          color: theme.palette.text.primary,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                        }}
-                      >
-                        🗓 Timeline
-                      </Typography>
-                      <Grid container spacing={1}>
-                        {[
-                          {
-                            label: "Bắt đầu (kế hoạch)",
-                            v: congViec.NgayBatDau,
-                          },
-                          {
-                            label: "Hết hạn (kế hoạch)",
-                            v: congViec.NgayHetHan,
-                          },
-                          { label: "Giao việc", v: congViec.NgayGiaoViec },
-                          {
-                            label: "Tiếp nhận thực tế",
-                            v: congViec.NgayTiepNhanThucTe,
-                          },
-                          {
-                            label: "Hoàn thành tạm",
-                            v: congViec.NgayHoanThanhTam,
-                          },
-                          { label: "Hoàn thành", v: congViec.NgayHoanThanh },
-                        ].map((t) => (
-                          <Grid key={t.label} item xs={12} sm={6} md={4}>
-                            <Box
-                              sx={{
-                                p: 1.2,
-                                border: `1px solid ${theme.palette.grey[200]}`,
-                                borderRadius: 1.2,
-                                backgroundColor: theme.palette.grey[50],
-                                minHeight: 54,
-                              }}
-                            >
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  fontWeight: 600,
-                                  color: "text.secondary",
-                                }}
-                              >
-                                {t.label}
-                              </Typography>
-                              <Typography variant="body2" sx={{ mt: 0.5 }}>
-                                {formatRel(t.v)}
-                              </Typography>
-                            </Box>
-                          </Grid>
-                        ))}
-                      </Grid>
-                    </Box>
-
-                    {/* Description */}
-                    <Box sx={{ mb: 4 }}>
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          mb: 3,
-                          fontWeight: 600,
-                          color: theme.palette.text.primary,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                        }}
-                      >
-                        📝 Mô tả công việc
-                      </Typography>
-                      <Box
-                        sx={{
-                          whiteSpace: "pre-wrap",
-                          backgroundColor: theme.palette.grey[50],
-                          border: `1px solid ${theme.palette.grey[200]}`,
-                          borderRadius: 2,
-                          p: 3,
-                          minHeight: 120,
-                          fontSize: "1rem",
-                          lineHeight: 1.6,
-                          color: theme.palette.text.secondary,
-                        }}
-                      >
-                        {congViec.MoTa || "Không có mô tả"}
-                      </Box>
-                    </Box>
-
-                    {/* Progress (guarded) */}
-                    {(congViec.PhanTramTienDoTong !== undefined ||
-                      congViec.TienDo !== undefined) && (
-                      <Box sx={{ mb: 4 }}>
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            mb: 2,
-                            fontWeight: 600,
-                            color: theme.palette.text.primary,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
-                        >
-                          📊 Tiến độ: {quickProgress}%
-                        </Typography>
-                        <Box
-                          sx={{
-                            width: "100%",
-                            height: 12,
-                            backgroundColor: theme.palette.grey[200],
-                            borderRadius: 6,
-                            overflow: "hidden",
-                            border: `1px solid ${theme.palette.grey[300]}`,
-                            mb: canEditProgress ? 2 : 0,
-                            opacity: canEditProgress ? 1 : 0.85,
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              width: `${quickProgress}%`,
-                              height: "100%",
-                              background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                              transition: "width 0.3s ease",
-                              borderRadius: 6,
-                            }}
-                          />
-                        </Box>
-                        {canEditProgress && (
-                          <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={12} md={8}>
-                              <Slider
-                                size="small"
-                                value={quickProgress}
-                                onChange={handleProgressChange}
-                                onChangeCommitted={(e, val) =>
-                                  commitProgressUpdate(
-                                    Array.isArray(val) ? val[0] : val
-                                  )
-                                }
-                                valueLabelDisplay="auto"
-                                step={1}
-                                min={0}
-                                max={100}
-                                aria-label="Tiến độ công việc"
-                              />
-                            </Grid>
-                            <Grid item xs={12} md={4}>
-                              <TextField
-                                label="%"
-                                size="small"
-                                type="number"
-                                value={quickProgress}
-                                onChange={handleProgressInputChange}
-                                onBlur={(e) =>
-                                  commitProgressUpdate(e.target.value)
-                                }
-                                inputProps={{ min: 0, max: 100 }}
-                                sx={{ width: 120 }}
-                              />
-                            </Grid>
-                          </Grid>
-                        )}
-                      </Box>
-                    )}
-
-                    {/* Actions (workflow - unified) */}
-                    {availableActions.length > 0 && (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          gap: 2,
-                          flexWrap: "wrap",
-                          p: 3,
-                          backgroundColor: theme.palette.grey[50],
-                          borderRadius: 2,
-                          border: `1px solid ${theme.palette.grey[200]}`,
-                        }}
-                      >
-                        {availableActions.map((a) => {
-                          const meta = ACTION_META[a] || {};
-                          return (
-                            <LoadingButton
-                              key={a}
-                              loading={actionLoading === a}
-                              variant={meta.variant || "contained"}
-                              color={meta.color || "primary"}
-                              size="medium"
-                              onClick={() => triggerAction(a)}
-                              startIcon={
-                                a === "HOAN_THANH" || a === "HOAN_THANH_TAM" ? (
-                                  <CheckCircleIcon />
-                                ) : null
-                              }
-                              sx={{
-                                borderRadius: 2,
-                                textTransform: "none",
-                                fontWeight: 600,
-                                px: 3,
-                              }}
-                            >
-                              {meta.label || a}
-                            </LoadingButton>
-                          );
-                        })}
-                      </Box>
-                    )}
-
-                    {/* Warning config & Metrics */}
-                    <WarningConfigBlock cv={congViec} />
-                    <MetricsBlock cv={congViec} />
-
-                    {/* Quick Edit: Status + Progress */}
-                    <Card
-                      elevation={0}
-                      sx={{
-                        mt: 3,
-                        borderRadius: 2,
-                        border: `1px solid ${theme.palette.grey[200]}`,
-                        backgroundColor:
-                          theme.palette.grey[25] || theme.palette.grey[50],
-                      }}
-                    >
-                      <CardContent sx={{ p: 3 }}>
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ fontWeight: 700, mb: 2 }}
-                        >
-                          Chỉnh sửa nhanh
-                        </Typography>
-                        <Grid container spacing={2} alignItems="center">
-                          {/* Ẩn chỉnh trực tiếp trạng thái để tuân thủ flow */}
-                          <Grid item xs={12} md={6}>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                gap: 2,
-                                alignItems: "center",
-                              }}
-                            >
-                              <Box sx={{ flex: 1 }}>
-                                <Typography
-                                  variant="caption"
-                                  color="text.secondary"
-                                >
-                                  Tiến độ tổng (%)
-                                </Typography>
-                                <Slider
-                                  size="small"
-                                  value={quickProgress}
-                                  onChange={handleProgressChange}
-                                  onChangeCommitted={(e, val) =>
-                                    commitProgressUpdate(
-                                      Array.isArray(val) ? val[0] : val
-                                    )
-                                  }
-                                  valueLabelDisplay="auto"
-                                  step={1}
-                                  min={0}
-                                  max={100}
-                                />
-                              </Box>
-                              <TextField
-                                label="%"
-                                size="small"
-                                type="number"
-                                value={quickProgress}
-                                onChange={handleProgressInputChange}
-                                onBlur={(e) =>
-                                  commitProgressUpdate(e.target.value)
-                                }
-                                inputProps={{ min: 0, max: 100 }}
-                                sx={{ width: 100 }}
-                              />
-                            </Box>
-                          </Grid>
-                        </Grid>
-                      </CardContent>
-                    </Card>
-                  </CardContent>
-                </Card>
-
-                {/* Comments Section */}
-                <Card
-                  sx={{
-                    mt: 3,
-                    borderRadius: 2,
-                    border: `1px solid ${theme.palette.divider}`,
-                    elevation: 2,
-                  }}
-                >
-                  <CardContent sx={{ p: 3 }}>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        mb: 3,
-                        fontWeight: 600,
-                        color: theme.palette.text.primary,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                      }}
-                    >
-                      <CommentIcon sx={{ fontSize: 22 }} />
-                      Bình luận ({congViec.BinhLuans?.length || 0})
-                    </Typography>
-
-                    <CommentComposer
-                      theme={theme}
-                      newComment={newComment}
-                      setNewComment={setNewComment}
-                      pendingFiles={pendingFiles}
-                      setPendingFiles={setPendingFiles}
-                      dragCommentActive={dragCommentActive}
-                      setDragCommentActive={setDragCommentActive}
-                      onSubmit={handleAddComment}
-                      submittingComment={submittingComment}
+            <Grid
+              container
+              spacing={3}
+              sx={{ p: 3, minHeight: "calc(100vh - 200px)" }}
+            >
+              <Grid item xs={12} lg={8} xl={9}>
+                <TaskMainContent
+                  congViec={congViec}
+                  theme={theme}
+                  availableActions={availableActions}
+                  actionLoading={actionLoading}
+                  triggerAction={triggerAction}
+                  newComment={newComment}
+                  setNewComment={setNewComment}
+                  pendingFiles={pendingFiles}
+                  setPendingFiles={setPendingFiles}
+                  dragCommentActive={dragCommentActive}
+                  setDragCommentActive={setDragCommentActive}
+                  handleAddComment={handleAddComment}
+                  submittingComment={submittingComment}
+                  user={user}
+                  congViecId={congViecId}
+                  dispatch={dispatch}
+                  recallComment={recallComment}
+                  recallCommentText={recallCommentText}
+                  deleteFileThunk={deleteFileThunk}
+                  markCommentFileDeleted={markCommentFileDeleted}
+                  fetchReplies={fetchReplies}
+                  addReply={addReply}
+                  createCommentWithFiles={createCommentWithFiles}
+                  repliesByParent={repliesByParent}
+                  initialReplyCounts={initialReplyCounts}
+                  handleViewFile={handleViewFile}
+                  handleDownloadFile={handleDownloadFile}
+                  formatDateTime={formatDateTime}
+                  routineTaskSelectorNode={
+                    <RoutineTaskSelector
+                      congViecDetail={congViecDetail}
+                      myRoutineTasks={myRoutineTasks}
+                      loadingRoutineTasks={loadingRoutineTasks}
+                      myRoutineTasksError={myRoutineTasksError}
+                      isMain={isMain}
+                      handleSelectRoutine={handleSelectRoutine}
+                      dispatch={dispatch}
+                      fetchMyRoutineTasks={fetchMyRoutineTasks}
+                      embedded
                     />
-
-                    {/* Comments Timeline (scrollable) */}
-                    <CommentsList
-                      theme={theme}
-                      comments={congViec.BinhLuans || []}
-                      user={user}
-                      congViecId={congViecId}
-                      onRecallComment={(taskId, cmtId) =>
-                        dispatch(recallComment(taskId, cmtId))
-                      }
-                      onViewFile={handleViewFile}
-                      onDownloadFile={handleDownloadFile}
-                      onRecallCommentText={(taskId, cmtId) =>
-                        dispatch(recallCommentText(taskId, cmtId))
-                      }
-                      onDeleteFile={async (f) => {
-                        try {
-                          await dispatch(deleteFileThunk(congViecId, f._id));
-                          // Đồng bộ ngay trong danh sách bình luận
-                          dispatch(
-                            markCommentFileDeleted({
-                              congViecId,
-                              fileId: f._id,
-                            })
-                          );
-                        } catch {}
-                      }}
-                      // Replies
-                      repliesByParent={repliesByParent}
-                      initialReplyCounts={initialReplyCounts}
-                      onFetchReplies={(parentId) =>
-                        dispatch(fetchReplies(parentId))
-                      }
-                      onReplyText={(parentId, noiDung) =>
-                        dispatch(addReply({ congViecId, parentId, noiDung }))
-                      }
-                      onReplyWithFiles={(
-                        parentId,
-                        noiDung,
-                        files,
-                        onProgress
-                      ) =>
-                        dispatch(
-                          createCommentWithFiles(
-                            congViecId,
-                            { noiDung, parentId },
-                            files,
-                            onProgress
-                          )
-                        )
-                      }
-                      formatDateTime={formatDateTime}
-                    />
-
-                    {(!congViec.BinhLuans ||
-                      congViec.BinhLuans.length === 0) && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ textAlign: "center", py: 3 }}
-                      >
-                        Chưa có bình luận nào
-                      </Typography>
-                    )}
-                  </CardContent>
-                </Card>
+                  }
+                />
+                <CommentsSection
+                  congViec={congViec}
+                  theme={theme}
+                  newComment={newComment}
+                  setNewComment={setNewComment}
+                  pendingFiles={pendingFiles}
+                  setPendingFiles={setPendingFiles}
+                  dragCommentActive={dragCommentActive}
+                  setDragCommentActive={setDragCommentActive}
+                  handleAddComment={handleAddComment}
+                  submittingComment={submittingComment}
+                  user={user}
+                  congViecId={congViecId}
+                  dispatch={dispatch}
+                  recallComment={recallComment}
+                  recallCommentText={recallCommentText}
+                  deleteFileThunk={deleteFileThunk}
+                  markCommentFileDeleted={markCommentFileDeleted}
+                  fetchReplies={fetchReplies}
+                  addReply={addReply}
+                  createCommentWithFiles={createCommentWithFiles}
+                  repliesByParent={repliesByParent}
+                  initialReplyCounts={initialReplyCounts}
+                  handleViewFile={handleViewFile}
+                  handleDownloadFile={handleDownloadFile}
+                  formatDateTime={formatDateTime}
+                />
               </Grid>
-
-              {/* Sidebar */}
-              <Grid item xs={12} md={4}>
-                <Card
-                  elevation={2}
-                  sx={{
-                    borderRadius: 2,
-                    border: `1px solid ${theme.palette.divider}`,
-                  }}
-                >
-                  <CardContent sx={{ p: 3 }}>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        mb: 3,
-                        fontWeight: 600,
-                        color: theme.palette.text.primary,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                      }}
-                    >
-                      ℹ️ Thông tin chi tiết
-                    </Typography>
-
-                    <Box
-                      onDragOver={handleSidebarDragOver}
-                      onDragEnter={handleSidebarDragEnter}
-                      onDragLeave={handleSidebarDragLeave}
-                      onDrop={handleSidebarDrop}
-                      onPaste={handleSidebarPaste}
-                      tabIndex={0}
-                      sx={{ position: "relative" }}
-                    >
-                      <FilesSidebar
-                        theme={theme}
-                        dragSidebarActive={dragSidebarActive}
-                        setDragSidebarActive={setDragSidebarActive}
-                        fileCount={fileCount}
-                        filesState={filesState}
-                        onUploadFiles={async (files) =>
-                          dispatch(uploadFilesForTask(congViecId, files))
-                        }
-                        onViewFile={handleViewFile}
-                        onDownloadFile={handleDownloadFile}
-                        onDeleteFile={(f) =>
-                          dispatch(deleteFileThunk(congViecId, f._id))
-                        }
-                      />
-                      {dragSidebarActive && (
-                        <Box
-                          sx={{
-                            position: "absolute",
-                            inset: 0,
-                            border: "2px dashed",
-                            borderColor: theme.palette.primary.main,
-                            bgcolor: "rgba(0,0,0,0.04)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: theme.palette.primary.main,
-                            fontWeight: 600,
-                            pointerEvents: "none",
-                            zIndex: 1,
-                          }}
-                        >
-                          Thả tệp vào đây để tải lên
-                        </Box>
-                      )}
-                    </Box>
-
-                    <TaskMetaSidebar
-                      theme={theme}
-                      congViec={congViec}
-                      overdue={
-                        extDue === "QUA_HAN" || extDue === "HOAN_THANH_TRE_HAN"
-                      }
-                      formatDateTime={formatDateTime}
-                      cooperators={cooperators}
-                    />
-                  </CardContent>
-                </Card>
+              <Grid item xs={12} lg={4} xl={3}>
+                <TaskSidebarPanel
+                  theme={theme}
+                  dragSidebarActive={dragSidebarActive}
+                  setDragSidebarActive={setDragSidebarActive}
+                  fileCount={fileCount}
+                  filesState={filesState}
+                  uploadFilesForTask={uploadFilesForTask}
+                  congViecId={congViecId}
+                  dispatch={dispatch}
+                  handleViewFile={handleViewFile}
+                  handleDownloadFile={handleDownloadFile}
+                  deleteFileThunk={deleteFileThunk}
+                  congViec={congViec}
+                  extDue={extDue}
+                  cooperators={cooperators}
+                  handleSidebarDragOver={handleSidebarDragOver}
+                  handleSidebarDragEnter={handleSidebarDragEnter}
+                  handleSidebarDragLeave={handleSidebarDragLeave}
+                  handleSidebarDrop={handleSidebarDrop}
+                  handleSidebarPaste={handleSidebarPaste}
+                />
               </Grid>
             </Grid>
-            {congViecDetail?.LichSuTrangThai?.length ? (
-              <Box sx={{ px: 3, pb: 3 }}>
-                <HistoryAccordion history={congViecDetail.LichSuTrangThai} />
-              </Box>
-            ) : null}
+            <HistorySection
+              congViecDetail={congViecDetail}
+              congViecId={congViecId}
+              theme={theme}
+            />
           </>
         )}
       </DialogContent>
@@ -1283,29 +650,14 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
       />
 
       {/* Confirm Dialog (unified) */}
-      {confirm && (
-        <Dialog open onClose={() => setConfirm(null)} maxWidth="xs" fullWidth>
-          {(() => {
-            const { title } = buildConfirmTexts(confirm);
-            return <DialogTitle>{title}</DialogTitle>;
-          })()}
-          <DialogContent>
-            <DialogContentText>
-              {buildConfirmTexts(confirm).desc}
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setConfirm(null)}>Hủy</Button>
-            <LoadingButton
-              loading={actionLoading === confirm}
-              variant="contained"
-              onClick={() => executeAction(confirm)}
-            >
-              Xác nhận
-            </LoadingButton>
-          </DialogActions>
-        </Dialog>
-      )}
+      <ConfirmActionDialog
+        open={!!confirm}
+        action={confirm}
+        buildConfirmTexts={buildConfirmTexts}
+        actionLoading={actionLoading}
+        executeAction={executeAction}
+        onClose={() => setConfirm(null)}
+      />
     </Dialog>
   );
 };

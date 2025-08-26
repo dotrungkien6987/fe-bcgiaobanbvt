@@ -1,4 +1,5 @@
 // FE copy of work action constants (source of truth BE: workActions.constants.js)
+// NOTE: Business rule (2024-12): Khi CoDuyetHoanThanh = false, chỉ NguoiChinh (Main) được HOAN_THANH trực tiếp.
 export const WORK_ACTIONS = Object.freeze({
   GIAO_VIEC: "GIAO_VIEC",
   HUY_GIAO: "HUY_GIAO",

@@ -1,3 +1,6 @@
+// congViecSlice – v2 (2025-08-27)
+// Chuẩn hoá: thêm helper buildUpdatePayload để tránh duplicated sanitize logic.
+// Giữ nguyên hành vi đặc biệt: không loại bỏ NhiemVuThuongQuyID=null & FlagNVTQKhac=false khi update.
 import { createSlice } from "@reduxjs/toolkit";
 import apiService from "app/apiService";
 import { toast } from "react-toastify";
@@ -59,6 +62,7 @@ const initialState = {
   loadingRoutineTasks: false,
   myRoutineTasksLoaded: false,
   myRoutineTasksLastFetch: null,
+  myRoutineTasksError: null,
 };
 
 // Create slice
@@ -193,6 +197,43 @@ const slice = createSlice({
         state.congViecDetail._id === updatedCongViec._id
       ) {
         state.congViecDetail = updatedCongViec;
+      }
+    },
+    updateHistoryNoteOptimistic: (state, action) => {
+      const { congViecId, index, note } = action.payload;
+      if (state.congViecDetail && state.congViecDetail._id === congViecId) {
+        const list = state.congViecDetail.LichSuTrangThai;
+        if (Array.isArray(list) && list[index]) {
+          list[index].GhiChu = note;
+        }
+      }
+    },
+    updateHistoryNoteRevert: (state, action) => {
+      const { congViecId, index, prev } = action.payload;
+      if (state.congViecDetail && state.congViecDetail._id === congViecId) {
+        const list = state.congViecDetail.LichSuTrangThai;
+        if (Array.isArray(list) && list[index]) {
+          list[index].GhiChu = prev;
+        }
+      }
+    },
+    // Progress history note optimistic update
+    updateProgressHistoryNoteOptimistic: (state, action) => {
+      const { congViecId, index, note } = action.payload;
+      if (state.congViecDetail && state.congViecDetail._id === congViecId) {
+        const list = state.congViecDetail.LichSuTienDo;
+        if (Array.isArray(list) && list[index]) {
+          list[index].GhiChu = note;
+        }
+      }
+    },
+    updateProgressHistoryNoteRevert: (state, action) => {
+      const { congViecId, index, prev } = action.payload;
+      if (state.congViecDetail && state.congViecDetail._id === congViecId) {
+        const list = state.congViecDetail.LichSuTienDo;
+        if (Array.isArray(list) && list[index]) {
+          list[index].GhiChu = prev;
+        }
       }
     },
     addCommentSuccess: (state, action) => {
@@ -396,15 +437,40 @@ const slice = createSlice({
     },
     fetchMyRoutineTasksStart: (state) => {
       state.loadingRoutineTasks = true;
+      state.myRoutineTasksError = null;
     },
     fetchMyRoutineTasksSuccess: (state, action) => {
       state.loadingRoutineTasks = false;
       state.myRoutineTasks = action.payload || [];
       state.myRoutineTasksLoaded = true;
       state.myRoutineTasksLastFetch = Date.now();
+      state.myRoutineTasksError = null;
+      // Sort tasks by name for consistent display
+      if (state.myRoutineTasks.length > 0) {
+        state.myRoutineTasks.sort((a, b) =>
+          (a.Ten || "").localeCompare(b.Ten || "", "vi", {
+            numeric: true,
+            sensitivity: "base",
+          })
+        );
+      }
     },
-    fetchMyRoutineTasksError: (state) => {
+    fetchMyRoutineTasksError: (state, action) => {
       state.loadingRoutineTasks = false;
+      state.myRoutineTasksError =
+        action.payload || "Có lỗi khi tải danh sách nhiệm vụ thường quy";
+    },
+    appendProgressHistory: (state, action) => {
+      const { congViecId, entry } = action.payload || {};
+      if (!congViecId || !entry) return;
+      if (state.congViecDetail && state.congViecDetail._id === congViecId) {
+        const arr = state.congViecDetail.LichSuTienDo;
+        if (Array.isArray(arr)) {
+          arr.push(entry); // immer handles draft mutation
+        } else {
+          state.congViecDetail.LichSuTienDo = [entry];
+        }
+      }
     },
   },
 });
@@ -442,6 +508,7 @@ export const {
   fetchMyRoutineTasksStart,
   fetchMyRoutineTasksSuccess,
   fetchMyRoutineTasksError,
+  appendProgressHistory,
 } = slice.actions;
 
 // API service methods
@@ -473,7 +540,38 @@ const congViecAPI = {
     apiService.get(`/workmanagement/binhluan/${parentId}/replies`),
   getMyRoutineTasks: () =>
     apiService.get(`/workmanagement/nhiemvuthuongquy/my`),
+  updateProgress: (id, data, config) =>
+    apiService.post(
+      `/workmanagement/congviec/${id}/progress?mode=patch`,
+      data,
+      config
+    ),
 };
+
+// Helper: build payload cho updateCongViec (không dùng cho create – create vẫn bỏ null)
+function buildUpdatePayload(data) {
+  const composed = {
+    ...data,
+    CanhBaoMode: data?.CanhBaoMode || "PERCENT",
+    CanhBaoSapHetHanPercent:
+      typeof data?.CanhBaoSapHetHanPercent === "number" &&
+      data.CanhBaoSapHetHanPercent >= 0.5 &&
+      data.CanhBaoSapHetHanPercent <= 1
+        ? data.CanhBaoSapHetHanPercent
+        : 0.8,
+  };
+  const sanitized = Object.fromEntries(
+    Object.entries(composed).filter(([k, v]) => {
+      if (k === "NhiemVuThuongQuyID") return true; // giữ cả null để clear liên kết
+      if (k === "FlagNVTQKhac") return true; // giữ cả false để backend phân biệt
+      return v !== null && v !== undefined;
+    })
+  );
+  if (sanitized.CanhBaoMode === "PERCENT" && "NgayCanhBao" in sanitized) {
+    delete sanitized.NgayCanhBao;
+  }
+  return sanitized;
+}
 
 // Manual thunks
 export const getNhanVien = (nhanvienid) => async (dispatch) => {
@@ -629,22 +727,8 @@ export const updateCongViec =
   async (dispatch) => {
     dispatch(slice.actions.startLoading());
     try {
-      const sanitized = Object.fromEntries(
-        Object.entries({
-          ...data,
-          CanhBaoMode: data?.CanhBaoMode || "PERCENT",
-          CanhBaoSapHetHanPercent:
-            typeof data?.CanhBaoSapHetHanPercent === "number" &&
-            data.CanhBaoSapHetHanPercent >= 0.5 &&
-            data.CanhBaoSapHetHanPercent <= 1
-              ? data.CanhBaoSapHetHanPercent
-              : 0.8,
-        }).filter(([_, v]) => v !== null && v !== undefined)
-      );
-      if (sanitized.CanhBaoMode === "PERCENT" && "NgayCanhBao" in sanitized) {
-        delete sanitized.NgayCanhBao;
-      }
-      console.log("Updating CongViec with payload:", sanitized);
+      const sanitized = buildUpdatePayload(data);
+      console.log("Updating CongViec with payload:", sanitized); // dev log
 
       const headers = sanitized?.expectedVersion
         ? { "If-Unmodified-Since": sanitized.expectedVersion }
@@ -768,6 +852,67 @@ export const transitionCongViec =
     }
   };
 
+// Cập nhật ghi chú lịch sử trạng thái (inline)
+export const updateHistoryNote =
+  ({ congViecId, index, note }) =>
+  async (dispatch, getState) => {
+    const state = getState();
+    const prev =
+      state.congViec.congViecDetail?.LichSuTrangThai?.[index]?.GhiChu || "";
+    dispatch(
+      slice.actions.updateHistoryNoteOptimistic({ congViecId, index, note })
+    );
+    try {
+      await apiService.put(
+        `/workmanagement/congviec/${congViecId}/history/${index}/note`,
+        { note }
+      );
+      // Optionally refetch detail to ensure consistency (could be skipped to reduce load)
+      try {
+        dispatch(getCongViecDetail(congViecId));
+      } catch (_) {}
+    } catch (err) {
+      dispatch(
+        slice.actions.updateHistoryNoteRevert({ congViecId, index, prev })
+      );
+      toast.error("Không lưu được ghi chú");
+    }
+  };
+
+// Cập nhật ghi chú lịch sử tiến độ (inline)
+export const updateProgressHistoryNote =
+  ({ congViecId, index, note }) =>
+  async (dispatch, getState) => {
+    const state = getState();
+    const prev =
+      state.congViec.congViecDetail?.LichSuTienDo?.[index]?.GhiChu || "";
+    dispatch(
+      slice.actions.updateProgressHistoryNoteOptimistic({
+        congViecId,
+        index,
+        note,
+      })
+    );
+    try {
+      await apiService.put(
+        `/workmanagement/congviec/${congViecId}/progress-history/${index}/note`,
+        { note }
+      );
+      try {
+        dispatch(getCongViecDetail(congViecId));
+      } catch (_) {}
+    } catch (err) {
+      dispatch(
+        slice.actions.updateProgressHistoryNoteRevert({
+          congViecId,
+          index,
+          prev,
+        })
+      );
+      toast.error("Không lưu được ghi chú tiến độ");
+    }
+  };
+
 export const applyCongViecPatch = (patch) => (dispatch) => {
   dispatch(slice.actions.applyCongViecPatch(patch));
 };
@@ -842,7 +987,8 @@ export function getAvailableActions(cv, { isAssigner, isMain }) {
     if (coDuyet) {
       if (isMain) acts.push(A.HOAN_THANH_TAM);
     } else {
-      if (isAssigner) acts.push(A.HOAN_THANH);
+      // Sửa theo đặc tả mới: khi không yêu cầu duyệt chỉ người chính được hoàn thành
+      if (isMain) acts.push(A.HOAN_THANH);
     }
   }
   if (st === "CHO_DUYET") {
@@ -948,8 +1094,10 @@ export const fetchMyRoutineTasks =
       dispatch(slice.actions.fetchMyRoutineTasksSuccess(items));
       return items;
     } catch (error) {
-      dispatch(slice.actions.fetchMyRoutineTasksError());
-      toast.error(error?.response?.data?.error?.message || error.message);
+      const errorMessage =
+        error?.response?.data?.error?.message || error.message;
+      dispatch(slice.actions.fetchMyRoutineTasksError(errorMessage));
+      toast.error(errorMessage);
       throw error;
     }
   };
@@ -979,6 +1127,78 @@ export const recallCommentText =
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error?.response?.data?.error?.message || error.message);
+      throw error;
+    }
+  };
+
+// Cập nhật tiến độ với confirm dialog ngoài UI
+export const updateProgress =
+  ({ id, value, ghiChu, expectedVersion }) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const body = { value, ghiChu, expectedVersion };
+      const headers = expectedVersion
+        ? { headers: { "If-Unmodified-Since": expectedVersion } }
+        : undefined;
+      const res = await congViecAPI.updateProgress(id, body, headers);
+      const payload = res?.data?.data;
+      // If server returned full object (full=1) -> update directly
+      if (payload && payload._id) {
+        const cv = payload;
+        if (cv?.updatedAt) cv.__version = cv.updatedAt;
+        dispatch(slice.actions.updateCongViecSuccess(cv));
+        if (cv?._progressAutoCompleted) {
+          toast.success("Tiến độ đạt 100% – tự động chuyển Hoàn thành");
+        } else {
+          toast.success("Đã cập nhật tiến độ");
+        }
+        return cv;
+      }
+      // Otherwise we received { patch, lastProgressEntry, autoCompleted }
+      const { patch, lastProgressEntry, autoCompleted } = payload || {};
+      if (patch && patch._id) {
+        // Apply patch to lists & detail
+        dispatch(applyCongViecPatch(patch));
+        // Append last progress entry to detail history if present
+        if (lastProgressEntry) {
+          dispatch(
+            slice.actions.appendProgressHistory({
+              congViecId: patch._id,
+              entry: lastProgressEntry,
+            })
+          );
+        }
+        if (autoCompleted) {
+          toast.success("Tiến độ đạt 100% – tự động chuyển Hoàn thành");
+        } else {
+          toast.success("Đã cập nhật tiến độ");
+        }
+      } else {
+        toast.success("Đã cập nhật tiến độ");
+      }
+      return payload;
+    } catch (error) {
+      if (error?.message === "VERSION_CONFLICT") {
+        dispatch(
+          slice.actions.setVersionConflict({
+            id,
+            type: "progress",
+            payload: { id, value, ghiChu, expectedVersion },
+            timestamp: Date.now(),
+          })
+        );
+        toast.warning(
+          "Xung đột phiên bản: công việc đã thay đổi. Tải lại trước khi cập nhật tiến độ."
+        );
+      } else {
+        dispatch(slice.actions.hasError(error.message));
+        toast.error(
+          error?.response?.data?.error?.message ||
+            error.message ||
+            "Lỗi cập nhật tiến độ"
+        );
+      }
       throw error;
     }
   };
