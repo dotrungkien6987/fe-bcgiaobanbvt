@@ -23,12 +23,18 @@ import {
   FormControlLabel,
   Slider,
   Tooltip,
+  Checkbox,
+  LinearProgress,
+  Stack,
+  CircularProgress,
 } from "@mui/material";
+import { Autocomplete } from "@mui/material";
 import {
   Close as CloseIcon,
-  Add as AddIcon,
   Info as InfoIcon,
+  Check as CheckIcon,
 } from "@mui/icons-material";
+import { computeExtendedDueStatus as computeDueStatus } from "../../../utils/congViecUtils";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -40,6 +46,7 @@ import {
   createCongViec,
   updateCongViec,
   getCongViecDetail,
+  transitionCongViec,
 } from "./congViecSlice";
 import { getMyNhomViecs } from "../NhomViecUser/nhomViecUserSlice";
 
@@ -55,13 +62,7 @@ const priorityMapBE2FE = {
   CAO: "Cao",
   KHAN_CAP: "Rất cao",
 };
-const statusMapFE2BE = {
-  "Tạo mới": "TAO_MOI",
-  "Đã giao": "DA_GIAO",
-  "Đang thực hiện": "DANG_THUC_HIEN",
-  "Chờ duyệt": "CHO_DUYET",
-  "Hoàn thành": "HOAN_THANH",
-};
+// Status maps kept only for display (form no longer edits TrangThai)
 const statusMapBE2FE = {
   TAO_MOI: "Tạo mới",
   DA_GIAO: "Đã giao",
@@ -70,13 +71,21 @@ const statusMapBE2FE = {
   HOAN_THANH: "Hoàn thành",
 };
 const priorityOptions = ["Thấp", "Bình thường", "Cao", "Rất cao"];
-const statusOptions = [
-  "Tạo mới",
-  "Đã giao",
-  "Đang thực hiện",
-  "Chờ duyệt",
-  "Hoàn thành",
-];
+
+const priorityColorMap = {
+  Thấp: "default",
+  "Bình thường": "primary",
+  Cao: "warning",
+  "Rất cao": "error",
+};
+
+const statusColorMap = {
+  TAO_MOI: "default",
+  DA_GIAO: "info",
+  DANG_THUC_HIEN: "primary",
+  CHO_DUYET: "warning",
+  HOAN_THANH: "success",
+};
 
 const CongViecFormDialog = ({
   open,
@@ -96,9 +105,88 @@ const CongViecFormDialog = ({
     [managedEmployees]
   );
   const availableNhomViecs = useMemo(() => myNhomViecs || [], [myNhomViecs]);
+  // Danh sách người phối hợp (không bao gồm người chính)
   const [nguoiThamGia, setNguoiThamGia] = useState([]);
-  const [selectedNguoiThamGia, setSelectedNguoiThamGia] = useState("");
+  // Deprecated state (legacy select); no longer needed after Autocomplete multiple refactor
   const [loadingParticipants, setLoadingParticipants] = useState(false);
+  const [assigning, setAssigning] = useState(false); // local state for Lưu & giao việc flow
+
+  // Map trạng thái hạn cho preview & helper tính
+  const previewStatusChip = {
+    DUNG_HAN: { label: "Đúng hạn", color: "success" },
+    SAP_QUA_HAN: { label: "Sắp quá hạn", color: "warning" },
+    QUA_HAN: { label: "Quá hạn", color: "error" },
+    HOAN_THANH_DUNG_HAN: { label: "Hoàn thành đúng hạn", color: "success" },
+    HOAN_THANH_TRE_HAN: { label: "Hoàn thành trễ", color: "error" },
+  };
+  const deriveDuePreview = (start, end, mode, percent, fixedWarn) => {
+    if (!start || !end) return null;
+    const s = dayjs(start);
+    const e = dayjs(end);
+    if (!e.isAfter(s)) return { invalidRange: true };
+    let warnAt = null;
+    if (mode === "PERCENT") {
+      const totalMs = e.diff(s);
+      warnAt = s.add(totalMs * (percent || 0.8), "millisecond");
+    } else if (mode === "FIXED" && fixedWarn) warnAt = dayjs(fixedWarn);
+    const fake = {
+      TrangThai: "TAO_MOI",
+      NgayBatDau: s.toISOString(),
+      NgayHetHan: e.toISOString(),
+      NgayCanhBao: warnAt ? warnAt.toISOString() : null,
+    };
+    const now = dayjs();
+    return {
+      status: computeDueStatus(fake),
+      warnAt,
+      hoursLeft: e.diff(now, "hour", true),
+      invalidRange: false,
+    };
+  };
+
+  // Helper to assemble payload from form values & local participants
+  const buildPayload = (values) => {
+    const mainId = values.NguoiChinh;
+    // Lọc bỏ nếu người phối hợp trùng người chính và loại duplicate
+    const seen = new Set();
+    const collaborators = nguoiThamGia.filter((nv) => {
+      if (!nv?._id || nv._id === mainId) return false;
+      if (seen.has(nv._id)) return false;
+      seen.add(nv._id);
+      return true;
+    });
+    const participantsPayload = [
+      ...(mainId
+        ? [
+            {
+              NhanVienID: mainId,
+              VaiTro: "CHINH",
+            },
+          ]
+        : []),
+      ...collaborators.map((nv) => ({
+        NhanVienID: nv._id,
+        VaiTro: "PHOI_HOP",
+      })),
+    ];
+    const data = {
+      TieuDe: values.TieuDe,
+      MoTa: values.MoTa,
+      NgayBatDau: dayjs(values.NgayBatDau).toISOString(),
+      NgayHetHan: dayjs(values.NgayHetHan).toISOString(),
+      MucDoUuTien: priorityMapFE2BE[values.MucDoUuTien] || values.MucDoUuTien,
+      NguoiChinh: mainId,
+      NhomViecUserID: values.NhomViecUserID || null,
+      NguoiThamGia: participantsPayload,
+      CanhBaoMode: values.CanhBaoMode || "PERCENT",
+      CanhBaoSapHetHanPercent: values.CanhBaoSapHetHanPercent || 0.8,
+      CoDuyetHoanThanh: values.CoDuyetHoanThanh || false,
+    };
+    if ((values.CanhBaoMode || "PERCENT") === "FIXED" && values.NgayCanhBao) {
+      data.NgayCanhBao = dayjs(values.NgayCanhBao).toISOString();
+    }
+    return data;
+  };
 
   const validationSchema = Yup.object({
     TieuDe: Yup.string().required("Bắt buộc").max(200, "Tối đa 200 ký tự"),
@@ -137,13 +225,14 @@ const CongViecFormDialog = ({
     }),
     CanhBaoSapHetHanPercent: Yup.number()
       .min(0.5, "Tối thiểu 50%")
-      .max(1.0, "Tối đa 100%"),
+      .max(0.99, "Tối đa 99%"),
     CanhBaoMode: Yup.string()
       .oneOf(["PERCENT", "FIXED"], "Chế độ cảnh báo không hợp lệ")
       .required("Bắt buộc"),
     MucDoUuTien: Yup.string().required("Bắt buộc"),
     NguoiChinh: Yup.string().required("Bắt buộc"),
     TienDo: Yup.number().min(0).max(100),
+    CoDuyetHoanThanh: Yup.boolean().optional(),
   });
 
   const formik = useFormik({
@@ -153,13 +242,14 @@ const CongViecFormDialog = ({
       NgayBatDau: dayjs(),
       NgayHetHan: dayjs().add(7, "day"),
       MucDoUuTien: "Bình thường",
-      TrangThai: "Tạo mới",
+      TrangThai: "Tạo mới", // read-only when editing
       NguoiChinh: nhanVienId || "",
       TienDo: 0,
       NhomViecUserID: "",
       CanhBaoMode: "PERCENT",
       CanhBaoSapHetHanPercent: 0.8,
       NgayCanhBao: null,
+      CoDuyetHoanThanh: false,
     },
     validationSchema,
     validateOnMount: true,
@@ -169,34 +259,7 @@ const CongViecFormDialog = ({
           "[CongViecFormDialog] Submitting create/update with values:",
           values
         );
-        const data = {
-          TieuDe: values.TieuDe,
-          MoTa: values.MoTa,
-          NgayBatDau: dayjs(values.NgayBatDau).toDate().toISOString(),
-          NgayHetHan: dayjs(values.NgayHetHan).toDate().toISOString(),
-          MucDoUuTien:
-            priorityMapFE2BE[values.MucDoUuTien] || values.MucDoUuTien,
-          TrangThai: statusMapFE2BE[values.TrangThai] || values.TrangThai,
-          NguoiChinh: values.NguoiChinh,
-          NhomViecUserID: values.NhomViecUserID || null,
-          TienDo: values.TienDo,
-          NguoiThamGia: nguoiThamGia.map((nv) => ({
-            NhanVienID: nv._id,
-            VaiTro: nv._id === values.NguoiChinh ? "CHINH" : "PHOI_HOP",
-          })),
-          // Cấu hình cảnh báo - đảm bảo luôn có giá trị hợp lệ
-          CanhBaoMode: values.CanhBaoMode || "PERCENT",
-          CanhBaoSapHetHanPercent: values.CanhBaoSapHetHanPercent || 0.8,
-        };
-
-        // Thêm NgayCanhBao nếu là mode FIXED
-        if (
-          (values.CanhBaoMode || "PERCENT") === "FIXED" &&
-          values.NgayCanhBao
-        ) {
-          data.NgayCanhBao = dayjs(values.NgayCanhBao).toDate().toISOString();
-        }
-        // Đối với PERCENT mode, không gửi NgayCanhBao - backend sẽ tính tự động
+        const data = buildPayload(values);
         if (isEdit && congViec)
           await dispatch(updateCongViec({ id: congViec._id, data }));
         else await dispatch(createCongViec(data));
@@ -233,6 +296,7 @@ const CongViecFormDialog = ({
       CanhBaoMode: congViec.CanhBaoMode || "PERCENT",
       CanhBaoSapHetHanPercent: congViec.CanhBaoSapHetHanPercent || 0.8,
       NgayCanhBao: congViec.NgayCanhBao ? dayjs(congViec.NgayCanhBao) : null,
+      CoDuyetHoanThanh: congViec.CoDuyetHoanThanh ?? false,
     }));
     const normalize = (arr) =>
       Array.isArray(arr)
@@ -254,16 +318,33 @@ const CongViecFormDialog = ({
             })
             .filter(Boolean)
         : [];
-    if (congViec.NguoiThamGia?.length)
-      setNguoiThamGia(normalize(congViec.NguoiThamGia));
-    else if (congViec._id) {
+    if (congViec.NguoiThamGia?.length) {
+      const raw = normalize(congViec.NguoiThamGia);
+      // Chỉ giữ người phối hợp (PHOI_HOP), loại người chính
+      setNguoiThamGia(
+        raw.filter(
+          (nv) =>
+            nv?._id && nv._id !== (congViec.NguoiChinhID || congViec.NguoiChinh)
+        )
+      );
+    } else if (congViec._id) {
       (async () => {
         setLoadingParticipants(true);
         try {
           const detail = await dispatch(getCongViecDetail(congViec._id));
-          if (detail?.NguoiThamGia)
-            setNguoiThamGia(normalize(detail.NguoiThamGia));
-          else setNguoiThamGia([]);
+          if (detail?.NguoiThamGia) {
+            const raw = normalize(detail.NguoiThamGia);
+            setNguoiThamGia(
+              raw.filter(
+                (nv) =>
+                  nv?._id &&
+                  nv._id !==
+                    (congViec.NguoiChinhID ||
+                      congViec.NguoiChinh ||
+                      formik.values.NguoiChinh)
+              )
+            );
+          } else setNguoiThamGia([]);
         } finally {
           setLoadingParticipants(false);
         }
@@ -272,22 +353,24 @@ const CongViecFormDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isEdit, congViec, availableNhanViens, dispatch]);
 
-  const handleAddNguoiThamGia = () => {
-    if (!selectedNguoiThamGia) return;
-    if (nguoiThamGia.find((p) => p._id === selectedNguoiThamGia)) return;
-    const f = availableNhanViens.find((nv) => nv._id === selectedNguoiThamGia);
-    if (f) setNguoiThamGia((prev) => [...prev, f]);
-    setSelectedNguoiThamGia("");
-  };
-  const handleRemoveNguoiThamGia = (id) =>
-    setNguoiThamGia((prev) => prev.filter((p) => p._id !== id));
+  // (Handlers cho select cũ đã bỏ; logic quản lý người phối hợp nằm trong Autocomplete multiple)
   const handleClose = () => {
     onClose();
     formik.resetForm();
     setNguoiThamGia([]);
-    setSelectedNguoiThamGia("");
     setLoadingParticipants(false);
   };
+
+  // Derived preview + counters
+  const duePreview = deriveDuePreview(
+    formik.values.NgayBatDau,
+    formik.values.NgayHetHan,
+    formik.values.CanhBaoMode,
+    formik.values.CanhBaoSapHetHanPercent,
+    formik.values.NgayCanhBao
+  );
+  const titleLen = formik.values.TieuDe?.length || 0;
+  const descLen = formik.values.MoTa?.length || 0;
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -314,7 +397,23 @@ const CongViecFormDialog = ({
               <CloseIcon />
             </IconButton>
           </DialogTitle>
-          <DialogContent dividers>
+          <DialogContent dividers sx={{ position: "relative" }}>
+            {(assigning || formik.isSubmitting) && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  bgcolor: "rgba(255,255,255,0.55)",
+                  backdropFilter: "blur(1px)",
+                  zIndex: 10,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            )}
             {error && (
               <Alert severity="error" sx={{ mb: 2 }}>
                 {error}
@@ -343,10 +442,15 @@ const CongViecFormDialog = ({
                   label="Tiêu đề"
                   name="TieuDe"
                   value={formik.values.TieuDe}
-                  onChange={formik.handleChange}
+                  onChange={(e) =>
+                    e.target.value.length <= 200 && formik.handleChange(e)
+                  }
                   onBlur={formik.handleBlur}
                   error={formik.touched.TieuDe && Boolean(formik.errors.TieuDe)}
-                  helperText={formik.touched.TieuDe && formik.errors.TieuDe}
+                  helperText={
+                    (formik.touched.TieuDe && formik.errors.TieuDe) ||
+                    `${titleLen}/200`
+                  }
                   required
                 />
               </Grid>
@@ -358,57 +462,112 @@ const CongViecFormDialog = ({
                   label="Mô tả"
                   name="MoTa"
                   value={formik.values.MoTa}
-                  onChange={formik.handleChange}
+                  onChange={(e) =>
+                    e.target.value.length <= 2000 && formik.handleChange(e)
+                  }
                   onBlur={formik.handleBlur}
                   error={formik.touched.MoTa && Boolean(formik.errors.MoTa)}
-                  helperText={formik.touched.MoTa && formik.errors.MoTa}
+                  helperText={
+                    (formik.touched.MoTa && formik.errors.MoTa) ||
+                    `${descLen}/2000`
+                  }
                 />
               </Grid>
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Người thực hiện chính *</InputLabel>
-                  <Select
-                    name="NguoiChinh"
-                    label="Người thực hiện chính *"
-                    value={formik.values.NguoiChinh}
-                    onChange={(e) => {
-                      formik.setFieldValue("NguoiChinh", e.target.value);
-                    }}
-                    onBlur={formik.handleBlur}
-                    error={
-                      formik.touched.NguoiChinh &&
-                      Boolean(formik.errors.NguoiChinh)
+                <Autocomplete
+                  options={availableNhanViens}
+                  value={
+                    availableNhanViens.find(
+                      (nv) => nv._id === formik.values.NguoiChinh
+                    ) || null
+                  }
+                  onChange={(_, val) => {
+                    formik.setFieldValue("NguoiChinh", val?._id || "");
+                    // loại người chính khỏi danh sách phối hợp nếu trùng
+                    if (val?._id) {
+                      setNguoiThamGia((prev) =>
+                        prev.filter((p) => p._id !== val._id)
+                      );
                     }
-                  >
-                    {availableNhanViens.map((nv) => (
-                      <MenuItem key={nv._id} value={nv._id}>
-                        {nv.Ten} - {nv.KhoaID?.TenKhoa || "Chưa có khoa"}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                {formik.touched.NguoiChinh && formik.errors.NguoiChinh && (
-                  <Typography variant="caption" color="error">
-                    {formik.errors.NguoiChinh}
-                  </Typography>
-                )}
+                  }}
+                  getOptionLabel={(o) =>
+                    o?.Ten
+                      ? `${o.Ten} - ${o.KhoaID?.TenKhoa || "Chưa có khoa"}`
+                      : ""
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Người thực hiện chính *"
+                      error={
+                        formik.touched.NguoiChinh &&
+                        Boolean(formik.errors.NguoiChinh)
+                      }
+                      helperText={
+                        formik.touched.NguoiChinh && formik.errors.NguoiChinh
+                      }
+                    />
+                  )}
+                  fullWidth
+                  disableClearable={false}
+                  isOptionEqualToValue={(o, v) => o._id === v._id}
+                  noOptionsText="Không có nhân viên"
+                />
               </Grid>
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Mức độ ưu tiên *</InputLabel>
-                  <Select
-                    name="MucDoUuTien"
-                    label="Mức độ ưu tiên *"
-                    value={formik.values.MucDoUuTien}
-                    onChange={formik.handleChange}
-                  >
-                    {priorityOptions.map((o) => (
-                      <MenuItem key={o} value={o}>
-                        {o}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  Mức độ ưu tiên
+                </Typography>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  flexWrap="wrap"
+                  role="radiogroup"
+                  aria-label="Mức độ ưu tiên"
+                >
+                  {priorityOptions.map((p) => {
+                    const selected = formik.values.MucDoUuTien === p;
+                    return (
+                      <Chip
+                        key={p}
+                        label={p}
+                        color={
+                          selected
+                            ? priorityColorMap[p] || "primary"
+                            : undefined
+                        }
+                        variant={selected ? "filled" : "outlined"}
+                        size={selected ? "medium" : "small"}
+                        icon={
+                          selected ? <CheckIcon fontSize="small" /> : undefined
+                        }
+                        onClick={() => formik.setFieldValue("MucDoUuTien", p)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            formik.setFieldValue("MucDoUuTien", p);
+                          }
+                        }}
+                        role="radio"
+                        aria-checked={selected}
+                        sx={{
+                          cursor: "pointer",
+                          fontWeight: selected ? 600 : 400,
+                          boxShadow: selected ? 2 : "none",
+                          opacity: selected ? 1 : 0.6,
+                          transition: "all .15s",
+                        }}
+                      />
+                    );
+                  })}
+                </Stack>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 0.5, display: "block" }}
+                >
+                  Nhấn để chọn. Màu & dấu tick hiển thị mức được chọn.
+                </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
@@ -466,6 +625,66 @@ const CongViecFormDialog = ({
                 />
               </Grid>
 
+              <Grid item xs={12}>
+                {duePreview && !duePreview.invalidRange && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 1,
+                      alignItems: "center",
+                      p: 1,
+                      border: "1px dashed",
+                      borderColor: "divider",
+                      borderRadius: 1,
+                      bgcolor: "background.default",
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle2"
+                      color="text.secondary"
+                      sx={{ mr: 1 }}
+                    >
+                      Tình trạng hạn (dự kiến):
+                    </Typography>
+                    <Chip
+                      size="small"
+                      label={previewStatusChip[duePreview.status]?.label || "—"}
+                      color={
+                        previewStatusChip[duePreview.status]?.color || "default"
+                      }
+                      sx={{ fontWeight: 600 }}
+                    />
+                    {duePreview.warnAt && (
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={`Cảnh báo: ${duePreview.warnAt.format(
+                          "DD/MM HH:mm"
+                        )}`}
+                      />
+                    )}
+                    <Chip
+                      size="small"
+                      variant="outlined"
+                      color={duePreview.hoursLeft < 0 ? "error" : "default"}
+                      label={
+                        duePreview.hoursLeft >= 0
+                          ? `Còn ~${duePreview.hoursLeft.toFixed(1)}h`
+                          : `Quá hạn ${Math.abs(duePreview.hoursLeft).toFixed(
+                              1
+                            )}h`
+                      }
+                    />
+                  </Box>
+                )}
+                {duePreview?.invalidRange && (
+                  <Alert severity="warning" sx={{ mt: 1 }}>
+                    Ngày kết thúc phải sau ngày bắt đầu để tính tình trạng hạn.
+                  </Alert>
+                )}
+              </Grid>
+
               {/* Cấu hình cảnh báo */}
               <Grid item xs={12}>
                 <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
@@ -515,29 +734,44 @@ const CongViecFormDialog = ({
                       formik.setFieldValue("CanhBaoSapHetHanPercent", value)
                     }
                     min={0.5}
-                    max={1.0}
-                    step={0.05}
+                    max={0.99}
+                    step={0.01}
                     marks={[
                       { value: 0.5, label: "50%" },
                       { value: 0.8, label: "80%" },
-                      { value: 1.0, label: "100%" },
+                      { value: 0.95, label: "95%" },
                     ]}
                     valueLabelDisplay="auto"
                     valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
                   />
-                  {formik.values.NgayBatDau && formik.values.NgayHetHan && (
-                    <Typography variant="caption" color="text.secondary">
-                      Cảnh báo vào:{" "}
-                      {dayjs(formik.values.NgayBatDau)
-                        .add(
-                          dayjs(formik.values.NgayHetHan).diff(
-                            formik.values.NgayBatDau
-                          ) * formik.values.CanhBaoSapHetHanPercent,
-                          "millisecond"
-                        )
-                        .format("DD/MM/YYYY HH:mm")}
-                    </Typography>
-                  )}
+                  {formik.values.NgayBatDau &&
+                    formik.values.NgayHetHan &&
+                    (() => {
+                      const start = dayjs(formik.values.NgayBatDau);
+                      const end = dayjs(formik.values.NgayHetHan);
+                      const warnMoment = start.add(
+                        end.diff(start) * formik.values.CanhBaoSapHetHanPercent,
+                        "millisecond"
+                      );
+                      const hoursBefore = end
+                        .diff(warnMoment, "hour", true)
+                        .toFixed(1);
+                      return (
+                        <>
+                          <Typography variant="caption" color="text.secondary">
+                            Cảnh báo vào:{" "}
+                            {warnMoment.format("DD/MM/YYYY HH:mm")} (còn ~
+                            {hoursBefore} giờ tới hạn)
+                          </Typography>
+                          {formik.values.CanhBaoSapHetHanPercent >= 0.95 && (
+                            <Alert severity="warning" sx={{ mt: 0.5 }}>
+                              Cảnh báo quá sát hạn (≥95%). Nên chọn sớm hơn để
+                              có thời gian xử lý.
+                            </Alert>
+                          )}
+                        </>
+                      );
+                    })()}
                 </Grid>
               ) : (
                 <Grid item xs={12} md={6}>
@@ -559,105 +793,195 @@ const CongViecFormDialog = ({
                   />
                 </Grid>
               )}
+              {formik.values.CanhBaoMode === "FIXED" &&
+                formik.values.NgayCanhBao &&
+                formik.values.NgayHetHan &&
+                dayjs(formik.values.NgayCanhBao).isAfter(
+                  dayjs(formik.values.NgayHetHan).subtract(2, "hour")
+                ) && (
+                  <Grid item xs={12}>
+                    <Alert severity="warning">
+                      Thời điểm cảnh báo đang quá sát hạn (&lt; 2 giờ trước hết
+                      hạn). Nên đặt sớm hơn để có thời gian xử lý.
+                    </Alert>
+                  </Grid>
+                )}
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formik.values.CoDuyetHoanThanh}
+                      onChange={(e) =>
+                        formik.setFieldValue(
+                          "CoDuyetHoanThanh",
+                          e.target.checked
+                        )
+                      }
+                    />
+                  }
+                  label={
+                    <Tooltip title="Nếu bật: khi người thực hiện hoàn thành, công việc sẽ chờ duyệt trước khi hoàn tất.">
+                      <span>Yêu cầu duyệt khi hoàn thành</span>
+                    </Tooltip>
+                  }
+                />
+              </Grid>
 
               {isEdit && (
                 <>
                   <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Trạng thái</InputLabel>
-                      <Select
-                        name="TrangThai"
-                        label="Trạng thái"
-                        value={formik.values.TrangThai}
-                        onChange={formik.handleChange}
-                      >
-                        {statusOptions.map((s) => (
-                          <MenuItem key={s} value={s}>
-                            {s}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      Trạng thái hiện tại
+                    </Typography>
+                    <Chip
+                      label={formik.values.TrangThai}
+                      color={statusColorMap[congViec?.TrangThai] || "default"}
+                      size="small"
+                    />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="Tiến độ (%)"
-                      name="TienDo"
-                      value={formik.values.TienDo}
-                      onChange={formik.handleChange}
-                      inputProps={{ min: 0, max: 100 }}
-                    />
+                    <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                      Tiến độ
+                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={Number(formik.values.TienDo) || 0}
+                        />
+                      </Box>
+                      <Typography variant="body2" sx={{ minWidth: 40 }}>
+                        {(Number(formik.values.TienDo) || 0).toFixed(0)}%
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Tiến độ được cập nhật ở màn khác.
+                    </Typography>
                   </Grid>
                 </>
               )}
               <Grid item xs={12}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Người tham gia
+                <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                  Người phối hợp
                 </Typography>
-                <Box sx={{ mb: 1, display: "flex", gap: 1 }}>
-                  <FormControl sx={{ minWidth: 250 }}>
-                    <Select
-                      size="small"
-                      value={selectedNguoiThamGia}
-                      onChange={(e) => setSelectedNguoiThamGia(e.target.value)}
-                      displayEmpty
-                      disabled={availableNhanViens.length === 0}
-                    >
-                      <MenuItem value="">
-                        <em>Chọn nhân viên</em>
-                      </MenuItem>
-                      {availableNhanViens
-                        .filter(
-                          (nv) => !nguoiThamGia.find((p) => p._id === nv._id)
-                        )
-                        .map((nv) => (
-                          <MenuItem key={nv._id} value={nv._id}>
-                            {nv.Ten} - {nv.KhoaID?.TenKhoa || "Chưa có khoa"}
-                          </MenuItem>
-                        ))}
-                    </Select>
-                  </FormControl>
-                  <IconButton
-                    size="small"
-                    onClick={handleAddNguoiThamGia}
-                    disabled={!selectedNguoiThamGia}
-                    color="primary"
-                  >
-                    <AddIcon />
-                  </IconButton>
-                </Box>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                  {loadingParticipants && (
-                    <Typography variant="body2" color="text.secondary">
-                      Đang tải người tham gia...
-                    </Typography>
+                <Autocomplete
+                  multiple
+                  options={availableNhanViens.filter(
+                    (nv) => nv._id !== formik.values.NguoiChinh
                   )}
-                  {!loadingParticipants &&
-                    nguoiThamGia.map((nv) => (
-                      <Chip
-                        key={nv._id}
-                        label={`${nv.Ten} - ${
-                          nv.KhoaID?.TenKhoa || "Chưa có khoa"
-                        }`}
-                        onDelete={() => handleRemoveNguoiThamGia(nv._id)}
-                        size="small"
-                        variant="outlined"
-                        color="primary"
-                      />
-                    ))}
-                  {!loadingParticipants && nguoiThamGia.length === 0 && (
-                    <Typography variant="body2" color="text.secondary">
-                      Chưa có người tham gia
-                    </Typography>
+                  value={nguoiThamGia.filter(
+                    (nv) => nv._id !== formik.values.NguoiChinh
                   )}
-                </Box>
+                  onChange={(_, vals) => {
+                    setNguoiThamGia(vals);
+                  }}
+                  getOptionLabel={(o) =>
+                    o?.Ten
+                      ? `${o.Ten} - ${o.KhoaID?.TenKhoa || "Chưa có khoa"}`
+                      : ""
+                  }
+                  isOptionEqualToValue={(o, v) => o._id === v._id}
+                  renderInput={(params) => (
+                    <TextField {...params} placeholder="Chọn người phối hợp" />
+                  )}
+                  noOptionsText="Không có nhân viên"
+                  loading={loadingParticipants}
+                  fullWidth
+                />
+                {loadingParticipants && (
+                  <Typography variant="caption" color="text.secondary">
+                    Đang tải người phối hợp...
+                  </Typography>
+                )}
               </Grid>
             </Grid>
           </DialogContent>
           <DialogActions sx={{ p: 2 }}>
             <Button onClick={handleClose}>Hủy</Button>
+            {(() => {
+              const isTaoMoiBackend = congViec?.TrangThai === "TAO_MOI";
+              const isTaoMoiFE = formik.values.TrangThai === "Tạo mới";
+              const canSaveAndAssign =
+                !isEdit || (isEdit && (isTaoMoiBackend || isTaoMoiFE));
+              if (!canSaveAndAssign) return null;
+              return (
+                <Button
+                  type="button"
+                  variant="outlined"
+                  color="secondary"
+                  disabled={(function () {
+                    const hasBlockingErrors =
+                      Boolean(formik.errors.TieuDe) ||
+                      Boolean(formik.errors.NgayBatDau) ||
+                      Boolean(formik.errors.NgayHetHan) ||
+                      (formik.values.CanhBaoMode === "FIXED" &&
+                        Boolean(formik.errors.NgayCanhBao));
+                    const missingRequired =
+                      !formik.values.TieuDe ||
+                      !formik.values.NguoiChinh ||
+                      !formik.values.NgayBatDau ||
+                      !formik.values.NgayHetHan ||
+                      !formik.values.CanhBaoMode ||
+                      (formik.values.CanhBaoMode === "FIXED" &&
+                        !formik.values.NgayCanhBao);
+                    return (
+                      loading ||
+                      formik.isSubmitting ||
+                      assigning ||
+                      hasBlockingErrors ||
+                      missingRequired
+                    );
+                  })()}
+                  onClick={async () => {
+                    const errors = await formik.validateForm();
+                    if (errors && Object.keys(errors).length > 0) {
+                      formik.setTouched(
+                        Object.keys(errors).reduce((acc, k) => {
+                          acc[k] = true;
+                          return acc;
+                        }, {}),
+                        false
+                      );
+                      return;
+                    }
+                    try {
+                      setAssigning(true);
+                      const payload = buildPayload(formik.values);
+                      if (!isEdit) {
+                        const created = await dispatch(createCongViec(payload));
+                        const newId = created?._id;
+                        if (newId) {
+                          await dispatch(
+                            transitionCongViec({
+                              id: newId,
+                              action: "GIAO_VIEC",
+                            })
+                          );
+                          handleClose();
+                        }
+                      } else if (congViec?._id) {
+                        await dispatch(
+                          updateCongViec({ id: congViec._id, data: payload })
+                        );
+                        await dispatch(
+                          transitionCongViec({
+                            id: congViec._id,
+                            action: "GIAO_VIEC",
+                          })
+                        );
+                        handleClose();
+                      }
+                    } catch (err) {
+                      console.error("Save & assign failed", err);
+                    } finally {
+                      setAssigning(false);
+                    }
+                  }}
+                >
+                  {assigning ? "Đang lưu & giao..." : "Lưu & giao việc"}
+                </Button>
+              );
+            })()}
             <Button
               type="button"
               variant="contained"
@@ -679,6 +1003,7 @@ const CongViecFormDialog = ({
                 return (
                   loading ||
                   formik.isSubmitting ||
+                  assigning ||
                   hasBlockingErrors ||
                   missingRequired
                 );

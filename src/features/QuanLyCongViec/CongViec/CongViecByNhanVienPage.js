@@ -33,6 +33,7 @@ import {
   clearState,
   resetFilters,
 } from "./congViecSlice";
+import { getExtendedDueStatus } from "../../../utils/congViecUtils";
 
 // Import thêm cho quản lý nhân viên
 import {
@@ -173,14 +174,40 @@ const CongViecByNhanVienPage = () => {
   // Get current data based on active tab
   const getCurrentData = () => {
     const isReceived = activeTab === "received";
+    const rawList = isReceived ? receivedCongViecs : assignedCongViecs;
+    const filters = isReceived ? receivedFilters : assignedFilters;
+    const serverTotalItems = isReceived ? receivedTotal : assignedTotal;
+    const serverTotalPages = isReceived ? receivedPages : assignedPages;
+    const currentServerPage = isReceived
+      ? currentPage.received
+      : currentPage.assigned;
+
+    let filtered = rawList;
+    let totalItems = serverTotalItems;
+    let totalPages = serverTotalPages;
+    let effectivePage = currentServerPage;
+
+    // Client-side fallback filter for TinhTrangHan if user selected it
+    if (filters.TinhTrangHan) {
+      filtered = rawList.filter(
+        (cv) => getExtendedDueStatus(cv) === filters.TinhTrangHan
+      );
+      totalItems = filtered.length;
+      totalPages = Math.max(1, Math.ceil(totalItems / rowsPerPage));
+      // Clamp page to available range after filtering
+      if (effectivePage > totalPages) {
+        effectivePage = totalPages;
+      }
+      const startIndex = (effectivePage - 1) * rowsPerPage;
+      const endIndex = startIndex + rowsPerPage;
+      filtered = filtered.slice(startIndex, endIndex);
+    }
     return {
-      congViecs: isReceived ? receivedCongViecs : assignedCongViecs,
-      totalItems: isReceived ? receivedTotal : assignedTotal,
-      totalPages: isReceived ? receivedPages : assignedPages,
-      filters: isReceived ? receivedFilters : assignedFilters,
-      currentPageNumber: isReceived
-        ? currentPage.received
-        : currentPage.assigned,
+      congViecs: filtered,
+      totalItems,
+      totalPages,
+      filters,
+      currentPageNumber: effectivePage,
     };
   };
 
@@ -408,22 +435,27 @@ const CongViecByNhanVienPage = () => {
 
         {/* Table */}
         <Box sx={{ p: 0 }}>
-          <CongViecTable
-            congViecs={getCurrentData().congViecs}
-            totalItems={getCurrentData().totalItems}
-            currentPage={getCurrentData().currentPageNumber}
-            totalPages={getCurrentData().totalPages}
-            onPageChange={handlePageChange}
-            onRowsPerPageChange={handleRowsPerPageChange}
-            rowsPerPage={rowsPerPage}
-            isLoading={isLoading}
-            onView={handleViewDetail}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            activeTab={activeTab}
-            currentUserRole={user?.PhanQuyen}
-            currentUserNhanVienId={user?.NhanVienID}
-          />
+          {(() => {
+            const dataMeta = getCurrentData();
+            return (
+              <CongViecTable
+                congViecs={dataMeta.congViecs}
+                totalItems={dataMeta.totalItems}
+                currentPage={dataMeta.currentPageNumber}
+                totalPages={dataMeta.totalPages}
+                onPageChange={handlePageChange}
+                onRowsPerPageChange={handleRowsPerPageChange}
+                rowsPerPage={rowsPerPage}
+                isLoading={isLoading}
+                onView={handleViewDetail}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                activeTab={activeTab}
+                currentUserRole={user?.PhanQuyen}
+                currentUserNhanVienId={user?.NhanVienID}
+              />
+            );
+          })()}
         </Box>
       </Paper>
 

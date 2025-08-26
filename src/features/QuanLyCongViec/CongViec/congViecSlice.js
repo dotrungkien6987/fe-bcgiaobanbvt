@@ -1,6 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 import apiService from "app/apiService";
 import { toast } from "react-toastify";
+import {
+  WORK_ACTIONS,
+  PERMISSION_ERROR_MESSAGES,
+} from "./workActions.constants";
 
 // Slice name
 const name = "congViec";
@@ -33,6 +37,7 @@ const initialState = {
       NgayHetHan: null,
       MaCongViec: "",
       NguoiChinhID: "",
+      TinhTrangHan: "", // Extended due status filter
     },
     assigned: {
       search: "",
@@ -42,10 +47,18 @@ const initialState = {
       NgayHetHan: null,
       MaCongViec: "",
       NguoiChinhID: "",
+      TinhTrangHan: "",
     },
   },
   // Replies cache: parentCommentId -> { items, loading, loaded, error }
   repliesByParent: {},
+  // Optimistic concurrency: store conflict info when 409 detected
+  versionConflict: null, // { id, type: 'transition'|'update', action?, payload, timestamp }
+  // Routine task list for current user
+  myRoutineTasks: [],
+  loadingRoutineTasks: false,
+  myRoutineTasksLoaded: false,
+  myRoutineTasksLastFetch: null,
 };
 
 // Create slice
@@ -102,6 +115,7 @@ const slice = createSlice({
         NgayHetHan: null,
         MaCongViec: "",
         NguoiChinhID: "",
+        TinhTrangHan: "",
       };
       state.currentPage[tab] = 1;
     },
@@ -363,6 +377,35 @@ const slice = createSlice({
         [parentId]: updated,
       };
     },
+    applyCongViecPatch: (state, action) => {
+      const patch = action.payload || {};
+      const id = patch._id;
+      if (!id) return;
+      const apply = (cv) => (cv && cv._id === id ? { ...cv, ...patch } : cv);
+      state.receivedCongViecs = state.receivedCongViecs.map(apply);
+      state.assignedCongViecs = state.assignedCongViecs.map(apply);
+      if (state.congViecDetail && state.congViecDetail._id === id) {
+        state.congViecDetail = { ...state.congViecDetail, ...patch };
+      }
+    },
+    setVersionConflict: (state, action) => {
+      state.versionConflict = action.payload;
+    },
+    clearVersionConflict: (state) => {
+      state.versionConflict = null;
+    },
+    fetchMyRoutineTasksStart: (state) => {
+      state.loadingRoutineTasks = true;
+    },
+    fetchMyRoutineTasksSuccess: (state, action) => {
+      state.loadingRoutineTasks = false;
+      state.myRoutineTasks = action.payload || [];
+      state.myRoutineTasksLoaded = true;
+      state.myRoutineTasksLastFetch = Date.now();
+    },
+    fetchMyRoutineTasksError: (state) => {
+      state.loadingRoutineTasks = false;
+    },
   },
 });
 
@@ -394,6 +437,11 @@ export const {
   fetchRepliesStart,
   fetchRepliesSuccess,
   fetchRepliesError,
+  setVersionConflict,
+  clearVersionConflict,
+  fetchMyRoutineTasksStart,
+  fetchMyRoutineTasksSuccess,
+  fetchMyRoutineTasksError,
 } = slice.actions;
 
 // API service methods
@@ -413,14 +461,9 @@ const congViecAPI = {
   getDetail: (id) => apiService.get(`/workmanagement/congviec/detail/${id}`),
   create: (data) => apiService.post(`/workmanagement/congviec`, data),
   update: (id, data) => apiService.put(`/workmanagement/congviec/${id}`, data),
-  // Flow action APIs
-  giaoViec: (id, data) =>
-    apiService.post(`/workmanagement/congviec/${id}/giao-viec`, data),
-  tiepNhan: (id) => apiService.post(`/workmanagement/congviec/${id}/tiep-nhan`),
-  hoanThanh: (id) =>
-    apiService.post(`/workmanagement/congviec/${id}/hoan-thanh`),
-  duyetHoanThanh: (id) =>
-    apiService.post(`/workmanagement/congviec/${id}/duyet-hoan-thanh`),
+  // Legacy flow APIs removed (use transition)
+  transition: (id, data) =>
+    apiService.post(`/workmanagement/congviec/${id}/transition`, data),
   addComment: (id, data) =>
     apiService.post(`/workmanagement/congviec/${id}/comment`, data),
   deleteComment: (id) => apiService.delete(`/workmanagement/binhluan/${id}`),
@@ -428,6 +471,8 @@ const congViecAPI = {
     apiService.patch(`/workmanagement/binhluan/${id}/text`),
   listReplies: (parentId) =>
     apiService.get(`/workmanagement/binhluan/${parentId}/replies`),
+  getMyRoutineTasks: () =>
+    apiService.get(`/workmanagement/nhiemvuthuongquy/my`),
 };
 
 // Manual thunks
@@ -563,8 +608,11 @@ export const createCongViec = (data) => async (dispatch) => {
     console.log("Creating CongViec with payload:", sanitized);
 
     const response = await congViecAPI.create(sanitized);
-    dispatch(slice.actions.createCongViecSuccess(response.data.data));
     const cv = response.data.data;
+    // capture version
+    const version = cv?.updatedAt;
+    if (version) cv.__version = version;
+    dispatch(slice.actions.createCongViecSuccess(cv));
     toast.success(
       `Tạo công việc thành công${cv?.MaCongViec ? `: ${cv.MaCongViec}` : ""}`
     );
@@ -598,13 +646,37 @@ export const updateCongViec =
       }
       console.log("Updating CongViec with payload:", sanitized);
 
-      const response = await congViecAPI.update(id, sanitized);
-      dispatch(slice.actions.updateCongViecSuccess(response.data.data));
+      const headers = sanitized?.expectedVersion
+        ? { "If-Unmodified-Since": sanitized.expectedVersion }
+        : undefined;
+      const response = await congViecAPI.update(
+        id,
+        sanitized,
+        headers ? { headers } : undefined
+      );
+      const cv = response.data.data;
+      if (cv?.updatedAt) cv.__version = cv.updatedAt;
+      dispatch(slice.actions.updateCongViecSuccess(cv));
       toast.success("Cập nhật công việc thành công");
-      return response.data.data;
+      return cv;
     } catch (error) {
-      dispatch(slice.actions.hasError(error.message));
-      toast.error(error.message);
+      // Detect optimistic concurrency version conflict
+      if (error?.message === "VERSION_CONFLICT") {
+        dispatch(
+          slice.actions.setVersionConflict({
+            id,
+            type: "update",
+            payload: { id, data },
+            timestamp: Date.now(),
+          })
+        );
+        toast.warning(
+          "Công việc đã được cập nhật bởi người khác. Vui lòng tải lại trước khi sửa đổi."
+        );
+      } else {
+        dispatch(slice.actions.hasError(error.message));
+        toast.error(error.message);
+      }
       throw error;
     }
   };
@@ -627,62 +699,159 @@ export const updateCongViecStatus =
     }
   };
 
-// Flow thunks
-export const giaoViec = (id, data) => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
-  try {
-    const res = await congViecAPI.giaoViec(id, data || {});
-    dispatch(slice.actions.updateCongViecSuccess(res.data.data));
-    toast.success("Đã giao việc");
-    return res.data.data;
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error?.response?.data?.error?.message || error.message);
-    throw error;
-  }
+// Legacy thunks (tiepNhan/hoanThanh/duyetHoanThanh/giaoViec) removed in Step 4.
+
+// Unified transition thunk
+export const transitionCongViec =
+  ({ id, action, lyDo, ghiChu, extra }) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const expectedVersion = extra?.expectedVersion;
+      const body = {
+        action,
+        lyDo,
+        ghiChu,
+        ...extra,
+        expectedVersion,
+      };
+      const res = await congViecAPI.transition(
+        id,
+        body,
+        expectedVersion
+          ? { headers: { "If-Unmodified-Since": expectedVersion } }
+          : undefined
+      );
+      const data = res.data?.data;
+      const patch = data?.patch;
+      let full = data?.congViec || data?.congViecDetail;
+      // If only patch returned, optimistically apply to detail & lists
+      // If only patch and no full returned we'll optimistically apply via reducer below
+      if (full) {
+        if (full?.updatedAt) full.__version = full.updatedAt;
+        dispatch(slice.actions.updateCongViecSuccess(full));
+      } else if (patch) {
+        if (patch?.updatedAt) patch.__version = patch.updatedAt;
+        dispatch(applyCongViecPatch(patch));
+        // Silent detail refresh to update history & derived fields not in patch
+        try {
+          dispatch(getCongViecDetail(id));
+        } catch (_) {
+          /* ignore */
+        }
+      }
+      toast.success(`Đã thực hiện: ${action}`);
+      return full || patch;
+    } catch (error) {
+      if (error?.message === "VERSION_CONFLICT") {
+        dispatch(
+          slice.actions.setVersionConflict({
+            id,
+            type: "transition",
+            action,
+            payload: { id, action, lyDo, ghiChu, extra },
+            timestamp: Date.now(),
+          })
+        );
+        toast.warning(
+          "Xung đột phiên bản: công việc đã thay đổi. Tải lại để xem cập nhật."
+        );
+      } else {
+        dispatch(slice.actions.hasError(error.message));
+        const raw =
+          error?.response?.data?.errors?.message ||
+          error?.response?.data?.error?.message;
+        const mapped = PERMISSION_ERROR_MESSAGES[raw] || raw;
+        toast.error(mapped || error.message);
+      }
+      throw error;
+    }
+  };
+
+export const applyCongViecPatch = (patch) => (dispatch) => {
+  dispatch(slice.actions.applyCongViecPatch(patch));
 };
 
-export const tiepNhan = (id) => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
-  try {
-    const res = await congViecAPI.tiepNhan(id);
-    dispatch(slice.actions.updateCongViecSuccess(res.data.data));
-    toast.success("Đã tiếp nhận công việc");
-    return res.data.data;
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error?.response?.data?.error?.message || error.message);
-    throw error;
-  }
+// Action meta & availability helper
+export const ACTION_META = {
+  GIAO_VIEC: {
+    label: "Giao việc",
+    color: "primary",
+    variant: "contained",
+    confirm: true,
+  },
+  HUY_GIAO: {
+    label: "Hủy giao",
+    color: "warning",
+    variant: "outlined",
+    confirm: true,
+    revert: true,
+  },
+  TIEP_NHAN: {
+    label: "Tiếp nhận",
+    color: "primary",
+    variant: "contained",
+    confirm: false,
+  },
+  HOAN_THANH_TAM: {
+    label: "Hoàn thành (chờ duyệt)",
+    color: "success",
+    variant: "contained",
+    confirm: true,
+  },
+  HUY_HOAN_THANH_TAM: {
+    label: "Hủy hoàn thành tạm",
+    color: "warning",
+    variant: "outlined",
+    confirm: true,
+    revert: true,
+  },
+  DUYET_HOAN_THANH: {
+    label: "Duyệt hoàn thành",
+    color: "success",
+    variant: "contained",
+    confirm: true,
+  },
+  HOAN_THANH: {
+    label: "Hoàn thành",
+    color: "success",
+    variant: "contained",
+    confirm: true,
+  },
+  MO_LAI_HOAN_THANH: {
+    label: "Mở lại",
+    color: "secondary",
+    variant: "outlined",
+    confirm: true,
+    revert: true,
+  },
 };
 
-export const hoanThanh = (id) => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
-  try {
-    const res = await congViecAPI.hoanThanh(id);
-    dispatch(slice.actions.updateCongViecSuccess(res.data.data));
-    toast.success("Đã chuyển chờ duyệt");
-    return res.data.data;
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error?.response?.data?.error?.message || error.message);
-    throw error;
+export function getAvailableActions(cv, { isAssigner, isMain }) {
+  if (!cv) return [];
+  const st = cv.TrangThai;
+  const coDuyet = !!cv.CoDuyetHoanThanh;
+  const A = WORK_ACTIONS;
+  const acts = [];
+  if (st === "TAO_MOI" && isAssigner) acts.push(A.GIAO_VIEC);
+  if (st === "DA_GIAO") {
+    if (isMain) acts.push(A.TIEP_NHAN);
+    if (isAssigner) acts.push(A.HUY_GIAO);
   }
-};
-
-export const duyetHoanThanh = (id) => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
-  try {
-    const res = await congViecAPI.duyetHoanThanh(id);
-    dispatch(slice.actions.updateCongViecSuccess(res.data.data));
-    toast.success("Đã duyệt hoàn thành");
-    return res.data.data;
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error?.response?.data?.error?.message || error.message);
-    throw error;
+  if (st === "DANG_THUC_HIEN") {
+    if (coDuyet) {
+      if (isMain) acts.push(A.HOAN_THANH_TAM);
+    } else {
+      if (isAssigner) acts.push(A.HOAN_THANH);
+    }
   }
-};
+  if (st === "CHO_DUYET") {
+    if (isMain) acts.push(A.HUY_HOAN_THANH_TAM);
+    if (isAssigner) acts.push(A.DUYET_HOAN_THANH);
+  }
+  if (st === "HOAN_THANH" && isAssigner) acts.push(A.MO_LAI_HOAN_THANH);
+  return acts;
+}
 
 export const addCongViecComment =
   ({ congViecId, noiDung }) =>
@@ -751,6 +920,39 @@ export const fetchReplies = (parentId) => async (dispatch, getState) => {
     throw error;
   }
 };
+
+// Fetch routine tasks of current user (for select)
+export const fetchMyRoutineTasks =
+  (opts = {}) =>
+  async (dispatch, getState) => {
+    const { force = false, maxAgeMs = 5 * 60 * 1000 } = opts; // default cache 5 phút
+    const state = getState();
+    const {
+      loadingRoutineTasks,
+      myRoutineTasksLoaded,
+      myRoutineTasksLastFetch,
+    } = state.congViec || {};
+    if (loadingRoutineTasks) return;
+    if (
+      !force &&
+      myRoutineTasksLoaded &&
+      myRoutineTasksLastFetch &&
+      Date.now() - myRoutineTasksLastFetch < maxAgeMs
+    ) {
+      return state.congViec.myRoutineTasks; // dùng cache
+    }
+    dispatch(slice.actions.fetchMyRoutineTasksStart());
+    try {
+      const res = await congViecAPI.getMyRoutineTasks();
+      const items = res?.data?.data || [];
+      dispatch(slice.actions.fetchMyRoutineTasksSuccess(items));
+      return items;
+    } catch (error) {
+      dispatch(slice.actions.fetchMyRoutineTasksError());
+      toast.error(error?.response?.data?.error?.message || error.message);
+      throw error;
+    }
+  };
 
 export const recallComment = (congViecId, binhLuanId) => async (dispatch) => {
   dispatch(slice.actions.startLoading());

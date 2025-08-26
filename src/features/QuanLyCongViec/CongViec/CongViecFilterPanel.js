@@ -51,6 +51,16 @@ const MUC_DO_UU_TIEN_OPTIONS = [
   { value: "KHAN_CAP", label: "Khẩn cấp" },
 ];
 
+// Extended due status options (frontend computed categories)
+const TINH_TRANG_HAN_OPTIONS = [
+  { value: "", label: "Tất cả tình trạng hạn" },
+  { value: "DUNG_HAN", label: "Đúng hạn" },
+  { value: "SAP_QUA_HAN", label: "Sắp quá hạn" },
+  { value: "QUA_HAN", label: "Quá hạn" },
+  { value: "HOAN_THANH_DUNG_HAN", label: "Hoàn thành đúng hạn" },
+  { value: "HOAN_THANH_TRE_HAN", label: "Hoàn thành trễ" },
+];
+
 const CongViecFilterPanel = ({
   filters,
   onFilterChange,
@@ -233,6 +243,24 @@ const CongViecFilterPanel = ({
                     <MenuItem key={nv._id} value={nv._id}>
                       {nv.Ten}{" "}
                       {nv.KhoaID?.TenKhoa ? `- ${nv.KhoaID.TenKhoa}` : ""}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Tình trạng hạn</InputLabel>
+                <Select
+                  value={filters.TinhTrangHan || ""}
+                  onChange={handleSelectChange("TinhTrangHan")}
+                  label="Tình trạng hạn"
+                  disabled={isLoading}
+                >
+                  {TINH_TRANG_HAN_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
                     </MenuItem>
                   ))}
                 </Select>

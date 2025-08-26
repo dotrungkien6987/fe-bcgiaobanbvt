@@ -24,6 +24,8 @@ import {
   getPriorityColor,
   getStatusText,
   getPriorityText,
+  EXT_DUE_LABEL_MAP,
+  EXT_DUE_COLOR_MAP,
 } from "../../../../utils/congViecUtils";
 
 const ColorLegendDialog = ({ open, onClose }) => {
@@ -102,6 +104,18 @@ const ColorLegendDialog = ({ open, onClose }) => {
     },
   ];
 
+  const dueData = [
+    "DUNG_HAN",
+    "SAP_QUA_HAN",
+    "QUA_HAN",
+    "HOAN_THANH_DUNG_HAN",
+    "HOAN_THANH_TRE_HAN",
+  ].map((code) => ({
+    code,
+    label: EXT_DUE_LABEL_MAP[code],
+    color: EXT_DUE_COLOR_MAP[code],
+  }));
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle
@@ -149,6 +163,44 @@ const ColorLegendDialog = ({ open, onClose }) => {
                   backgroundColor: status.color,
                   color: "white",
                   border: `1px solid ${status.color}`,
+                  "&:hover": {
+                    transform: "scale(1.05)",
+                    transition: "transform 0.2s ease",
+                    filter: "brightness(1.1)",
+                  },
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        {/* Tình trạng hạn mở rộng */}
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant="subtitle1"
+            sx={{
+              mb: 2,
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <CheckCircleIcon sx={{ mr: 1, fontSize: 20 }} />
+            Tình trạng hạn
+          </Typography>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
+            {dueData.map((d) => (
+              <Chip
+                key={d.code}
+                label={d.label}
+                sx={{
+                  minWidth: 150,
+                  fontWeight: 500,
+                  backgroundColor: d.color,
+                  color: "white",
+                  border: `1px solid ${d.color}`,
                   "&:hover": {
                     transform: "scale(1.05)",
                     transition: "transform 0.2s ease",

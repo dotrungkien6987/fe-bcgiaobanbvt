@@ -31,6 +31,10 @@ import {
   getPriorityColor,
   getStatusText as getStatusLabel,
   getPriorityText as getPriorityLabel,
+  getExtendedDueStatus,
+  EXT_DUE_COLOR_MAP,
+  EXT_DUE_LABEL_MAP,
+  computeSoGioTre,
 } from "../../../utils/congViecUtils";
 import { useSelector } from "react-redux";
 
@@ -38,7 +42,6 @@ const CongViecTable = ({
   congViecs = [],
   totalItems = 0,
   currentPage = 1,
-  totalPages = 0,
   onPageChange,
   onRowsPerPageChange,
   rowsPerPage = 10,
@@ -47,30 +50,30 @@ const CongViecTable = ({
   onEdit,
   onDelete,
   activeTab,
-  currentUserRole, // optional: 'admin' | 'manager' | 'nomal' | ...
-  currentUserNhanVienId, // optional: for owner check
+  currentUserRole,
+  currentUserNhanVienId,
 }) => {
   const theme = useTheme();
   const statusOverrides = useSelector((s) => s.colorConfig?.statusColors);
   const priorityOverrides = useSelector((s) => s.colorConfig?.priorityColors);
 
-  const handleChangePage = (event, newPage) => {
-    onPageChange(newPage + 1); // MUI pagination is 0-based, our API is 1-based
-  };
-
-  const handleChangeRowsPerPage = (event) => {
+  const handleChangePage = (event, newPage) => onPageChange(newPage + 1);
+  const handleChangeRowsPerPage = (event) =>
     onRowsPerPageChange(parseInt(event.target.value, 10));
-  };
 
-  const formatDate = (date) => {
-    if (!date) return "-";
-    return dayjs(date).format("DD/MM/YYYY");
-  };
-
+  const formatDate = (date) => (date ? dayjs(date).format("DD/MM/YYYY") : "-");
   const isOverdue = (ngayHetHan, trangThai) => {
     if (trangThai === "HOAN_THANH" || trangThai === "HUY") return false;
     return dayjs().isAfter(dayjs(ngayHetHan));
   };
+
+  const enhancedRows = React.useMemo(() => {
+    return (congViecs || []).map((cv) => {
+      const ext = getExtendedDueStatus(cv);
+      const soGioTre = cv.SoGioTre != null ? cv.SoGioTre : computeSoGioTre(cv);
+      return { ...cv, _extDue: ext, _soGioTre: soGioTre };
+    });
+  }, [congViecs]);
 
   if (isLoading) {
     return (
@@ -82,12 +85,11 @@ const CongViecTable = ({
       </Paper>
     );
   }
-
   if (congViecs.length === 0) {
     return (
       <Paper>
         <Box p={4} textAlign="center">
-          <Typography variant="h6" color="textSecondary">
+          <Typography variant="h6" color="text.secondary">
             {activeTab === "received"
               ? "Chưa có công việc nào được giao"
               : "Chưa có công việc nào được tạo"}
@@ -106,6 +108,8 @@ const CongViecTable = ({
               <TableCell>Mã</TableCell>
               <TableCell>Tiêu đề</TableCell>
               <TableCell>Trạng thái</TableCell>
+              <TableCell>Tình trạng hạn</TableCell>
+              <TableCell align="right">Giờ trễ</TableCell>
               <TableCell>Ưu tiên</TableCell>
               <TableCell>
                 {activeTab === "received" ? "Người giao" : "Người xử lý chính"}
@@ -117,7 +121,7 @@ const CongViecTable = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {congViecs.map((congViec) => {
+            {enhancedRows.map((congViec) => {
               const isAdmin = currentUserRole === "admin";
               const isManager = currentUserRole === "manager";
               const isOwner =
@@ -128,6 +132,7 @@ const CongViecTable = ({
               const completed = congViec.TrangThai === "HOAN_THANH";
               const deleteDisabled =
                 (completed && !isAdmin) || !(isAdmin || isManager || isOwner);
+              const extDue = congViec._extDue;
               return (
                 <TableRow
                   key={congViec._id}
@@ -162,21 +167,63 @@ const CongViecTable = ({
                       </Typography>
                     </Tooltip>
                   </TableCell>
-
                   <TableCell>
-                    <Chip
-                      label={getStatusLabel(congViec.TrangThai)}
-                      size="small"
-                      sx={{
-                        backgroundColor: getStatusColor(
-                          congViec.TrangThai,
-                          statusOverrides
-                        ),
-                        color: "white",
-                      }}
-                    />
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Chip
+                        label={getStatusLabel(congViec.TrangThai)}
+                        size="small"
+                        sx={{
+                          backgroundColor: getStatusColor(
+                            congViec.TrangThai,
+                            statusOverrides
+                          ),
+                          color: "white",
+                        }}
+                      />
+                      {congViec.CoDuyetHoanThanh && (
+                        <Chip
+                          label="Y/c duyệt"
+                          size="small"
+                          sx={{
+                            backgroundColor: theme.palette.warning.main,
+                            color: theme.palette.getContrastText(
+                              theme.palette.warning.main
+                            ),
+                          }}
+                        />
+                      )}
+                    </Stack>
                   </TableCell>
-
+                  <TableCell>
+                    {extDue && (
+                      <Chip
+                        label={EXT_DUE_LABEL_MAP[extDue]}
+                        size="small"
+                        sx={{
+                          backgroundColor:
+                            EXT_DUE_COLOR_MAP[extDue] || "#757575",
+                          color: "white",
+                          fontWeight: 500,
+                        }}
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell align="right">
+                    {typeof congViec._soGioTre === "number" &&
+                    congViec._soGioTre > 0 ? (
+                      <Typography
+                        variant="caption"
+                        color="error.main"
+                        fontWeight={600}
+                      >
+                        {congViec._soGioTre}
+                      </Typography>
+                    ) : (
+                      <Typography variant="caption" color="text.secondary">
+                        —
+                      </Typography>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Chip
                       label={getPriorityLabel(congViec.MucDoUuTien)}
@@ -190,7 +237,6 @@ const CongViecTable = ({
                       }}
                     />
                   </TableCell>
-
                   <TableCell>
                     {(() => {
                       const person =
@@ -224,7 +270,6 @@ const CongViecTable = ({
                       );
                     })()}
                   </TableCell>
-
                   <TableCell>
                     <Typography
                       variant="body2"
@@ -237,7 +282,6 @@ const CongViecTable = ({
                       {formatDate(congViec.NgayHetHan)}
                     </Typography>
                   </TableCell>
-
                   <TableCell>
                     <Box width={80}>
                       <Box display="flex" alignItems="center" gap={1} mb={0.5}>
@@ -252,7 +296,6 @@ const CongViecTable = ({
                       />
                     </Box>
                   </TableCell>
-
                   <TableCell>
                     <Stack direction="row" spacing={0.5} alignItems="center">
                       <Box display="flex" alignItems="center" gap={0.5}>
@@ -273,7 +316,6 @@ const CongViecTable = ({
                       </Box>
                     </Stack>
                   </TableCell>
-
                   <TableCell>
                     <Stack direction="row" spacing={0.5}>
                       <Tooltip title="Xem chi tiết">
@@ -312,13 +354,12 @@ const CongViecTable = ({
           </TableBody>
         </Table>
       </TableContainer>
-
       <TablePagination
         rowsPerPageOptions={[5, 10, 25, 50]}
         component="div"
         count={totalItems}
         rowsPerPage={rowsPerPage}
-        page={currentPage - 1} // MUI pagination is 0-based
+        page={currentPage - 1}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
         labelRowsPerPage="Số dòng mỗi trang:"

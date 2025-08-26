@@ -140,6 +140,7 @@ export const getStatusText = (status) => {
 };
 
 // Due status helpers
+// Legacy (simple) due status maps (kept for backward compatibility)
 export const DUE_LABEL_MAP = {
   SAP_QUA_HAN: "Sắp quá hạn",
   QUA_HAN: "Quá hạn",
@@ -150,11 +151,38 @@ export const DUE_COLOR_MAP = {
   QUA_HAN: "#D32F2F", // red
 };
 
-export const getDueStatus = (cv) => {
-  if (!cv || cv.TrangThai === "HOAN_THANH") return null;
+// Extended due status (flow v2)
+// DUNG_HAN | SAP_QUA_HAN | QUA_HAN | HOAN_THANH_TRE_HAN | HOAN_THANH_DUNG_HAN
+export const EXT_DUE_LABEL_MAP = {
+  DUNG_HAN: "Đúng hạn",
+  SAP_QUA_HAN: "Sắp quá hạn",
+  QUA_HAN: "Quá hạn",
+  HOAN_THANH_TRE_HAN: "Hoàn thành trễ hạn",
+  HOAN_THANH_DUNG_HAN: "Hoàn thành đúng hạn",
+};
+
+export const EXT_DUE_COLOR_MAP = {
+  DUNG_HAN: "#2E7D32", // green
+  SAP_QUA_HAN: "#FB8C00", // orange
+  QUA_HAN: "#D32F2F", // red
+  HOAN_THANH_TRE_HAN: "#8E24AA", // purple
+  HOAN_THANH_DUNG_HAN: "#0277BD", // blue
+};
+
+// New extended computation (fallback when BE chưa trả TinhTrangThoiHan)
+export const computeExtendedDueStatus = (cv) => {
+  if (!cv) return null;
   const now = dayjs();
   const hetHan = cv.NgayHetHan ? dayjs(cv.NgayHetHan) : null;
   const canhBao = cv.NgayCanhBao ? dayjs(cv.NgayCanhBao) : null;
+  const isCompleted = cv.TrangThai === "HOAN_THANH";
+  const ngayHoanThanh = cv.NgayHoanThanh ? dayjs(cv.NgayHoanThanh) : null;
+  if (isCompleted) {
+    if (ngayHoanThanh && hetHan && ngayHoanThanh.isAfter(hetHan)) {
+      return "HOAN_THANH_TRE_HAN";
+    }
+    return "HOAN_THANH_DUNG_HAN";
+  }
   if (hetHan && now.isAfter(hetHan)) return "QUA_HAN";
   if (
     canhBao &&
@@ -163,7 +191,41 @@ export const getDueStatus = (cv) => {
     now.isBefore(hetHan)
   )
     return "SAP_QUA_HAN";
+  return "DUNG_HAN";
+};
+
+// Legacy simple getter (kept for old UI pieces still referencing it)
+export const getDueStatus = (cv) => {
+  if (!cv || cv.TrangThai === "HOAN_THANH") return null;
+  const status = computeExtendedDueStatus(cv);
+  // Only surface legacy codes for non-completed tasks
+  if (["SAP_QUA_HAN", "QUA_HAN"].includes(status)) return status;
   return null;
+};
+
+// Unified accessor preferring BE field (TinhTrangThoiHan) else fallback
+export const getExtendedDueStatus = (cv) => {
+  if (!cv) return null;
+  return cv.TinhTrangThoiHan || computeExtendedDueStatus(cv);
+};
+
+// Alias (more concise name) for UI usage / future refactor
+export const computeDueStatus = computeExtendedDueStatus;
+
+// Compute số giờ trễ (dùng khi quá hạn hoặc hoàn thành trễ)
+export const computeSoGioTre = (cv) => {
+  if (!cv) return 0;
+  const ext = getExtendedDueStatus(cv);
+  const hetHan = cv.NgayHetHan ? dayjs(cv.NgayHetHan) : null;
+  if (!hetHan) return 0;
+  if (ext === "QUA_HAN") {
+    return Math.max(0, dayjs().diff(hetHan, "hour"));
+  }
+  if (ext === "HOAN_THANH_TRE_HAN") {
+    const done = cv.NgayHoanThanh ? dayjs(cv.NgayHoanThanh) : null;
+    if (done) return Math.max(0, done.diff(hetHan, "hour"));
+  }
+  return 0;
 };
 
 // Get priority text for display
