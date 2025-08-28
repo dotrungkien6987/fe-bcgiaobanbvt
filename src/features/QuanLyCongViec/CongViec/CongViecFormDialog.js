@@ -47,6 +47,7 @@ import {
   updateCongViec,
   getCongViecDetail,
   transitionCongViec,
+  createSubtask,
 } from "./congViecSlice";
 import { getMyNhomViecs } from "../NhomViecUser/nhomViecUserSlice";
 
@@ -93,17 +94,31 @@ const CongViecFormDialog = ({
   congViec = null,
   isEdit = false,
   nhanVienId = null,
+  parentId = null,
 }) => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   const dispatch = useDispatch();
   const { loading, error } = useSelector((s) => s.congViec);
-  const { managedEmployees } = useSelector((s) => s.nhanvienManagement);
+  const { managedEmployees, currentManager } = useSelector(
+    (s) => s.nhanvienManagement
+  );
   const { myNhomViecs } = useSelector((s) => s.nhomViecUser);
   const availableNhanViens = useMemo(
     () => managedEmployees || [],
     [managedEmployees]
   );
+  // Danh sách lựa chọn Người chính: inject currentManager nếu chưa có trong managedEmployees
+  const mainOptions = useMemo(() => {
+    const base = availableNhanViens || [];
+    if (currentManager?._id) {
+      const exists = base.some(
+        (nv) => String(nv._id) === String(currentManager._id)
+      );
+      return exists ? base : [...base, currentManager];
+    }
+    return base;
+  }, [availableNhanViens, currentManager]);
   const availableNhomViecs = useMemo(() => myNhomViecs || [], [myNhomViecs]);
   // Danh sách người phối hợp (không bao gồm người chính)
   const [nguoiThamGia, setNguoiThamGia] = useState([]);
@@ -243,7 +258,7 @@ const CongViecFormDialog = ({
       NgayHetHan: dayjs().add(7, "day"),
       MucDoUuTien: "Bình thường",
       TrangThai: "Tạo mới", // read-only when editing
-      NguoiChinh: nhanVienId || "",
+      NguoiChinh: nhanVienId || currentManager?._id || "",
       TienDo: 0,
       NhomViecUserID: "",
       CanhBaoMode: "PERCENT",
@@ -260,9 +275,13 @@ const CongViecFormDialog = ({
           values
         );
         const data = buildPayload(values);
-        if (isEdit && congViec)
+        if (isEdit && congViec) {
           await dispatch(updateCongViec({ id: congViec._id, data }));
-        else await dispatch(createCongViec(data));
+        } else if (parentId) {
+          await dispatch(createSubtask(parentId, data));
+        } else {
+          await dispatch(createCongViec(data));
+        }
         handleClose();
       } catch (e) {
         console.error("Submit error", e);
@@ -273,6 +292,13 @@ const CongViecFormDialog = ({
   useEffect(() => {
     if (open) dispatch(getMyNhomViecs());
   }, [open, dispatch]);
+  // Nếu mở dialog và chưa có NguoiChinh nhưng currentManager tồn tại, set mặc định
+  useEffect(() => {
+    if (open && !isEdit && !formik.values.NguoiChinh && currentManager?._id) {
+      formik.setFieldValue("NguoiChinh", currentManager._id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isEdit, currentManager]);
   useEffect(() => {
     if (!open || !isEdit || !congViec) return;
     formik.setValues((v) => ({
@@ -391,7 +417,11 @@ const CongViecFormDialog = ({
             }}
           >
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {isEdit ? "Chỉnh sửa công việc" : "Tạo công việc mới"}
+              {isEdit
+                ? "Chỉnh sửa công việc"
+                : parentId
+                ? "Tạo công việc con"
+                : "Tạo công việc mới"}
             </Typography>
             <IconButton size="small" onClick={handleClose}>
               <CloseIcon />
@@ -475,9 +505,9 @@ const CongViecFormDialog = ({
               </Grid>
               <Grid item xs={12} md={6}>
                 <Autocomplete
-                  options={availableNhanViens}
+                  options={mainOptions}
                   value={
-                    availableNhanViens.find(
+                    mainOptions.find(
                       (nv) => nv._id === formik.values.NguoiChinh
                     ) || null
                   }
@@ -490,11 +520,13 @@ const CongViecFormDialog = ({
                       );
                     }
                   }}
-                  getOptionLabel={(o) =>
-                    o?.Ten
-                      ? `${o.Ten} - ${o.KhoaID?.TenKhoa || "Chưa có khoa"}`
-                      : ""
-                  }
+                  getOptionLabel={(o) => {
+                    if (!o?.Ten) return "";
+                    const dept = o.KhoaID?.TenKhoa || "Chưa có khoa";
+                    const isCurrent =
+                      currentManager && o._id === currentManager._id;
+                    return `${o.Ten} - ${dept}${isCurrent ? " (Bạn)" : ""}`;
+                  }}
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -1026,7 +1058,13 @@ const CongViecFormDialog = ({
                 formik.submitForm();
               }}
             >
-              {loading ? "Đang lưu..." : isEdit ? "Cập nhật" : "Tạo mới"}
+              {loading
+                ? "Đang lưu..."
+                : isEdit
+                ? "Cập nhật"
+                : parentId
+                ? "Tạo subtask"
+                : "Tạo mới"}
             </Button>
           </DialogActions>
         </form>

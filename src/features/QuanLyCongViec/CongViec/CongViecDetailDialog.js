@@ -11,6 +11,7 @@ import {
   Grid,
 } from "@mui/material";
 import TaskDialogHeader from "./components/TaskDialogHeader";
+import SubtasksSection from "./components/SubtasksSection";
 import RoutineTaskSelector from "./components/RoutineTaskSelector";
 import VersionConflictNotice from "./components/VersionConflictNotice";
 import TaskMainContent, { CommentsSection } from "./components/TaskMainContent";
@@ -113,7 +114,7 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [colorLegendOpen, setColorLegendOpen] = useState(false);
   const [adminColorsOpen, setAdminColorsOpen] = useState(false);
-    const [quickProgress, setQuickProgress] = useState(0);
+  const [quickProgress, setQuickProgress] = useState(0);
 
   // Quick edit local state
   // const [quickStatus, setQuickStatus] = useState("");
@@ -175,8 +176,7 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
       );
       setNewComment("");
       setPendingFiles([]);
-  
-} catch (error) {
+    } catch (error) {
       console.error("Error adding comment:", error);
     } finally {
       setSubmittingComment(false);
@@ -394,7 +394,7 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
     (String(congViec?.NguoiGiaoViecID) === String(currentNhanVienId) ||
       congViec?.NguoiGiaoViecID?._id === currentNhanVienId)
   );
-    const canEditProgress = congViec.TrangThai === "DANG_THUC_HIEN" && isMain;
+  const canEditProgress = congViec.TrangThai === "DANG_THUC_HIEN" && isMain;
 
   const availableActions = useMemo(
     () => getAvailableActions(congViec, { isAssigner, isMain }),
@@ -587,12 +587,11 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
                 <TaskMainContent
                   congViec={congViec}
                   theme={theme}
-                                    quickProgress={quickProgress}
+                  quickProgress={quickProgress}
                   canEditProgress={canEditProgress}
                   handleProgressChange={handleProgressChange}
                   handleProgressInputChange={handleProgressInputChange}
                   commitProgressUpdate={commitProgressUpdate}
-
                   availableActions={availableActions}
                   actionLoading={actionLoading}
                   triggerAction={triggerAction}
@@ -632,6 +631,11 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
                       embedded
                     />
                   }
+                />
+                <SubtasksSection
+                  parent={congViec}
+                  isMain={isMain}
+                  open={open}
                 />
                 <CommentsSection
                   congViec={congViec}
@@ -735,7 +739,7 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
         executeAction={executeAction}
         onClose={() => setConfirm(null)}
       />
-            <ProgressConfirmDialog
+      <ProgressConfirmDialog
         open={progressDialog.open}
         oldValue={
           congViecDetail?.PhanTramTienDoTong ?? congViecDetail?.TienDo ?? 0
@@ -746,7 +750,6 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
         onCancel={handleCancelProgress}
         onConfirm={handleConfirmProgress}
       />
-
     </Dialog>
   );
 };

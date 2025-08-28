@@ -23,7 +23,6 @@ import AdminRequire from "./AdminRequire";
 import DashBoardPage from "../pages/DashBoardPage";
 
 import KhuyenCaoKhoaPage from "../pages/KhuyenCaoKhoaPage";
-import DashboardRequire from "./DashboardRequire";
 import SupperAdminPage from "../pages/SupperAdminPage";
 
 import Test from "pages/Test";
@@ -58,7 +57,6 @@ import HuyenTable from "features/Daotao/DanhMucHuyen/HuyenTable";
 import XaTable from "features/Daotao/DanhMucXa/XaTable";
 import KhoaTable from "features/Daotao/Khoa/KhoaTable";
 import LichTrucPage from "features/LichTruc/LichTrucPage";
-import SoThuTuTest from "components/SoThuTuTest";
 
 import NhomKhoaSoThuTuTable from "features/Daotao/NhomKhoaSoThuTu/NhomKhoaSoThuTuTable";
 import SoThuTuDashboard from "features/SoThuTuPhongKham/SoThuTuDashboard";
@@ -72,6 +70,7 @@ import NhiemVuThuongQuyList from "features/QuanLyCongViec/NhiemVuThuongQuy/Nhiem
 import QuanLyNhanVienPage from "features/QuanLyCongViec/QuanLyNhanVien/QuanLyNhanVienPage";
 import GiaoNhiemVuPage from "features/QuanLyCongViec/GiaoNhiemVu/GiaoNhiemVuPage";
 import CongViecByNhanVienPage from "features/QuanLyCongViec/CongViec/CongViecByNhanVienPage";
+import CongViecDetailPage from "features/QuanLyCongViec/CongViec/CongViecDetailPage";
 
 function Router() {
   return (
@@ -220,6 +219,8 @@ function Router() {
             path="/quan-ly-cong-viec/nhan-vien/:nhanVienId"
             element={<CongViecByNhanVienPage />}
           />
+          {/* New routed task detail page skeleton */}
+          <Route path="/congviec/:id" element={<CongViecDetailPage />} />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
       </Routes>

@@ -63,6 +63,10 @@ const initialState = {
   myRoutineTasksLoaded: false,
   myRoutineTasksLastFetch: null,
   myRoutineTasksError: null,
+  // Subtasks (Slim Plan) – parentId -> { ids:[], loading, loaded, error, lastFetch }
+  subtasksByParent: {},
+  // Store minimal subtask entities for quick detail linking
+  subtaskEntities: {}, // id -> subtask DTO (subset from backend)
 };
 
 // Create slice
@@ -472,6 +476,84 @@ const slice = createSlice({
         }
       }
     },
+    // Subtasks reducers
+    fetchSubtasksStart: (state, action) => {
+      const parentId = action.payload;
+      const bucket = state.subtasksByParent[parentId] || {
+        ids: [],
+        loading: false,
+        loaded: false,
+        error: null,
+        lastFetch: null,
+      };
+      state.subtasksByParent[parentId] = {
+        ...bucket,
+        loading: true,
+        error: null,
+      };
+    },
+    fetchSubtasksSuccess: (state, action) => {
+      const { parentId, items } = action.payload;
+      const ids = [];
+      (items || []).forEach((it) => {
+        if (!it || !it._id) return;
+        ids.push(it._id);
+        state.subtaskEntities[it._id] = it;
+      });
+      state.subtasksByParent[parentId] = {
+        ids,
+        loading: false,
+        loaded: true,
+        error: null,
+        lastFetch: Date.now(),
+      };
+    },
+    fetchSubtasksError: (state, action) => {
+      const { parentId, error } = action.payload;
+      const bucket = state.subtasksByParent[parentId] || {
+        ids: [],
+        loaded: false,
+        loading: false,
+        error: null,
+        lastFetch: null,
+      };
+      state.subtasksByParent[parentId] = {
+        ...bucket,
+        loading: false,
+        error,
+      };
+    },
+    createSubtaskSuccess: (state, action) => {
+      const { parentId, subtask } = action.payload || {};
+      if (!subtask || !subtask._id) return;
+      state.subtaskEntities[subtask._id] = subtask;
+      const bucket = state.subtasksByParent[parentId];
+      if (bucket && bucket.loaded) {
+        // prepend newest
+        bucket.ids = [subtask._id, ...bucket.ids];
+      } else {
+        state.subtasksByParent[parentId] = {
+          ids: [subtask._id],
+          loading: false,
+          loaded: true,
+          error: null,
+          lastFetch: Date.now(),
+        };
+      }
+      // Update parent detail counts optimistically
+      if (state.congViecDetail && state.congViecDetail._id === parentId) {
+        const d = state.congViecDetail;
+        d.ChildrenCount = (d.ChildrenCount || 0) + 1;
+        if (d.ChildrenSummary) {
+          d.ChildrenSummary.total = (d.ChildrenSummary.total || 0) + 1;
+          d.ChildrenSummary.active = (d.ChildrenSummary.active || 0) + 1;
+          d.ChildrenSummary.incomplete =
+            (d.ChildrenSummary.incomplete || 0) + 1;
+          d.ChildrenSummary.done = d.ChildrenSummary.done || 0; // unchanged
+          d.AllChildrenDone = false;
+        }
+      }
+    },
   },
 });
 
@@ -509,6 +591,11 @@ export const {
   fetchMyRoutineTasksSuccess,
   fetchMyRoutineTasksError,
   appendProgressHistory,
+  // Subtasks
+  fetchSubtasksStart,
+  fetchSubtasksSuccess,
+  fetchSubtasksError,
+  createSubtaskSuccess,
 } = slice.actions;
 
 // API service methods
@@ -546,6 +633,13 @@ const congViecAPI = {
       data,
       config
     ),
+  // Subtasks APIs
+  createSubtask: (parentId, data) =>
+    apiService.post(`/workmanagement/congviec/${parentId}/subtasks`, data),
+  getChildren: (parentId, params) =>
+    apiService.get(`/workmanagement/congviec/${parentId}/children`, {
+      params,
+    }),
 };
 
 // Helper: build payload cho updateCongViec (không dùng cho create – create vẫn bỏ null)
@@ -674,6 +768,14 @@ export const getCongViecDetail = (id) => async (dispatch) => {
   try {
     const response = await congViecAPI.getDetail(id);
     dispatch(slice.actions.getCongViecDetailSuccess(response.data.data));
+    // Lazy fetch subtasks if any (or always if Depth defined)
+    const cv = response.data.data;
+    if (cv && cv.ChildrenCount > 0) {
+      // fire and forget; errors handled inside thunk
+      try {
+        dispatch(fetchSubtasks(cv._id));
+      } catch (_) {}
+    }
     return response.data.data;
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
@@ -1202,3 +1304,51 @@ export const updateProgress =
       throw error;
     }
   };
+
+// Fetch subtasks for a parent (with simple cache)
+export const fetchSubtasks =
+  (parentId, opts = {}) =>
+  async (dispatch, getState) => {
+    const { force = false, maxAgeMs = 30 * 1000 } = opts;
+    const state = getState();
+    const bucket = state.congViec?.subtasksByParent?.[parentId];
+    if (!force && bucket && bucket.loaded) {
+      const age = Date.now() - (bucket.lastFetch || 0);
+      if (age < maxAgeMs)
+        return bucket.ids.map((id) => state.congViec.subtaskEntities[id]);
+    }
+    dispatch(slice.actions.fetchSubtasksStart(parentId));
+    try {
+      const res = await congViecAPI.getChildren(parentId, { limit: 100 });
+      const items = res?.data?.data || [];
+      dispatch(slice.actions.fetchSubtasksSuccess({ parentId, items }));
+      return items;
+    } catch (error) {
+      dispatch(
+        slice.actions.fetchSubtasksError({ parentId, error: error.message })
+      );
+      toast.error(
+        error?.response?.data?.error?.message ||
+          error.message ||
+          "Không tải được công việc con"
+      );
+      throw error;
+    }
+  };
+
+// Create subtask
+export const createSubtask = (parentId, data) => async (dispatch) => {
+  dispatch(slice.actions.startLoading());
+  try {
+    const res = await congViecAPI.createSubtask(parentId, data);
+    const subtask = res?.data?.data;
+    if (subtask?.updatedAt) subtask.__version = subtask.updatedAt;
+    dispatch(slice.actions.createSubtaskSuccess({ parentId, subtask }));
+    toast.success("Đã tạo công việc con");
+    return subtask;
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error?.response?.data?.error?.message || error.message);
+    throw error;
+  }
+};
