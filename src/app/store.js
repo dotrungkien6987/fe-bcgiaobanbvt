@@ -26,6 +26,7 @@ import congViecSlice from "../features/QuanLyCongViec/CongViec/congViecSlice";
 import nhanvienManagementSlice from "../features/QuanLyCongViec/NhanVien/nhanvienManagementSlice";
 import quanLyTepTinSlice from "../features/QuanLyCongViec/CongViec/QuanLyTepTin/quanLyTepTinSlice";
 import colorConfigSlice from "../features/QuanLyCongViec/CongViec/colorConfigSlice";
+import congViecTreeReducer from "../features/QuanLyCongViec/TreeView/congViecTreeSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -56,6 +57,7 @@ const rootReducer = {
   nhanvienManagement: nhanvienManagementSlice,
   quanLyTepTin: quanLyTepTinSlice,
   colorConfig: colorConfigSlice,
+  congViecTree: congViecTreeReducer,
 };
 
 const store = configureStore({

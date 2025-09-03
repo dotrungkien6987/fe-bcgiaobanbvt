@@ -71,6 +71,11 @@ import QuanLyNhanVienPage from "features/QuanLyCongViec/QuanLyNhanVien/QuanLyNha
 import GiaoNhiemVuPage from "features/QuanLyCongViec/GiaoNhiemVu/GiaoNhiemVuPage";
 import CongViecByNhanVienPage from "features/QuanLyCongViec/CongViec/CongViecByNhanVienPage";
 import CongViecDetailPage from "features/QuanLyCongViec/CongViec/CongViecDetailPage";
+import TaskMindMapPage from "../pages/TaskMindMapPage";
+import TaskMindMapTreePage from "../pages/TaskMindMapTreePage";
+import TaskMindMapTreeEnhancedPage from "../pages/TaskMindMapTreeEnhancedPage";
+import TaskMindMapHierarchicalPage from "../pages/TaskMindMapHierarchicalPage";
+import CongViecHierarchyTreeDynamicPage from "../pages/CongViecHierarchyTreeDynamicPage";
 
 function Router() {
   return (
@@ -221,6 +226,26 @@ function Router() {
           />
           {/* New routed task detail page skeleton */}
           <Route path="/congviec/:id" element={<CongViecDetailPage />} />
+          <Route
+            path="/cong-viec-mind-map"
+            element={<TaskMindMapHierarchicalPage />}
+          />
+          <Route
+            path="/cong-viec-tree-view"
+            element={<TaskMindMapHierarchicalPage />}
+          />
+          <Route
+            path="/cong-viec-tree-enhanced"
+            element={<TaskMindMapTreeEnhancedPage />}
+          />
+          <Route
+            path="/cong-viec-hierarchical"
+            element={<TaskMindMapHierarchicalPage />}
+          />
+          <Route
+            path="/cong-viec-hierarchical-dynamic"
+            element={<CongViecHierarchyTreeDynamicPage />}
+          />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
       </Routes>

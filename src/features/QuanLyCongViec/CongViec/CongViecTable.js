@@ -22,7 +22,8 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Comment as CommentIcon,
-  Attachment as AttachmentIcon,
+  Groups as GroupsIcon,
+  AccountTree as AccountTreeIcon,
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
@@ -37,6 +38,7 @@ import {
   computeSoGioTre,
 } from "../../../utils/congViecUtils";
 import { useSelector } from "react-redux";
+import { canDeleteCongViec } from "./congViecPermissions";
 
 const CongViecTable = ({
   congViecs = [],
@@ -52,6 +54,7 @@ const CongViecTable = ({
   activeTab,
   currentUserRole,
   currentUserNhanVienId,
+  onTree, // callback mở cây phân cấp
 }) => {
   const theme = useTheme();
   const statusOverrides = useSelector((s) => s.colorConfig?.statusColors);
@@ -61,7 +64,8 @@ const CongViecTable = ({
   const handleChangeRowsPerPage = (event) =>
     onRowsPerPageChange(parseInt(event.target.value, 10));
 
-  const formatDate = (date) => (date ? dayjs(date).format("DD/MM/YYYY") : "-");
+  const DASH = "—"; // unified dash
+  const formatDate = (date) => (date ? dayjs(date).format("DD/MM/YYYY") : DASH);
   const isOverdue = (ngayHetHan, trangThai) => {
     if (trangThai === "HOAN_THANH" || trangThai === "HUY") return false;
     return dayjs().isAfter(dayjs(ngayHetHan));
@@ -75,19 +79,41 @@ const CongViecTable = ({
     });
   }, [congViecs]);
 
-  if (isLoading) {
-    return (
-      <Paper>
-        <Box p={2}>
-          <Typography>Đang tải...</Typography>
-          <LinearProgress />
+  // Use centralized permission helper
+  const canDelete = (cv) =>
+    canDeleteCongViec({
+      congViec: cv,
+      currentUserRole,
+      currentUserNhanVienId,
+    });
+
+  const showEmpty = !isLoading && enhancedRows.length === 0;
+
+  return (
+    <Paper sx={{ position: "relative", minHeight: 200 }}>
+      {isLoading && (
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            bgcolor: "background.paper",
+            opacity: 0.85,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2,
+          }}
+        >
+          <Box width="60%" mb={2}>
+            <LinearProgress />
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            Đang tải dữ liệu...
+          </Typography>
         </Box>
-      </Paper>
-    );
-  }
-  if (congViecs.length === 0) {
-    return (
-      <Paper>
+      )}
+      {showEmpty && (
         <Box p={4} textAlign="center">
           <Typography variant="h6" color="text.secondary">
             {activeTab === "received"
@@ -95,12 +121,7 @@ const CongViecTable = ({
               : "Chưa có công việc nào được tạo"}
           </Typography>
         </Box>
-      </Paper>
-    );
-  }
-
-  return (
-    <Paper>
+      )}
       <TableContainer>
         <Table>
           <TableHead>
@@ -122,16 +143,7 @@ const CongViecTable = ({
           </TableHead>
           <TableBody>
             {enhancedRows.map((congViec) => {
-              const isAdmin = currentUserRole === "admin";
-              const isManager = currentUserRole === "manager";
-              const isOwner =
-                currentUserNhanVienId &&
-                congViec?.NguoiGiaoViecID &&
-                String(currentUserNhanVienId) ===
-                  String(congViec.NguoiGiaoViecID);
-              const completed = congViec.TrangThai === "HOAN_THANH";
-              const deleteDisabled =
-                (completed && !isAdmin) || !(isAdmin || isManager || isOwner);
+              const deleteDisabled = !canDelete(congViec);
               const extDue = congViec._extDue;
               return (
                 <TableRow
@@ -149,7 +161,7 @@ const CongViecTable = ({
                       fontWeight={600}
                       color="text.secondary"
                     >
-                      {congViec.MaCongViec || "—"}
+                      {congViec.MaCongViec || DASH}
                     </Typography>
                   </TableCell>
                   <TableCell sx={{ maxWidth: 360 }}>
@@ -196,16 +208,22 @@ const CongViecTable = ({
                   </TableCell>
                   <TableCell>
                     {extDue && (
-                      <Chip
-                        label={EXT_DUE_LABEL_MAP[extDue]}
-                        size="small"
-                        sx={{
-                          backgroundColor:
-                            EXT_DUE_COLOR_MAP[extDue] || "#757575",
-                          color: "white",
-                          fontWeight: 500,
-                        }}
-                      />
+                      <Tooltip
+                        arrow
+                        placement="top"
+                        title={`Tình trạng hạn: ${EXT_DUE_LABEL_MAP[extDue]}`}
+                      >
+                        <Chip
+                          label={EXT_DUE_LABEL_MAP[extDue]}
+                          size="small"
+                          sx={{
+                            backgroundColor:
+                              EXT_DUE_COLOR_MAP[extDue] || "#757575",
+                            color: "white",
+                            fontWeight: 500,
+                          }}
+                        />
+                      </Tooltip>
                     )}
                   </TableCell>
                   <TableCell align="right">
@@ -216,11 +234,11 @@ const CongViecTable = ({
                         color="error.main"
                         fontWeight={600}
                       >
-                        {congViec._soGioTre}
+                        {congViec._soGioTre.toLocaleString("vi-VN")}
                       </Typography>
                     ) : (
                       <Typography variant="caption" color="text.secondary">
-                        —
+                        {DASH}
                       </Typography>
                     )}
                   </TableCell>
@@ -307,17 +325,28 @@ const CongViecTable = ({
                         </Typography>
                       </Box>
                       <Box display="flex" alignItems="center" gap={0.5}>
-                        <AttachmentIcon
+                        <GroupsIcon
                           sx={{ fontSize: 16, color: "text.secondary" }}
                         />
-                        <Typography variant="caption">
-                          {congViec.SoLuongNguoiThamGia || 0}
-                        </Typography>
+                        <Tooltip title="Số người tham gia">
+                          <Typography variant="caption">
+                            {congViec.SoLuongNguoiThamGia || 0}
+                          </Typography>
+                        </Tooltip>
                       </Box>
                     </Stack>
                   </TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={0.5}>
+                      <Tooltip title="Cây công việc">
+                        <IconButton
+                          size="small"
+                          onClick={() => onTree?.(congViec)}
+                          color="primary"
+                        >
+                          <AccountTreeIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip title="Xem chi tiết">
                         <IconButton
                           size="small"

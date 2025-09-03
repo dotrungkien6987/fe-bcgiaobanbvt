@@ -5,9 +5,10 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchSubtasks } from "../congViecSlice";
+import { fetchSubtasks, deleteSubtask } from "../congViecSlice";
 import CongViecFormDialog from "../CongViecFormDialog";
 import SubtasksTable from "./SubtasksTable";
+import ConfirmDialog from "components/ConfirmDialog";
 
 /**
  * SubtasksSection – Slim Plan UI (flat list)
@@ -20,12 +21,18 @@ export default function SubtasksSection({ parent, isMain, open }) {
     (s) => s.congViec.subtasksByParent[parentId]
   );
   const entities = useSelector((s) => s.congViec.subtaskEntities);
+  const updatingId = useSelector((s) => s.congViec.updatingSubtaskId);
+  const deletingId = useSelector((s) => s.congViec.deletingSubtaskId);
   const loading = subtasksState?.loading;
   const loaded = subtasksState?.loaded;
   const ids = subtasksState?.ids || [];
   const items = ids.map((id) => entities[id]).filter(Boolean);
   const [openForm, setOpenForm] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState({
+    open: false,
+    target: null,
+  });
 
   const canAdd = isMain && parent && parent.TrangThai !== "HOAN_THANH";
 
@@ -63,6 +70,22 @@ export default function SubtasksSection({ parent, isMain, open }) {
     setEditing(task);
     setOpenForm(true);
   };
+
+  const handleDelete = (task) => {
+    setConfirmDelete({ open: true, target: task });
+  };
+  const handleConfirmDelete = async () => {
+    const tgt = confirmDelete.target;
+    if (!tgt) return;
+    try {
+      await dispatch(deleteSubtask(parentId, tgt._id));
+      setConfirmDelete({ open: false, target: null });
+    } catch (_) {
+      // error toast handled in thunk
+    }
+  };
+  const handleCloseConfirm = () =>
+    setConfirmDelete({ open: false, target: null });
 
   // Note: empty state handled inside SubtasksTable
 
@@ -106,6 +129,9 @@ export default function SubtasksSection({ parent, isMain, open }) {
         loading={loading && !loaded}
         onView={handleView}
         onEdit={handleEdit}
+        onDelete={handleDelete}
+        updatingId={updatingId}
+        deletingId={deletingId}
       />
       <CongViecFormDialog
         open={openForm}
@@ -118,6 +144,20 @@ export default function SubtasksSection({ parent, isMain, open }) {
             ? editing.NguoiChinhID || editing.NguoiChinhID?._id
             : parent?.NguoiChinhID || parent?.NguoiChinhID?._id || null
         }
+        // Khi chỉnh sửa subtask, không được fetch detail và ghi đè congViecDetail cha
+        skipGlobalDetailFetch={!!editing}
+      />
+      <ConfirmDialog
+        open={confirmDelete.open}
+        onClose={handleCloseConfirm}
+        onConfirm={handleConfirmDelete}
+        title="Xóa công việc con"
+        message={`Bạn chắc chắn muốn xóa: ${
+          confirmDelete.target?.TieuDe || ""
+        }?`}
+        confirmText="Xóa"
+        confirmColor="error"
+        loading={deletingId === confirmDelete.target?._id}
       />
     </Box>
   );

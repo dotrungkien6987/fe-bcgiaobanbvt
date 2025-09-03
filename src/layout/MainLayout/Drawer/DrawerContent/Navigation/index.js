@@ -41,11 +41,38 @@ const Navigation = () => {
     // eslint-disable-next-line
   }, [user]);
 
+  // Đệ quy thay placeholder :NhanVienID bằng giá trị thực tế
+  const replaceNhanVienID = (node) => {
+    if (!node) return null;
+    // Ẩn node yêu cầu NhanVienID nếu chưa có user
+    if (node.url && node.url.includes(":NhanVienID") && !user?.NhanVienID) {
+      return null;
+    }
+    const newNode = { ...node };
+    if (
+      newNode.url &&
+      user?.NhanVienID &&
+      newNode.url.includes(":NhanVienID")
+    ) {
+      newNode.url = newNode.url.replace(":NhanVienID", user.NhanVienID);
+    }
+    if (Array.isArray(newNode.children)) {
+      newNode.children = newNode.children
+        .map(replaceNhanVienID)
+        .filter(Boolean);
+    }
+    return newNode;
+  };
+
   useLayoutEffect(() => {
-    // Set menu items trực tiếp từ menuItem gốc
-    setMenuItems(menuItem);
+    // Clone & xử lý placeholder động
+    const processed = {
+      ...menuItem,
+      items: menuItem.items.map(replaceNhanVienID),
+    };
+    setMenuItems(processed);
     // eslint-disable-next-line
-  }, [menuItem, user]);
+  }, [menuItem, user?.NhanVienID]);
 
   let getMenu = Menu();
   // Nếu getMenu có roles, đảm bảo gán nó

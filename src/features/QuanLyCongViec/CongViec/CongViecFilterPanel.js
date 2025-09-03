@@ -67,8 +67,24 @@ const CongViecFilterPanel = ({
   onResetFilters,
   isLoading = false,
   managedEmployees = [],
+  // optional controlled props
+  searchValue,
+  maCongViecValue,
+  immediateFilters,
 }) => {
   const [expanded, setExpanded] = useState(false);
+
+  // Compose effective filters used for input values. This lets the parent
+  // provide locally controlled values (search/ma) and immediate selects.
+  const effectiveFilters = {
+    ...(filters || {}),
+    ...(immediateFilters || {}),
+    search: typeof searchValue !== "undefined" ? searchValue : filters?.search,
+    MaCongViec:
+      typeof maCongViecValue !== "undefined"
+        ? maCongViecValue
+        : filters?.MaCongViec,
+  };
 
   // Debounced search
   const handleSearchChange = useCallback(
@@ -96,7 +112,7 @@ const CongViecFilterPanel = ({
     setExpanded(!expanded);
   };
 
-  const hasActiveFilters = Object.values(filters).some(
+  const hasActiveFilters = Object.values(effectiveFilters || {}).some(
     (value) => value && value !== ""
   );
 
@@ -139,7 +155,7 @@ const CongViecFilterPanel = ({
               label="Mã công việc"
               variant="outlined"
               size="small"
-              value={filters.MaCongViec || ""}
+              value={effectiveFilters.MaCongViec || ""}
               onChange={(e) => onFilterChange("MaCongViec", e.target.value)}
               disabled={isLoading}
             />
@@ -150,7 +166,7 @@ const CongViecFilterPanel = ({
               label="Tìm kiếm trong tiêu đề, mô tả..."
               variant="outlined"
               size="small"
-              value={filters.search || ""}
+              value={effectiveFilters.search || ""}
               onChange={handleSearchChange}
               disabled={isLoading}
             />
@@ -164,7 +180,7 @@ const CongViecFilterPanel = ({
               <FormControl fullWidth size="small">
                 <InputLabel>Trạng thái</InputLabel>
                 <Select
-                  value={filters.TrangThai || ""}
+                  value={effectiveFilters.TrangThai || ""}
                   onChange={handleSelectChange("TrangThai")}
                   label="Trạng thái"
                   disabled={isLoading}
@@ -182,7 +198,7 @@ const CongViecFilterPanel = ({
               <FormControl fullWidth size="small">
                 <InputLabel>Mức độ ưu tiên</InputLabel>
                 <Select
-                  value={filters.MucDoUuTien || ""}
+                  value={effectiveFilters.MucDoUuTien || ""}
                   onChange={handleSelectChange("MucDoUuTien")}
                   label="Mức độ ưu tiên"
                   disabled={isLoading}
@@ -199,7 +215,11 @@ const CongViecFilterPanel = ({
             <Grid item xs={12} sm={6} md={3}>
               <DatePicker
                 label="Ngày bắt đầu từ"
-                value={filters.NgayBatDau ? dayjs(filters.NgayBatDau) : null}
+                value={
+                  effectiveFilters.NgayBatDau
+                    ? dayjs(effectiveFilters.NgayBatDau)
+                    : null
+                }
                 onChange={handleDateChange("NgayBatDau")}
                 disabled={isLoading}
                 slotProps={{
@@ -214,7 +234,11 @@ const CongViecFilterPanel = ({
             <Grid item xs={12} sm={6} md={3}>
               <DatePicker
                 label="Hạn chót đến"
-                value={filters.NgayHetHan ? dayjs(filters.NgayHetHan) : null}
+                value={
+                  effectiveFilters.NgayHetHan
+                    ? dayjs(effectiveFilters.NgayHetHan)
+                    : null
+                }
                 onChange={handleDateChange("NgayHetHan")}
                 disabled={isLoading}
                 slotProps={{
@@ -230,7 +254,7 @@ const CongViecFilterPanel = ({
               <FormControl fullWidth size="small">
                 <InputLabel>Người xử lý chính</InputLabel>
                 <Select
-                  value={filters.NguoiChinhID || ""}
+                  value={effectiveFilters.NguoiChinhID || ""}
                   onChange={handleSelectChange("NguoiChinhID")}
                   label="Người xử lý chính"
                   disabled={isLoading}
@@ -253,7 +277,7 @@ const CongViecFilterPanel = ({
               <FormControl fullWidth size="small">
                 <InputLabel>Tình trạng hạn</InputLabel>
                 <Select
-                  value={filters.TinhTrangHan || ""}
+                  value={effectiveFilters.TinhTrangHan || ""}
                   onChange={handleSelectChange("TinhTrangHan")}
                   label="Tình trạng hạn"
                   disabled={isLoading}

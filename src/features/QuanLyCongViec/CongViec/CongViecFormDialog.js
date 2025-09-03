@@ -48,7 +48,9 @@ import {
   getCongViecDetail,
   transitionCongViec,
   createSubtask,
+  updateSubtask,
 } from "./congViecSlice";
+import apiService from "app/apiService"; // dùng cho fetch nhẹ khi tránh ghi đè global
 import { getMyNhomViecs } from "../NhomViecUser/nhomViecUserSlice";
 
 const priorityMapFE2BE = {
@@ -95,6 +97,7 @@ const CongViecFormDialog = ({
   isEdit = false,
   nhanVienId = null,
   parentId = null,
+  skipGlobalDetailFetch = false, // tránh ghi đè congViecDetail cha khi edit subtask
 }) => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
@@ -276,7 +279,12 @@ const CongViecFormDialog = ({
         );
         const data = buildPayload(values);
         if (isEdit && congViec) {
-          await dispatch(updateCongViec({ id: congViec._id, data }));
+          // Nếu là subtask editing (skipGlobalDetailFetch=true) dùng updateSubtask để tránh đụng global isLoading
+          if (skipGlobalDetailFetch) {
+            await dispatch(updateSubtask(congViec._id, data));
+          } else {
+            await dispatch(updateCongViec({ id: congViec._id, data }));
+          }
         } else if (parentId) {
           await dispatch(createSubtask(parentId, data));
         } else {
@@ -353,7 +361,7 @@ const CongViecFormDialog = ({
             nv?._id && nv._id !== (congViec.NguoiChinhID || congViec.NguoiChinh)
         )
       );
-    } else if (congViec._id) {
+    } else if (congViec._id && !skipGlobalDetailFetch) {
       (async () => {
         setLoadingParticipants(true);
         try {
@@ -375,9 +383,49 @@ const CongViecFormDialog = ({
           setLoadingParticipants(false);
         }
       })();
+    } else if (congViec._id && skipGlobalDetailFetch) {
+      // Fetch nhẹ chi tiết subtask nếu thiếu các field dài (MoTa) mà không dispatch vào store global
+      (async () => {
+        const needFetch = !congViec.MoTa || congViec.NguoiThamGia == null;
+        if (!needFetch) return;
+        setLoadingParticipants(true);
+        try {
+          const res = await apiService.get(
+            `/workmanagement/congviec/detail/${congViec._id}`
+          );
+          const detail = res?.data?.data;
+          if (detail?.MoTa && !congViec.MoTa) {
+            formik.setFieldValue("MoTa", detail.MoTa);
+          }
+          if (Array.isArray(detail?.NguoiThamGia)) {
+            const raw = normalize(detail.NguoiThamGia);
+            setNguoiThamGia(
+              raw.filter(
+                (nv) =>
+                  nv?._id &&
+                  nv._id !==
+                    (congViec.NguoiChinhID ||
+                      congViec.NguoiChinh ||
+                      formik.values.NguoiChinh)
+              )
+            );
+          }
+        } catch (_) {
+          // ignore lightweight fetch errors
+        } finally {
+          setLoadingParticipants(false);
+        }
+      })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, isEdit, congViec, availableNhanViens, dispatch]);
+  }, [
+    open,
+    isEdit,
+    congViec,
+    availableNhanViens,
+    dispatch,
+    skipGlobalDetailFetch,
+  ]);
 
   // (Handlers cho select cũ đã bỏ; logic quản lý người phối hợp nằm trong Autocomplete multiple)
   const handleClose = () => {

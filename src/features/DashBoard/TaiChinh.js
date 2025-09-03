@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  
   Grid,
   Card,
   CardContent,
@@ -132,9 +131,9 @@ const TaiChinh = () => {
     currency: "VND",
   });
 
-  const congthutructiep=(dataPie)=>{
-    return(dataPie[0]?.value+dataPie[1]?.value+dataPie[3]?.value)
-  }
+  const congthutructiep = (dataPie) => {
+    return dataPie[0]?.value + dataPie[1]?.value + dataPie[3]?.value;
+  };
   let dataEx_DuyetKeToan = [];
   dataEx_DuyetKeToan.push({
     label: `MRI 1.5: ${VND.format(
@@ -160,6 +159,13 @@ const TaiChinh = () => {
   dataEx_DuyetKeToan.push({
     label: `CT 32 (phụ thu): ${VND.format(
       calculateTotalForType("CLVT32PHUTHU", doanhthu_canlamsang_duyetketoan)
+    )}`,
+    value: 0,
+    color: "white",
+  });
+  dataEx_DuyetKeToan.push({
+    label: `SPECT: ${VND.format(
+      calculateTotalForType("SPECT", doanhthu_canlamsang_duyetketoan)
     )}`,
     value: 0,
     color: "white",
@@ -197,6 +203,13 @@ const TaiChinh = () => {
   dataEx_TheoChiDinh.push({
     label: `CT 32 (phụ thu): ${VND.format(
       calculateTotalForType("CLVT32PHUTHU", doanhthu_canlamsang_theochidinh)
+    )}`,
+    value: 0,
+    color: "white",
+  });
+  dataEx_TheoChiDinh.push({
+    label: `SPECT: ${VND.format(
+      calculateTotalForType("SPECT", doanhthu_canlamsang_theochidinh)
     )}`,
     value: 0,
     color: "white",
@@ -255,13 +268,23 @@ const TaiChinh = () => {
     color: "white",
   });
   dataEx_ChenhLech_TheoChiDinh.push({
+    label: `SPECT: ${VND.format(
+      calculateTotalForType("SPECT", doanhthu_canlamsang_theochidinh) -
+        calculateTotalForType(
+          "SPECT",
+          doanhthu_canlamsang_theochidinh_NgayChenhLech
+        )
+    )}`,
+    value: 0,
+    color: "white",
+  });
+  dataEx_ChenhLech_TheoChiDinh.push({
     label: `Cộng thu trực tiếp: ${VND.format(
       congthutructiep(Pie_DoanhThu_TheoChiDinh_ChenhLech)
     )}`,
     value: 0,
     color: "white",
   });
-
 
   let dataEx_ChenhLech_DuyetKeToan = [];
   dataEx_ChenhLech_DuyetKeToan.push({
@@ -302,6 +325,17 @@ const TaiChinh = () => {
       calculateTotalForType("CLVT32PHUTHU", doanhthu_canlamsang_duyetketoan) -
         calculateTotalForType(
           "CLVT32PHUTHU",
+          doanhthu_canlamsang_duyetketoan_NgayChenhLech
+        )
+    )}`,
+    value: 0,
+    color: "white",
+  });
+  dataEx_ChenhLech_DuyetKeToan.push({
+    label: `SPECT: ${VND.format(
+      calculateTotalForType("SPECT", doanhthu_canlamsang_duyetketoan) -
+        calculateTotalForType(
+          "SPECT",
           doanhthu_canlamsang_duyetketoan_NgayChenhLech
         )
     )}`,
@@ -367,7 +401,7 @@ const TaiChinh = () => {
 
   useEffect(() => {
     dispatch(getDataNewestByNgayChenhLech(dateChenhLech.toISOString(), ngay));
-  }, [dispatch, dateChenhLech,ngay]);
+  }, [dispatch, dateChenhLech, ngay]);
 
   useEffect(() => {
     const fetchNewestData = () => {
@@ -470,7 +504,9 @@ const TaiChinh = () => {
               mb: 1,
             }}
           >
-            <Typography variant="h6">Chưa duyệt kế toán tháng trước </Typography>
+            <Typography variant="h6">
+              Chưa duyệt kế toán tháng trước{" "}
+            </Typography>
 
             <Grid container>
               <Grid item xs={12} sm={12} md={6} spacing={1}>
@@ -598,39 +634,42 @@ const TaiChinh = () => {
           >
             <Typography variant="h6">Thu ngân</Typography>
             <Card sx={{ m: 0.5 }}>
-            <Typography
-        sx={{
-          textAlign: "center",
-          fontSize: "1rem",
-          color: "#1939B7",
-          fontWeight: "bold",
-        }}
-      >
-        Tổng tiền kế toán thu
-      </Typography>
+              <Typography
+                sx={{
+                  textAlign: "center",
+                  fontSize: "1rem",
+                  color: "#1939B7",
+                  fontWeight: "bold",
+                }}
+              >
+                Tổng tiền kế toán thu
+              </Typography>
               <Card
                 sx={{
                   fontWeight: "bold",
                   color: "#f2f2f2",
-                  backgroundColor: '#1939B7',
+                  backgroundColor: "#1939B7",
                   // p: 1,
                   boxShadow: 10,
                   borderRadius: 3,
                   m: 1,
-                  
                 }}
               >
-                 <CardContent>
-          <Typography sx={{ textAlign: "center", fontSize: "1rem" }}>
-            {VND.format(chisosObj?.thungan)}
-          </Typography>
-          {ngay !==1 &&(
- <Typography sx={{ textAlign: "center",fontSize: "0.9rem" }}>
- + {VND.format((chisosObj?.thungan-chisosObj_NgayChenhLech?.thungan))}
- </Typography>
-          )}
-         
-        </CardContent>
+                <CardContent>
+                  <Typography sx={{ textAlign: "center", fontSize: "1rem" }}>
+                    {VND.format(chisosObj?.thungan)}
+                  </Typography>
+                  {ngay !== 1 && (
+                    <Typography
+                      sx={{ textAlign: "center", fontSize: "0.9rem" }}
+                    >
+                      +{" "}
+                      {VND.format(
+                        chisosObj?.thungan - chisosObj_NgayChenhLech?.thungan
+                      )}
+                    </Typography>
+                  )}
+                </CardContent>
               </Card>
             </Card>
           </Card>

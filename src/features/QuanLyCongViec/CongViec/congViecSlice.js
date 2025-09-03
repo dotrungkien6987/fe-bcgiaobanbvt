@@ -67,6 +67,13 @@ const initialState = {
   subtasksByParent: {},
   // Store minimal subtask entities for quick detail linking
   subtaskEntities: {}, // id -> subtask DTO (subset from backend)
+  // Fine-grained loading flags
+  creatingSubtask: false,
+  createSubtaskError: null,
+  // Fine-grained update/delete flags for subtasks
+  updatingSubtaskId: null,
+  deletingSubtaskId: null,
+  subtaskOpError: null,
 };
 
 // Create slice
@@ -110,8 +117,21 @@ const slice = createSlice({
     },
     setFilters: (state, action) => {
       const { tab, filters } = action.payload;
-      state.filters[tab] = { ...state.filters[tab], ...filters };
-      state.currentPage[tab] = 1; // Reset page khi filter
+      const prev = state.filters[tab] || {};
+      let changed = false;
+      const incoming = filters || {};
+      const keys = new Set([...Object.keys(prev), ...Object.keys(incoming)]);
+      for (const k of keys) {
+        const a = prev[k];
+        const b = incoming.hasOwnProperty(k) ? incoming[k] : prev[k];
+        if ((a ?? "") !== (b ?? "")) {
+          changed = true;
+          break;
+        }
+      }
+      if (!changed) return; // no-op nếu không thay đổi thực chất
+      state.filters[tab] = { ...prev, ...incoming };
+      state.currentPage[tab] = 1; // Reset page khi filter thay đổi
     },
     resetFilters: (state, action) => {
       const tab = action.payload;
@@ -129,6 +149,7 @@ const slice = createSlice({
     },
     setCurrentPage: (state, action) => {
       const { tab, page } = action.payload;
+      if (state.currentPage[tab] === page) return; // tránh update trùng
       state.currentPage[tab] = page;
     },
     deleteCongViecSuccess: (state, action) => {
@@ -201,6 +222,13 @@ const slice = createSlice({
         state.congViecDetail._id === updatedCongViec._id
       ) {
         state.congViecDetail = updatedCongViec;
+      }
+      // Nếu đây là 1 subtask đã được cache, cập nhật entity để UI (SubtasksSection) phản ánh thay đổi ngay
+      if (state.subtaskEntities[updatedCongViec._id]) {
+        state.subtaskEntities[updatedCongViec._id] = {
+          ...state.subtaskEntities[updatedCongViec._id],
+          ...updatedCongViec,
+        };
       }
     },
     updateHistoryNoteOptimistic: (state, action) => {
@@ -494,9 +522,12 @@ const slice = createSlice({
     },
     fetchSubtasksSuccess: (state, action) => {
       const { parentId, items } = action.payload;
+      const seen = new Set();
       const ids = [];
       (items || []).forEach((it) => {
         if (!it || !it._id) return;
+        if (seen.has(it._id)) return;
+        seen.add(it._id);
         ids.push(it._id);
         state.subtaskEntities[it._id] = it;
       });
@@ -529,8 +560,10 @@ const slice = createSlice({
       state.subtaskEntities[subtask._id] = subtask;
       const bucket = state.subtasksByParent[parentId];
       if (bucket && bucket.loaded) {
-        // prepend newest
-        bucket.ids = [subtask._id, ...bucket.ids];
+        // prepend newest nếu chưa tồn tại
+        if (!bucket.ids.includes(subtask._id)) {
+          bucket.ids = [subtask._id, ...bucket.ids];
+        }
       } else {
         state.subtasksByParent[parentId] = {
           ids: [subtask._id],
@@ -540,19 +573,74 @@ const slice = createSlice({
           lastFetch: Date.now(),
         };
       }
-      // Update parent detail counts optimistically
+      // Recompute parent summary optimistically
       if (state.congViecDetail && state.congViecDetail._id === parentId) {
-        const d = state.congViecDetail;
-        d.ChildrenCount = (d.ChildrenCount || 0) + 1;
-        if (d.ChildrenSummary) {
-          d.ChildrenSummary.total = (d.ChildrenSummary.total || 0) + 1;
-          d.ChildrenSummary.active = (d.ChildrenSummary.active || 0) + 1;
-          d.ChildrenSummary.incomplete =
-            (d.ChildrenSummary.incomplete || 0) + 1;
-          d.ChildrenSummary.done = d.ChildrenSummary.done || 0; // unchanged
-          d.AllChildrenDone = false;
+        recomputeParentChildrenSummary(state, parentId);
+      }
+      // finish loading flag if using fine-grained create
+      state.creatingSubtask = false;
+      state.createSubtaskError = null;
+    },
+    startCreateSubtask: (state) => {
+      state.creatingSubtask = true;
+      state.createSubtaskError = null;
+    },
+    finishCreateSubtask: (state, action) => {
+      state.creatingSubtask = false;
+      if (action?.payload) state.createSubtaskError = action.payload;
+    },
+    // Subtask update/delete lifecycle
+    startUpdateSubtask: (state, action) => {
+      state.updatingSubtaskId = action.payload; // id
+      state.subtaskOpError = null;
+    },
+    updateSubtaskSuccess: (state, action) => {
+      const { subtask } = action.payload || {};
+      if (subtask && subtask._id) {
+        const existing = state.subtaskEntities[subtask._id];
+        state.subtaskEntities[subtask._id] = existing
+          ? { ...existing, ...subtask }
+          : subtask;
+        // If parent detail open, recompute summary in case status/progress changed
+        const parentId = subtask.CongViecChaID || subtask.CongViecCha?.id;
+        if (
+          parentId &&
+          state.congViecDetail &&
+          state.congViecDetail._id === parentId
+        ) {
+          recomputeParentChildrenSummary(state, parentId);
         }
       }
+      state.updatingSubtaskId = null;
+    },
+    finishUpdateSubtask: (state, action) => {
+      state.updatingSubtaskId = null;
+      if (action?.payload) state.subtaskOpError = action.payload;
+    },
+    startDeleteSubtask: (state, action) => {
+      state.deletingSubtaskId = action.payload; // id
+      state.subtaskOpError = null;
+    },
+    deleteSubtaskSuccess: (state, action) => {
+      const { parentId, subtaskId } = action.payload || {};
+      // Remove from bucket
+      const bucket = state.subtasksByParent[parentId];
+      if (bucket) {
+        bucket.ids = bucket.ids.filter((id) => id !== subtaskId);
+      }
+      // Remove entity (or mark removed)
+      delete state.subtaskEntities[subtaskId];
+      // Update parent detail counts & summary
+      if (state.congViecDetail && state.congViecDetail._id === parentId) {
+        const d = state.congViecDetail;
+        d.ChildrenCount = Math.max(0, (d.ChildrenCount || 1) - 1);
+        recomputeParentChildrenSummary(state, parentId);
+      }
+      state.deletingSubtaskId = null;
+    },
+    finishDeleteSubtask: (state, action) => {
+      state.deletingSubtaskId = null;
+      if (action?.payload) state.subtaskOpError = action.payload;
     },
   },
 });
@@ -596,6 +684,14 @@ export const {
   fetchSubtasksSuccess,
   fetchSubtasksError,
   createSubtaskSuccess,
+  startCreateSubtask,
+  finishCreateSubtask,
+  startUpdateSubtask,
+  updateSubtaskSuccess,
+  finishUpdateSubtask,
+  startDeleteSubtask,
+  deleteSubtaskSuccess,
+  finishDeleteSubtask,
 } = slice.actions;
 
 // API service methods
@@ -619,7 +715,7 @@ const congViecAPI = {
   transition: (id, data) =>
     apiService.post(`/workmanagement/congviec/${id}/transition`, data),
   addComment: (id, data) =>
-    apiService.post(`/workmanagement/congviec/${id}/comment`, data),
+    apiService.post(`/workmanageme nt/congviec/${id}/comment`, data),
   deleteComment: (id) => apiService.delete(`/workmanagement/binhluan/${id}`),
   recallCommentText: (id) =>
     apiService.patch(`/workmanagement/binhluan/${id}/text`),
@@ -641,6 +737,36 @@ const congViecAPI = {
       params,
     }),
 };
+
+// Helper: recompute ChildrenSummary & AllChildrenDone for parentId using cached subtasks
+function recomputeParentChildrenSummary(state, parentId) {
+  if (!parentId) return;
+  const parent = state.congViecDetail;
+  if (!parent || parent._id !== parentId) return;
+  const bucket = state.subtasksByParent[parentId];
+  const ids = bucket?.ids || [];
+  let total = 0;
+  let done = 0;
+  let active = 0;
+  let incomplete = 0;
+  ids.forEach((id) => {
+    const st = state.subtaskEntities[id];
+    if (!st) return;
+    total += 1;
+    if (st.TrangThai === "HOAN_THANH") {
+      done += 1;
+    } else {
+      active += 1; // đang hoạt động (không hoàn thành)
+      incomplete += 1; // giữ đồng nghĩa cho UI hiện tại
+    }
+  });
+  parent.ChildrenSummary = parent.ChildrenSummary || {};
+  parent.ChildrenSummary.total = total;
+  parent.ChildrenSummary.done = done;
+  parent.ChildrenSummary.active = active;
+  parent.ChildrenSummary.incomplete = incomplete;
+  parent.AllChildrenDone = total > 0 && done === total;
+}
 
 // Helper: build payload cho updateCongViec (không dùng cho create – create vẫn bỏ null)
 function buildUpdatePayload(data) {
@@ -1338,7 +1464,7 @@ export const fetchSubtasks =
 
 // Create subtask
 export const createSubtask = (parentId, data) => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
+  dispatch(slice.actions.startCreateSubtask());
   try {
     const res = await congViecAPI.createSubtask(parentId, data);
     const subtask = res?.data?.data;
@@ -1347,7 +1473,49 @@ export const createSubtask = (parentId, data) => async (dispatch) => {
     toast.success("Đã tạo công việc con");
     return subtask;
   } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
+    dispatch(slice.actions.finishCreateSubtask(error.message));
+    toast.error(error?.response?.data?.error?.message || error.message);
+    throw error;
+  }
+};
+
+// Update subtask (fine-grained, không bật global isLoading)
+export const updateSubtask = (id, data) => async (dispatch, getState) => {
+  dispatch(slice.actions.startUpdateSubtask(id));
+  try {
+    const sanitized = buildUpdatePayload(data);
+    const headers = sanitized?.expectedVersion
+      ? { headers: { "If-Unmodified-Since": sanitized.expectedVersion } }
+      : undefined;
+    const res = await congViecAPI.update(id, sanitized, headers);
+    const subtask = res?.data?.data;
+    if (subtask?.updatedAt) subtask.__version = subtask.updatedAt;
+    dispatch(slice.actions.updateSubtaskSuccess({ subtask }));
+    toast.success("Đã cập nhật công việc con");
+    return subtask;
+  } catch (error) {
+    if (error?.message === "VERSION_CONFLICT") {
+      toast.warning(
+        "Công việc con đã thay đổi bởi người khác. Tải lại trước khi sửa."
+      );
+    } else {
+      toast.error(error?.response?.data?.error?.message || error.message);
+    }
+    dispatch(slice.actions.finishUpdateSubtask(error.message));
+    throw error;
+  }
+};
+
+// Delete subtask
+export const deleteSubtask = (parentId, subtaskId) => async (dispatch) => {
+  dispatch(slice.actions.startDeleteSubtask(subtaskId));
+  try {
+    await congViecAPI.delete(subtaskId);
+    dispatch(slice.actions.deleteSubtaskSuccess({ parentId, subtaskId }));
+    toast.success("Đã xóa công việc con");
+    return true;
+  } catch (error) {
+    dispatch(slice.actions.finishDeleteSubtask(error.message));
     toast.error(error?.response?.data?.error?.message || error.message);
     throw error;
   }

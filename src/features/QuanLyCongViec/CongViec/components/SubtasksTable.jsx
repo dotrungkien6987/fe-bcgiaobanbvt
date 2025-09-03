@@ -24,7 +24,30 @@ import {
 } from "@mui/icons-material";
 import dayjs from "dayjs";
 import { useSelector } from "react-redux";
-import { computeExtendedDueStatus as getExtendedDueStatus } from "../../../../utils/congViecUtils";
+import {
+  computeExtendedDueStatus as getExtendedDueStatus,
+  getStatusColor,
+  getPriorityColor,
+  getStatusText as getStatusLabel,
+  getPriorityText as getPriorityLabel,
+} from "../../../../utils/congViecUtils";
+
+// Map backend priority codes to Vietnamese labels - keeping for fallback
+const PRIORITY_LABEL_MAP = {
+  THAP: "Thấp",
+  BINH_THUONG: "Bình thường",
+  CAO: "Cao",
+  KHAN_CAP: "Rất cao",
+};
+
+// Map backend status codes to Vietnamese labels - keeping for fallback
+const STATUS_LABEL_MAP = {
+  TAO_MOI: "Tạo mới",
+  DA_GIAO: "Đã giao",
+  DANG_THUC_HIEN: "Đang thực hiện",
+  CHO_DUYET: "Chờ duyệt",
+  HOAN_THANH: "Hoàn thành",
+};
 
 const EXT_LABEL = {
   DUNG_HAN: "Đúng hạn",
@@ -51,6 +74,8 @@ const SubtasksTable = ({
   onView,
   onEdit,
   onDelete,
+  updatingId,
+  deletingId,
   emptyMessage = "Chưa có công việc con",
 }) => {
   const statusOverrides = useSelector((s) => s.colorConfig?.statusColors);
@@ -101,7 +126,12 @@ const SubtasksTable = ({
               cv.PhanTramTienDoTong ??
               cv.TienDo ??
               (typeof cv.TienDo === "number" ? cv.TienDo : 0);
-            const giao = cv.NguoiGiaoProfile || cv.NguoiGiaoViecProfile;
+            // Fallback chain for người giao với populated object
+            const giao =
+              cv.NguoiGiaoProfile ||
+              cv.NguoiGiaoViecProfile ||
+              cv.NguoiGiaoViecID || // populated object from BE
+              (typeof cv.NguoiGiaoID === "object" ? cv.NguoiGiaoID : null);
             const chinh = cv.NguoiChinhProfile || cv.NguoiChinhID;
             const giaoName =
               giao?.Ten || giao?.HoTen || giao?.name || giao?.FullName;
@@ -109,10 +139,16 @@ const SubtasksTable = ({
               chinh?.Ten || chinh?.HoTen || chinh?.name || chinh?.FullName;
             const soBL = cv.SoLuongBinhLuan || 0;
             const soTP = cv.SoLuongNguoiThamGia || 0;
-            const prio = cv.MucDoUuTien || "";
-            const prioColor = priorityOverrides?.[prio]?.color || "default";
-            const status = cv.TrangThai;
-            const statusColor = statusOverrides?.[status]?.color || "default";
+            const rawPrio = cv.MucDoUuTien || "";
+            const prio =
+              getPriorityLabel(rawPrio) ||
+              PRIORITY_LABEL_MAP[rawPrio] ||
+              rawPrio;
+            const rawStatus = cv.TrangThai;
+            const status =
+              getStatusLabel(rawStatus) ||
+              STATUS_LABEL_MAP[rawStatus] ||
+              rawStatus;
 
             return (
               <TableRow key={cv._id} hover>
@@ -141,9 +177,14 @@ const SubtasksTable = ({
                     <Chip
                       size="small"
                       label={prio}
-                      color={prioColor}
-                      variant="outlined"
-                      sx={{ height: 22 }}
+                      sx={{
+                        backgroundColor: getPriorityColor(
+                          rawPrio,
+                          priorityOverrides
+                        ),
+                        color: "white",
+                        height: 22,
+                      }}
                     />
                   )}
                 </TableCell>
@@ -151,8 +192,14 @@ const SubtasksTable = ({
                   <Chip
                     size="small"
                     label={status}
-                    color={statusColor}
-                    sx={{ height: 22 }}
+                    sx={{
+                      backgroundColor: getStatusColor(
+                        rawStatus,
+                        statusOverrides
+                      ),
+                      color: "white",
+                      height: 22,
+                    }}
                   />
                 </TableCell>
                 <TableCell>
@@ -238,6 +285,9 @@ const SubtasksTable = ({
                           e.stopPropagation();
                           onView?.(cv._id);
                         }}
+                        disabled={
+                          updatingId === cv._id || deletingId === cv._id
+                        }
                       >
                         <VisibilityIcon fontSize="inherit" />
                       </IconButton>
@@ -249,6 +299,9 @@ const SubtasksTable = ({
                           e.stopPropagation();
                           onEdit?.(cv);
                         }}
+                        disabled={
+                          updatingId === cv._id || deletingId === cv._id
+                        }
                       >
                         <EditIcon fontSize="inherit" />
                       </IconButton>
@@ -262,6 +315,9 @@ const SubtasksTable = ({
                             e.stopPropagation();
                             onDelete?.(cv);
                           }}
+                          disabled={
+                            deletingId === cv._id || updatingId === cv._id
+                          }
                         >
                           <DeleteIcon fontSize="inherit" />
                         </IconButton>
