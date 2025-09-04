@@ -76,6 +76,7 @@ import TaskMindMapTreePage from "../pages/TaskMindMapTreePage";
 import TaskMindMapTreeEnhancedPage from "../pages/TaskMindMapTreeEnhancedPage";
 import TaskMindMapHierarchicalPage from "../pages/TaskMindMapHierarchicalPage";
 import CongViecHierarchyTreeDynamicPage from "../pages/CongViecHierarchyTreeDynamicPage";
+import AdminBackupPage from "../pages/AdminBackupPage";
 
 function Router() {
   return (
@@ -198,6 +199,14 @@ function Router() {
           <Route path="/newfeature/function3" element={<TongHopHoatDong />} />
           <Route path="/tinh" element={<TinhTable />} />
           <Route path="/Huyen" element={<HuyenTable />} />
+          <Route
+            path="/backup-admin"
+            element={
+              <AdminRequire>
+                <AdminBackupPage />
+              </AdminRequire>
+            }
+          />
           <Route path="/Xa" element={<XaTable />} />
           <Route path="/quocgia" element={<QuocGiaTable />} />
           <Route path="/khoas" element={<KhoaTable />} />

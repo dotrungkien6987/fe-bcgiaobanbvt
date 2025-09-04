@@ -9,6 +9,12 @@ console.log(BASE_URL);
 apiService.interceptors.request.use(
   (request) => {
     console.log("Start Request", request);
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (token && !request.headers.Authorization) {
+        request.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (_) {}
     return request;
   },
   function (error) {

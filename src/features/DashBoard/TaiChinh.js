@@ -744,14 +744,14 @@ const TaiChinh = () => {
                         <MyPieChartForMoney
                           data={Pie_DoanhThu_DuyetKeToan}
                           colors={colors}
-                          other={{ height: 320 }}
+                          other={{ height: 340 }}
                           dataEx={dataEx_DuyetKeToan}
                         />
                       ) : (
                         <MyPieChartForMoney
                           data={Pie_DoanhThu_TheoChiDinh}
                           colors={colors}
-                          other={{ height: 320 }}
+                          other={{ height: 340 }}
                           dataEx={dataEx_TheoChiDinh}
                         />
                       )}
@@ -776,7 +776,7 @@ const TaiChinh = () => {
                               : Pie_DoanhThu_DuyetKeToan_ChenhLech
                           }
                           colors={colors}
-                          other={{ height: 320 }}
+                          other={{ height: 340 }}
                           dataEx={
                             ngay === 1
                               ? dataEx_DuyetKeToan
@@ -791,7 +791,7 @@ const TaiChinh = () => {
                               : Pie_DoanhThu_TheoChiDinh_ChenhLech
                           }
                           colors={colors}
-                          other={{ height: 320 }}
+                          other={{ height: 340 }}
                           dataEx={
                             ngay === 1
                               ? dataEx_TheoChiDinh
