@@ -2,19 +2,16 @@ import { yupResolver } from "@hookform/resolvers/yup";
 
 import { LoadingButton } from "@mui/lab";
 import {
-
   Box,
   Button,
   Card,
   Dialog,
   DialogActions,
   DialogContent,
-
   Grid,
   Stack,
-
 } from "@mui/material";
-import { FTextField, FormProvider } from "components/form";
+import { FTextField, FormProvider, FSelect } from "components/form";
 import FAutocomplete from "components/form/FAutocomplete";
 import FDatePicker from "components/form/FDatePicker";
 import FKRadioGroup from "components/form/FKRadioGroup";
@@ -24,9 +21,10 @@ import {
   insertOneNhanVien,
   updateOneNhanVien,
 } from "features/NhanVien/nhanvienSlice";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
+import { getAllLoaiChuyenMon } from "features/Daotao/LoaiChuyenMon/loaiChuyenMonSlice";
 import * as Yup from "yup";
 import dayjs from "dayjs";
 import MainCard from "components/MainCard";
@@ -43,6 +41,9 @@ const yupSchema = Yup.object().shape({
 
 function ThongTinNhanVien({ nhanvien, open, handleClose }) {
   const { khoas } = useSelector((state) => state.baocaongay);
+  const { list: loaiChuyenMonList } = useSelector(
+    (state) => state.loaichuyenmon
+  );
   const { TrinhDoChuyenMon, DanToc, PhamViHanhNghe, ChucDanh, ChucVu } =
     useSelector((state) => state.nhanvien);
   const dispatch = useDispatch();
@@ -50,12 +51,12 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
     if (PhamViHanhNghe.length === 0) {
       dispatch(getDataFix());
     }
-  }, []);
+  }, [PhamViHanhNghe.length, dispatch]);
 
   useEffect(() => {
     if (khoas && khoas.length > 0) return;
     dispatch(getKhoas());
-  }, []);
+  }, [khoas, dispatch]);
   const methods = useForm({
     resolver: yupResolver(yupSchema),
     defaultValues: {
@@ -64,7 +65,10 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
       Ten: "",
       Loai: 0,
       NgaySinh: null,
-      TrinhDoChuyenMon: null,
+      // Replaced standalone TrinhDoChuyenMon by 2-step selection: LoaiChuyenMon + LoaiChuyenMonID (TrinhDo)
+      LoaiChuyenMon: null, // object { value, label }
+      LoaiChuyenMonID: null, // object from collection { _id, LoaiChuyenMon, TrinhDo }
+      TrinhDoChuyenMon: null, // GIỮ LẠI FIELD CŨ (string hoặc option autocomplete)
       ChucDanh: null,
       ChucVu: null,
       DanToc: null,
@@ -73,39 +77,92 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
       Email: "",
       CMND: "",
       GioiTinh: 0,
-      SoCCHN:"",
-      NgayCapCCHN:null,
+      SoCCHN: "",
+      NgayCapCCHN: null,
       KhoaID: null,
+      DaNghi: false,
+      LyDoNghi: "",
     },
   });
-  
+
   const {
     handleSubmit,
     reset,
-    setValue,
+    // setValue, (currently unused)
+    watch,
     formState: { isSubmitting },
   } = methods;
 
+  const LOAI_CHUYEN_MON_ENUM = [
+    { value: "BAC_SI", label: "Bác sĩ" },
+    { value: "DUOC_SI", label: "Dược sĩ" },
+    { value: "DIEU_DUONG", label: "Điều dưỡng" },
+    { value: "KTV", label: "Kỹ thuật viên" },
+    { value: "KHAC", label: "Khác" },
+  ];
+
+  const selectedLoaiChuyenMon = watch("LoaiChuyenMon");
+  const daNghi = watch("DaNghi");
+
+  // Filter TrinhDo list based on selected LoaiChuyenMon
+  const trinhDoFiltered = useMemo(() => {
+    if (!selectedLoaiChuyenMon) return [];
+    return loaiChuyenMonList
+      .filter((i) => i.LoaiChuyenMon === selectedLoaiChuyenMon.value)
+      .filter((i) => !!i.TrinhDo)
+      .map((i) => i);
+  }, [selectedLoaiChuyenMon, loaiChuyenMonList]);
+
+  const LY_DO_NGHI_OPTIONS = [
+    { value: "Nghỉ hưu", label: "Nghỉ hưu" },
+    { value: "Chuyển công tác", label: "Chuyển công tác" },
+    { value: "Khác", label: "Khác" },
+  ];
+
+  useEffect(() => {
+    // load LoaiChuyenMon list if needed
+    if (!loaiChuyenMonList || loaiChuyenMonList.length === 0) {
+      dispatch(getAllLoaiChuyenMon());
+    }
+  }, [loaiChuyenMonList, dispatch]);
+
   useEffect(() => {
     console.log("nhanvien", nhanvien);
-    // Kiểm tra xem `nhanvien` có tồn tại và form đang ở chế độ cập nhật không
     if (nhanvien && nhanvien._id && nhanvien._id !== 0) {
-      // Cập nhật giá trị mặc định cho form bằng thông tin của `nhanvien`
+      // Attempt to resolve LoaiChuyenMon & LoaiChuyenMonID objects
+      let loaiChuyenMonValue = null;
+      let loaiChuyenMonIDObj = null;
+      if (loaiChuyenMonList && loaiChuyenMonList.length > 0) {
+        // nhanvien.LoaiChuyenMonID may be id string or populated object
+        const idVal = nhanvien.LoaiChuyenMonID?._id || nhanvien.LoaiChuyenMonID;
+        loaiChuyenMonIDObj =
+          loaiChuyenMonList.find((x) => x._id === idVal) || null;
+        if (loaiChuyenMonIDObj) {
+          loaiChuyenMonValue =
+            LOAI_CHUYEN_MON_ENUM.find(
+              (opt) => opt.value === loaiChuyenMonIDObj.LoaiChuyenMon
+            ) || null;
+        }
+      }
       reset({
         ...nhanvien,
-        // Đảm bảo rằng các trường như Ngày sinh được chuyển đổi đúng định dạng nếu cần
         NgaySinh: nhanvien.NgaySinh ? dayjs(nhanvien.NgaySinh) : null,
         NgayCapCCHN: nhanvien.NgayCapCCHN ? dayjs(nhanvien.NgayCapCCHN) : null,
-        // Tương tự, bạn có thể điều chỉnh các trường khác để phù hợp với định dạng của form
+        LoaiChuyenMon: loaiChuyenMonValue,
+        LoaiChuyenMonID: loaiChuyenMonIDObj,
+        TrinhDoChuyenMon: nhanvien.TrinhDoChuyenMon || null,
+        DaNghi: nhanvien.DaNghi || false,
+        LyDoNghi: nhanvien.DaNghi ? nhanvien.LyDoNghi : "",
       });
     } else {
-      // Nếu không có `nhanvien` được truyền vào, reset form với giá trị mặc định
       reset({
         TinChiBanDau: 0,
         MaNhanVien: "",
         Ten: "",
         Loai: 0,
         NgaySinh: null,
+        LoaiChuyenMon: null,
+        LoaiChuyenMonID: null,
         TrinhDoChuyenMon: null,
         ChucDanh: null,
         ChucVu: null,
@@ -115,21 +172,34 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         Email: "",
         CMND: "",
         GioiTinh: 0,
-        SoCCHN:"",
-        NgayCapCCHN:null,
+        SoCCHN: "",
+        NgayCapCCHN: null,
         KhoaID: null,
+        DaNghi: false,
+        LyDoNghi: "",
       });
     }
-  }, [nhanvien]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nhanvien, loaiChuyenMonList, reset]);
 
   const onSubmitData = (data, e) => {
     e.preventDefault();
     console.log("data form", data);
     const nhanvienUpdate = {
       ...data,
-      KhoaID: data.KhoaID._id,
-      NgaySinh: data.NgaySinh.toISOString(),
+      // Map backend expected fields
+      KhoaID: data.KhoaID?._id,
+      NgaySinh: data.NgaySinh ? data.NgaySinh.toISOString() : null,
+      NgayCapCCHN: data.NgayCapCCHN ? data.NgayCapCCHN.toISOString() : null,
+      LoaiChuyenMonID: data.LoaiChuyenMonID?._id,
+      // Giữ lại TrinhDoChuyenMon user chọn, nếu không chọn fallback từ LoaiChuyenMonID
+      TrinhDoChuyenMon:
+        data.TrinhDoChuyenMon || data.LoaiChuyenMonID?.TrinhDo || "",
+      DaNghi: data.DaNghi || false,
+      LyDoNghi: data.DaNghi ? data.LyDoNghi : "",
     };
+    // Remove helper fields not needed (optional)
+    delete nhanvienUpdate.LoaiChuyenMon;
     console.log("nhanvien dispatch", nhanvienUpdate);
     if (nhanvien && nhanvien._id) dispatch(updateOneNhanVien(nhanvienUpdate));
     else dispatch(insertOneNhanVien(nhanvienUpdate));
@@ -203,20 +273,42 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
                 </Grid>
               </Grid>
 
+              {/* Dòng riêng: Loại chuyên môn & Trình độ theo loại */}
               <Grid container spacing={1}>
-                <Grid item xs={12} sm={12} md={6}>
+                <Grid item xs={12} md={6}>
+                  <FAutocomplete
+                    name="LoaiChuyenMon"
+                    options={LOAI_CHUYEN_MON_ENUM}
+                    displayField="label"
+                    label="Loại chuyên môn"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FAutocomplete
+                    name="LoaiChuyenMonID"
+                    options={trinhDoFiltered}
+                    displayField="TrinhDo"
+                    label="Trình độ (theo loại)"
+                    disabled={!selectedLoaiChuyenMon}
+                  />
+                </Grid>
+              </Grid>
+
+              {/* Dòng tiếp theo: Trình độ chuyên môn cũ + Tín chỉ + CMND */}
+              <Grid container spacing={1}>
+                <Grid item xs={12} sm={6} md={6} lg={6}>
                   <FAutocomplete
                     name="TrinhDoChuyenMon"
                     options={TrinhDoChuyenMon.map(
                       (item) => item.TrinhDoChuyenMon
                     )}
-                    label="Trình độ chuyên môn"
+                    label="Trình độ chuyên môn (cũ)"
                   />
                 </Grid>
-                <Grid item xs={12} sm={12} md={3}>
-                  <FTextField name="TinChiBanDau" label="Tín chỉ ban đầu" />
+                <Grid item xs={6} sm={3} md={3} lg={3}>
+                  <FTextField name="TinChiBanDau" label="Tín chỉ" />
                 </Grid>
-                <Grid item xs={12} sm={12} md={3}>
+                <Grid item xs={6} sm={3} md={3} lg={3}>
                   <FTextField name="CMND" label="CMND/CCCD" />
                 </Grid>
               </Grid>
@@ -255,18 +347,46 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
                 </Grid>
               </Grid>
 
+              {/* Dòng: Số CCHN & Ngày cấp */}
               <Grid container spacing={1}>
-                <Grid item xs={12} sm={12} md={6}>
+                <Grid item xs={12} sm={6} md={6}>
                   <FTextField name="SoCCHN" label="Số chứng chỉ hành nghề" />
                 </Grid>
-
-                <Grid item xs={12} sm={12} md={6}>
+                <Grid item xs={12} sm={6} md={6}>
                   <FDatePicker name="NgayCapCCHN" label="Ngày cấp CCHN" />
                 </Grid>
-                <Grid item xs={12} sm={12} md={6}>
+              </Grid>
+
+              {/* Dòng nhóm Trạng thái + Lý do nghỉ (nếu có) */}
+              <Grid container spacing={1}>
+                <Grid item xs={12} sm={6} md={4}>
+                  <FKRadioGroup
+                    row={true}
+                    name="DaNghi"
+                    label="Trạng thái"
+                    options={[
+                      { value: false, label: "Đang làm" },
+                      { value: true, label: "Đã nghỉ" },
+                    ]}
+                  />
+                </Grid>
+                {daNghi && (
+                  <Grid item xs={12} sm={6} md={4}>
+                    <FSelect
+                      name="LyDoNghi"
+                      label="Lý do nghỉ"
+                      options={LY_DO_NGHI_OPTIONS}
+                    />
+                  </Grid>
+                )}
+              </Grid>
+
+              {/* Dòng: Liên hệ */}
+              <Grid container spacing={1}>
+                <Grid item xs={12} sm={6} md={6}>
                   <FTextField name="SoDienThoai" label="Số điện thoại" />
                 </Grid>
-                <Grid item xs={12} sm={12} md={6}>
+                <Grid item xs={12} sm={6} md={6}>
                   <FTextField name="Email" label="Email" />
                 </Grid>
               </Grid>

@@ -23,7 +23,7 @@ const ENUM_OPTIONS = [
   { value: "BAC_SI", label: "Bác sĩ" },
   { value: "DUOC_SI", label: "Dược sĩ" },
   { value: "DIEU_DUONG", label: "Điều dưỡng" },
-  { value: "KTV", label: "KTV" },
+  { value: "KTV", label: "Kỹ thuật viên" },
   { value: "KHAC", label: "Khác" },
 ];
 

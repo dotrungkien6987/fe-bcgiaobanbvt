@@ -19,10 +19,24 @@ import { formatDate_getDate } from "utils/formatTime";
 import QuaTrinhDaoTaoNhanVienButon from "features/NhanVien/QuaTrinhDaoTaoNhanVienButon";
 import QuanLyNhanVienButton from "features/QuanLyCongViec/QuanLyNhanVien/QuanLyNhanVienButton";
 import ScrollX from "components/ScrollX";
+import useAuth from "hooks/useAuth";
+
+const LOAI_CHUYEN_MON_LABELS = {
+  BAC_SI: "Bác sĩ",
+  DUOC_SI: "Dược sĩ",
+  DIEU_DUONG: "Điều dưỡng",
+  KTV: "Kỹ thuật viên",
+  KHAC: "Khác",
+};
+
 function NhanVienList() {
   const theme = useTheme();
   const mode = theme.palette.mode;
   const navigate = useNavigate();
+  const {user} = useAuth();
+  
+  const isAdmin = user?.PhanQuyen === "admin";
+  
   const columns = useMemo(
     () => [
       {
@@ -52,59 +66,63 @@ function NhanVienList() {
               <UpdateNhanVienButton nhanvien={row.original} />
               <DeleteNhanVienButton nhanvienID={row.original._id} />
               <QuaTrinhDaoTaoNhanVienButon nhanvienID={row.original._id} />
-              <QuanLyNhanVienButton nhanvienID={row.original._id} />
-              <Tooltip
-                componentsProps={{
-                  tooltip: {
-                    sx: {
-                      backgroundColor:
-                        mode === ThemeMode.DARK
-                          ? theme.palette.grey[50]
-                          : theme.palette.grey[700],
-                      opacity: 0.9,
-                    },
-                  },
-                }}
-                title="Quản lý công việc"
-              >
-                <IconButton
-                  color="primary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(
-                      `/quan-ly-cong-viec/nhan-vien/${row.original._id}`
-                    );
-                  }}
-                >
-                  <Task />
-                </IconButton>
-              </Tooltip>
-              <Tooltip
-                componentsProps={{
-                  tooltip: {
-                    sx: {
-                      backgroundColor:
-                        mode === ThemeMode.DARK
-                          ? theme.palette.grey[50]
-                          : theme.palette.grey[700],
-                      opacity: 0.9,
-                    },
-                  },
-                }}
-                title="Giao nhiệm vụ"
-              >
-                <IconButton
-                  color="secondary"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(
-                      `/quanlycongviec/giao-nhiem-vu/${row.original._id}`
-                    );
-                  }}
-                >
-                  <Send />
-                </IconButton>
-              </Tooltip>
+              {isAdmin && (
+                <>
+                  <QuanLyNhanVienButton nhanvienID={row.original._id} />
+                  <Tooltip
+                    componentsProps={{
+                      tooltip: {
+                        sx: {
+                          backgroundColor:
+                            mode === ThemeMode.DARK
+                              ? theme.palette.grey[50]
+                              : theme.palette.grey[700],
+                          opacity: 0.9,
+                        },
+                      },
+                    }}
+                    title="Quản lý công việc"
+                  >
+                    <IconButton
+                      color="primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(
+                          `/quan-ly-cong-viec/nhan-vien/${row.original._id}`
+                        );
+                      }}
+                    >
+                      <Task />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip
+                    componentsProps={{
+                      tooltip: {
+                        sx: {
+                          backgroundColor:
+                            mode === ThemeMode.DARK
+                              ? theme.palette.grey[50]
+                              : theme.palette.grey[700],
+                          opacity: 0.9,
+                        },
+                      },
+                    }}
+                    title="Giao nhiệm vụ"
+                  >
+                    <IconButton
+                      color="secondary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(
+                          `/quanlycongviec/giao-nhiem-vu/${row.original._id}`
+                        );
+                      }}
+                    >
+                      <Send />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )}
               <Tooltip
                 componentsProps={{
                   tooltip: {
@@ -190,6 +208,24 @@ function NhanVienList() {
         disableGroupBy: true,
       },
       {
+        Header: "Loại chuyên môn",
+        Footer: "Loại chuyên môn",
+        accessor: (row) =>
+          row.LoaiChuyenMon || row.LoaiChuyenMonID?.LoaiChuyenMon || "",
+        dataType: "text",
+        filter: "fuzzyText",
+        disableGroupBy: true,
+        Cell: ({ value }) => LOAI_CHUYEN_MON_LABELS[value] || value,
+      },
+      {
+        Header: "Trình độ ",
+        Footer: "Trình độ ",
+        accessor: (row) => row.TrinhDo || row.LoaiChuyenMonID?.TrinhDo || "",
+        dataType: "text",
+        filter: "fuzzyText",
+        disableGroupBy: true,
+      },
+      {
         Header: "Số CMND/CCCD",
         Footer: "Số CMND/CCCD",
         accessor: "CMND",
@@ -268,7 +304,7 @@ function NhanVienList() {
         disableGroupBy: true,
       },
     ],
-    [mode, theme.palette.grey, navigate]
+    [mode, theme.palette.grey, navigate, isAdmin]
   );
 
   const dispatch = useDispatch();

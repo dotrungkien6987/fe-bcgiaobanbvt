@@ -115,6 +115,7 @@ const slice = createSlice({
     updateOneNhanVienSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
+      console.log('Update Nhan Vien:', action.payload);
       state.nhanviens = state.nhanviens.map((nhanvien) =>
         nhanvien._id === action.payload._id
           ? {
