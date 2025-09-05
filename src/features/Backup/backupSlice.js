@@ -58,6 +58,28 @@ export const downloadBackup = () => async () => {
   }
 };
 
+// Tải một file backup đã tồn tại (không tạo mới)
+export const downloadExistingBackup = (fileName) => async () => {
+  try {
+    const res = await apiService.get(
+      `/backup/download?f=${encodeURIComponent(fileName)}`,
+      {
+        responseType: "blob",
+      }
+    );
+    const blob = new Blob([res.data], { type: "application/zip" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    toast.success("Tải file backup thành công");
+  } catch (error) {
+    toast.error(error.message);
+  }
+};
+
 export const restoreBackup = (file) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {

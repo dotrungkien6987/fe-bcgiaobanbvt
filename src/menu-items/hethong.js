@@ -149,6 +149,13 @@ const hethong = {
           type: 'item',
           url: '/nhomkhoas'
         },
+        {
+          id: 'LoaiChuyenMon',
+          title: 'Loại chuyên môn',
+          type: 'item',
+          url: '/loaichuyenmon'
+        },
+        
       ]
     }
   ]

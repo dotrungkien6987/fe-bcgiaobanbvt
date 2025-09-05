@@ -65,6 +65,7 @@ import DataSourceExplanation from "features/HoatDongBenhVien/DataSourceExplanati
 import HoatDongDashBoard1 from "features/HoatDongBenhVien1/HoatDongDashBoard1";
 import DoanRaTable from "features/NghienCuuKhoaHoc/DoanRa/DoanRaTable";
 import QuocGiaTable from "features/Daotao/QuocGia/QuocGiaTable";
+import LoaiChuyenMonTable from "features/Daotao/LoaiChuyenMon/LoaiChuyenMonTable";
 import NhomViecUserList from "features/QuanLyCongViec/NhomViecUser/NhomViecUserList";
 import NhiemVuThuongQuyList from "features/QuanLyCongViec/NhiemVuThuongQuy/NhiemVuThuongQuyList";
 import QuanLyNhanVienPage from "features/QuanLyCongViec/QuanLyNhanVien/QuanLyNhanVienPage";
@@ -198,6 +199,7 @@ function Router() {
           <Route path="/newfeature/function2" element={<Function2 />} />
           <Route path="/newfeature/function3" element={<TongHopHoatDong />} />
           <Route path="/tinh" element={<TinhTable />} />
+          <Route path="/loaichuyenmon" element={<LoaiChuyenMonTable />} />
           <Route path="/Huyen" element={<HuyenTable />} />
           <Route
             path="/backup-admin"

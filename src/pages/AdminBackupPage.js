@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   listBackups,
   downloadBackup,
   restoreBackup,
+  downloadExistingBackup,
 } from "../features/Backup/backupSlice";
 import {
   Button,
@@ -23,12 +24,17 @@ export default function AdminBackupPage() {
   const dispatch = useDispatch();
   const { files, isLoading } = useSelector((s) => s.backup);
   const fileRef = useRef();
+  const [selectedFileName, setSelectedFileName] = useState("");
 
   useEffect(() => {
     dispatch(listBackups());
   }, [dispatch]);
 
-  const onDownload = () => dispatch(downloadBackup());
+  const onDownload = async () => {
+    await dispatch(downloadBackup());
+    // Sau khi tạo backup mới, làm tươi danh sách
+    dispatch(listBackups());
+  };
 
   const onRestore = () => {
     const file = fileRef.current.files[0];
@@ -52,16 +58,26 @@ export default function AdminBackupPage() {
             Tạo & Tải backup
           </Button>
           <Button variant="outlined" component="label">
-            Chọn file
+            {selectedFileName || "Chọn file"}
             <input
               hidden
               type="file"
               ref={fileRef}
               accept=".zip"
-              onChange={() => {}}
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                setSelectedFileName(f ? f.name : "");
+              }}
             />
           </Button>
-          <Button variant="contained" color="warning" onClick={onRestore}>
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={onRestore}
+            disabled={
+              !fileRef.current || !fileRef.current.files.length || isLoading
+            }
+          >
             Phục hồi
           </Button>
         </Stack>
@@ -87,13 +103,8 @@ export default function AdminBackupPage() {
               <TableCell align="right">
                 <Button
                   size="small"
-                  onClick={() => {
-                    // tải file cũ
-                    window.location.href = `${process.env.REACT_APP_BACKEND_API.replace(
-                      /\/$/,
-                      ""
-                    )}/backup/download?f=${encodeURIComponent(f.file)}`;
-                  }}
+                  onClick={() => dispatch(downloadExistingBackup(f.file))}
+                  disabled={isLoading}
                 >
                   Tải
                 </Button>
