@@ -1,37 +1,19 @@
-import {
-  Button,
-  Card,
-  CardHeader,
-  Chip,
-  Grid,
-  Stack,
-  TextField,
-} from "@mui/material";
+import { Card, CardHeader, Grid } from "@mui/material";
 
-import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
-import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import MainCard from "components/MainCard";
+
 import {
   getCoCauNguonNhanLucByKhoa,
   getCoCauNguonNhanLucToanVien,
-  getTongHopSoLuongHinhThucCapNhatThucHien,
   getTongHopSoLuongTheoKhoa,
-  getTongHopTinChiTichLuy,
 } from "features/NhanVien/nhanvienSlice";
 
-import { formatDate_getDate } from "utils/formatTime";
-import TongHopSoLuongThucHienTable from "./TongHopSoLuongThucHienTable";
 import MyPieChart from "components/form/MyPieChart";
 import LoadingScreen from "components/LoadingScreen";
 
-
 function CoCauNguonNhanLuc({ fromDateISO, toDateISO, sonamcanhbao, khoaID }) {
-  
   const { isLoading, CoCauNguonNhanLuc, pieChartDatKhuyenCao } = useSelector(
     (state) => state.nhanvien
   );
@@ -55,32 +37,34 @@ function CoCauNguonNhanLuc({ fromDateISO, toDateISO, sonamcanhbao, khoaID }) {
     // { color: "#0088FE" },
   ];
   const size1 = {
-    height: 250,
+    height: 200,
   };
   useEffect(() => {
-   if (!khoaID)
-    dispatch(
-      getTongHopSoLuongTheoKhoa(fromDateISO, toDateISO, sonamcanhbao * 24)
-    );
+    if (!khoaID)
+      dispatch(
+        getTongHopSoLuongTheoKhoa(fromDateISO, toDateISO, sonamcanhbao * 24)
+      );
   }, []);
 
-useEffect(() => {
-  if (khoaID) {
-    dispatch(getCoCauNguonNhanLucByKhoa(khoaID));
-  } else dispatch(getCoCauNguonNhanLucToanVien());
-},[khoaID])
+  useEffect(() => {
+    if (khoaID) {
+      dispatch(getCoCauNguonNhanLucByKhoa(khoaID));
+    } else dispatch(getCoCauNguonNhanLucToanVien());
+  }, [khoaID]);
 
   return isLoading ? (
     <LoadingScreen />
   ) : (
     <Card sx={{ backgroundColor: "#1939B7", p: 2 }}>
       <Grid container spacing={3} my={1}>
-        <Grid item xs={12} md={4.5}>
+        <Grid item xs={12} md={4}>
           <Card>
             <CardHeader title={"1.Cơ cấu nguồn nhân lực chung"} />
-            {CoCauNguonNhanLuc.resultQuyDoi1 && (
+            {CoCauNguonNhanLuc.cocauChung && (
               <MyPieChart
-                data={CoCauNguonNhanLuc.resultQuyDoi1.filter((item)=>item.value>0)}
+                data={CoCauNguonNhanLuc.cocauChung.filter(
+                  (item) => item.value > 0
+                )}
                 colors={colors}
                 other={{ ...size1 }}
               />
@@ -88,14 +72,75 @@ useEffect(() => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={7.5}>
+        <Grid item xs={12} md={4}>
           <Card>
-            <CardHeader
-              title={"1.Cơ cấu nguồn nhân lực theo trình độ chuyên môn"}
-            />
-            {CoCauNguonNhanLuc.resultQuyDoi1 && (
+            <CardHeader title={"1.Cơ cấu theo bác sĩ"} />
+            {CoCauNguonNhanLuc.cocauBacSi && (
               <MyPieChart
-                data={CoCauNguonNhanLuc.resultQuyDoi2.filter((item)=>item.value>0)}
+                data={CoCauNguonNhanLuc.cocauBacSi.filter(
+                  (item) => item.value > 0
+                )}
+                colors={colors}
+                other={{ ...size1 }}
+              />
+            )}
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={4}>
+          <Card>
+            <CardHeader title={"Cơ cấu theo Điều dưỡng"} />
+            {CoCauNguonNhanLuc.cocauDieuDuong && (
+              <MyPieChart
+                data={CoCauNguonNhanLuc.cocauDieuDuong.filter(
+                  (item) => item.value > 0
+                )}
+                colors={colors}
+                other={{ ...size1 }}
+              />
+            )}
+          </Card>
+        </Grid>
+
+        {/* Additional breakdowns: Dược sĩ, Điều dưỡng, KTV (3-up layout) */}
+        <Grid item xs={12} md={3.5}>
+          <Card>
+            <CardHeader title={"Cơ cấu theo Dược sĩ"} />
+            {CoCauNguonNhanLuc.cocauDuocSi && (
+              <MyPieChart
+                data={CoCauNguonNhanLuc.cocauDuocSi.filter(
+                  (item) => item.value > 0
+                )}
+                colors={colors}
+                other={{ ...size1 }}
+              />
+            )}
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={3.5}>
+          <Card>
+            <CardHeader title={"Cơ cấu theo kỹ thuật viên"} />
+            {CoCauNguonNhanLuc.cocauKTV && (
+              <MyPieChart
+                data={CoCauNguonNhanLuc.cocauKTV.filter(
+                  (item) => item.value > 0
+                )}
+                colors={colors}
+                other={{ ...size1 }}
+              />
+            )}
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} md={5}>
+          <Card>
+            <CardHeader title={"Cơ cấu theo chuyên môn khác"} />
+            {CoCauNguonNhanLuc.cocauKhac && (
+              <MyPieChart
+                data={CoCauNguonNhanLuc.cocauKhac.filter(
+                  (item) => item.value > 0
+                )}
                 colors={colors}
                 other={{ ...size1 }}
               />
@@ -108,7 +153,7 @@ useEffect(() => {
             <CardHeader
               title={"2. Cơ cấu nguồn nhân lực theo chứng chỉ hành nghề"}
             />
-            {CoCauNguonNhanLuc.resultQuyDoi1 && (
+            {CoCauNguonNhanLuc.resultChungChiHanhNghe && (
               <MyPieChart
                 data={CoCauNguonNhanLuc.resultChungChiHanhNghe}
                 colors={colors}
@@ -124,7 +169,7 @@ useEffect(() => {
                 "1.Tỷ lệ đạt tín chỉ khuyến cáo (Trên tổng số cán bộ có CCHN)"
               }
             />
-            {CoCauNguonNhanLuc.resultQuyDoi1 && (
+            {pieChartDatKhuyenCao && (
               <MyPieChart
                 data={pieChartDatKhuyenCao}
                 colors={colors}
