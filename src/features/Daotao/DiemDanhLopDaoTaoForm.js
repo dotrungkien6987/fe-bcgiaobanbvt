@@ -122,26 +122,26 @@ function DiemDanhLopDaoTaoForm() {
     }
   }, [lopdaotaoCurrent, HinhThucCapNhat]);
 
-  const onSubmitData = (data) => {
-    console.log("data form", data);
-    const lopdaotaoData = {
-      ...lopdaotaoCurrent,
-      ...data,
-      MaHinhThucCapNhat: data.MaHinhThucCapNhat.Ma,
-      NgayBatDau: data.NgayBatDau ? data.NgayBatDau.toISOString() : null,
-      NgayKetThuc: data.NgayKetThuc ? data.NgayKetThuc.toISOString() : null,
-    };
-    const vaitroquydoi =
-      HinhThucCapNhat.find(
-        (item) => item.Ma === lopdaotaoData.MaHinhThucCapNhat
-      ).VaiTroQuyDoi || [];
-    console.log("vaitroquydoi", vaitroquydoi);
-    if (lopdaotaoData && lopdaotaoData._id) {
-      dispatch(updateOneLopDaoTao({ lopdaotaoData, vaitroquydoi }));
-    } else {
-      dispatch(insertOneLopDaoTao({ lopdaotaoData, vaitroquydoi }));
-    }
-  };
+  // const onSubmitData = (data) => {
+  //   console.log("data form", data);
+  //   const lopdaotaoData = {
+  //     ...lopdaotaoCurrent,
+  //     ...data,
+  //     MaHinhThucCapNhat: data.MaHinhThucCapNhat.Ma,
+  //     NgayBatDau: data.NgayBatDau ? data.NgayBatDau.toISOString() : null,
+  //     NgayKetThuc: data.NgayKetThuc ? data.NgayKetThuc.toISOString() : null,
+  //   };
+  //   const vaitroquydoi =
+  //     HinhThucCapNhat.find(
+  //       (item) => item.Ma === lopdaotaoData.MaHinhThucCapNhat
+  //     ).VaiTroQuyDoi || [];
+  //   console.log("vaitroquydoi", vaitroquydoi);
+  //   if (lopdaotaoData && lopdaotaoData._id) {
+  //     dispatch(updateOneLopDaoTao({ lopdaotaoData, vaitroquydoi }));
+  //   } else {
+  //     dispatch(insertOneLopDaoTao({ lopdaotaoData, vaitroquydoi }));
+  //   }
+  // };
   return (
     <MainCard title="Quá trình điểm danh">
       <Grid container spacing={2}>

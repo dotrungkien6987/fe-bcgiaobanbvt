@@ -10,6 +10,8 @@ import {
   DialogContent,
   Grid,
   Stack,
+  Divider,
+  Typography,
 } from "@mui/material";
 import { FTextField, FormProvider, FSelect } from "components/form";
 import FAutocomplete from "components/form/FAutocomplete";
@@ -73,6 +75,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
       ChucVu: null,
       DanToc: null,
       PhamViHanhNghe: null,
+      PhamViHanhNgheBoSung: null, // NEW bổ sung
       SoDienThoai: "",
       Email: "",
       CMND: "",
@@ -153,6 +156,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         TrinhDoChuyenMon: nhanvien.TrinhDoChuyenMon || null,
         DaNghi: nhanvien.DaNghi || false,
         LyDoNghi: nhanvien.DaNghi ? nhanvien.LyDoNghi : "",
+        PhamViHanhNgheBoSung: nhanvien.PhamViHanhNgheBoSung || null,
       });
     } else {
       reset({
@@ -168,6 +172,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         ChucVu: null,
         DanToc: null,
         PhamViHanhNghe: null,
+        PhamViHanhNgheBoSung: null,
         SoDienThoai: "",
         Email: "",
         CMND: "",
@@ -314,35 +319,51 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
               </Grid>
 
               <Grid container spacing={1}>
-                <Grid item xs={12} sm={12} md={6}>
+                <Grid item xs={12} sm={6} md={4}>
                   <FAutocomplete
                     name="ChucDanh"
                     options={ChucDanh.map((item) => item.ChucDanh)}
                     label="Chức danh"
                   />
                 </Grid>
-                <Grid item xs={12} sm={12} md={6}>
+                <Grid item xs={12} sm={6} md={4}>
                   <FAutocomplete
                     name="ChucVu"
                     options={ChucVu.map((item) => item.ChucVu)}
                     label="Chức vụ"
                   />
                 </Grid>
-              </Grid>
-
-              <Grid container spacing={1}>
-                <Grid item xs={12} sm={12} md={6}>
+                <Grid item xs={12} sm={6} md={4}>
                   <FAutocomplete
                     name="DanToc"
                     options={DanToc.map((item) => item.DanToc)}
                     label="Dân tộc"
                   />
                 </Grid>
-                <Grid item xs={12} sm={12} md={6}>
+              </Grid>
+
+              <Divider sx={{ my: 1 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mt: 1 }}>
+                Hành nghề
+              </Typography>
+
+              <Grid container spacing={1}>
+                <Grid item xs={12}>
                   <FAutocomplete
                     name="PhamViHanhNghe"
                     options={PhamViHanhNghe.map((item) => item.PhamViHanhNghe)}
                     label="Phạm vi hành nghề"
+                    textWrap
+                  />
+                </Grid>
+              </Grid>
+              <Grid container spacing={1}>
+                <Grid item xs={12}>
+                  <FAutocomplete
+                    name="PhamViHanhNgheBoSung"
+                    options={PhamViHanhNghe.map((item) => item.PhamViHanhNghe)}
+                    label="Phạm vi hành nghề bổ sung"
+                    textWrap
                   />
                 </Grid>
               </Grid>

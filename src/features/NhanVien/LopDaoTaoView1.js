@@ -5,18 +5,13 @@ import { useTheme } from "@mui/material/styles";
 import {
   useMediaQuery,
   Grid,
-  
   Divider,
-  
   List,
   ListItem,
-  
   Stack,
-  
   Typography,
   Button,
 } from "@mui/material";
-
 
 // project-imports
 import MainCard from "components/MainCard";
@@ -29,40 +24,49 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateTrangThaiLopDaoTao } from "features/Daotao/daotaoSlice";
 import useAuth from "hooks/useAuth";
 
-
-
 // ==============================|| CUSTOMER - VIEW ||============================== //
 
-const LopDaoTaoView1 = ({ data,tam=false }) => {
+const LopDaoTaoView1 = ({ data, tam = false }) => {
   const theme = useTheme();
   const { user } = useAuth();
-  const {HinhThucCapNhat} = useSelector((state) => state.hinhthuccapnhat); 
-  const loaihinhthuc = HinhThucCapNhat?.find((item) => item.Ma === data.MaHinhThucCapNhat)?.Loai || "";
+  const { HinhThucCapNhat } = useSelector((state) => state.hinhthuccapnhat);
+  const loaihinhthuc =
+    HinhThucCapNhat?.find((item) => item.Ma === data.MaHinhThucCapNhat)?.Loai ||
+    "";
   const matchDownMD = useMediaQuery(theme.breakpoints.down("md"));
   console.log("datanhanvien", data);
   const dispatch = useDispatch();
   const handleClickDuyet = () => {
-    const trangthai_old = data.TrangThai ||false;
-    dispatch(updateTrangThaiLopDaoTao({TrangThai: !trangthai_old, lopdaotaoID: data._id}));
+    const trangthai_old = data.TrangThai || false;
+    dispatch(
+      updateTrangThaiLopDaoTao({
+        TrangThai: !trangthai_old,
+        lopdaotaoID: data._id,
+      })
+    );
   };
   return (
     <MainCard>
       <Grid container spacing={1}>
         <Grid item xs={12} sm={5}>
           <MainCard>
-            {(data.TrangThai && data.TrangThai === true) ? (
-             <TrangThaiLopDaoTao trangthai={data.TrangThai} title={'Đã hoàn thành'} />
+            {data.TrangThai && data.TrangThai === true ? (
+              <TrangThaiLopDaoTao
+                trangthai={data.TrangThai}
+                title={"Đã hoàn thành"}
+              />
             ) : (
-              <TrangThaiLopDaoTao trangthai={data.TrangThai} title={'Chưa hoàn thành'}/>
+              <TrangThaiLopDaoTao
+                trangthai={data.TrangThai}
+                title={"Chưa hoàn thành"}
+              />
             )}
 
             <Grid container spacing={2.9} mt={2}>
               <Grid item xs={12}>
                 <Stack spacing={2} alignItems="center">
                   <Stack spacing={0.5} alignItems="center">
-                    <Typography variant="h4">
-                     {data.Ten || ""}
-                    </Typography>
+                    <Typography variant="h4">{data.Ten || ""}</Typography>
                     <Typography color="secondary">{loaihinhthuc}</Typography>
                   </Stack>
                 </Stack>
@@ -117,17 +121,20 @@ const LopDaoTaoView1 = ({ data,tam=false }) => {
                 <Divider />
               </Grid>
               <Grid item xs={12}>
-                {!tam && user?._id === data.UserIDCreated && (
-                  <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={<SaveIcon />}
-                  onClick={handleClickDuyet}
-                >
-                 {data.TrangThai ? 'Gỡ duyệt hoàn thành' : 'Duyệt hoàn thành'}
-                </Button>
-                )}
-                
+                {!tam &&
+                  (user?._id === data.UserIDCreated ||
+                    user?.PhanQuyen === "admin") && (
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      startIcon={<SaveIcon />}
+                      onClick={handleClickDuyet}
+                    >
+                      {data.TrangThai
+                        ? "Gỡ duyệt hoàn thành"
+                        : "Duyệt hoàn thành"}
+                    </Button>
+                  )}
               </Grid>
             </Grid>
           </MainCard>
@@ -144,14 +151,17 @@ const LopDaoTaoView1 = ({ data,tam=false }) => {
                           Nhóm hình thức cập nhật
                         </Typography>
                         <Typography>
-                        {data.TenNhomHinhThucCapNhat ||''}
+                          {data.TenNhomHinhThucCapNhat || ""}
                         </Typography>
                       </Stack>
                     </Grid>
                     <Grid item xs={12} md={3}>
                       <Stack spacing={0.5}>
                         <Typography color="secondary">Mã</Typography>
-                        <Typography> {data.MaNhomHinhThucCapNhat ||''}</Typography>
+                        <Typography>
+                          {" "}
+                          {data.MaNhomHinhThucCapNhat || ""}
+                        </Typography>
                       </Stack>
                     </Grid>
                   </Grid>
@@ -163,13 +173,13 @@ const LopDaoTaoView1 = ({ data,tam=false }) => {
                         <Typography color="secondary">
                           Hình thức cập nhật
                         </Typography>
-                        <Typography>{data.TenHinhThucCapNhat ||''}</Typography>
+                        <Typography>{data.TenHinhThucCapNhat || ""}</Typography>
                       </Stack>
                     </Grid>
                     <Grid item xs={12} md={3}>
                       <Stack spacing={0.5}>
                         <Typography color="secondary">Mã</Typography>
-                        <Typography> {data.MaHinhThucCapNhat ||''}</Typography>
+                        <Typography> {data.MaHinhThucCapNhat || ""}</Typography>
                       </Stack>
                     </Grid>
                   </Grid>
@@ -218,7 +228,7 @@ const LopDaoTaoView1 = ({ data,tam=false }) => {
                 <ListItem>
                   <Stack spacing={0.5}>
                     <Typography color="secondary">Ghi chú</Typography>
-                    <Typography>{data.address}</Typography>
+                    <Typography>{data.GhiChu}</Typography>
                   </Stack>
                 </ListItem>
               </List>

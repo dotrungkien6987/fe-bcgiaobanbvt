@@ -254,6 +254,20 @@ function Sumary() {
       w: 10,
       h: 5.65,
     });
+
+      // Thêm text "Phú Thọ, ngày ..." trên slide bắt đầu
+    startSilde.addText(`Phú Thọ, ngày ${fDate(date)}`, {
+      x: 0.5,
+      y: 3.5,
+      w: 9,
+      h: 1,
+      fontFace: "Times New Roman",
+      fontSize: 30,
+      color: "bb1515",
+      bold: true,
+      align: "center",
+      // valign: "middle",
+    });
     //Du lieu khoa cap cuu
 
     const bcFilterTheoMaKhoa = getObjectByMaKhoa(baocaongays, "KCC");
@@ -2129,6 +2143,20 @@ function Sumary() {
       h: 5.65,
     });
 
+      // Thêm text "Phú Thọ, ngày ..." trên slide bắt đầu
+    startSilde.addText(`Phú Thọ, ngày ${fDate(date)}`, {
+      x: 0.5,
+      y: 3.5,
+      w: 9,
+      h: 1,
+      fontFace: "Times New Roman",
+      fontSize: 30,
+      color: "bb1515",
+      bold: true,
+      align: "center",
+      // valign: "middle",
+    });
+    
     //Export du lieu Trung tam CLC
     let slideChuyenTrungTamCLC = pres.addSlide();
     slideChuyenTrungTamCLC.addText("BÁO CÁO GIAO BAN TOÀN VIỆN", {

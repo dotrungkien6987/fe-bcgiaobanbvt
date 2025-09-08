@@ -1,6 +1,6 @@
 import { Card, CardHeader, Grid } from "@mui/material";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
 
@@ -57,7 +57,7 @@ function CoCauNguonNhanLuc({ fromDateISO, toDateISO, sonamcanhbao, khoaID }) {
   ) : (
     <Card sx={{ backgroundColor: "#1939B7", p: 2 }}>
       <Grid container spacing={3} my={1}>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardHeader title={"1.Cơ cấu nguồn nhân lực chung"} />
             {CoCauNguonNhanLuc.cocauChung && (
@@ -72,7 +72,7 @@ function CoCauNguonNhanLuc({ fromDateISO, toDateISO, sonamcanhbao, khoaID }) {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={6}>
           <Card>
             <CardHeader title={"1.Cơ cấu theo bác sĩ"} />
             {CoCauNguonNhanLuc.cocauBacSi && (
@@ -87,7 +87,7 @@ function CoCauNguonNhanLuc({ fromDateISO, toDateISO, sonamcanhbao, khoaID }) {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <Card>
             <CardHeader title={"Cơ cấu theo Điều dưỡng"} />
             {CoCauNguonNhanLuc.cocauDieuDuong && (
@@ -166,7 +166,7 @@ function CoCauNguonNhanLuc({ fromDateISO, toDateISO, sonamcanhbao, khoaID }) {
           <Card>
             <CardHeader
               title={
-                "1.Tỷ lệ đạt tín chỉ khuyến cáo (Trên tổng số cán bộ có CCHN)"
+                `1.Tỷ lệ đạt ${sonamcanhbao * 24} tín chỉ khuyến cáo (Trên tổng số cán bộ có CCHN)`
               }
             />
             {pieChartDatKhuyenCao && (

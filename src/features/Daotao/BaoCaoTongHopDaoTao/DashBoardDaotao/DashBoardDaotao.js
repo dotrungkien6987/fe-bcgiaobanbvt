@@ -1,19 +1,9 @@
-import {
-  Button,
-  Card,
-  CardHeader,
-  Chip,
-  Container,
-  Grid,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Button, Card, Chip, Grid, Stack, TextField } from "@mui/material";
 
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
@@ -21,20 +11,16 @@ import MainCard from "components/MainCard";
 import {
   getTongHopSoLuongHinhThucCapNhatThucHien,
   getTongHopSoLuongTheoKhoa,
-  getTongHopTinChiTichLuy,
 } from "features/NhanVien/nhanvienSlice";
 
-import { useRowSelect } from "react-table";
-import { formatDate_getDate } from "utils/formatTime";
 import CoCauNguonNhanLuc from "../TongHopSoLuong/CoCauNguonNhanLuc";
 import CardSoLuongHinhThuc from "./CardSoLuongHinhThuc";
-import CardDisplayTest from "./CardDisplayTest";
 
 function DashBoardDaotao() {
   // Lấy thời gian hiện tại theo múi giờ của Việt Nam
 
   const now = dayjs().tz("Asia/Ho_Chi_Minh");
-  const { typeTongHop, phannhomTongHopSoLuongDaoTao } = useSelector(
+  const { phannhomTongHopSoLuongDaoTao } = useSelector(
     (state) => state.nhanvien
   );
 
@@ -54,11 +40,10 @@ function DashBoardDaotao() {
       //   const updatedDate = newDate.hour(7).minute(0).second(0).millisecond(0);
       //   console.log("updateDate", updatedDate);
       setTodate(newDate);
-      getDataForTongHop();
     }
   };
   const dispatch = useDispatch();
-  const getDataForTongHop = () => {
+  const getDataForTongHop = useCallback(() => {
     const fromDateISO = fromdate.toISOString();
     const toDateISO = todate.toISOString();
     console.log("fromdate -todate", fromDateISO, toDateISO);
@@ -66,7 +51,7 @@ function DashBoardDaotao() {
       getTongHopSoLuongTheoKhoa(fromDateISO, toDateISO, sonamcanhbao * 24)
     );
     dispatch(getTongHopSoLuongHinhThucCapNhatThucHien(fromDateISO, toDateISO));
-  };
+  }, [fromdate, todate, sonamcanhbao, dispatch]);
   const handleNgayBaoCaoChange = (newDate) => {
     // Chuyển đổi về múi giờ VN, kiểm tra đầu vào
     console.log("Chay day khong");
@@ -78,12 +63,26 @@ function DashBoardDaotao() {
       //   const updatedDate = newDate.hour(7).minute(0).second(0).millisecond(0);
       //   console.log("updateDate", updatedDate);
       setFromdate(newDate);
-      getDataForTongHop();
     }
   };
   useEffect(() => {
     getDataForTongHop();
-  }, [fromdate, todate, dispatch]);
+  }, [getDataForTongHop]);
+
+  // Tự động tính 'số năm cảnh báo' theo số năm trải qua (inclusive years)
+  // Ví dụ: từ 01/01/2023 -> 01/01/2025 => trải qua các năm 2023,2024,2025 => 3 năm
+  useEffect(() => {
+    try {
+      const start = dayjs.isDayjs(fromdate) ? fromdate : dayjs(fromdate);
+      const end = dayjs.isDayjs(todate) ? todate : dayjs(todate);
+      if (!start || !end) return;
+      let yearsSpanned = end.year() - start.year() + 1;
+      if (yearsSpanned < 1) yearsSpanned = 1;
+      setSonamcanhbao((prev) => (prev === yearsSpanned ? prev : yearsSpanned));
+    } catch (err) {
+      // ignore
+    }
+  }, [fromdate, todate]);
 
   return (
     <MainCard title={"Tổng hợp tín chỉ tích lũy cán bộ"}>
@@ -115,7 +114,7 @@ function DashBoardDaotao() {
             label="Chọn số năm cảnh báo"
             type="number"
             value={sonamcanhbao}
-            onChange={(e) => setSonamcanhbao(e.target.value)}
+            onChange={(e) => setSonamcanhbao(Number(e.target.value) || 1)}
           />
           <Chip
             label={`Khuyến cáo : ${

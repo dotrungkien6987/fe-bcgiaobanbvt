@@ -181,6 +181,7 @@ const slice = createSlice({
     getTongHopSoLuongTheoKhoaSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
+      console.log("Tong hop so luong theo khoa", action.payload);
       state.tonghopsoluongtheokhoa = action.payload;
       state.pieChartDatKhuyenCao = [];
       state.pieChartDatKhuyenCao.push({
@@ -219,13 +220,13 @@ const slice = createSlice({
         TenKhoa: item.nhanVien.KhoaID.TenKhoa,
       }));
 
-      //Xử lý chart tỷ lệ đạt khuyến cáo
+      //Xử lý chart tỷ lệ đạt khuyến cáo chỉ tính với nhân viên có số CCHN
       state.pieChartDatKhuyenCao = [];
       const dat = state.tonghoptinchitichluys.filter(
-        (item) => item.Dat === true
+        (item) => item.Dat === true && item.SoCCHN !== ""
       ).length;
       const chuadat = state.tonghoptinchitichluys.filter(
-        (item) => item.Dat === false
+        (item) => item.Dat === false && item.SoCCHN !== ""
       ).length;
 
       state.pieChartDatKhuyenCao.push({

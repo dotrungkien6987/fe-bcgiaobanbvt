@@ -199,7 +199,7 @@ console.log("datanhanvien",data);
                     <ListItem>
                       <Stack spacing={0.5}>
                         <Typography color="secondary">Ghi chú</Typography>
-                        <Typography>{data.address}</Typography>
+                        <Typography>{data.GhiChu}</Typography>
                       </Stack>
                     </ListItem>
                   </List>
