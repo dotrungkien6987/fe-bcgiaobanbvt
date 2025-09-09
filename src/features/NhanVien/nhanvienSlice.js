@@ -29,6 +29,7 @@ const initialState = {
   CoCauNguonNhanLuc: {},
 
   nhanviens: [],
+  nhanviensDeleted: [], // Danh sách nhân viên đã xóa
   datafix: {},
   VaiTro: [],
   ChucDanh: [],
@@ -115,7 +116,7 @@ const slice = createSlice({
     updateOneNhanVienSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      console.log('Update Nhan Vien:', action.payload);
+      console.log("Update Nhan Vien:", action.payload);
       state.nhanviens = state.nhanviens.map((nhanvien) =>
         nhanvien._id === action.payload._id
           ? {
@@ -239,6 +240,31 @@ const slice = createSlice({
         value: chuadat,
       });
     },
+    // Reducers cho nhân viên đã xóa
+    getAllNhanVienDeletedSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.nhanviensDeleted = action.payload.map((nhanvien) => ({
+        ...nhanvien,
+        TenKhoa: nhanvien.KhoaID.TenKhoa,
+        Sex: nhanvien.GioiTinh === 0 ? "Nam" : "Nữ",
+      }));
+    },
+    restoreNhanVienSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      // Xóa nhân viên khỏi danh sách deleted
+      state.nhanviensDeleted = state.nhanviensDeleted.filter(
+        (nhanvien) => nhanvien._id !== action.payload._id
+      );
+      // Thêm nhân viên vào danh sách active
+      const restoredNhanVien = {
+        ...action.payload,
+        TenKhoa: action.payload.KhoaID.TenKhoa,
+        Sex: action.payload.GioiTinh === 0 ? "Nam" : "Nữ",
+      };
+      state.nhanviens.unshift(restoredNhanVien);
+    },
   },
 });
 
@@ -281,7 +307,7 @@ export const insertOneNhanVien = (nhanvien) => async (dispatch) => {
 export const deleteOneNhanVien = (nhanvienID) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
-    const response = await apiService.delete(`/nhanvien/${nhanvienID}`);
+    await apiService.delete(`/nhanvien/${nhanvienID}`);
     dispatch(slice.actions.deleteOneNhanVienSuccess(nhanvienID));
     toast.success("Xoá thành công");
   } catch (error) {
@@ -476,6 +502,35 @@ export const setTypeTongHop = (type) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
     dispatch(slice.actions.setTypeTongHopSuccess(type));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+// Actions cho nhân viên đã xóa
+export const getAllNhanVienDeleted = () => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    console.log("getAllNhanVienDeleted: calling API /nhanvien/deleted");
+    const response = await apiService.get("/nhanvien/deleted");
+    console.log("nhanviens deleted", response.data);
+    dispatch(
+      slice.actions.getAllNhanVienDeletedSuccess(response.data.data.nhanviens)
+    );
+  } catch (error) {
+    console.error("getAllNhanVienDeleted error:", error);
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+export const restoreNhanVien = (nhanvienID) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    const response = await apiService.patch(`/nhanvien/${nhanvienID}/restore`);
+    dispatch(slice.actions.restoreNhanVienSuccess(response.data.data));
+    toast.success("Phục hồi nhân viên thành công");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);

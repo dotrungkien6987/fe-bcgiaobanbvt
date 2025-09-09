@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test API NhanVien Deleted</title>
+  </head>
+  <body>
+    <h1>Test API NhanVien Deleted</h1>
+    <button onclick="testGetDeleted()">Test Get Deleted NhanVien</button>
+    <button onclick="testRestore()">Test Restore NhanVien</button>
+    <div id="result"></div>
+
+    <script>
+      const baseURL = "http://localhost:8000";
+
+      async function testGetDeleted() {
+        try {
+          const response = await fetch(`${baseURL}/nhanvien/deleted`, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              // Note: Trong production cần thêm Authorization header
+              // 'Authorization': 'Bearer ' + token
+            },
+          });
+
+          const data = await response.json();
+          document.getElementById("result").innerHTML =
+            "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+        } catch (error) {
+          document.getElementById("result").innerHTML =
+            "Error: " + error.message;
+        }
+      }
+
+      async function testRestore() {
+        const nhanvienId = prompt("Nhập ID nhân viên cần phục hồi:");
+        if (!nhanvienId) return;
+
+        try {
+          const response = await fetch(
+            `${baseURL}/nhanvien/${nhanvienId}/restore`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                // Note: Trong production cần thêm Authorization header
+                // 'Authorization': 'Bearer ' + token
+              },
+            }
+          );
+
+          const data = await response.json();
+          document.getElementById("result").innerHTML =
+            "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+        } catch (error) {
+          document.getElementById("result").innerHTML =
+            "Error: " + error.message;
+        }
+      }
+    </script>
+  </body>
+</html>

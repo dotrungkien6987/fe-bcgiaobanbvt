@@ -32,6 +32,8 @@ import MainLayoutAble from "layout/MainLayout";
 import ThemeProvider from "theme";
 import ThemeCustomization from "theme/index1";
 import NhanVienList from "features/Daotao/NhanVienList";
+import NhanVienListDeleted from "features/Daotao/NhanVienListDeleted";
+import TestNhanVienDeleted from "features/Daotao/TestNhanVienDeleted";
 import DataFixTable from "features/Daotao/DataFixTable";
 import NhomHinhThucTable from "features/Daotao/NhomHinhThucTable";
 import TongHopHoatDong from "features/DashBoard/HoatDongChung/TongHopHoatDong";
@@ -159,6 +161,11 @@ function Router() {
           <Route path="/testtonghop" element={<TongHopHoatDong />} />
           <Route path="/test" element={<Test />} />
           <Route path="/nhanvien" element={<NhanVienList />} />
+          <Route path="/nhanvien-deleted" element={<NhanVienListDeleted />} />
+          <Route
+            path="/test-nhanvien-deleted"
+            element={<TestNhanVienDeleted />}
+          />
           <Route path="/datafix/:field" element={<DataFixTable />} />
           <Route path="/nhomhinhthuc" element={<NhomHinhThucTable />} />
           <Route path="/trinhdochuyenmon" element={<TrinhDoChuyenMonTable />} />

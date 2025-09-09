@@ -31,6 +31,12 @@ const daotaos = {
           type: "item",
           url: "/nhanvien",
         },
+        {
+          id: "danhsachnoiviendeleted",
+          title: "Cán bộ đã xóa",
+          type: "item",
+          url: "/nhanvien-deleted",
+        },
       ],
     },
     {
