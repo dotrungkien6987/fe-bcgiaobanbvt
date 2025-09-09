@@ -80,6 +80,9 @@ import TaskMindMapTreeEnhancedPage from "../pages/TaskMindMapTreeEnhancedPage";
 import TaskMindMapHierarchicalPage from "../pages/TaskMindMapHierarchicalPage";
 import CongViecHierarchyTreeDynamicPage from "../pages/CongViecHierarchyTreeDynamicPage";
 import AdminBackupPage from "../pages/AdminBackupPage";
+import TapSanListPage from "features/NghienCuuKhoaHoc/TapSan/pages/TapSanListPage";
+import TapSanFormPage from "features/NghienCuuKhoaHoc/TapSan/pages/TapSanFormPage";
+import TapSanDetailPage from "features/NghienCuuKhoaHoc/TapSan/pages/TapSanDetailPage";
 
 function Router() {
   return (
@@ -221,6 +224,11 @@ function Router() {
           <Route path="/khoas" element={<KhoaTable />} />
           <Route path="/nhomkhoas" element={<NhomKhoaSoThuTuTable />} />
           <Route path="/doandi" element={<DoanRaTable />} />
+          {/* TapSan */}
+          <Route path="/tapsan" element={<TapSanListPage />} />
+          <Route path="/tapsan/new" element={<TapSanFormPage />} />
+          <Route path="/tapsan/:id/edit" element={<TapSanFormPage />} />
+          <Route path="/tapsan/:id" element={<TapSanDetailPage />} />
           <Route
             path="/quanlycongviec/nhomviec-user"
             element={<NhomViecUserList />}
