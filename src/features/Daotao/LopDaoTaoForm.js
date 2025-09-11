@@ -81,6 +81,7 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
       HinhThucDaoTao: null,
       KhoaID: null,
       TenTapChi: "",
+      SoTapChi: "",
       XepLoai: "",
       GhiChu: "",
       SoLuong: 1,
@@ -147,6 +148,7 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
         HinhThucDaoTao: null,
         KhoaID: null,
         TenTapChi: "",
+        SoTapChi: "",
         XepLoai: "",
         GhiChu: "",
         SoLuong: 1,
@@ -257,11 +259,18 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
                         ["NCKH02", "NCKH03"].includes(
                           maHinhThucCapNhatValue.Ma
                         ) && (
+                          <div>
                           <FTextField
                             name="TenTapChi"
                             label="Tên tạp chí"
                             fullWidth
                           />
+                          <FTextField
+                            name="SoTapChi"
+                            label="Số tạp chí"
+                            fullWidth
+                          />
+                          </div>
                         )}
 
                       <FAutocomplete
