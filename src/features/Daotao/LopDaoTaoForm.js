@@ -101,6 +101,26 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
   // Sử dụng watch để theo dõi giá trị của MaHinhThucCapNhat
   const maHinhThucCapNhatValue = watch("MaHinhThucCapNhat");
 
+  // --- mới: điều kiện hiển thị cho trường "Quyết định"
+  const _quyetDinhCodes = [
+    "NCKH011",
+    "NCKH012",
+    "NCKH013",
+    "NCKH014",
+    "NCKH015",
+    "NCKH016",
+    "NCKH017",
+    "NCKH018",
+  ];
+  // extraCondition placeholder nếu muốn thêm điều kiện khác
+  const extraCondition = false;
+  const showQuyetDinh =
+    !!maHinhThucCapNhatValue &&
+    (maHinhThucCapNhatValue.Ma.startsWith("ĐT") ||
+      _quyetDinhCodes.includes(maHinhThucCapNhatValue.Ma) ||
+      extraCondition);
+  // --- kết thúc
+
   useEffect(() => {
     // Logic khi MaHinhThucCapNhat thay đổi
     if (maHinhThucCapNhatValue) {
@@ -230,17 +250,25 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
                     label="Hình thức cập nhật"
                   />
 
-                  <FTextField name="Ten" multiline label={`Tên ${maHinhThucCapNhatValue?maHinhThucCapNhatValue.TenBenhVien:""}`} fullWidth />
+                  <FTextField
+                    name="Ten"
+                    multiline
+                    label={`Tên ${
+                      maHinhThucCapNhatValue
+                        ? maHinhThucCapNhatValue.TenBenhVien
+                        : ""
+                    }`}
+                    fullWidth
+                  />
+
+                  {/* Hiện trường "Quyết định" riêng với điều kiện bổ sung */}
+                  {showQuyetDinh && (
+                    <FTextField name="QuyetDinh" label="Quyết định" fullWidth />
+                  )}
 
                   {maHinhThucCapNhatValue &&
                   maHinhThucCapNhatValue.Ma.startsWith("ĐT") ? (
                     <div>
-                      <FTextField
-                        name="QuyetDinh"
-                        label="Quyết định"
-                        fullWidth
-                      />
-
                       <FAutocomplete
                         name="NoiDaoTao"
                         options={NoiDaoTao.map((item) => item.NoiDaoTao)}
@@ -260,16 +288,16 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
                           maHinhThucCapNhatValue.Ma
                         ) && (
                           <div>
-                          <FTextField
-                            name="TenTapChi"
-                            label="Tên tạp chí"
-                            fullWidth
-                          />
-                          <FTextField
-                            name="SoTapChi"
-                            label="Số tạp chí"
-                            fullWidth
-                          />
+                            <FTextField
+                              name="TenTapChi"
+                              label="Tên tạp chí"
+                              fullWidth
+                            />
+                            <FTextField
+                              name="SoTapChi"
+                              label="Số tạp chí"
+                              fullWidth
+                            />
                           </div>
                         )}
 
