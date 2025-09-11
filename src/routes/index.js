@@ -83,6 +83,7 @@ import AdminBackupPage from "../pages/AdminBackupPage";
 import TapSanListPage from "features/NghienCuuKhoaHoc/TapSan/pages/TapSanListPage";
 import TapSanFormPage from "features/NghienCuuKhoaHoc/TapSan/pages/TapSanFormPage";
 import TapSanDetailPage from "features/NghienCuuKhoaHoc/TapSan/pages/TapSanDetailPage";
+import DashboardLopDaoTaoByYear from "features/DashBoard/LopDaoTaoByYear/DashboardLopDaoTaoByYear";
 
 function Router() {
   return (
@@ -137,6 +138,7 @@ function Router() {
           <Route path="/sothutu" element={<SoThuTuDashboard />} />
           <Route path="/hoatdongbenhvien" element={<HoatDongDashboard />} />
           <Route path="/hoatdongchung" element={<HoatDongDashBoard1 />} />{" "}
+        
           {/* Compatibility with old path */}
           <Route
             path="/hoatdongbenhvien/schema"
@@ -160,6 +162,10 @@ function Router() {
             </AuthRequire>
           }
         >
+            <Route
+            path="/dashboard/lopdaotao-by-year"
+            element={<DashboardLopDaoTaoByYear />}
+          />
           <Route path="/dev" element={<SupperAdminPage />} />
           <Route path="/testtonghop" element={<TongHopHoatDong />} />
           <Route path="/test" element={<Test />} />
@@ -274,6 +280,7 @@ function Router() {
           />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
+        
       </Routes>
     </div>
   );
