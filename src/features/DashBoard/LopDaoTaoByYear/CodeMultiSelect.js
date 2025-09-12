@@ -66,25 +66,62 @@ export default function CodeMultiSelect({
           </li>
         )}
         renderInput={(params) => (
-          <TextField {...params} label={label} placeholder="Tìm mã..." />
+          <TextField
+            {...params}
+            label={label}
+            placeholder="Tìm mã..."
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 1,
+                bgcolor: "transparent",
+              },
+            }}
+          />
         )}
         renderTags={(tagValue, getTagProps) =>
           tagValue.map((option, index) => (
             <Chip
-              variant="outlined"
+              variant="filled"
               label={option.label}
               {...getTagProps({ index })}
               key={option.value}
+              size="small"
+              sx={{
+                bgcolor: "#1976d2",
+                color: "white",
+                fontWeight: 500,
+                "&:hover": {
+                  bgcolor: "#1565c0",
+                },
+              }}
             />
           ))
         }
         sx={{ flex: 1 }}
       />
-      <Button onClick={handleSelectAll} variant="outlined" size="small">
-        Chọn tất cả
+      <Button
+        onClick={handleSelectAll}
+        variant="outlined"
+        size="small"
+        sx={{
+          borderRadius: 1,
+          textTransform: "none",
+          fontWeight: 600,
+        }}
+      >
+        Tất cả
       </Button>
-      <Button onClick={handleClear} variant="text" size="small">
-        Bỏ chọn
+      <Button
+        onClick={handleClear}
+        variant="text"
+        size="small"
+        sx={{
+          borderRadius: 1,
+          textTransform: "none",
+          fontWeight: 600,
+        }}
+      >
+        Xóa
       </Button>
     </Stack>
   );

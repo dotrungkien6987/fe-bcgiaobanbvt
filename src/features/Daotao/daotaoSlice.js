@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
 import { uploadImagesToCloudinary } from "utils/cloudinary";
 import { formatDate_getDate } from "utils/formatTime";
-import { data } from "data/org-chart";
+// import { data } from "data/org-chart"; // not used
 
 const initialState = {
   openUploadLopDaoTaoNhanVien: false,
@@ -166,7 +166,7 @@ const slice = createSlice({
       state.error = null;
 
       state.lopdaotaoCurrent = action.payload.lopdaotao;
-console.log("action.payload getOneLopDaoTaoByIDSuccess", action.payload);
+      console.log("action.payload getOneLopDaoTaoByIDSuccess", action.payload);
       state.vaitroquydoiCurents =
         action.payload.HinhThucCapNhat.find(
           (item) => item.Ma === state.lopdaotaoCurrent.MaHinhThucCapNhat
@@ -328,12 +328,11 @@ console.log("action.payload getOneLopDaoTaoByIDSuccess", action.payload);
       state.isLoading = false;
       state.error = null;
       state.hoidongCurrent = action.payload;
-      
     },
     updateHocVienCurrentsWhenHoiDongChangedSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-    
+
       state.hocvienCurrents = updateHocVienCurrents(
         state.hocvienCurrents,
         action.payload.thanhvienOld,
@@ -388,7 +387,7 @@ export const updateHoiDongForLopDaoTao =
   async (dispatch) => {
     dispatch(slice.actions.startLoading);
     try {
-      const response = await apiService.put(`/lopdaotao/updatehoidong`, {
+      await apiService.put(`/lopdaotao/updatehoidong`, {
         hoidongID,
         lopdaotaoID,
       });
@@ -409,7 +408,7 @@ export const updateTrangThaiLopDaoTao =
   async (dispatch) => {
     dispatch(slice.actions.startLoading);
     try {
-      const response = await apiService.put(`/lopdaotao/trangthai`, {
+      await apiService.put(`/lopdaotao/trangthai`, {
         TrangThai,
         lopdaotaoID,
       });
@@ -429,7 +428,7 @@ export const updateTrangThaiLopDaoTao =
 export const deleteOneLopDaoTao = (lopdaotaoID) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
-    const response = await apiService.delete(`/lopdaotao/${lopdaotaoID}`);
+    await apiService.delete(`/lopdaotao/${lopdaotaoID}`);
     dispatch(slice.actions.deleteOneLopDaoTaoSuccess(lopdaotaoID));
     toast.success("Xóa thành công");
   } catch (error) {
@@ -444,10 +443,10 @@ export const getOneLopDaoTaoByID =
     dispatch(slice.actions.startLoading);
     const params = { lopdaotaoID, tam, userID };
     try {
-      const [_, response] = await Promise.all([
+      const response = await Promise.all([
         dispatch(getAllHinhThucCapNhat()), // Gọi hành động để lấy tất cả HinhThucCapNhat
         apiService.get(`/lopdaotao/getextra`, { params }), // Gọi API để lấy thông tin LopDaoTao
-      ]);
+      ]).then(([, res]) => res);
       console.log("response getbylopdaotaoid", response.data.data);
       const HinhThucCapNhat = await getState().hinhthuccapnhat.HinhThucCapNhat;
       console.log("tam", tam);
@@ -483,6 +482,22 @@ export const getAllLopDaoTao = () => async (dispatch) => {
   try {
     const response = await apiService.get("/lopdaotao");
 
+    dispatch(
+      slice.actions.getAllLopDaoTaoSuccess(response.data.data.lopdaotaos)
+    );
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+// Lấy lớp đào tạo theo type (MaHinhThucCapNhat) từ server thay vì tải tất cả rồi filter ở FE
+export const getLopDaoTaoByType = (type) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    const response = await apiService.get("/lopdaotao", {
+      params: { type },
+    });
     dispatch(
       slice.actions.getAllLopDaoTaoSuccess(response.data.data.lopdaotaos)
     );
@@ -675,9 +690,7 @@ export const updateOneQuaTrinhDT06 =
 export const deleteOneQuaTrinhDT06 = (quatrinhdt06ID) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
-    const response = await apiService.delete(
-      `/lopdaotaonhanviendt06/${quatrinhdt06ID}`
-    );
+    await apiService.delete(`/lopdaotaonhanviendt06/${quatrinhdt06ID}`);
     dispatch(slice.actions.deleteOneQuaTrinhDT06Success(quatrinhdt06ID));
     toast.success("Xóa thành công");
   } catch (error) {
@@ -732,7 +745,6 @@ export const setTypeHinhThucCapNhat = (type) => async (dispatch) => {
 export const setHoiDongCurrent = (hoidong) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {
- 
     dispatch(slice.actions.setHoiDongCurrentSuccess(hoidong));
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
@@ -740,19 +752,20 @@ export const setHoiDongCurrent = (hoidong) => async (dispatch) => {
   }
 };
 
-export const updateHocVienCurrentsWhenHoiDongChanged = (thanhvien) => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
-  try {
- 
-    dispatch(slice.actions.updateHocVienCurrentsWhenHoiDongChangedSuccess(thanhvien));
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message);
-  }
-};
+export const updateHocVienCurrentsWhenHoiDongChanged =
+  (thanhvien) => async (dispatch) => {
+    dispatch(slice.actions.startLoading);
+    try {
+      dispatch(
+        slice.actions.updateHocVienCurrentsWhenHoiDongChangedSuccess(thanhvien)
+      );
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
 
 function updateHocVienCurrents(hocvienCurrents, thanhvienOld, thanhvienNew) {
-  
   // Bước 1: Xóa các phần tử trong hocvienCurrents mà có NhanVienID và VaiTro trùng với thanhvienOld
   hocvienCurrents = hocvienCurrents.filter((hocvien) => {
     return !thanhvienOld.some(

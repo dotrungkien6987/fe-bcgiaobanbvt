@@ -23,6 +23,23 @@ const nghiencuukhoahocs = {
   type: 'group',
   icon: icons.page,
   children: [
+     {
+      id: 'baocao',
+      title: "Báo cáo",
+      type: 'collapse',
+      icon: icons.bank,
+      children: [
+       
+        {
+          id: 'thongketheonam',
+          title: 'Thống kê theo năm',
+          type: 'item',
+          url: '/dashboard/lopdaotao-by-year'
+        },
+       
+      ]
+    },
+    
     {
       id: 'nghiencuukhoahoc',
       title: "Nghiên cứu khoa học",
@@ -151,6 +168,7 @@ const nghiencuukhoahocs = {
       ]
     },
     
+   
   ]
 };
 

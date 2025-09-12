@@ -283,6 +283,14 @@ function NhanVienList() {
         disableGroupBy: true,
       },
       {
+        Header: "PVHN bổ sung",
+        Footer: "PVHN bổ sung",
+        accessor: "PhamViHanhNgheBoSung",
+        dataType: "text",
+        filter: "fuzzyText",
+        disableGroupBy: true,
+      },
+      {
         Header: "Điện thoại",
         Footer: "Điện thoại",
 
@@ -295,6 +303,14 @@ function NhanVienList() {
 
         accessor: "Email",
         disableGroupBy: true,
+      },
+      {
+        Header: "Đã nghỉ",
+        Footer: "Đã nghỉ",
+        accessor: (row) => Boolean(row.DaNghi), // chuẩn hóa về boolean
+        disableGroupBy: true,
+        Cell: ({ value, row }) =>
+          value ? (row.original?.LyDoNghi || "Đã nghỉ") : "Đang công tác",
       },
       {
         Header: "_id",

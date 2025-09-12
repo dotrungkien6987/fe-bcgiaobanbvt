@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import MainCard from "components/MainCard";
 import CommonTable from "pages/tables/MyTable/CommonTable";
 
-import { getAllLopDaoTao } from "./daotaoSlice";
+import { getAllLopDaoTao, getLopDaoTaoByType } from "./daotaoSlice";
 import AddLopDaoTao from "./AddLopDaoTao";
 
 import DeleteLopDaoTaoButton from "./DeleteLopDaoTaoButton";
@@ -36,10 +36,7 @@ function LopDaoTaoTableByType() {
       dispatch(getAllHinhThucCapNhat());
     }
   }, [HinhThucCapNhat.length, dispatch]);
-  // Kiểm tra nếu ký tự đầu tiên là 'D' thì thay bằng 'Đ'
-  if (typeLopDaoTao && typeLopDaoTao.charAt(0) === "D") {
-    typeLopDaoTao = "Đ" + typeLopDaoTao.slice(1);
-  }
+  // Không mutate mã type tại FE; dữ liệu sẽ được lọc theo type ở BE
 
   const theme = useTheme();
   const mode = theme.palette.mode;
@@ -194,16 +191,16 @@ function LopDaoTaoTableByType() {
   );
 
   useEffect(() => {
-    // Gọi hàm để lấy danh sách cán bộ khi component được tạo
-    dispatch(getAllLopDaoTao());
-  }, [dispatch]);
+    if (typeLopDaoTao) {
+      dispatch(getLopDaoTaoByType(typeLopDaoTao));
+    } else {
+      dispatch(getAllLopDaoTao());
+    }
+  }, [dispatch, typeLopDaoTao]);
 
   const { LopDaoTaos } = useSelector((state) => state.daotao);
 
-  const data = useMemo(
-    () => LopDaoTaos.filter((item) => item.MaHinhThucCapNhat === typeLopDaoTao),
-    [LopDaoTaos, typeLopDaoTao]
-  );
+  const data = useMemo(() => LopDaoTaos, [LopDaoTaos]);
   const renderRowSubComponent = useCallback(
     ({ row }) => <LopDaoTaoView data={data[Number(row.id)]} />,
     [data]

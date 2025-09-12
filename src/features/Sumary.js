@@ -256,18 +256,23 @@ function Sumary() {
     });
 
       // Thêm text "Phú Thọ, ngày ..." trên slide bắt đầu
-    startSilde.addText(`Phú Thọ, ngày ${fDate(date)}`, {
+    const formattedDateTextTTCLC = `Ngày ${dayjs(date).format("DD")} tháng ${dayjs(
+      date
+    ).format("MM")} năm ${dayjs(date).format("YYYY")}`;
+    startSilde.addText(formattedDateTextTTCLC, {
       x: 0.5,
       y: 3.5,
       w: 9,
       h: 1,
       fontFace: "Times New Roman",
       fontSize: 30,
-      color: "bb1515",
+      color: "FF4678",
       bold: true,
+      italic: true,
       align: "center",
       // valign: "middle",
     });
+    
     //Du lieu khoa cap cuu
 
     const bcFilterTheoMaKhoa = getObjectByMaKhoa(baocaongays, "KCC");
@@ -2144,15 +2149,19 @@ function Sumary() {
     });
 
       // Thêm text "Phú Thọ, ngày ..." trên slide bắt đầu
-    startSilde.addText(`Phú Thọ, ngày ${fDate(date)}`, {
+    const formattedDateText = `Ngày ${dayjs(date).format("DD")} tháng ${dayjs(
+      date
+    ).format("MM")} năm ${dayjs(date).format("YYYY")}`;
+    startSilde.addText(formattedDateText, {
       x: 0.5,
       y: 3.5,
       w: 9,
       h: 1,
       fontFace: "Times New Roman",
       fontSize: 30,
-      color: "bb1515",
+      color: "FF4678",
       bold: true,
+      italic: true,
       align: "center",
       // valign: "middle",
     });

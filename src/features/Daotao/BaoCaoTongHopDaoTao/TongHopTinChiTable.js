@@ -117,6 +117,13 @@ function TongHopTinChiTable({ giatricanhbao,titleExcell ='Tổng hợp số li�
         disableGroupBy: true,
       },
       {
+        Header: "Phạm vi hành nghề bổ sung",
+        Footer: "Phạm vi hành nghề bổ sung",
+
+        accessor: "PhamViHanhNgheBoSung",
+        disableGroupBy: true,
+      },
+      {
         Header: "Số CCHN",
         Footer: "Số CCHN",
 
@@ -234,6 +241,12 @@ function TongHopTinChiTable({ giatricanhbao,titleExcell ='Tổng hợp số li�
     {
       header: "Phạm vi hành nghề",
       key: "PhamViHanhNghe",
+      alignment: { horizontal: "left" },
+      font: { bold: false },
+    },
+    {
+      header: "Phạm vi hành nghề bổ sung",
+      key: "PhamViHanhNgheBoSung",
       alignment: { horizontal: "left" },
       font: { bold: false },
     },

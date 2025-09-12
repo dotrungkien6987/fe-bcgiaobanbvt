@@ -117,6 +117,13 @@ function TongHopTinChiTableTheoKhoa({ giatricanhbao,titleExcell ='Tổng hợp s
         accessor: "PhamViHanhNghe",
         disableGroupBy: true,
       },
+ {
+        Header: "Phạm vi hành nghề bổ sung",
+        Footer: "Phạm vi hành nghề bổ sung",
+
+        accessor: "PhamViHanhNgheBoSung",
+        disableGroupBy: true,
+      },
 
       {
         Header: "Trình độ chuyên môn",
