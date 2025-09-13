@@ -141,7 +141,7 @@ const nghiencuukhoahocs = {
           id: 'tapsan',
           title: 'Tập san TTT/YHTH',
           type: 'item',
-          url: '/lopdaotaos/NCKH08'
+          url: '/tapsan'
         },
       ]
     },

@@ -6,110 +6,436 @@ import {
   Typography,
   TextField,
   MenuItem,
+  Card,
+  CardContent,
+  Chip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Alert,
+  Skeleton,
+  InputAdornment,
+  Fade,
+  Tooltip,
 } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
+import {
+  Add as AddIcon,
+  Search as SearchIcon,
+  Edit as EditIcon,
+  Visibility as ViewIcon,
+  Delete as DeleteIcon,
+  FilterList as FilterIcon,
+  Download as ExportIcon,
+  MenuBook as BookIcon,
+} from "@mui/icons-material";
 import { listTapSan, deleteTapSan } from "../services/tapsan.api";
 import { useNavigate } from "react-router-dom";
 
 export default function TapSanListPage() {
   const nav = useNavigate();
   const [items, setItems] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
   const [page, setPage] = React.useState(1);
   const [size, setSize] = React.useState(20);
   const [total, setTotal] = React.useState(0);
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [deleteDialog, setDeleteDialog] = React.useState({
+    open: false,
+    item: null,
+  });
   const [filters, setFilters] = React.useState({
     Loai: "",
     NamXuatBan: "",
     SoXuatBan: "",
+    TrangThai: "",
   });
 
+  const getLoaiDisplay = (loai) => {
+    switch (loai) {
+      case "YHTH":
+        return "Y học thực hành";
+      case "TTT":
+        return "Thông tin thuốc";
+      default:
+        return loai;
+    }
+  };
+
+  const getTrangThaiDisplay = (trangThai) => {
+    switch (trangThai) {
+      case "chua-hoan-thanh":
+        return "Chưa hoàn thành";
+      case "da-hoan-thanh":
+        return "Đã hoàn thành";
+      default:
+        return trangThai;
+    }
+  };
+
   const fetchData = React.useCallback(async () => {
-    const data = await listTapSan({ page, size, ...filters });
-    setItems(data?.items || []);
-    setTotal(data?.total || 0);
-  }, [page, size, filters]);
+    setLoading(true);
+    try {
+      const data = await listTapSan({
+        page,
+        size,
+        search: searchTerm,
+        ...filters,
+      });
+      setItems(data?.items || []);
+      setTotal(data?.total || 0);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, size, searchTerm, filters]);
 
   React.useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const onDelete = async (id) => {
-    await deleteTapSan(id);
-    await fetchData();
+  const handleDeleteConfirm = async () => {
+    if (deleteDialog.item) {
+      try {
+        await deleteTapSan(deleteDialog.item._id);
+        await fetchData();
+        setDeleteDialog({ open: false, item: null });
+      } catch (error) {
+        console.error("Error deleting:", error);
+      }
+    }
   };
 
-  return (
-    <Box p={2}>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
-        <Typography variant="h5">Quản lý Tập san</Typography>
-        <Button variant="contained" onClick={() => nav("/tapsan/new")}>
-          Tạo Tập san
-        </Button>
-      </Stack>
-      <Stack direction="row" spacing={2} mb={2}>
-        <TextField
-          select
+  const columns = [
+    {
+      field: "Loai",
+      headerName: "Loại tập san",
+      width: 180,
+      renderCell: (params) => (
+        <Chip
+          label={getLoaiDisplay(params.value)}
+          color={params.value === "YHTH" ? "primary" : "secondary"}
+          variant="filled"
           size="small"
-          label="Loại"
-          value={filters.Loai}
-          onChange={(e) => setFilters((s) => ({ ...s, Loai: e.target.value }))}
-          sx={{ width: 160 }}
+          icon={<BookIcon />}
+        />
+      ),
+    },
+    {
+      field: "NamXuatBan",
+      headerName: "Năm xuất bản",
+      width: 130,
+      align: "center",
+      headerAlign: "center",
+    },
+    {
+      field: "SoXuatBan",
+      headerName: "Số xuất bản",
+      width: 120,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <Chip label={`Số ${params.value}`} variant="outlined" size="small" />
+      ),
+    },
+    {
+      field: "TrangThai",
+      headerName: "Trạng thái",
+      width: 150,
+      renderCell: (params) => (
+        <Chip
+          label={getTrangThaiDisplay(params.value)}
+          color={params.value === "da-hoan-thanh" ? "success" : "warning"}
+          variant="outlined"
+          size="small"
+        />
+      ),
+    },
+    {
+      field: "GhiChu",
+      headerName: "Ghi chú",
+      width: 200,
+      renderCell: (params) => (
+        <Typography
+          variant="body2"
+          sx={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+          title={params.value || ""}
         >
-          <MenuItem value="">Tất cả</MenuItem>
-          <MenuItem value="YHTH">YHTH</MenuItem>
-          <MenuItem value="TTT">TTT</MenuItem>
-        </TextField>
-        <TextField
-          size="small"
-          label="Năm"
-          value={filters.NamXuatBan}
-          onChange={(e) =>
-            setFilters((s) => ({ ...s, NamXuatBan: e.target.value }))
-          }
-          sx={{ width: 120 }}
-        />
-        <TextField
-          size="small"
-          label="Số XB"
-          value={filters.SoXuatBan}
-          onChange={(e) =>
-            setFilters((s) => ({ ...s, SoXuatBan: e.target.value }))
-          }
-          sx={{ width: 120 }}
-        />
-        <Button onClick={() => setPage(1)} variant="outlined">
-          Lọc
-        </Button>
-      </Stack>
-      <Box>
-        {items.map((it) => (
+          {params.value || "—"}
+        </Typography>
+      ),
+    },
+    {
+      field: "updatedAt",
+      headerName: "Cập nhật",
+      width: 150,
+      renderCell: (params) =>
+        params.value ? new Date(params.value).toLocaleDateString("vi-VN") : "—",
+    },
+    {
+      field: "actions",
+      headerName: "Thao tác",
+      width: 200,
+      sortable: false,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+          <Tooltip title="Xem chi tiết">
+            <IconButton
+              size="small"
+              onClick={() => nav(`/tapsan/${params.row._id}`)}
+              color="info"
+            >
+              <ViewIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Chỉnh sửa">
+            <IconButton
+              size="small"
+              onClick={() => nav(`/tapsan/${params.row._id}/edit`)}
+              color="primary"
+            >
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Xóa">
+            <IconButton
+              size="small"
+              onClick={() => setDeleteDialog({ open: true, item: params.row })}
+              color="error"
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      ),
+    },
+  ];
+
+  return (
+    <Box sx={{ p: 3, bgcolor: "grey.50", minHeight: "100vh" }}>
+      {/* Header */}
+      <Card elevation={0} sx={{ mb: 3, borderRadius: 2 }}>
+        <CardContent>
           <Stack
-            key={it._id}
             direction="row"
+            justifyContent="space-between"
             alignItems="center"
-            spacing={2}
-            sx={{ py: 1, borderBottom: "1px solid #eee" }}
+            mb={3}
           >
-            <Typography sx={{ width: 80 }}>{it.Loai}</Typography>
-            <Typography sx={{ width: 100 }}>{it.NamXuatBan}</Typography>
-            <Typography sx={{ width: 100 }}>{it.SoXuatBan}</Typography>
-            <Button size="small" onClick={() => nav(`/tapsan/${it._id}`)}>
-              Chi tiết
-            </Button>
-            <Button size="small" onClick={() => nav(`/tapsan/${it._id}/edit`)}>
-              Sửa
-            </Button>
-            <Button size="small" color="error" onClick={() => onDelete(it._id)}>
-              Xóa
+            <Box>
+              <Typography variant="h4" fontWeight="bold" color="primary.main">
+                📚 Quản lý Tập san
+              </Typography>
+              <Typography variant="body2" color="text.secondary" mt={1}>
+                Quản lý tập san y học thực hành và thông tin thuốc
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => nav("/tapsan/new")}
+              size="large"
+              sx={{
+                borderRadius: 3,
+                px: 3,
+                py: 1.5,
+                boxShadow: 2,
+                "&:hover": { boxShadow: 4 },
+              }}
+            >
+              Tạo Tập san
             </Button>
           </Stack>
-        ))}
-        {!items.length && <Typography>Không có dữ liệu</Typography>}
-      </Box>
+
+          {/* Filters */}
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            flexWrap="wrap"
+          >
+            <TextField
+              placeholder="Tìm kiếm tập san..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ minWidth: 300 }}
+              size="small"
+            />
+            <TextField
+              select
+              size="small"
+              label="Loại tập san"
+              value={filters.Loai}
+              onChange={(e) =>
+                setFilters((s) => ({ ...s, Loai: e.target.value }))
+              }
+              sx={{ minWidth: 160 }}
+            >
+              <MenuItem value="">Tất cả</MenuItem>
+              <MenuItem value="YHTH">Y học thực hành</MenuItem>
+              <MenuItem value="TTT">Thông tin thuốc</MenuItem>
+            </TextField>
+            <TextField
+              size="small"
+              label="Năm xuất bản"
+              placeholder="2025"
+              value={filters.NamXuatBan}
+              onChange={(e) =>
+                setFilters((s) => ({ ...s, NamXuatBan: e.target.value }))
+              }
+              sx={{ width: 140 }}
+            />
+            <TextField
+              size="small"
+              label="Số xuất bản"
+              type="number"
+              placeholder="1"
+              value={filters.SoXuatBan}
+              onChange={(e) =>
+                setFilters((s) => ({ ...s, SoXuatBan: e.target.value }))
+              }
+              sx={{ width: 120 }}
+            />
+            <TextField
+              select
+              size="small"
+              label="Trạng thái"
+              value={filters.TrangThai}
+              onChange={(e) =>
+                setFilters((s) => ({ ...s, TrangThai: e.target.value }))
+              }
+              sx={{ minWidth: 160 }}
+            >
+              <MenuItem value="">Tất cả</MenuItem>
+              <MenuItem value="chua-hoan-thanh">Chưa hoàn thành</MenuItem>
+              <MenuItem value="da-hoan-thanh">Đã hoàn thành</MenuItem>
+            </TextField>
+            <Button
+              variant="outlined"
+              startIcon={<FilterIcon />}
+              onClick={() => setPage(1)}
+              sx={{ borderRadius: 2 }}
+            >
+              Lọc
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      {/* Data Grid */}
+      <Card elevation={1} sx={{ borderRadius: 2 }}>
+        <CardContent sx={{ p: 0 }}>
+          <DataGrid
+            rows={items}
+            columns={columns}
+            loading={loading}
+            paginationMode="server"
+            page={page - 1}
+            pageSize={size}
+            rowCount={total}
+            onPageChange={(newPage) => setPage(newPage + 1)}
+            onPageSizeChange={(newPageSize) => setSize(newPageSize)}
+            pageSizeOptions={[10, 20, 50]}
+            disableSelectionOnClick
+            autoHeight
+            getRowId={(row) => row._id}
+            sx={{
+              border: "none",
+              "& .MuiDataGrid-columnHeaders": {
+                bgcolor: "grey.50",
+                borderRadius: 0,
+              },
+              "& .MuiDataGrid-row:hover": {
+                bgcolor: "action.hover",
+              },
+            }}
+            slots={{
+              noRowsOverlay: () => (
+                <Stack
+                  height="300px"
+                  alignItems="center"
+                  justifyContent="center"
+                  spacing={2}
+                >
+                  <BookIcon sx={{ fontSize: 64, color: "grey.400" }} />
+                  <Typography variant="h6" color="text.secondary">
+                    Chưa có tập san nào
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Hãy tạo tập san đầu tiên của bạn
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={() => nav("/tapsan/new")}
+                  >
+                    Tạo Tập san
+                  </Button>
+                </Stack>
+              ),
+              loadingOverlay: () => (
+                <Stack height="300px" spacing={1} p={2}>
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} height={60} />
+                  ))}
+                </Stack>
+              ),
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialog.open}
+        onClose={() => setDeleteDialog({ open: false, item: null })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Typography variant="h6" color="error.main">
+            Xác nhận xóa tập san
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Bạn có chắc chắn muốn xóa tập san này không?
+          </Alert>
+          {deleteDialog.item && (
+            <Typography>
+              <strong>Loại:</strong> {deleteDialog.item.Loai} <br />
+              <strong>Năm:</strong> {deleteDialog.item.NamXuatBan} <br />
+              <strong>Số:</strong> {deleteDialog.item.SoXuatBan}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialog({ open: false, item: null })}>
+            Hủy
+          </Button>
+          <Button
+            onClick={handleDeleteConfirm}
+            color="error"
+            variant="contained"
+          >
+            Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

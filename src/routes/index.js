@@ -80,9 +80,7 @@ import TaskMindMapTreeEnhancedPage from "../pages/TaskMindMapTreeEnhancedPage";
 import TaskMindMapHierarchicalPage from "../pages/TaskMindMapHierarchicalPage";
 import CongViecHierarchyTreeDynamicPage from "../pages/CongViecHierarchyTreeDynamicPage";
 import AdminBackupPage from "../pages/AdminBackupPage";
-import TapSanListPage from "features/NghienCuuKhoaHoc/TapSan/pages/TapSanListPage";
-import TapSanFormPage from "features/NghienCuuKhoaHoc/TapSan/pages/TapSanFormPage";
-import TapSanDetailPage from "features/NghienCuuKhoaHoc/TapSan/pages/TapSanDetailPage";
+import TapSanRoutes from "features/NghienCuuKhoaHoc/TapSan/routes";
 import DashboardLopDaoTaoByYear from "features/DashBoard/LopDaoTaoByYear/DashboardLopDaoTaoByYear";
 
 function Router() {
@@ -138,7 +136,6 @@ function Router() {
           <Route path="/sothutu" element={<SoThuTuDashboard />} />
           <Route path="/hoatdongbenhvien" element={<HoatDongDashboard />} />
           <Route path="/hoatdongchung" element={<HoatDongDashBoard1 />} />{" "}
-        
           {/* Compatibility with old path */}
           <Route
             path="/hoatdongbenhvien/schema"
@@ -162,7 +159,7 @@ function Router() {
             </AuthRequire>
           }
         >
-            <Route
+          <Route
             path="/dashboard/lopdaotao-by-year"
             element={<DashboardLopDaoTaoByYear />}
           />
@@ -230,11 +227,8 @@ function Router() {
           <Route path="/khoas" element={<KhoaTable />} />
           <Route path="/nhomkhoas" element={<NhomKhoaSoThuTuTable />} />
           <Route path="/doandi" element={<DoanRaTable />} />
-          {/* TapSan */}
-          <Route path="/tapsan" element={<TapSanListPage />} />
-          <Route path="/tapsan/new" element={<TapSanFormPage />} />
-          <Route path="/tapsan/:id/edit" element={<TapSanFormPage />} />
-          <Route path="/tapsan/:id" element={<TapSanDetailPage />} />
+          {/* TapSan nested routes */}
+          <Route path="/tapsan/*" element={<TapSanRoutes />} />
           <Route
             path="/quanlycongviec/nhomviec-user"
             element={<NhomViecUserList />}
@@ -280,7 +274,6 @@ function Router() {
           />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
-        
       </Routes>
     </div>
   );
