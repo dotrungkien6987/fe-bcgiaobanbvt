@@ -15,7 +15,6 @@ import {
   Divider,
   Breadcrumbs,
   Link,
-  IconButton,
   Tooltip,
   Badge,
   Avatar,
@@ -27,32 +26,33 @@ import {
   Numbers as NumberIcon,
   AttachFile as AttachIcon,
   Schedule as ScheduleIcon,
-  Person as PersonIcon,
   Home as HomeIcon,
   Article as ArticleIcon,
   NavigateNext as NavigateNextIcon,
   Check as CheckIcon,
 } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
-import { getTapSanById } from "../services/tapsan.api";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchTapSanById, selectTapSanById } from "../slices/tapSanSlice";
 import AttachmentSection from "../components/AttachmentSection";
 
 export default function TapSanDetailPage() {
   const { id } = useParams();
   const nav = useNavigate();
   const [value, setValue] = React.useState(0);
-  const [doc, setDoc] = React.useState(null);
+  const dispatch = useDispatch();
+  const doc = useSelector((state) => selectTapSanById(state, id));
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     setLoading(true);
-    getTapSanById(id)
-      .then(setDoc)
+    dispatch(fetchTapSanById(id))
+      .unwrap()
       .catch((error) => {
         console.error("Error loading data:", error);
       })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, dispatch]);
 
   const TabPanel = ({ children, value, index, ...other }) => (
     <div

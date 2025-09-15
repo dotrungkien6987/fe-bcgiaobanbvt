@@ -3,21 +3,16 @@ import {
   createAsyncThunk,
   createEntityAdapter,
 } from "@reduxjs/toolkit";
-import {
-  getBaiBaoByTapSan,
-  getBaiBaoById,
-  createBaiBao as apiCreate,
-  updateBaiBao as apiUpdate,
-  deleteBaiBao as apiDelete,
-  getBaiBaoStats,
-} from "../services/baibao.api";
+import api from "app/apiService";
 
 const entitiesAdapter = createEntityAdapter({ selectId: (x) => x._id });
 
 export const fetchBaiBaoListByTapSan = createAsyncThunk(
   "baiBao/fetchListByTapSan",
   async ({ tapSanId, page = 1, limit = 20, filters = {} }) => {
-    const data = await getBaiBaoByTapSan(tapSanId, { page, limit, ...filters });
+    const params = { page, limit, ...filters };
+    const resp = await api.get(`/tapsan/${tapSanId}/baibao`, { params });
+    const data = resp.data?.data;
     // Expect { items, pagination, tapSan }
     return { tapSanId, ...data };
   }
@@ -26,37 +21,37 @@ export const fetchBaiBaoListByTapSan = createAsyncThunk(
 export const fetchBaiBaoById = createAsyncThunk(
   "baiBao/fetchById",
   async (id) => {
-    const data = await getBaiBaoById(id);
-    return data; // normalized article
+    const resp = await api.get(`/tapsan/baibao/${id}`);
+    return resp.data?.data; // normalized article
   }
 );
 
 export const fetchBaiBaoStats = createAsyncThunk(
   "baiBao/fetchStats",
   async (tapSanId) => {
-    const data = await getBaiBaoStats(tapSanId);
-    return { tapSanId, stats: data };
+    const resp = await api.get(`/tapsan/${tapSanId}/baibao/stats`);
+    return { tapSanId, stats: resp.data?.data };
   }
 );
 
 export const createBaiBao = createAsyncThunk(
   "baiBao/create",
   async ({ tapSanId, payload }) => {
-    const data = await apiCreate(tapSanId, payload);
-    return data;
+    const resp = await api.post(`/tapsan/${tapSanId}/baibao`, payload);
+    return resp.data?.data;
   }
 );
 
 export const updateBaiBao = createAsyncThunk(
   "baiBao/update",
   async ({ id, payload }) => {
-    const data = await apiUpdate(id, payload);
-    return data;
+    const resp = await api.put(`/tapsan/baibao/${id}`, payload);
+    return resp.data?.data;
   }
 );
 
 export const deleteBaiBao = createAsyncThunk("baiBao/delete", async (id) => {
-  await apiDelete(id);
+  await api.delete(`/tapsan/baibao/${id}`);
   return id;
 });
 

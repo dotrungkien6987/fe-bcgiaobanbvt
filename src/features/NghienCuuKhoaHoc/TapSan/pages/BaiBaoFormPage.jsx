@@ -6,7 +6,6 @@ import {
   Typography,
   Button,
   Stack,
-  TextField,
   MenuItem,
   Breadcrumbs,
   Link,
@@ -22,14 +21,19 @@ import {
   ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 import { LoadingButton } from "@mui/lab";
-import { TRANG_THAI_OPTIONS } from "../services/baibao.api";
+import { TRANG_THAI_OPTIONS } from "../slices/baibao.constants";
 import {
   createBaiBao as createBaiBaoThunk,
   updateBaiBao as updateBaiBaoThunk,
   fetchBaiBaoById,
   selectBaiBaoById,
 } from "../slices/baiBaoSlice";
-import { getTapSanById } from "../services/tapsan.api";
+import { fetchTapSanById, selectTapSanById } from "../slices/tapSanSlice";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as Yup from "yup";
+import FormProvider from "components/form/FormProvider";
+import FTextField from "components/form/FTextField";
 
 export default function BaiBaoFormPage() {
   const { tapSanId, baiBaoId } = useParams();
@@ -40,32 +44,42 @@ export default function BaiBaoFormPage() {
     isEdit ? selectBaiBaoById(state, baiBaoId) : null
   );
 
-  const [tapSan, setTapSan] = React.useState(null);
+  const tapSan = useSelector((state) => selectTapSanById(state, tapSanId));
   const [loading, setLoading] = React.useState(false);
   const [submitLoading, setSubmitLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [success, setSuccess] = React.useState(null);
 
-  const [formData, setFormData] = React.useState({
-    TieuDe: "",
-    TacGia: "",
-    TomTat: "",
-    NoiDung: "",
-    TrangThai: "Dự thảo",
-    GhiChu: "",
+  const schema = Yup.object().shape({
+    TieuDe: Yup.string().required("Tiêu đề là bắt buộc"),
+    TacGia: Yup.string().required("Tác giả là bắt buộc"),
+    TomTat: Yup.string().required("Tóm tắt là bắt buộc"),
+    NoiDung: Yup.string().required("Nội dung là bắt buộc"),
+    TrangThai: Yup.string().required("Trạng thái là bắt buộc"),
+    GhiChu: Yup.string().nullable(),
   });
 
-  const [errors, setErrors] = React.useState({});
+  const methods = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      TieuDe: "",
+      TacGia: "",
+      TomTat: "",
+      NoiDung: "",
+      TrangThai: TRANG_THAI_OPTIONS[0]?.value || "",
+      GhiChu: "",
+    },
+  });
+  const { handleSubmit, reset } = methods;
 
   const loadTapSan = React.useCallback(async () => {
     try {
-      const data = await getTapSanById(tapSanId);
-      setTapSan(data);
+      await dispatch(fetchTapSanById(tapSanId)).unwrap();
     } catch (error) {
       console.error("Error loading TapSan:", error);
       setError("Không thể tải thông tin tập san");
     }
-  }, [tapSanId]);
+  }, [tapSanId, dispatch]);
 
   const loadBaiBao = React.useCallback(async () => {
     if (!isEdit) return;
@@ -74,12 +88,12 @@ export default function BaiBaoFormPage() {
       setLoading(true);
       const data =
         baiBaoFromStore || (await dispatch(fetchBaiBaoById(baiBaoId)).unwrap());
-      setFormData({
+      reset({
         TieuDe: data.TieuDe || "",
         TacGia: data.TacGia || "",
         TomTat: data.TomTat || "",
         NoiDung: data.NoiDung || "",
-        TrangThai: data.TrangThai || "Nháp",
+        TrangThai: data.TrangThai || TRANG_THAI_OPTIONS[0]?.value || "",
         GhiChu: data.GhiChu || "",
       });
     } catch (error) {
@@ -88,68 +102,18 @@ export default function BaiBaoFormPage() {
     } finally {
       setLoading(false);
     }
-  }, [isEdit, baiBaoId, dispatch, baiBaoFromStore]);
+  }, [isEdit, baiBaoId, dispatch, baiBaoFromStore, reset]);
 
   React.useEffect(() => {
     loadTapSan();
     loadBaiBao();
   }, [loadTapSan, loadBaiBao]);
 
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.TieuDe.trim()) {
-      newErrors.TieuDe = "Tiêu đề là bắt buộc";
-    }
-
-    if (!formData.TacGia.trim()) {
-      newErrors.TacGia = "Tác giả là bắt buộc";
-    }
-
-    if (!formData.TomTat.trim()) {
-      newErrors.TomTat = "Tóm tắt là bắt buộc";
-    }
-
-    if (!formData.NoiDung.trim()) {
-      newErrors.NoiDung = "Nội dung là bắt buộc";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleInputChange = (field) => (event) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: event.target.value,
-    }));
-
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: "",
-      }));
-    }
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!validateForm()) {
-      setError("Vui lòng kiểm tra lại thông tin");
-      return;
-    }
-
+  const onSubmit = async (data) => {
     try {
       setSubmitLoading(true);
       setError(null);
-
-      const payload = {
-        ...formData,
-        TapSanId: tapSanId,
-      };
-
+      const payload = { ...data, TapSanId: tapSanId };
       let result;
       if (isEdit) {
         result = await dispatch(
@@ -162,15 +126,13 @@ export default function BaiBaoFormPage() {
         ).unwrap();
         setSuccess("Tạo bài báo thành công");
       }
-
-      // Redirect to detail page after success
       setTimeout(() => {
         navigate(`/tapsan/${tapSanId}/baibao/${result._id || baiBaoId}`);
-      }, 1500);
+      }, 1200);
     } catch (error) {
       console.error("Error saving BaiBao:", error);
       setError(
-        error.response?.data?.message || "Có lỗi xảy ra khi lưu bài báo"
+        error?.response?.data?.message || "Có lỗi xảy ra khi lưu bài báo"
       );
     } finally {
       setSubmitLoading(false);
@@ -249,132 +211,115 @@ export default function BaiBaoFormPage() {
       )}
 
       {/* Form */}
-      <Paper component="form" onSubmit={handleSubmit} sx={{ p: 3 }}>
-        <Stack spacing={3}>
-          {/* Basic Information */}
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Thông tin cơ bản
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
+      <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+        <Paper component="form" sx={{ p: 3 }}>
+          <Stack spacing={3}>
+            {/* Basic Information */}
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Thông tin cơ bản
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
 
-            <Stack spacing={2}>
-              <TextField
-                label="Tiêu đề bài báo"
-                value={formData.TieuDe}
-                onChange={handleInputChange("TieuDe")}
-                error={!!errors.TieuDe}
-                helperText={errors.TieuDe}
-                fullWidth
-                required
-                placeholder="Nhập tiêu đề bài báo"
-              />
+              <Stack spacing={2}>
+                <FTextField
+                  name="TieuDe"
+                  label="Tiêu đề bài báo"
+                  placeholder="Nhập tiêu đề bài báo"
+                />
 
-              <TextField
-                label="Tác giả"
-                value={formData.TacGia}
-                onChange={handleInputChange("TacGia")}
-                error={!!errors.TacGia}
-                helperText={errors.TacGia}
-                fullWidth
-                required
-                placeholder="Nhập tên tác giả"
-              />
+                <FTextField
+                  name="TacGia"
+                  label="Tác giả"
+                  placeholder="Nhập tên tác giả"
+                />
 
-              <TextField
-                label="Tóm tắt"
-                value={formData.TomTat}
-                onChange={handleInputChange("TomTat")}
-                error={!!errors.TomTat}
-                helperText={errors.TomTat}
-                fullWidth
+                <FTextField
+                  name="TomTat"
+                  label="Tóm tắt"
+                  placeholder="Nhập tóm tắt nội dung bài báo"
+                  multiline
+                  rows={3}
+                />
+              </Stack>
+            </Box>
+
+            {/* Content */}
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Nội dung
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+
+              <FTextField
+                name="NoiDung"
+                label="Nội dung bài báo"
+                placeholder="Nhập nội dung chi tiết của bài báo"
                 multiline
-                rows={3}
-                required
-                placeholder="Nhập tóm tắt nội dung bài báo"
+                rows={10}
               />
-            </Stack>
-          </Box>
+            </Box>
 
-          {/* Content */}
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Nội dung
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
+            {/* Status and Notes */}
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Trạng thái và ghi chú
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
 
-            <TextField
-              label="Nội dung bài báo"
-              value={formData.NoiDung}
-              onChange={handleInputChange("NoiDung")}
-              error={!!errors.NoiDung}
-              helperText={errors.NoiDung}
-              fullWidth
-              multiline
-              rows={10}
-              required
-              placeholder="Nhập nội dung chi tiết của bài báo"
-            />
-          </Box>
+              <Stack spacing={2}>
+                <FTextField
+                  select
+                  name="TrangThai"
+                  label="Trạng thái"
+                  fullWidth
+                >
+                  {TRANG_THAI_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </FTextField>
 
-          {/* Status and Notes */}
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              Trạng thái và ghi chú
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
+                <FTextField
+                  name="GhiChu"
+                  label="Ghi chú"
+                  placeholder="Nhập ghi chú (tùy chọn)"
+                  multiline
+                  rows={2}
+                />
+              </Stack>
+            </Box>
 
-            <Stack spacing={2}>
-              <TextField
-                select
-                label="Trạng thái"
-                value={formData.TrangThai}
-                onChange={handleInputChange("TrangThai")}
-                fullWidth
-                required
+            {/* Action Buttons */}
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                justifyContent: "flex-end",
+                pt: 2,
+              }}
+            >
+              <Button
+                variant="outlined"
+                onClick={handleCancel}
+                startIcon={<CancelIcon />}
+                disabled={submitLoading}
               >
-                {TRANG_THAI_OPTIONS.map((option) => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </TextField>
-
-              <TextField
-                label="Ghi chú"
-                value={formData.GhiChu}
-                onChange={handleInputChange("GhiChu")}
-                fullWidth
-                multiline
-                rows={2}
-                placeholder="Nhập ghi chú (tùy chọn)"
-              />
-            </Stack>
-          </Box>
-
-          {/* Action Buttons */}
-          <Box
-            sx={{ display: "flex", gap: 2, justifyContent: "flex-end", pt: 2 }}
-          >
-            <Button
-              variant="outlined"
-              onClick={handleCancel}
-              startIcon={<CancelIcon />}
-              disabled={submitLoading}
-            >
-              Hủy
-            </Button>
-            <LoadingButton
-              type="submit"
-              variant="contained"
-              loading={submitLoading}
-              startIcon={<SaveIcon />}
-            >
-              {isEdit ? "Cập nhật" : "Tạo mới"}
-            </LoadingButton>
-          </Box>
-        </Stack>
-      </Paper>
+                Hủy
+              </Button>
+              <LoadingButton
+                type="submit"
+                variant="contained"
+                loading={submitLoading}
+                startIcon={<SaveIcon />}
+              >
+                {isEdit ? "Cập nhật" : "Tạo mới"}
+              </LoadingButton>
+            </Box>
+          </Stack>
+        </Paper>
+      </FormProvider>
     </Box>
   );
 }

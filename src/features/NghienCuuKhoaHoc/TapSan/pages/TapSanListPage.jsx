@@ -17,7 +17,6 @@ import {
   Alert,
   Skeleton,
   InputAdornment,
-  Fade,
   Tooltip,
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
@@ -28,19 +27,26 @@ import {
   Visibility as ViewIcon,
   Delete as DeleteIcon,
   FilterList as FilterIcon,
-  Download as ExportIcon,
   MenuBook as BookIcon,
 } from "@mui/icons-material";
-import { listTapSan, deleteTapSan } from "../services/tapsan.api";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchTapSanList,
+  deleteTapSan as deleteTapSanThunk,
+  selectTapSanList,
+  selectTapSanListMeta,
+} from "../slices/tapSanSlice";
 import { useNavigate } from "react-router-dom";
+import AttachmentLinksCell from "../components/AttachmentLinksCell";
 
 export default function TapSanListPage() {
   const nav = useNavigate();
-  const [items, setItems] = React.useState([]);
-  const [loading, setLoading] = React.useState(false);
+  const dispatch = useDispatch();
+  const items = useSelector(selectTapSanList);
+  const meta = useSelector(selectTapSanListMeta);
   const [page, setPage] = React.useState(1);
   const [size, setSize] = React.useState(20);
-  const [total, setTotal] = React.useState(0);
+  const [total] = React.useState(0);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [deleteDialog, setDeleteDialog] = React.useState({
     open: false,
@@ -76,22 +82,14 @@ export default function TapSanListPage() {
   };
 
   const fetchData = React.useCallback(async () => {
-    setLoading(true);
     try {
-      const data = await listTapSan({
-        page,
-        size,
-        search: searchTerm,
-        ...filters,
-      });
-      setItems(data?.items || []);
-      setTotal(data?.total || 0);
+      await dispatch(
+        fetchTapSanList({ page, size, search: searchTerm, ...filters })
+      );
     } catch (error) {
       console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
     }
-  }, [page, size, searchTerm, filters]);
+  }, [page, size, searchTerm, filters, dispatch]);
 
   React.useEffect(() => {
     fetchData();
@@ -100,7 +98,7 @@ export default function TapSanListPage() {
   const handleDeleteConfirm = async () => {
     if (deleteDialog.item) {
       try {
-        await deleteTapSan(deleteDialog.item._id);
+        await dispatch(deleteTapSanThunk(deleteDialog.item._id)).unwrap();
         await fetchData();
         setDeleteDialog({ open: false, item: null });
       } catch (error) {
@@ -170,6 +168,32 @@ export default function TapSanListPage() {
         >
           {params.value || "—"}
         </Typography>
+      ),
+    },
+    {
+      field: "KeHoach",
+      headerName: "Kế hoạch",
+      width: 220,
+      sortable: false,
+      renderCell: (params) => (
+        <AttachmentLinksCell
+          ownerType="TapSan"
+          ownerId={params.row._id}
+          field="kehoach"
+        />
+      ),
+    },
+    {
+      field: "TapTin",
+      headerName: "File tạp san",
+      width: 240,
+      sortable: false,
+      renderCell: (params) => (
+        <AttachmentLinksCell
+          ownerType="TapSan"
+          ownerId={params.row._id}
+          field="file"
+        />
       ),
     },
     {
@@ -342,11 +366,11 @@ export default function TapSanListPage() {
           <DataGrid
             rows={items}
             columns={columns}
-            loading={loading}
+            loading={!!meta.loading}
             paginationMode="server"
             page={page - 1}
             pageSize={size}
-            rowCount={total}
+            rowCount={meta.total || total}
             onPageChange={(newPage) => setPage(newPage + 1)}
             onPageSizeChange={(newPageSize) => setSize(newPageSize)}
             pageSizeOptions={[10, 20, 50]}

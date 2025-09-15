@@ -35,7 +35,10 @@ import {
   Refresh as RefreshIcon,
   Article as ArticleIcon,
 } from "@mui/icons-material";
-import { TRANG_THAI_OPTIONS, getTrangThaiColor } from "../services/baibao.api";
+import {
+  TRANG_THAI_OPTIONS,
+  getTrangThaiColor,
+} from "../slices/baibao.constants";
 import {
   fetchBaiBaoListByTapSan,
   fetchBaiBaoStats,
@@ -44,7 +47,7 @@ import {
   selectBaiBaoListMeta,
   selectBaiBaoStatsByTapSan,
 } from "../slices/baiBaoSlice";
-import { getTapSanById } from "../services/tapsan.api";
+import { fetchTapSanById, selectTapSanById } from "../slices/tapSanSlice";
 import useLocalSnackbar from "../hooks/useLocalSnackbar";
 import ConfirmDialog from "components/ConfirmDialog";
 
@@ -88,7 +91,7 @@ export default function BaiBaoListPage() {
     selectBaiBaoStatsByTapSan(state, tapSanId)
   );
 
-  const [tapSan, setTapSan] = React.useState(null);
+  const tapSan = useSelector((state) => selectTapSanById(state, tapSanId));
   const [localError, setLocalError] = React.useState(null);
   const { showSuccess, showError, SnackbarElement } = useLocalSnackbar();
   const [confirm, setConfirm] = React.useState({
@@ -111,13 +114,12 @@ export default function BaiBaoListPage() {
 
   const loadTapSan = React.useCallback(async () => {
     try {
-      const data = await getTapSanById(tapSanId);
-      setTapSan(data);
+      await dispatch(fetchTapSanById(tapSanId)).unwrap();
     } catch (error) {
       console.error("Error loading TapSan:", error);
       setLocalError("Không thể tải thông tin tập san");
     }
-  }, [tapSanId]);
+  }, [tapSanId, dispatch]);
 
   const loadStats = React.useCallback(async () => {
     try {
@@ -132,9 +134,11 @@ export default function BaiBaoListPage() {
       const params = {
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
-        search,
-        trangThai: trangThaiFilter,
-        tacGia: tacGiaFilter,
+        filters: {
+          search,
+          trangThai: trangThaiFilter,
+          tacGia: tacGiaFilter,
+        },
       };
       await dispatch(fetchBaiBaoListByTapSan({ tapSanId, ...params }));
       setRowCount((prev) => prev); // no-op to keep state hook; rowCount derives from selector below

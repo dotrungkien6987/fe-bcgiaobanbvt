@@ -28,13 +28,16 @@ import {
   AttachFile as AttachFileIcon,
   Info as InfoIcon,
 } from "@mui/icons-material";
-import { getTrangThaiColor, getTrangThaiLabel } from "../services/baibao.api";
+import {
+  getTrangThaiColor,
+  getTrangThaiLabel,
+} from "../slices/baibao.constants";
 import {
   fetchBaiBaoById,
   deleteBaiBao as deleteBaiBaoThunk,
   selectBaiBaoById,
 } from "../slices/baiBaoSlice";
-import { getTapSanById } from "../services/tapsan.api";
+import { fetchTapSanById, selectTapSanById } from "../slices/tapSanSlice";
 import AttachmentSection from "../components/AttachmentSection";
 import ConfirmDialog from "components/ConfirmDialog";
 import useLocalSnackbar from "../hooks/useLocalSnackbar";
@@ -60,7 +63,7 @@ export default function BaiBaoDetailPage() {
 
   const baiBao = useSelector((state) => selectBaiBaoById(state, baiBaoId));
 
-  const [tapSan, setTapSan] = React.useState(null);
+  const tapSan = useSelector((state) => selectTapSanById(state, tapSanId));
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [tabValue, setTabValue] = React.useState(0);
@@ -69,13 +72,12 @@ export default function BaiBaoDetailPage() {
 
   const loadTapSan = React.useCallback(async () => {
     try {
-      const data = await getTapSanById(tapSanId);
-      setTapSan(data);
+      await dispatch(fetchTapSanById(tapSanId)).unwrap();
     } catch (error) {
       console.error("Error loading TapSan:", error);
       setError("Không thể tải thông tin tập san");
     }
-  }, [tapSanId]);
+  }, [tapSanId, dispatch]);
 
   const loadBaiBao = React.useCallback(async () => {
     try {

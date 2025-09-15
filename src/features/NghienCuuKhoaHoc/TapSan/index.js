@@ -10,8 +10,7 @@ export { default as BaiBaoFormPage } from "./pages/BaiBaoFormPage";
 export { default as BaiBaoDetailPage } from "./pages/BaiBaoDetailPage";
 
 // Services
-export * from "./services/tapsan.api";
-export * from "./services/baibao.api";
+// Services are not re-exported; use Redux slices and thunks instead.
 
 // Components
 export { default as AttachmentSection } from "./components/AttachmentSection";
