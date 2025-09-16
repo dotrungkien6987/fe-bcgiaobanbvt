@@ -16,7 +16,7 @@ Ngữ cảnh liên quan: `features/NghienCuuKhoaHoc/TapSan` (FE), `models/contro
 - Loại Tập san: `YHTH` (Y học thực hành), `TTT` (Thông tin thuốc). Mỗi loại mỗi năm có 2 số, mỗi số ~20 bài.
 - Không bắt buộc phải có file đính kèm.
 - Không quản lý trạng thái bài đăng ở phase này (loại bỏ toàn bộ trạng thái).
-- Tác giả: không dùng chuỗi tự do. Dùng `TacGiaChinhID` (ref NhanVien) và `DongTacGiaIDs[]` (ref NhanVien). Cấm trùng `TacGiaChinhID` trong `DongTacGiaIDs`.
+- Tác giả: hỗ trợ 2 nguồn: `Nội viện` (dùng `TacGiaChinhID` ref NhanVien và `DongTacGiaIDs[]` ref NhanVien, cấm trùng với `TacGiaChinhID`) hoặc `Ngoại viện` (dùng chuỗi tự do `TacGiaNgoaiVien`).
 - `SoThuTu` do người dùng quyết định; đảm bảo duy nhất trong 1 Tập san (xét `isDeleted=false`).
 - `MaBaiBao` hiển thị được sinh từ `TapSan` + `SoThuTu`: `{Loai}-{Nam}-{So}-{SoThuTuPad2}`. Thay đổi khi `SoThuTu` đổi.
 - Page riêng cho CRUD bài đăng (không dùng Drawer).
@@ -32,26 +32,28 @@ Ngữ cảnh liên quan: `features/NghienCuuKhoaHoc/TapSan` (FE), `models/contro
 
 4. Schema Bài báo (BE)
 
-- Bắt buộc: `TapSanId`, `TieuDe`, `LoaiHinh` (enum: `ky-thuat-moi`, `nghien-cuu-khoa-hoc`, `ca-lam-sang`), `KhoiChuyenMon` (enum: `noi`, `ngoai`, `dieu-duong`, `phong-ban`, `can-lam-sang`), `SoThuTu` (>=1), `TacGiaChinhID`.
-- Tuỳ chọn: `DongTacGiaIDs[]`, `TomTat`, `GhiChu`.
-- Tự sinh: `MaBaiBao` = `{Loai}-{Nam}-{So}-{SoThuTuPad2}`.
-- Loại bỏ: `TrangThai`, `TacGia` (string), `NoiDung`.
-- Index: unique partial `{TapSanId, SoThuTu}` với `isDeleted=false`; chỉ mục lọc theo `KhoiChuyenMon`, `LoaiHinh`, `TacGiaChinhID`; tìm kiếm theo `TieuDe`, `MaBaiBao`.
+- Bắt buộc chung: `TapSanId`, `TieuDe`, `KhoiChuyenMon` (enum: `noi`, `ngoai`, `dieu-duong`, `phong-ban`, `can-lam-sang`), `SoThuTu` (>=1).
+- YHTH: bắt buộc `LoaiHinh` (enum: `ky-thuat-moi`, `nghien-cuu-khoa-hoc`, `ca-lam-sang`).
+- TTT: thay `LoaiHinh` bằng `NoiDungChuyenDe` (enum) và `NguonTaiLieuThamKhao` (URL hợp lệ).
+- Tác giả: `TacGiaLoai` = `noi-vien` → bắt buộc `TacGiaChinhID` và cho phép `DongTacGiaIDs[]` (không trùng với `TacGiaChinhID`); `TacGiaLoai` = `ngoai-vien` → bắt buộc `TacGiaNgoaiVien` và bỏ qua `TacGiaChinhID`, `DongTacGiaIDs`.
+- Tuỳ chọn: `DongTacGiaIDs[]`, `TomTat`, `GhiChu`, `NguoiThamDinhID`.
+- Tự sinh: `MaBaiBao` = `{LoaiTapSan}-{Nam}-{So}-{SoThuTuPad2}`.
+- Index: unique partial `{TapSanId, SoThuTu}` với `isDeleted=false`; chỉ mục lọc theo `KhoiChuyenMon`, `LoaiHinh` hoặc `NoiDungChuyenDe` theo loại; tìm kiếm theo `TieuDe`, `MaBaiBao`.
 
 5. API Bài báo (BE)
 
-- GET `/:tapSanId/baibao`: filter `search`, `khoiChuyenMon`, `loaiHinh`; sort mặc định `SoThuTu asc`.
-- POST `/:tapSanId/baibao`: validate bắt buộc + kiểm tra trùng `SoThuTu` trong tập san.
-- PUT `/baibao/:id`: cho phép đổi `SoThuTu` (revalidate) và cập nhật `TacGiaChinhID`, `DongTacGiaIDs`.
+- GET `/:tapSanId/baibao`: filter `search`, `khoiChuyenMon`, `loaiHinh` (áp dụng cho YHTH); hỗ trợ hiển thị `NoiDungChuyenDe` cho TTT; sort mặc định `SoThuTu asc`.
+- POST `/:tapSanId/baibao`: validate theo loại TapSan (YHTH vs TTT) + kiểm tra trùng `SoThuTu` trong tập san.
+- PUT `/baibao/:id`: cho phép đổi `SoThuTu` (revalidate) và cập nhật thông tin; áp dụng quy tắc `TacGiaLoai` và loại TapSan.
 - DELETE `/baibao/:id`: soft delete.
 - PATCH `/:tapSanId/baibao/reorder`: nhận mảng `{id, SoThuTu}` và cập nhật hàng loạt.
 - ĐÃ XÓA: endpoint thống kê theo trạng thái.
 
 6. UI/UX (FE)
 
-- Danh sách: cột `MaBaiBao`, `SoThuTu`, `TieuDe`, `LoaiHinh`, `KhoiChuyenMon`, `TacGiaChinh`, `Đồng tác giả (số lượng)`, `Tệp`, `Thao tác`.
-- Sắp xếp mặc định theo `SoThuTu` tăng dần; hỗ trợ tìm kiếm theo tiêu đề/mã bài báo; filter theo `KhoiChuyenMon`, `LoaiHinh`.
-- Form: RHF+Yup với Autocomplete nhân viên cho `TacGiaChinhID`, `DongTacGiaIDs` (multi). Không cho phép trùng tác giả chính trong danh sách đồng tác giả.
+- Danh sách: cột `MaBaiBao`, `SoThuTu`, `TieuDe`, `Phân loại` (YHTH: `LoaiHinh`; TTT: `NoiDungChuyenDe`), `KhoiChuyenMon`, `Tác giả` (Ngoại viện hiển thị `TacGiaNgoaiVien`; Nội viện hiển thị `TacGiaChinh`), `Đồng tác giả (số lượng)` (0 nếu Ngoại viện), `Tệp`, `Thao tác`.
+- Sắp xếp mặc định theo `SoThuTu` tăng dần; hỗ trợ tìm kiếm theo tiêu đề/mã bài báo; filter theo `KhoiChuyenMon`, `LoaiHinh` (YHTH).
+- Form: RHF+Yup điều kiện theo `TapSan.Loai`: YHTH hiển thị `LoaiHinh`; TTT hiển thị `NoiDungChuyenDe` + `NguonTaiLieuThamKhao`. Tác giả có radio `Nội viện`/`Ngoại viện`: Nội viện dùng selector nhân viên cho `TacGiaChinhID` + `DongTacGiaIDs (multi)`; Ngoại viện hiển thị `TacGiaNgoaiVien` (text). Không cho phép trùng tác giả chính trong danh sách đồng tác giả.
 - Reorder: dialog/bulk edit hoặc kéo thả; gọi PATCH reorder; sau khi lưu refetch danh sách.
 - **File Upload**: Drag-drop zones, modern upload cards, file type icons, progress bars
 - **Animations**: Fade, Zoom, smooth transitions, hover effects

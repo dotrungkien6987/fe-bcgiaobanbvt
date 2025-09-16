@@ -61,35 +61,80 @@ import { reorderBaiBao } from "../slices/baiBaoSlice";
 
 function CustomToolbar({ onRefresh, onAdd, onReorder }) {
   return (
-    <GridToolbarContainer>
-      <Button
-        startIcon={<AddIcon />}
-        onClick={onAdd}
-        variant="contained"
-        size="small"
-        sx={{ mr: 1 }}
-      >
-        Thêm bài báo
-      </Button>
-      <Button
-        startIcon={<EditIcon />}
-        onClick={onReorder}
-        size="small"
-        sx={{ mr: 1 }}
-      >
-        Sắp xếp STT
-      </Button>
-      <Button
-        startIcon={<RefreshIcon />}
-        onClick={onRefresh}
-        size="small"
-        sx={{ mr: 1 }}
-      >
-        Làm mới
-      </Button>
-      <GridToolbarFilterButton />
-      <GridToolbarDensitySelector />
-      <GridToolbarExport />
+    <GridToolbarContainer sx={{ p: 0 }}>
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ p: 2 }}>
+        <Button
+          startIcon={<AddIcon />}
+          onClick={onAdd}
+          variant="contained"
+          size="small"
+          sx={{
+            borderRadius: 2,
+            fontWeight: 600,
+            boxShadow: "0 2px 8px rgba(25, 118, 210, 0.3)",
+            "&:hover": {
+              transform: "translateY(-1px)",
+              boxShadow: "0 4px 12px rgba(25, 118, 210, 0.4)",
+            },
+            transition: "all 0.2s ease",
+          }}
+        >
+          Thêm bài báo
+        </Button>
+        <Button
+          startIcon={<EditIcon />}
+          onClick={onReorder}
+          size="small"
+          variant="outlined"
+          sx={{
+            borderRadius: 2,
+            fontWeight: 500,
+            "&:hover": {
+              transform: "translateY(-1px)",
+            },
+            transition: "all 0.2s ease",
+          }}
+        >
+          Sắp xếp STT
+        </Button>
+        <Button
+          startIcon={<RefreshIcon />}
+          onClick={onRefresh}
+          size="small"
+          variant="outlined"
+          sx={{
+            borderRadius: 2,
+            fontWeight: 500,
+            "&:hover": {
+              transform: "translateY(-1px)",
+            },
+            transition: "all 0.2s ease",
+          }}
+        >
+          Làm mới
+        </Button>
+      </Stack>
+      <Box sx={{ flex: 1 }} />
+      <Stack direction="row" spacing={1} sx={{ p: 2 }}>
+        <GridToolbarFilterButton
+          sx={{
+            borderRadius: 2,
+            fontWeight: 500,
+          }}
+        />
+        <GridToolbarDensitySelector
+          sx={{
+            borderRadius: 2,
+            fontWeight: 500,
+          }}
+        />
+        <GridToolbarExport
+          sx={{
+            borderRadius: 2,
+            fontWeight: 500,
+          }}
+        />
+      </Stack>
     </GridToolbarContainer>
   );
 }
@@ -135,6 +180,7 @@ export default function BaiBaoListPage({
   const [search, setSearch] = React.useState("");
   const [khoiFilter, setKhoiFilter] = React.useState("");
   const [loaiFilter, setLoaiFilter] = React.useState("");
+  const [reviewerFilter, setReviewerFilter] = React.useState("");
 
   const loadTapSan = React.useCallback(async () => {
     try {
@@ -156,6 +202,7 @@ export default function BaiBaoListPage({
           search,
           khoiChuyenMon: khoiFilter,
           loaiHinh: loaiFilter,
+          NguoiThamDinhID: reviewerFilter,
           sort,
           order,
         },
@@ -172,6 +219,7 @@ export default function BaiBaoListPage({
     search,
     khoiFilter,
     loaiFilter,
+    reviewerFilter,
     dispatch,
   ]);
 
@@ -267,132 +315,11 @@ export default function BaiBaoListPage({
 
   const columns = [
     {
-      field: "TieuDe",
-      headerName: "Tiêu đề",
-      flex: 1,
-      minWidth: 300,
-      renderCell: (params) => (
-        <Typography
-          variant="body2"
-          sx={{
-            fontWeight: 500,
-            cursor: "pointer",
-            "&:hover": { color: "primary.main" },
-          }}
-          onClick={() =>
-            navigate(`/tapsan/${tapSanId}/baibao/${params.row._id}`)
-          }
-        >
-          {params.value}
-        </Typography>
-      ),
-    },
-    { field: "MaBaiBao", headerName: "Mã", width: 140 },
-    { field: "SoThuTu", headerName: "STT", width: 90 },
-    {
-      field: "LoaiHinh",
-      headerName: "Loại hình",
-      width: 160,
-      renderCell: (params) => (
-        <Typography variant="body2">
-          {params.value === "ky-thuat-moi"
-            ? "Kỹ thuật mới"
-            : params.value === "nghien-cuu-khoa-hoc"
-            ? "Nghiên cứu khoa học"
-            : params.value === "ca-lam-sang"
-            ? "Ca lâm sàng"
-            : params.value}
-        </Typography>
-      ),
-    },
-    {
-      field: "KhoiChuyenMon",
-      headerName: "Khối",
-      width: 140,
-      renderCell: (params) => (
-        <Typography variant="body2">
-          {params.value === "noi"
-            ? "Nội"
-            : params.value === "ngoai"
-            ? "Ngoại"
-            : params.value === "dieu-duong"
-            ? "Điều dưỡng"
-            : params.value === "phong-ban"
-            ? "Phòng ban"
-            : params.value === "can-lam-sang"
-            ? "Cận lâm sàng"
-            : params.value}
-        </Typography>
-      ),
-    },
-    {
-      field: "TacGiaChinhID",
-      headerName: "Tác giả chính",
-      width: 220,
-      valueGetter: (params) => params.row.TacGiaChinhID,
-      renderCell: (params) => {
-        const nv = nhanviens.find((x) => x._id === params.value);
-        return (
-          <Typography variant="body2">
-            {nv
-              ? `${nv.Ten}${nv.MaNhanVien ? ` (${nv.MaNhanVien})` : ""}`
-              : "—"}
-          </Typography>
-        );
-      },
-    },
-    {
-      field: "DongTacGiaIDs",
-      headerName: "Đồng tác giả",
-      width: 140,
-      renderCell: (params) => (
-        <Chip label={(params.value?.length || 0) + " người"} size="small" />
-      ),
-    },
-    {
-      field: "TapTin",
-      headerName: "Tệp bài báo",
-      width: 340,
-      sortable: false,
-      renderCell: (params) => (
-        <AttachmentLinksCell
-          ownerType="TapSanBaiBao"
-          ownerId={params.row._id}
-          field="file"
-          wrap={false}
-          sx={{ maxHeight: 96 }}
-        />
-      ),
-    },
-    {
-      field: "NgayTao",
-      headerName: "Ngày tạo",
-      width: 150,
-      type: "dateTime",
-      valueGetter: (params) => new Date(params.value),
-      renderCell: (params) => (
-        <Typography variant="body2">
-          {new Date(params.value).toLocaleDateString("vi-VN")}
-        </Typography>
-      ),
-    },
-    {
-      field: "NgayCapNhat",
-      headerName: "Ngày cập nhật",
-      width: 150,
-      type: "dateTime",
-      valueGetter: (params) => new Date(params.value),
-      renderCell: (params) => (
-        <Typography variant="body2">
-          {new Date(params.value).toLocaleDateString("vi-VN")}
-        </Typography>
-      ),
-    },
-    {
       field: "actions",
       type: "actions",
       headerName: "Thao tác",
-      width: 150,
+      width: 120,
+      pinned: "right", // Pin to right side
       getActions: (params) => [
         <GridActionsCellItem
           icon={
@@ -402,6 +329,12 @@ export default function BaiBaoListPage({
           }
           label="View"
           onClick={() => navigate(`/tapsan/${tapSanId}/baibao/${params.id}`)}
+          sx={{
+            color: "primary.main",
+            "&:hover": {
+              backgroundColor: "primary.50",
+            },
+          }}
         />,
         <GridActionsCellItem
           icon={
@@ -413,6 +346,12 @@ export default function BaiBaoListPage({
           onClick={() =>
             navigate(`/tapsan/${tapSanId}/baibao/${params.id}/edit`)
           }
+          sx={{
+            color: "info.main",
+            "&:hover": {
+              backgroundColor: "info.50",
+            },
+          }}
         />,
         <GridActionsCellItem
           icon={
@@ -422,9 +361,227 @@ export default function BaiBaoListPage({
           }
           label="Delete"
           onClick={() => handleAskDelete(params.id)}
-          sx={{ color: "error.main" }}
+          sx={{
+            color: "error.main",
+            "&:hover": {
+              backgroundColor: "error.50",
+            },
+          }}
         />,
       ],
+    },
+    {
+      field: "TieuDe",
+      headerName: "Tiêu đề",
+      flex: 1,
+      minWidth: 280,
+      renderCell: (params) => (
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 500,
+            cursor: "pointer",
+            "&:hover": { color: "primary.main" },
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+          onClick={() =>
+            navigate(`/tapsan/${tapSanId}/baibao/${params.row._id}`)
+          }
+        >
+          {params.value}
+        </Typography>
+      ),
+    },
+    { field: "MaBaiBao", headerName: "Mã", width: 120 },
+    { field: "SoThuTu", headerName: "STT", width: 70 },
+    {
+      field: "PhanLoai",
+      headerName: "Phân loại",
+      width: 180,
+      valueGetter: (params) => {
+        // If TTT: show Chuyên đề; else show Loại hình
+        if (tapSan?.Loai === "TTT") return params.row.NoiDungChuyenDe;
+        return params.row.LoaiHinh;
+      },
+      renderCell: (params) => {
+        if (tapSan?.Loai === "TTT") {
+          const labels = {
+            "su-dung-thuoc-hop-ly": "Sử dụng thuốc hợp lý",
+            "canh-bao-tac-dung-phu": "Cảnh báo tác dụng phụ",
+            "tuong-tac-thuoc": "Tương tác thuốc",
+            "cap-nhat-khuyen-cao": "Cập nhật khuyến cáo",
+          };
+          return (
+            <Chip
+              label={labels[params.value] || params.value || "—"}
+              size="small"
+              color="secondary"
+              variant="outlined"
+            />
+          );
+        }
+        const colors = {
+          "ky-thuat-moi": "info",
+          "nghien-cuu-khoa-hoc": "success",
+          "ca-lam-sang": "warning",
+        };
+        const labels = {
+          "ky-thuat-moi": "Kỹ thuật mới",
+          "nghien-cuu-khoa-hoc": "NCKH",
+          "ca-lam-sang": "Ca lâm sàng",
+        };
+        return (
+          <Chip
+            label={labels[params.value] || params.value || "—"}
+            size="small"
+            color={colors[params.value] || "default"}
+            variant="outlined"
+          />
+        );
+      },
+    },
+    {
+      field: "KhoiChuyenMon",
+      headerName: "Khối",
+      width: 100,
+      renderCell: (params) => {
+        const colors = {
+          noi: "primary",
+          ngoai: "secondary",
+          "dieu-duong": "info",
+          "phong-ban": "warning",
+          "can-lam-sang": "success",
+        };
+        const labels = {
+          noi: "Nội",
+          ngoai: "Ngoại",
+          "dieu-duong": "ĐD",
+          "phong-ban": "PB",
+          "can-lam-sang": "CLS",
+        };
+        return (
+          <Chip
+            label={labels[params.value] || params.value}
+            size="small"
+            color={colors[params.value] || "default"}
+            variant="filled"
+            sx={{
+              fontWeight: 500,
+              fontSize: "0.75rem",
+            }}
+          />
+        );
+      },
+    },
+    {
+      field: "TacGia",
+      headerName: "Tác giả",
+      width: 220,
+      valueGetter: (params) => {
+        if (params.row.TacGiaLoai === "ngoai-vien") {
+          return params.row.TacGiaNgoaiVien || "—";
+        }
+        const v = params.row.TacGiaChinhID;
+        return v && typeof v === "object" ? v._id : v || null;
+      },
+      renderCell: (params) => {
+        if (params.row.TacGiaLoai === "ngoai-vien") {
+          return (
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              {params.row.TacGiaNgoaiVien || "—"}
+            </Typography>
+          );
+        }
+        const v = params.row.TacGiaChinhID;
+        if (v && typeof v === "object") {
+          const ten = v.Ten;
+          const ma = v.MaNhanVien;
+          return (
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              {ten ? `${ten}${ma ? ` (${ma})` : ""}` : "—"}
+            </Typography>
+          );
+        }
+        const nv = nhanviens.find((x) => x._id === params.value);
+        return (
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            {nv
+              ? `${nv.Ten}${nv.MaNhanVien ? ` (${nv.MaNhanVien})` : ""}`
+              : "—"}
+          </Typography>
+        );
+      },
+    },
+    {
+      field: "DongTacGiaIDs",
+      headerName: "Đồng tác giả",
+      width: 110,
+      renderCell: (params) => (
+        <Chip
+          label={`${params.value?.length || 0} người`}
+          size="small"
+          color="info"
+          variant="outlined"
+        />
+      ),
+    },
+    {
+      field: "NguoiThamDinhID",
+      headerName: "Người thẩm định",
+      width: 180,
+      valueGetter: (params) => {
+        const v = params.row.NguoiThamDinhID;
+        return v && typeof v === "object" ? v._id : v || null;
+      },
+      renderCell: (params) => {
+        const v = params.row.NguoiThamDinhID;
+        if (v && typeof v === "object") {
+          const ten = v.Ten;
+          const ma = v.MaNhanVien;
+          return (
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              {ten ? `${ten}${ma ? ` (${ma})` : ""}` : "—"}
+            </Typography>
+          );
+        }
+        const nv = nhanviens.find((x) => x._id === params.value);
+        return (
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            {nv
+              ? `${nv.Ten}${nv.MaNhanVien ? ` (${nv.MaNhanVien})` : ""}`
+              : "—"}
+          </Typography>
+        );
+      },
+    },
+    {
+      field: "TapTin",
+      headerName: "Tệp bài báo",
+      width: 240,
+      sortable: false,
+      renderCell: (params) => (
+        <AttachmentLinksCell
+          ownerType="TapSanBaiBao"
+          ownerId={params.row._id}
+          field="file"
+        />
+      ),
+    },
+    {
+      field: "NgayTao",
+      headerName: "Ngày tạo",
+      width: 120,
+      type: "dateTime",
+      valueGetter: (params) => new Date(params.value),
+      renderCell: (params) => (
+        <Typography variant="body2" color="text.secondary">
+          {new Date(params.value).toLocaleDateString("vi-VN")}
+        </Typography>
+      ),
     },
   ];
 
@@ -448,34 +605,138 @@ export default function BaiBaoListPage({
           </Breadcrumbs>
 
           {/* Header */}
-          <Stack direction="row" alignItems="center" spacing={2} mb={3}>
-            <ArticleIcon color="primary" sx={{ fontSize: 32 }} />
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="h4" fontWeight="600">
-                Quản lý bài báo
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                {tapSan?.Loai} {tapSan?.NamXuatBan} - Số {tapSan?.SoXuatBan}
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAdd}
-              size="large"
+          <Box
+            sx={{
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              borderRadius: 3,
+              p: 4,
+              mb: 4,
+              color: "white",
+              position: "relative",
+              overflow: "hidden",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(255,255,255,0.1)",
+                backdropFilter: "blur(10px)",
+              },
+            }}
+          >
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={3}
+              sx={{ position: "relative", zIndex: 1 }}
             >
-              Thêm bài báo
-            </Button>
-          </Stack>
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  background: "rgba(255,255,255,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ArticleIcon sx={{ fontSize: 40, color: "white" }} />
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  variant="h3"
+                  fontWeight="700"
+                  sx={{
+                    mb: 1,
+                    textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  Quản lý bài báo
+                </Typography>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    opacity: 0.9,
+                    fontWeight: 400,
+                  }}
+                >
+                  {tapSan?.Loai} {tapSan?.NamXuatBan} - Số {tapSan?.SoXuatBan}
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAdd}
+                size="large"
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.2)",
+                  backdropFilter: "blur(10px)",
+                  border: "1px solid rgba(255,255,255,0.3)",
+                  color: "white",
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1.5,
+                  "&:hover": {
+                    bgcolor: "rgba(255,255,255,0.3)",
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 8px 25px rgba(0,0,0,0.2)",
+                  },
+                  transition: "all 0.3s ease",
+                }}
+              >
+                Thêm bài báo
+              </Button>
+            </Stack>
+          </Box>
         </>
       )}
 
       {/* Stats Cards removed per new business rules */}
 
       {/* Filters */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Stack direction="row" spacing={2} alignItems="center">
+      <Card
+        elevation={4}
+        sx={{
+          mb: 4,
+          borderRadius: 3,
+          background: "linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)",
+          border: "1px solid",
+          borderColor: "grey.200",
+          overflow: "hidden",
+        }}
+      >
+        <Box
+          sx={{
+            background: "linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 100%)",
+            px: 3,
+            py: 2,
+            borderBottom: "1px solid",
+            borderColor: "grey.200",
+          }}
+        >
+          <Typography
+            variant="h6"
+            fontWeight="600"
+            sx={{
+              color: "grey.800",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <SearchIcon color="primary" />
+            Bộ lọc tìm kiếm
+          </Typography>
+        </Box>
+        <CardContent sx={{ p: 3 }}>
+          <Stack
+            direction="row"
+            spacing={3}
+            alignItems="center"
+            flexWrap="wrap"
+          >
             <TextField
               placeholder="Tìm theo tiêu đề/Mã bài..."
               value={search}
@@ -484,19 +745,32 @@ export default function BaiBaoListPage({
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon />
+                    <SearchIcon color="action" />
                   </InputAdornment>
                 ),
               }}
-              sx={{ minWidth: 300 }}
+              sx={{
+                minWidth: 320,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                  "&:hover fieldset": {
+                    borderColor: "primary.main",
+                  },
+                },
+              }}
             />
             <TextField
               select
-              label="Khối"
+              label="Khối chuyên môn"
               value={khoiFilter}
               onChange={(e) => setKhoiFilter(e.target.value)}
               size="small"
-              sx={{ minWidth: 150 }}
+              sx={{
+                minWidth: 180,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
             >
               <MenuItem value="">Tất cả</MenuItem>
               <MenuItem value="noi">Nội</MenuItem>
@@ -511,7 +785,12 @@ export default function BaiBaoListPage({
               value={loaiFilter}
               onChange={(e) => setLoaiFilter(e.target.value)}
               size="small"
-              sx={{ minWidth: 180 }}
+              sx={{
+                minWidth: 200,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
             >
               <MenuItem value="">Tất cả</MenuItem>
               <MenuItem value="ky-thuat-moi">Kỹ thuật mới</MenuItem>
@@ -519,6 +798,28 @@ export default function BaiBaoListPage({
                 Nghiên cứu khoa học
               </MenuItem>
               <MenuItem value="ca-lam-sang">Ca lâm sàng</MenuItem>
+            </TextField>
+
+            <TextField
+              select
+              label="Người thẩm định"
+              value={reviewerFilter}
+              onChange={(e) => setReviewerFilter(e.target.value)}
+              size="small"
+              sx={{
+                minWidth: 220,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
+            >
+              <MenuItem value="">Tất cả</MenuItem>
+              {nhanviens.map((nv) => (
+                <MenuItem key={nv._id} value={nv._id}>
+                  {nv.Ten}
+                  {nv.MaNhanVien ? ` (${nv.MaNhanVien})` : ""}
+                </MenuItem>
+              ))}
             </TextField>
           </Stack>
         </CardContent>
@@ -528,7 +829,13 @@ export default function BaiBaoListPage({
       {(meta?.error || localError) && (
         <Alert
           severity="error"
-          sx={{ mb: 3 }}
+          sx={{
+            mb: 4,
+            borderRadius: 2,
+            boxShadow: 2,
+            border: "1px solid",
+            borderColor: "error.200",
+          }}
           onClose={() => setLocalError(null)}
         >
           {meta?.error || localError}
@@ -536,7 +843,16 @@ export default function BaiBaoListPage({
       )}
 
       {/* Data Grid */}
-      <Card>
+      <Card
+        elevation={6}
+        sx={{
+          borderRadius: 3,
+          background: "linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)",
+          border: "1px solid",
+          borderColor: "grey.200",
+          overflow: "hidden",
+        }}
+      >
         <Box sx={{ height: 600, width: "100%" }}>
           <DataGrid
             rows={rows}
@@ -574,11 +890,52 @@ export default function BaiBaoListPage({
             }}
             disableRowSelectionOnClick
             sx={{
-              "& .MuiDataGrid-cell:focus": {
-                outline: "none",
+              "& .MuiDataGrid-root": {
+                border: "none",
               },
-              "& .MuiDataGrid-row:hover": {
-                backgroundColor: "action.hover",
+              "& .MuiDataGrid-main": {
+                borderRadius: 3,
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                background: "linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 100%)",
+                borderBottom: "2px solid",
+                borderColor: "primary.200",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                color: "grey.800",
+              },
+              "& .MuiDataGrid-cell": {
+                borderBottom: "1px solid",
+                borderColor: "grey.100",
+                "&:focus": {
+                  outline: "none",
+                },
+              },
+              "& .MuiDataGrid-row": {
+                "&:hover": {
+                  backgroundColor: "primary.50",
+                  "& .MuiDataGrid-cell": {
+                    borderColor: "primary.100",
+                  },
+                },
+                "&:nth-of-type(even)": {
+                  backgroundColor: "grey.25",
+                },
+              },
+              "& .MuiDataGrid-footerContainer": {
+                borderTop: "2px solid",
+                borderColor: "grey.200",
+                background: "linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%)",
+              },
+              "& .MuiDataGrid-toolbarContainer": {
+                padding: "16px 24px",
+                background: "linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%)",
+                borderBottom: "1px solid",
+                borderColor: "grey.200",
+                "& .MuiButton-root": {
+                  borderRadius: 2,
+                  fontWeight: 500,
+                },
               },
             }}
           />

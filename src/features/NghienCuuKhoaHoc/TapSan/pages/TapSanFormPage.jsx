@@ -22,6 +22,7 @@ import {
   MenuBook as BookIcon,
   CalendarToday as CalendarIcon,
   Numbers as NumberIcon,
+  ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 import { useDispatch } from "react-redux";
 import {
@@ -160,6 +161,27 @@ export default function TapSanFormPage() {
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, bgcolor: "grey.50", minHeight: "100vh" }}>
       <Box sx={{ maxWidth: 1400, mx: "auto" }}>
+        {/* Back Button */}
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
+          onClick={() => nav("/tapsan")}
+          sx={{
+            mb: 3,
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+            borderColor: "primary.main",
+            color: "primary.main",
+            "&:hover": {
+              backgroundColor: "primary.50",
+              borderColor: "primary.dark",
+            },
+          }}
+        >
+          Quay lại danh sách tập san
+        </Button>
+
         <Card elevation={0} sx={{ borderRadius: 2 }}>
           <CardContent sx={{ p: { xs: 3, md: 4 } }}>
             {/* Header */}

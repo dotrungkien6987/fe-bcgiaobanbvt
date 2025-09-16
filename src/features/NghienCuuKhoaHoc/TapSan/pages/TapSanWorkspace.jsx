@@ -12,80 +12,248 @@ import {
   CardContent,
   Chip,
   Skeleton,
-  Divider,
+  Grid,
+  Paper,
 } from "@mui/material";
-import { Article as ArticleIcon, Edit as EditIcon } from "@mui/icons-material";
+import {
+  Article as ArticleIcon,
+  Edit as EditIcon,
+  ArrowBack as ArrowBackIcon,
+  Book as BookIcon,
+  Folder as FolderIcon,
+} from "@mui/icons-material";
 import { fetchTapSanById, selectTapSanById } from "../slices/tapSanSlice";
 import AttachmentSection from "../components/AttachmentSection";
 import BaiBaoListPage from "./BaiBaoListPage";
 
 // Component gộp Tổng quan + Đính kèm
-function OverviewAndAttachments({ tapSan, id }) {
+function OverviewAndAttachments({ tapSan, id, baiBaoCount = 0 }) {
+  const loaiTapSanLabel =
+    tapSan?.Loai === "YHTH"
+      ? "Tập san y học thực hành"
+      : "Tập san thông tin thuốc";
+  const maTapSan = `${tapSan?.Loai}-${tapSan?.NamXuatBan}-${String(
+    tapSan?.SoXuatBan
+  ).padStart(2, "0")}`;
+
   return (
-    <Stack spacing={2}>
-      <Card>
-        <CardContent>
-          <Typography variant="h5" sx={{ mb: 2 }}>
-            {tapSan?.Loai === "YHTH" ? "Y học thực hành" : "Thông tin thuốc"} -
-            Năm {tapSan?.NamXuatBan} - Số {tapSan?.SoXuatBan}
+    <Stack spacing={3}>
+      {/* Header Card - Thông tin cơ bản */}
+      <Card
+        elevation={3}
+        sx={{
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          color: "white",
+        }}
+      >
+        <CardContent sx={{ p: 3 }}>
+          <Typography variant="h4" sx={{ mb: 1, fontWeight: 700 }}>
+            📖 {loaiTapSanLabel}
           </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
-            <Chip
-              label={`Trạng thái: ${
-                tapSan?.TrangThai === "da-hoan-thanh"
-                  ? "Đã hoàn thành"
-                  : "Chưa hoàn thành"
-              }`}
-              color={
-                tapSan?.TrangThai === "da-hoan-thanh" ? "success" : "warning"
-              }
-              size="small"
-            />
-            {tapSan?.NgayTao && (
-              <Chip
-                label={`Tạo: ${new Date(tapSan.NgayTao).toLocaleDateString(
-                  "vi-VN"
-                )}`}
-                variant="outlined"
-                size="small"
-              />
-            )}
-            {tapSan?.NgayCapNhat && (
-              <Chip
-                label={`Cập nhật: ${new Date(
-                  tapSan.NgayCapNhat
-                ).toLocaleDateString("vi-VN")}`}
-                variant="outlined"
-                size="small"
-              />
-            )}
-          </Stack>
+          <Typography variant="h6" sx={{ mb: 2, opacity: 0.9 }}>
+            Năm {tapSan?.NamXuatBan} - Số {tapSan?.SoXuatBan} | Mã: {maTapSan}
+          </Typography>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardContent>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Tệp kế hoạch
-          </Typography>
-          <AttachmentSection
-            ownerType="TapSan"
-            ownerId={id}
-            field="kehoach"
-            title="Tệp kế hoạch"
-          />
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Tệp tập san
-          </Typography>
-          <AttachmentSection
-            ownerType="TapSan"
-            ownerId={id}
-            field="file"
-            title="Tệp tập san"
-          />
-        </CardContent>
-      </Card>
+      {/* Main Content Grid */}
+      <Grid container spacing={3}>
+        {/* Cột trái - Thông tin chi tiết */}
+        <Grid item xs={12} lg={12}>
+          <Stack spacing={3}>
+            {/* Thông tin xuất bản */}
+            <Card elevation={2}>
+              <CardContent>
+                <Typography
+                  variant="h6"
+                  sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
+                >
+                  <BookIcon color="primary" />
+                  📚 Thông tin xuất bản
+                </Typography>
+                {/* Trạng thái (đưa lên trên khối thông tin xuất bản) */}
+                <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+                  <Chip
+                    label={
+                      tapSan?.TrangThai === "da-hoan-thanh"
+                        ? "Đã hoàn thành"
+                        : "Chưa hoàn thành"
+                    }
+                    color={
+                      tapSan?.TrangThai === "da-hoan-thanh"
+                        ? "success"
+                        : "warning"
+                    }
+                    size="small"
+                  />
+                  <Chip
+                    label={`${baiBaoCount} bài báo`}
+                    size="small"
+                    variant="outlined"
+                  />
+                </Stack>
+                <Grid container spacing={2}>
+                  <Grid item xs={6} md={4}>
+                    <Paper
+                      sx={{ p: 2, textAlign: "center", bgcolor: "primary.50" }}
+                    >
+                      <Typography
+                        variant="h4"
+                        color="primary.main"
+                        fontWeight="bold"
+                      >
+                        {tapSan?.NamXuatBan}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Năm xuất bản
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={6} md={4}>
+                    <Paper
+                      sx={{ p: 2, textAlign: "center", bgcolor: "success.50" }}
+                    >
+                      <Typography
+                        variant="h4"
+                        color="success.main"
+                        fontWeight="bold"
+                      >
+                        {tapSan?.SoXuatBan}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Số xuất bản
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <Paper
+                      sx={{ p: 2, textAlign: "center", bgcolor: "info.50" }}
+                    >
+                      <Typography
+                        variant="h4"
+                        color="info.main"
+                        fontWeight="bold"
+                      >
+                        {baiBaoCount}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Tổng bài báo
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Stack>
+        </Grid>
+
+        {/* Cột phải - Tệp đính kèm */}
+        <Grid item xs={12} lg={12}>
+          <Stack spacing={3}>
+            {/* Tệp đính kèm - 2 khối 50/50 trên cùng dòng */}
+            <Card elevation={2}>
+              <CardContent>
+                <Typography
+                  variant="h6"
+                  sx={{ mb: 2, display: "flex", alignItems: "center", gap: 1 }}
+                >
+                  <FolderIcon color="primary" />� Tệp đính kèm
+                </Typography>
+                <Grid container spacing={2}>
+                  {/* Tệp kế hoạch - 50% */}
+                  <Grid item xs={12} md={6}>
+                    <Paper sx={{ p: 2, height: "100%", bgcolor: "primary.50" }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          mb: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        📋 Kế hoạch
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2, fontSize: "0.75rem" }}
+                      >
+                        Kế hoạch xuất bản và timeline
+                      </Typography>
+                      <AttachmentSection
+                        ownerType="TapSan"
+                        ownerId={id}
+                        field="kehoach"
+                        title=""
+                      />
+                    </Paper>
+                  </Grid>
+
+                  {/* Tệp tập san - 50% */}
+                  <Grid item xs={12} md={6}>
+                    <Paper sx={{ p: 2, height: "100%", bgcolor: "success.50" }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          mb: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
+                        📄 Tập san
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mb: 2, fontSize: "0.75rem" }}
+                      >
+                        File PDF và tài liệu hoàn chỉnh
+                      </Typography>
+                      <AttachmentSection
+                        ownerType="TapSan"
+                        ownerId={id}
+                        field="file"
+                        title=""
+                      />
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card elevation={2} sx={{ bgcolor: "grey.50" }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  ⚡ Thao tác nhanh
+                </Typography>
+                <Stack spacing={1}>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<ArticleIcon />}
+                    onClick={() =>
+                      window.open(`/tapsan/${id}/baibao`, "_blank")
+                    }
+                  >
+                    Quản lý bài báo
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    fullWidth
+                    startIcon={<EditIcon />}
+                    onClick={() => window.open(`/tapsan/${id}/edit`, "_blank")}
+                  >
+                    Chỉnh sửa thông tin
+                  </Button>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Stack>
+        </Grid>
+      </Grid>
     </Stack>
   );
 }
@@ -168,6 +336,28 @@ export default function TapSanWorkspace() {
 
   return (
     <Box>
+      {/* Back Button */}
+      <Box sx={{ p: 2, pb: 0 }}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
+          onClick={() => navigate("/tapsan")}
+          sx={{
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+            borderColor: "primary.main",
+            color: "primary.main",
+            "&:hover": {
+              backgroundColor: "primary.50",
+              borderColor: "primary.dark",
+            },
+          }}
+        >
+          Quay lại danh sách tập san
+        </Button>
+      </Box>
+
       <CommandBar
         onAddBaiBao={onAddBaiBao}
         onEditTapSan={onEditTapSan}
@@ -193,7 +383,11 @@ export default function TapSanWorkspace() {
         ) : (
           <>
             {tab === "overview" && (
-              <OverviewAndAttachments tapSan={tapSan} id={id} />
+              <OverviewAndAttachments
+                tapSan={tapSan}
+                id={id}
+                baiBaoCount={baiBaoCount}
+              />
             )}
             {tab === "baibao" && (
               <Box sx={{ p: 0 }}>

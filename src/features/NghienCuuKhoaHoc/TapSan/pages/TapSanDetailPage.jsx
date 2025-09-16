@@ -30,6 +30,7 @@ import {
   Article as ArticleIcon,
   NavigateNext as NavigateNextIcon,
   Check as CheckIcon,
+  ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -90,39 +91,58 @@ export default function TapSanDetailPage() {
 
   return (
     <Box sx={{ p: 3, bgcolor: "grey.50", minHeight: "100vh" }}>
-      {/* Breadcrumbs */}
-      <Breadcrumbs
-        separator={<NavigateNextIcon fontSize="small" />}
-        sx={{ mb: 3 }}
-      >
-        <Link
-          underline="hover"
-          color="inherit"
-          href="#"
-          onClick={() => nav("/")}
-          sx={{ display: "flex", alignItems: "center" }}
-        >
-          <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
-          Trang chủ
-        </Link>
-        <Link
-          underline="hover"
-          color="inherit"
-          href="#"
+      {/* Back Button & Breadcrumbs */}
+      <Stack spacing={2} sx={{ mb: 3 }}>
+        <Button
+          variant="outlined"
+          startIcon={<ArrowBackIcon />}
           onClick={() => nav("/tapsan")}
-          sx={{ display: "flex", alignItems: "center" }}
+          sx={{
+            alignSelf: "flex-start",
+            borderRadius: 2,
+            textTransform: "none",
+            fontWeight: 600,
+            borderColor: "primary.main",
+            color: "primary.main",
+            "&:hover": {
+              backgroundColor: "primary.50",
+              borderColor: "primary.dark",
+            },
+          }}
         >
-          <BookIcon sx={{ mr: 0.5 }} fontSize="inherit" />
-          Tập san
-        </Link>
-        <Typography
-          color="text.primary"
-          sx={{ display: "flex", alignItems: "center" }}
-        >
-          <ArticleIcon sx={{ mr: 0.5 }} fontSize="inherit" />
-          Chi tiết
-        </Typography>
-      </Breadcrumbs>
+          Quay lại danh sách tập san
+        </Button>
+
+        <Breadcrumbs separator={<NavigateNextIcon fontSize="small" />}>
+          <Link
+            underline="hover"
+            color="inherit"
+            href="#"
+            onClick={() => nav("/")}
+            sx={{ display: "flex", alignItems: "center" }}
+          >
+            <HomeIcon sx={{ mr: 0.5 }} fontSize="inherit" />
+            Trang chủ
+          </Link>
+          <Link
+            underline="hover"
+            color="inherit"
+            href="#"
+            onClick={() => nav("/tapsan")}
+            sx={{ display: "flex", alignItems: "center" }}
+          >
+            <BookIcon sx={{ mr: 0.5 }} fontSize="inherit" />
+            Tập san
+          </Link>
+          <Typography
+            color="text.primary"
+            sx={{ display: "flex", alignItems: "center" }}
+          >
+            <ArticleIcon sx={{ mr: 0.5 }} fontSize="inherit" />
+            Chi tiết
+          </Typography>
+        </Breadcrumbs>
+      </Stack>
 
       <Grid container spacing={3}>
         {/* Main Content */}

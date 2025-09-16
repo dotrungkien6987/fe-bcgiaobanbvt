@@ -74,8 +74,6 @@ import QuanLyNhanVienPage from "features/QuanLyCongViec/QuanLyNhanVien/QuanLyNha
 import GiaoNhiemVuPage from "features/QuanLyCongViec/GiaoNhiemVu/GiaoNhiemVuPage";
 import CongViecByNhanVienPage from "features/QuanLyCongViec/CongViec/CongViecByNhanVienPage";
 import CongViecDetailPage from "features/QuanLyCongViec/CongViec/CongViecDetailPage";
-import TaskMindMapPage from "../pages/TaskMindMapPage";
-import TaskMindMapTreePage from "../pages/TaskMindMapTreePage";
 import TaskMindMapTreeEnhancedPage from "../pages/TaskMindMapTreeEnhancedPage";
 import TaskMindMapHierarchicalPage from "../pages/TaskMindMapHierarchicalPage";
 import CongViecHierarchyTreeDynamicPage from "../pages/CongViecHierarchyTreeDynamicPage";

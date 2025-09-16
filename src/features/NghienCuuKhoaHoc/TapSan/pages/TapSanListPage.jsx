@@ -115,6 +115,59 @@ export default function TapSanListPage() {
 
   const columns = [
     {
+      field: "actions",
+      headerName: "Thao tác",
+      width: 120,
+      sortable: false,
+      pinned: "right",
+      renderCell: (params) => (
+        <Stack direction="row" spacing={0.5}>
+          <Tooltip title="Xem chi tiết">
+            <IconButton
+              size="small"
+              onClick={() => nav(`/tapsan/${params.row._id}`)}
+              sx={{
+                color: "primary.main",
+                "&:hover": {
+                  backgroundColor: "primary.50",
+                },
+              }}
+            >
+              <ViewIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Chỉnh sửa">
+            <IconButton
+              size="small"
+              onClick={() => nav(`/tapsan/${params.row._id}/edit`)}
+              sx={{
+                color: "info.main",
+                "&:hover": {
+                  backgroundColor: "info.50",
+                },
+              }}
+            >
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Xóa">
+            <IconButton
+              size="small"
+              onClick={() => setDeleteDialog({ open: true, item: params.row })}
+              sx={{
+                color: "error.main",
+                "&:hover": {
+                  backgroundColor: "error.50",
+                },
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      ),
+    },
+    {
       field: "Loai",
       headerName: "Loại tập san",
       width: 180,
@@ -221,89 +274,145 @@ export default function TapSanListPage() {
     {
       field: "updatedAt",
       headerName: "Cập nhật",
-      width: 150,
-      renderCell: (params) =>
-        params.value ? new Date(params.value).toLocaleDateString("vi-VN") : "—",
-    },
-    {
-      field: "actions",
-      headerName: "Thao tác",
-      width: 200,
-      sortable: false,
+      width: 120,
       renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
-          <Tooltip title="Xem chi tiết">
-            <IconButton
-              size="small"
-              onClick={() => nav(`/tapsan/${params.row._id}`)}
-              color="info"
-            >
-              <ViewIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Chỉnh sửa">
-            <IconButton
-              size="small"
-              onClick={() => nav(`/tapsan/${params.row._id}/edit`)}
-              color="primary"
-            >
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Xóa">
-            <IconButton
-              size="small"
-              onClick={() => setDeleteDialog({ open: true, item: params.row })}
-              color="error"
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </Stack>
+        <Typography variant="body2" color="text.secondary">
+          {params.value
+            ? new Date(params.value).toLocaleDateString("vi-VN")
+            : "—"}
+        </Typography>
       ),
     },
   ];
 
   return (
-    <Box sx={{ p: 3, bgcolor: "grey.50", minHeight: "100vh" }}>
+    <Box sx={{ p: 3 }}>
       {/* Header */}
-      <Card elevation={0} sx={{ mb: 3, borderRadius: 2 }}>
-        <CardContent>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={3}
+      <Box
+        sx={{
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          borderRadius: 3,
+          p: 4,
+          mb: 4,
+          color: "white",
+          position: "relative",
+          overflow: "hidden",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(255,255,255,0.1)",
+            backdropFilter: "blur(10px)",
+          },
+        }}
+      >
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={3}
+          sx={{ position: "relative", zIndex: 1 }}
+        >
+          <Box
+            sx={{
+              p: 2,
+              borderRadius: 2,
+              background: "rgba(255,255,255,0.2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            <Box>
-              <Typography variant="h4" fontWeight="bold" color="primary.main">
-                📚 Quản lý Tập san
-              </Typography>
-              <Typography variant="body2" color="text.secondary" mt={1}>
-                Quản lý tập san y học thực hành và thông tin thuốc
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => nav("/tapsan/new")}
-              size="large"
+            <BookIcon sx={{ fontSize: 40, color: "white" }} />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Typography
+              variant="h3"
+              fontWeight="700"
               sx={{
-                borderRadius: 3,
-                px: 3,
-                py: 1.5,
-                boxShadow: 2,
-                "&:hover": { boxShadow: 4 },
+                mb: 1,
+                textShadow: "0 2px 4px rgba(0,0,0,0.1)",
               }}
             >
-              Tạo Tập san
-            </Button>
-          </Stack>
+              Quản lý Tập san
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{
+                opacity: 0.9,
+                fontWeight: 400,
+              }}
+            >
+              Quản lý tập san y học thực hành và thông tin thuốc
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => nav("/tapsan/new")}
+            size="large"
+            sx={{
+              bgcolor: "rgba(255,255,255,0.2)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255,255,255,0.3)",
+              color: "white",
+              fontWeight: 600,
+              px: 3,
+              py: 1.5,
+              "&:hover": {
+                bgcolor: "rgba(255,255,255,0.3)",
+                transform: "translateY(-2px)",
+                boxShadow: "0 8px 25px rgba(0,0,0,0.2)",
+              },
+              transition: "all 0.3s ease",
+            }}
+          >
+            Tạo Tập san
+          </Button>
+        </Stack>
+      </Box>
 
-          {/* Filters */}
+      {/* Filters */}
+      <Card
+        elevation={4}
+        sx={{
+          mb: 4,
+          borderRadius: 3,
+          background: "linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)",
+          border: "1px solid",
+          borderColor: "grey.200",
+          overflow: "hidden",
+        }}
+      >
+        <Box
+          sx={{
+            background: "linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 100%)",
+            px: 3,
+            py: 2,
+            borderBottom: "1px solid",
+            borderColor: "grey.200",
+          }}
+        >
+          <Typography
+            variant="h6"
+            fontWeight="600"
+            sx={{
+              color: "grey.800",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <SearchIcon color="primary" />
+            Bộ lọc tìm kiếm
+          </Typography>
+        </Box>
+        <CardContent sx={{ p: 3 }}>
           <Stack
             direction="row"
-            spacing={2}
+            spacing={3}
             alignItems="center"
             flexWrap="wrap"
           >
@@ -318,7 +427,15 @@ export default function TapSanListPage() {
                   </InputAdornment>
                 ),
               }}
-              sx={{ minWidth: 300 }}
+              sx={{
+                minWidth: 320,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                  "&:hover fieldset": {
+                    borderColor: "primary.main",
+                  },
+                },
+              }}
               size="small"
             />
             <TextField
@@ -329,7 +446,12 @@ export default function TapSanListPage() {
               onChange={(e) =>
                 setFilters((s) => ({ ...s, Loai: e.target.value }))
               }
-              sx={{ minWidth: 160 }}
+              sx={{
+                minWidth: 180,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
             >
               <MenuItem value="">Tất cả</MenuItem>
               <MenuItem value="YHTH">Y học thực hành</MenuItem>
@@ -343,7 +465,12 @@ export default function TapSanListPage() {
               onChange={(e) =>
                 setFilters((s) => ({ ...s, NamXuatBan: e.target.value }))
               }
-              sx={{ width: 140 }}
+              sx={{
+                width: 160,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
             />
             <TextField
               size="small"
@@ -354,7 +481,12 @@ export default function TapSanListPage() {
               onChange={(e) =>
                 setFilters((s) => ({ ...s, SoXuatBan: e.target.value }))
               }
-              sx={{ width: 120 }}
+              sx={{
+                width: 140,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
             />
             <TextField
               select
@@ -364,7 +496,12 @@ export default function TapSanListPage() {
               onChange={(e) =>
                 setFilters((s) => ({ ...s, TrangThai: e.target.value }))
               }
-              sx={{ minWidth: 160 }}
+              sx={{
+                minWidth: 180,
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 2,
+                },
+              }}
             >
               <MenuItem value="">Tất cả</MenuItem>
               <MenuItem value="chua-hoan-thanh">Chưa hoàn thành</MenuItem>
@@ -374,7 +511,14 @@ export default function TapSanListPage() {
               variant="outlined"
               startIcon={<FilterIcon />}
               onClick={() => setPage(1)}
-              sx={{ borderRadius: 2 }}
+              sx={{
+                borderRadius: 2,
+                fontWeight: 500,
+                "&:hover": {
+                  transform: "translateY(-1px)",
+                },
+                transition: "all 0.2s ease",
+              }}
             >
               Lọc
             </Button>
@@ -400,13 +544,79 @@ export default function TapSanListPage() {
             autoHeight
             getRowId={(row) => row._id}
             sx={{
-              border: "none",
-              "& .MuiDataGrid-columnHeaders": {
-                bgcolor: "grey.50",
-                borderRadius: 0,
+              backgroundColor: "white",
+              borderRadius: 2,
+              boxShadow: (theme) => theme.shadows[2],
+              "& .MuiDataGrid-root": {
+                border: "none",
               },
-              "& .MuiDataGrid-row:hover": {
-                bgcolor: "action.hover",
+              "& .MuiDataGrid-main": {
+                borderRadius: 2,
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                color: "white",
+                borderRadius: "8px 8px 0 0",
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                "& .MuiDataGrid-columnHeader": {
+                  outline: "none",
+                  "&:focus": {
+                    outline: "none",
+                  },
+                  "&:focus-within": {
+                    outline: "none",
+                  },
+                },
+                "& .MuiDataGrid-columnHeaderTitle": {
+                  fontWeight: 600,
+                },
+                "& .MuiDataGrid-iconSeparator": {
+                  color: "rgba(255, 255, 255, 0.7)",
+                },
+                "& .MuiDataGrid-sortIcon": {
+                  color: "white",
+                },
+                "& .MuiDataGrid-menuIcon": {
+                  color: "white",
+                },
+              },
+              "& .MuiDataGrid-cell": {
+                borderBottom: "1px solid #f0f2f5",
+                "&:focus": {
+                  outline: "none",
+                },
+                "&:focus-within": {
+                  outline: "none",
+                },
+              },
+              "& .MuiDataGrid-row": {
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  backgroundColor: "#f8fafc",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                  transform: "translateY(-1px)",
+                },
+                "&.Mui-selected": {
+                  backgroundColor: "#e3f2fd",
+                  "&:hover": {
+                    backgroundColor: "#bbdefb",
+                  },
+                },
+              },
+              "& .MuiDataGrid-footer": {
+                backgroundColor: "#f8fafc",
+                borderTop: "1px solid #e0e7ff",
+                borderRadius: "0 0 8px 8px",
+              },
+              "& .MuiDataGrid-footerContainer": {
+                backgroundColor: "transparent",
+              },
+              "& .MuiTablePagination-root": {
+                color: "#64748b",
+              },
+              "& .MuiDataGrid-selectedRowCount": {
+                color: "#475569",
               },
             }}
             slots={{

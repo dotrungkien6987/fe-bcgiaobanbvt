@@ -52,13 +52,13 @@ export default function AttachmentLinksCell({
 
   const load = React.useCallback(async () => {
     if (!ownerId) return;
-    // Serve from cache if available
+    // Stale-while-revalidate: show cache immediately if exists, then refresh in background
     const cached = cache.get(key);
     if (cached) {
       setFiles(cached.files);
-      return;
+    } else {
+      setFiles(null);
     }
-    setFiles(null);
     try {
       const data = await listFiles(ownerType, ownerId, field, { limit: 10 });
       const list = Array.isArray(data?.items)
@@ -66,11 +66,23 @@ export default function AttachmentLinksCell({
         : Array.isArray(data)
         ? data
         : [];
+      const prev = cache.get(key)?.files || null;
       cache.set(key, { files: list, at: Date.now() });
-      setFiles(list);
+      // Update UI if no cache before or data changed
+      const changed = () => {
+        if (!prev) return true;
+        if (prev.length !== list.length) return true;
+        const prevIds = prev.map((f) => f._id).join(",");
+        const newIds = list.map((f) => f._id).join(",");
+        return prevIds !== newIds;
+      };
+      if (!cached || changed()) {
+        setFiles(list);
+      }
     } catch (e) {
       console.error("AttachmentLinksCell load error", e);
-      setFiles([]);
+      // Preserve cached view on error; only set empty when nothing cached
+      if (!cached) setFiles([]);
     }
   }, [key, ownerId, ownerType, field]);
 
@@ -78,6 +90,19 @@ export default function AttachmentLinksCell({
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
+
+  // Proactively refresh when page becomes visible again (e.g., user navigates back)
+  React.useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        // Force refresh bypassing stale cache by deleting and reloading
+        cache.delete(key);
+        load();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [key, load]);
 
   if (!ownerId) return <Typography variant="body2">—</Typography>;
 
