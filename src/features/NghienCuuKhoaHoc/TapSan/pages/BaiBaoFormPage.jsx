@@ -21,7 +21,6 @@ import {
   ArrowBack as ArrowBackIcon,
 } from "@mui/icons-material";
 import { LoadingButton } from "@mui/lab";
-import { TRANG_THAI_OPTIONS } from "../slices/baibao.constants";
 import {
   createBaiBao as createBaiBaoThunk,
   updateBaiBao as updateBaiBaoThunk,
@@ -34,6 +33,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import FormProvider from "components/form/FormProvider";
 import FTextField from "components/form/FTextField";
+import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 
 export default function BaiBaoFormPage() {
   const { tapSanId, baiBaoId } = useParams();
@@ -49,13 +49,34 @@ export default function BaiBaoFormPage() {
   const [submitLoading, setSubmitLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [success, setSuccess] = React.useState(null);
+  const nhanviens = useSelector((s) => s.nhanvien?.nhanviens || []);
 
   const schema = Yup.object().shape({
     TieuDe: Yup.string().required("Tiêu đề là bắt buộc"),
-    TacGia: Yup.string().required("Tác giả là bắt buộc"),
-    TomTat: Yup.string().required("Tóm tắt là bắt buộc"),
-    NoiDung: Yup.string().required("Nội dung là bắt buộc"),
-    TrangThai: Yup.string().required("Trạng thái là bắt buộc"),
+    TomTat: Yup.string().nullable(),
+    LoaiHinh: Yup.mixed()
+      .oneOf(["ky-thuat-moi", "nghien-cuu-khoa-hoc", "ca-lam-sang"])
+      .required("Loại hình là bắt buộc"),
+    KhoiChuyenMon: Yup.mixed()
+      .oneOf(["noi", "ngoai", "dieu-duong", "phong-ban", "can-lam-sang"])
+      .required("Khối chuyên môn là bắt buộc"),
+    SoThuTu: Yup.number()
+      .typeError("Số thứ tự phải là số")
+      .integer("Số thứ tự phải là số nguyên")
+      .min(1, "Số thứ tự phải >= 1")
+      .required("Số thứ tự là bắt buộc"),
+    TacGiaChinhID: Yup.string().required("Chọn tác giả chính"),
+    DongTacGiaIDs: Yup.array()
+      .of(Yup.string())
+      .test(
+        "no-dup-main",
+        "Không được chọn trùng với tác giả chính",
+        function (arr) {
+          if (!arr || arr.length === 0) return true;
+          const main = this.parent.TacGiaChinhID;
+          return !arr.includes(main);
+        }
+      ),
     GhiChu: Yup.string().nullable(),
   });
 
@@ -63,10 +84,12 @@ export default function BaiBaoFormPage() {
     resolver: yupResolver(schema),
     defaultValues: {
       TieuDe: "",
-      TacGia: "",
       TomTat: "",
-      NoiDung: "",
-      TrangThai: TRANG_THAI_OPTIONS[0]?.value || "",
+      LoaiHinh: "",
+      KhoiChuyenMon: "",
+      SoThuTu: "",
+      TacGiaChinhID: "",
+      DongTacGiaIDs: [],
       GhiChu: "",
     },
   });
@@ -90,10 +113,12 @@ export default function BaiBaoFormPage() {
         baiBaoFromStore || (await dispatch(fetchBaiBaoById(baiBaoId)).unwrap());
       reset({
         TieuDe: data.TieuDe || "",
-        TacGia: data.TacGia || "",
         TomTat: data.TomTat || "",
-        NoiDung: data.NoiDung || "",
-        TrangThai: data.TrangThai || TRANG_THAI_OPTIONS[0]?.value || "",
+        LoaiHinh: data.LoaiHinh || "",
+        KhoiChuyenMon: data.KhoiChuyenMon || "",
+        SoThuTu: data.SoThuTu || "",
+        TacGiaChinhID: data.TacGiaChinhID || "",
+        DongTacGiaIDs: data.DongTacGiaIDs || [],
         GhiChu: data.GhiChu || "",
       });
     } catch (error) {
@@ -107,7 +132,10 @@ export default function BaiBaoFormPage() {
   React.useEffect(() => {
     loadTapSan();
     loadBaiBao();
-  }, [loadTapSan, loadBaiBao]);
+    if (!nhanviens || nhanviens.length === 0) {
+      dispatch(getAllNhanVien());
+    }
+  }, [loadTapSan, loadBaiBao, nhanviens, dispatch]);
 
   const onSubmit = async (data) => {
     try {
@@ -212,12 +240,12 @@ export default function BaiBaoFormPage() {
 
       {/* Form */}
       <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-        <Paper component="form" sx={{ p: 3 }}>
+        <Paper sx={{ p: 3 }}>
           <Stack spacing={3}>
             {/* Basic Information */}
             <Box>
               <Typography variant="h6" gutterBottom>
-                Thông tin cơ bản
+                Thông tin bài báo
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
@@ -229,54 +257,55 @@ export default function BaiBaoFormPage() {
                 />
 
                 <FTextField
-                  name="TacGia"
-                  label="Tác giả"
-                  placeholder="Nhập tên tác giả"
-                />
-
-                <FTextField
                   name="TomTat"
                   label="Tóm tắt"
-                  placeholder="Nhập tóm tắt nội dung bài báo"
+                  placeholder="Nhập tóm tắt (tối đa 2000 ký tự)"
                   multiline
                   rows={3}
                 />
-              </Stack>
-            </Box>
 
-            {/* Content */}
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Nội dung
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
+                <FTextField select name="LoaiHinh" label="Loại hình">
+                  <MenuItem value="ky-thuat-moi">Kỹ thuật mới</MenuItem>
+                  <MenuItem value="nghien-cuu-khoa-hoc">
+                    Nghiên cứu khoa học
+                  </MenuItem>
+                  <MenuItem value="ca-lam-sang">Ca lâm sàng</MenuItem>
+                </FTextField>
 
-              <FTextField
-                name="NoiDung"
-                label="Nội dung bài báo"
-                placeholder="Nhập nội dung chi tiết của bài báo"
-                multiline
-                rows={10}
-              />
-            </Box>
+                <FTextField select name="KhoiChuyenMon" label="Khối chuyên môn">
+                  <MenuItem value="noi">Nội</MenuItem>
+                  <MenuItem value="ngoai">Ngoại</MenuItem>
+                  <MenuItem value="dieu-duong">Điều dưỡng</MenuItem>
+                  <MenuItem value="phong-ban">Phòng ban</MenuItem>
+                  <MenuItem value="can-lam-sang">Cận lâm sàng</MenuItem>
+                </FTextField>
 
-            {/* Status and Notes */}
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                Trạng thái và ghi chú
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
+                <FTextField
+                  name="SoThuTu"
+                  label="Số thứ tự"
+                  placeholder="Nhập số thứ tự trong tập san"
+                  type="number"
+                />
 
-              <Stack spacing={2}>
+                <FTextField select name="TacGiaChinhID" label="Tác giả chính">
+                  {nhanviens.map((nv) => (
+                    <MenuItem key={nv._id} value={nv._id}>
+                      {nv.Ten}
+                      {nv.MaNhanVien ? ` (${nv.MaNhanVien})` : ""}
+                    </MenuItem>
+                  ))}
+                </FTextField>
+
                 <FTextField
                   select
-                  name="TrangThai"
-                  label="Trạng thái"
-                  fullWidth
+                  SelectProps={{ multiple: true }}
+                  name="DongTacGiaIDs"
+                  label="Đồng tác giả"
                 >
-                  {TRANG_THAI_OPTIONS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
+                  {nhanviens.map((nv) => (
+                    <MenuItem key={nv._id} value={nv._id}>
+                      {nv.Ten}
+                      {nv.MaNhanVien ? ` (${nv.MaNhanVien})` : ""}
                     </MenuItem>
                   ))}
                 </FTextField>

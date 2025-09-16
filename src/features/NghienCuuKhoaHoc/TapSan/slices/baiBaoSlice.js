@@ -26,14 +26,6 @@ export const fetchBaiBaoById = createAsyncThunk(
   }
 );
 
-export const fetchBaiBaoStats = createAsyncThunk(
-  "baiBao/fetchStats",
-  async (tapSanId) => {
-    const resp = await api.get(`/tapsan/${tapSanId}/baibao/stats`);
-    return { tapSanId, stats: resp.data?.data };
-  }
-);
-
 export const createBaiBao = createAsyncThunk(
   "baiBao/create",
   async ({ tapSanId, payload }) => {
@@ -55,6 +47,14 @@ export const deleteBaiBao = createAsyncThunk("baiBao/delete", async (id) => {
   return id;
 });
 
+export const reorderBaiBao = createAsyncThunk(
+  "baiBao/reorder",
+  async ({ tapSanId, items }) => {
+    const resp = await api.patch(`/tapsan/${tapSanId}/baibao/reorder`, items);
+    return { tapSanId, ok: resp.data?.success };
+  }
+);
+
 const initialByTapSan = () => ({
   ids: [],
   total: 0,
@@ -62,7 +62,7 @@ const initialByTapSan = () => ({
   limit: 20,
   loading: false,
   error: null,
-  stats: null,
+  sort: { field: "SoThuTu", order: "asc" },
 });
 
 const slice = createSlice({
@@ -126,13 +126,6 @@ const slice = createSlice({
         state.error = error?.message || "Lỗi tải chi tiết bài báo";
       })
 
-      .addCase(fetchBaiBaoStats.fulfilled, (state, { payload }) => {
-        const { tapSanId, stats } = payload;
-        state.byTapSan[tapSanId] =
-          state.byTapSan[tapSanId] || initialByTapSan();
-        state.byTapSan[tapSanId].stats = stats;
-      })
-
       .addCase(createBaiBao.fulfilled, (state, { payload }) => {
         entitiesAdapter.addOne(state.entities, payload);
         state.currentId = payload._id;
@@ -144,6 +137,9 @@ const slice = createSlice({
       .addCase(deleteBaiBao.fulfilled, (state, { payload: id }) => {
         entitiesAdapter.removeOne(state.entities, id);
         if (state.currentId === id) state.currentId = null;
+      })
+      .addCase(reorderBaiBao.fulfilled, (state, { payload }) => {
+        // nothing to do locally; components should refetch list
       });
   },
 });
@@ -163,8 +159,6 @@ export const selectBaiBaoListByTapSan = (state, tapSanId) => {
     .map((id) => baiBaoEntitySelectors.selectById(state, id))
     .filter(Boolean);
 };
-export const selectBaiBaoStatsByTapSan = (state, tapSanId) =>
-  state.baiBao.byTapSan[tapSanId]?.stats || null;
 export const selectBaiBaoListMeta = (state, tapSanId) => {
   const sub = state.baiBao.byTapSan[tapSanId] || {};
   return {

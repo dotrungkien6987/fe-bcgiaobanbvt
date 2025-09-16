@@ -84,7 +84,13 @@ export default function TapSanListPage() {
   const fetchData = React.useCallback(async () => {
     try {
       await dispatch(
-        fetchTapSanList({ page, size, search: searchTerm, ...filters })
+        fetchTapSanList({
+          page,
+          size,
+          search: searchTerm,
+          includeCounts: 1,
+          ...filters,
+        })
       );
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -169,6 +175,22 @@ export default function TapSanListPage() {
           {params.value || "—"}
         </Typography>
       ),
+    },
+    {
+      field: "BaiBaoCount",
+      headerName: "Số bài báo",
+      width: 130,
+      align: "center",
+      headerAlign: "center",
+      renderCell: (params) => (
+        <Chip
+          label={typeof params.value === "number" ? params.value : "0"}
+          color={params.value > 0 ? "primary" : "default"}
+          size="small"
+          variant={params.value > 0 ? "filled" : "outlined"}
+        />
+      ),
+      sortable: false,
     },
     {
       field: "KeHoach",

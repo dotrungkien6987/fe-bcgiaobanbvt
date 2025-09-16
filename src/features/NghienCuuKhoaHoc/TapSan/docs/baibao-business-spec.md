@@ -7,17 +7,18 @@ Ngữ cảnh liên quan: `features/NghienCuuKhoaHoc/TapSan` (FE), `models/contro
 1. Mục tiêu
 
 - Mỗi Tập san quản lý danh sách Bài đăng (~20 bài/số).
-- Theo dõi thông tin: Tên bài báo, Tác giả chính + Đồng tác giả (NhanVienID), Loại hình bài báo, Khối chuyên môn, Mã bài báo (tự sinh), File đính kèm, Người thẩm định (NhanVienID).
+- Theo dõi thông tin: Tên bài báo, Tác giả chính + Đồng tác giả (NhanVienID), Loại hình bài báo (enum), Khối chuyên môn (enum), Mã bài báo (tự sinh), File đính kèm, Người thẩm định (NhanVienID), số thứ tự bài báo trong tập san.
 - Không quản lý trạng thái quy trình trong giai đoạn này.
 - UI/UX hiện đại, sang trọng với Material Design 3, cards, animations, drag-drop, responsive.
 
 2. Ràng buộc và quyết định đã chốt
 
 - Loại Tập san: `YHTH` (Y học thực hành), `TTT` (Thông tin thuốc). Mỗi loại mỗi năm có 2 số, mỗi số ~20 bài.
-- Reviewer: có thể là bất kỳ `NhanVien`.
 - Không bắt buộc phải có file đính kèm.
-- Không triển khai trạng thái bài đăng ở phase này.
-- Unique partial index cho `MaBaiBao` trong phạm vi 1 `TapSan` khi `isDeleted=false`.
+- Không quản lý trạng thái bài đăng ở phase này (loại bỏ toàn bộ trạng thái).
+- Tác giả: không dùng chuỗi tự do. Dùng `TacGiaChinhID` (ref NhanVien) và `DongTacGiaIDs[]` (ref NhanVien). Cấm trùng `TacGiaChinhID` trong `DongTacGiaIDs`.
+- `SoThuTu` do người dùng quyết định; đảm bảo duy nhất trong 1 Tập san (xét `isDeleted=false`).
+- `MaBaiBao` hiển thị được sinh từ `TapSan` + `SoThuTu`: `{Loai}-{Nam}-{So}-{SoThuTuPad2}`. Thay đổi khi `SoThuTu` đổi.
 - Page riêng cho CRUD bài đăng (không dùng Drawer).
 - Có Export danh sách theo bộ lọc (CSV/Excel; tối thiểu CSV).
 
@@ -28,6 +29,30 @@ Ngữ cảnh liên quan: `features/NghienCuuKhoaHoc/TapSan` (FE), `models/contro
 - **Typography**: Consistent font weights (400, 500, 600, 700), proper hierarchy
 - **DataGrid**: Professional với filters, search, pagination, empty states, loading skeletons
 - **Forms**: Sections với icons, validation states, preview, progress indicators
+
+4. Schema Bài báo (BE)
+
+- Bắt buộc: `TapSanId`, `TieuDe`, `LoaiHinh` (enum: `ky-thuat-moi`, `nghien-cuu-khoa-hoc`, `ca-lam-sang`), `KhoiChuyenMon` (enum: `noi`, `ngoai`, `dieu-duong`, `phong-ban`, `can-lam-sang`), `SoThuTu` (>=1), `TacGiaChinhID`.
+- Tuỳ chọn: `DongTacGiaIDs[]`, `TomTat`, `GhiChu`.
+- Tự sinh: `MaBaiBao` = `{Loai}-{Nam}-{So}-{SoThuTuPad2}`.
+- Loại bỏ: `TrangThai`, `TacGia` (string), `NoiDung`.
+- Index: unique partial `{TapSanId, SoThuTu}` với `isDeleted=false`; chỉ mục lọc theo `KhoiChuyenMon`, `LoaiHinh`, `TacGiaChinhID`; tìm kiếm theo `TieuDe`, `MaBaiBao`.
+
+5. API Bài báo (BE)
+
+- GET `/:tapSanId/baibao`: filter `search`, `khoiChuyenMon`, `loaiHinh`; sort mặc định `SoThuTu asc`.
+- POST `/:tapSanId/baibao`: validate bắt buộc + kiểm tra trùng `SoThuTu` trong tập san.
+- PUT `/baibao/:id`: cho phép đổi `SoThuTu` (revalidate) và cập nhật `TacGiaChinhID`, `DongTacGiaIDs`.
+- DELETE `/baibao/:id`: soft delete.
+- PATCH `/:tapSanId/baibao/reorder`: nhận mảng `{id, SoThuTu}` và cập nhật hàng loạt.
+- ĐÃ XÓA: endpoint thống kê theo trạng thái.
+
+6. UI/UX (FE)
+
+- Danh sách: cột `MaBaiBao`, `SoThuTu`, `TieuDe`, `LoaiHinh`, `KhoiChuyenMon`, `TacGiaChinh`, `Đồng tác giả (số lượng)`, `Tệp`, `Thao tác`.
+- Sắp xếp mặc định theo `SoThuTu` tăng dần; hỗ trợ tìm kiếm theo tiêu đề/mã bài báo; filter theo `KhoiChuyenMon`, `LoaiHinh`.
+- Form: RHF+Yup với Autocomplete nhân viên cho `TacGiaChinhID`, `DongTacGiaIDs` (multi). Không cho phép trùng tác giả chính trong danh sách đồng tác giả.
+- Reorder: dialog/bulk edit hoặc kéo thả; gọi PATCH reorder; sau khi lưu refetch danh sách.
 - **File Upload**: Drag-drop zones, modern upload cards, file type icons, progress bars
 - **Animations**: Fade, Zoom, smooth transitions, hover effects
 - **Responsive**: Grid system, proper breakpoints, mobile-friendly

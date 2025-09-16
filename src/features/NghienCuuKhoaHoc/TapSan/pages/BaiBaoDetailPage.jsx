@@ -29,10 +29,6 @@ import {
   Info as InfoIcon,
 } from "@mui/icons-material";
 import {
-  getTrangThaiColor,
-  getTrangThaiLabel,
-} from "../slices/baibao.constants";
-import {
   fetchBaiBaoById,
   deleteBaiBao as deleteBaiBaoThunk,
   selectBaiBaoById,
@@ -41,6 +37,7 @@ import { fetchTapSanById, selectTapSanById } from "../slices/tapSanSlice";
 import AttachmentSection from "../components/AttachmentSection";
 import ConfirmDialog from "components/ConfirmDialog";
 import useLocalSnackbar from "../hooks/useLocalSnackbar";
+import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -69,6 +66,7 @@ export default function BaiBaoDetailPage() {
   const [tabValue, setTabValue] = React.useState(0);
   const { showSuccess, showError, SnackbarElement } = useLocalSnackbar();
   const [confirm, setConfirm] = React.useState({ open: false, loading: false });
+  const nhanviens = useSelector((s) => s.nhanvien?.nhanviens || []);
 
   const loadTapSan = React.useCallback(async () => {
     try {
@@ -94,7 +92,51 @@ export default function BaiBaoDetailPage() {
   React.useEffect(() => {
     loadTapSan();
     loadBaiBao();
-  }, [loadTapSan, loadBaiBao]);
+    if (!nhanviens || nhanviens.length === 0) {
+      dispatch(getAllNhanVien());
+    }
+  }, [loadTapSan, loadBaiBao, nhanviens, dispatch]);
+
+  const loaiHinhLabel = (v) => {
+    switch (v) {
+      case "ky-thuat-moi":
+        return "Kỹ thuật mới";
+      case "nghien-cuu-khoa-hoc":
+        return "Nghiên cứu khoa học";
+      case "ca-lam-sang":
+        return "Ca lâm sàng";
+      default:
+        return v || "";
+    }
+  };
+
+  const khoiLabel = (v) => {
+    switch (v) {
+      case "noi":
+        return "Nội";
+      case "ngoai":
+        return "Ngoại";
+      case "dieu-duong":
+        return "Điều dưỡng";
+      case "phong-ban":
+        return "Phòng ban";
+      case "can-lam-sang":
+        return "Cận lâm sàng";
+      default:
+        return v || "";
+    }
+  };
+
+  const tacGiaChinh = React.useMemo(() => {
+    if (!baiBao || !baiBao.TacGiaChinhID) return null;
+    return nhanviens.find((nv) => nv._id === baiBao.TacGiaChinhID) || null;
+  }, [baiBao, nhanviens]);
+
+  const dongTacGia = React.useMemo(() => {
+    if (!baiBao || !Array.isArray(baiBao.DongTacGiaIDs)) return [];
+    const ids = new Set(baiBao.DongTacGiaIDs);
+    return nhanviens.filter((nv) => ids.has(nv._id));
+  }, [baiBao, nhanviens]);
 
   const handleAskDelete = () => {
     setConfirm({ open: true, loading: false });
@@ -187,16 +229,37 @@ export default function BaiBaoDetailPage() {
           <Typography variant="h4" fontWeight="600">
             {baiBao.TieuDe}
           </Typography>
-          <Stack direction="row" alignItems="center" spacing={2} mt={1}>
-            <Typography variant="body1" color="text.secondary">
-              {baiBao.TacGia}
-            </Typography>
-            <Chip
-              label={getTrangThaiLabel(baiBao.TrangThai)}
-              color={getTrangThaiColor(baiBao.TrangThai)}
-              size="small"
-              variant="outlined"
-            />
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={1}
+            mt={1}
+            flexWrap="wrap"
+          >
+            {baiBao.MaBaiBao && (
+              <Chip
+                label={`Mã: ${baiBao.MaBaiBao}`}
+                size="small"
+                variant="outlined"
+              />
+            )}
+            {typeof baiBao.SoThuTu === "number" && (
+              <Chip
+                label={`STT: ${baiBao.SoThuTu}`}
+                size="small"
+                variant="outlined"
+              />
+            )}
+            {baiBao.LoaiHinh && (
+              <Chip
+                label={loaiHinhLabel(baiBao.LoaiHinh)}
+                size="small"
+                color="primary"
+              />
+            )}
+            {baiBao.KhoiChuyenMon && (
+              <Chip label={khoiLabel(baiBao.KhoiChuyenMon)} size="small" />
+            )}
           </Stack>
         </Box>
         <Stack direction="row" spacing={1}>
@@ -255,9 +318,83 @@ export default function BaiBaoDetailPage() {
 
                   <Box>
                     <Typography variant="subtitle2" color="text.secondary">
-                      Tác giả
+                      Mã bài báo
                     </Typography>
-                    <Typography variant="body1">{baiBao.TacGia}</Typography>
+                    <Typography variant="body1">
+                      {baiBao.MaBaiBao || "—"}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Số thứ tự
+                    </Typography>
+                    <Typography variant="body1">
+                      {baiBao.SoThuTu ?? "—"}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Loại hình
+                    </Typography>
+                    <Typography variant="body1">
+                      {loaiHinhLabel(baiBao.LoaiHinh)}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Khối chuyên môn
+                    </Typography>
+                    <Typography variant="body1">
+                      {khoiLabel(baiBao.KhoiChuyenMon)}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Tác giả chính
+                    </Typography>
+                    <Typography variant="body1">
+                      {tacGiaChinh
+                        ? `${tacGiaChinh.Ten}${
+                            tacGiaChinh.MaNhanVien
+                              ? ` (${tacGiaChinh.MaNhanVien})`
+                              : ""
+                          }`
+                        : "—"}
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Đồng tác giả
+                    </Typography>
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      flexWrap="wrap"
+                      sx={{ mt: 0.5 }}
+                    >
+                      {dongTacGia && dongTacGia.length > 0 ? (
+                        dongTacGia.map((nv) => (
+                          <Chip
+                            key={nv._id}
+                            label={
+                              nv.MaNhanVien
+                                ? `${nv.Ten} (${nv.MaNhanVien})`
+                                : nv.Ten
+                            }
+                            size="small"
+                          />
+                        ))
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          —
+                        </Typography>
+                      )}
+                    </Stack>
                   </Box>
 
                   <Box>
@@ -265,31 +402,8 @@ export default function BaiBaoDetailPage() {
                       Tóm tắt
                     </Typography>
                     <Typography variant="body1" sx={{ whiteSpace: "pre-line" }}>
-                      {baiBao.TomTat}
+                      {baiBao.TomTat || ""}
                     </Typography>
-                  </Box>
-
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Nội dung
-                    </Typography>
-                    <Paper
-                      variant="outlined"
-                      sx={{
-                        p: 2,
-                        mt: 1,
-                        maxHeight: 400,
-                        overflow: "auto",
-                        backgroundColor: "grey.50",
-                      }}
-                    >
-                      <Typography
-                        variant="body1"
-                        sx={{ whiteSpace: "pre-line" }}
-                      >
-                        {baiBao.NoiDung}
-                      </Typography>
-                    </Paper>
                   </Box>
 
                   {baiBao.GhiChu && (
@@ -330,19 +444,6 @@ export default function BaiBaoDetailPage() {
                     <Typography variant="body2" color="text.secondary">
                       {tapSan ? `Số ${tapSan?.SoXuatBan}` : ""}
                     </Typography>
-                  </Box>
-
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Trạng thái
-                    </Typography>
-                    <Chip
-                      label={getTrangThaiLabel(baiBao.TrangThai)}
-                      color={getTrangThaiColor(baiBao.TrangThai)}
-                      size="small"
-                      variant="outlined"
-                      sx={{ mt: 0.5 }}
-                    />
                   </Box>
 
                   <Box>
