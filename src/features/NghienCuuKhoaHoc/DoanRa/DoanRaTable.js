@@ -1,4 +1,4 @@
-import { Grid, IconButton, Stack, Tooltip, useTheme } from "@mui/material";
+import { Grid, IconButton, Stack, Tooltip } from "@mui/material";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import MainCard from "components/MainCard";
@@ -12,7 +12,6 @@ import { Add, Eye } from "iconsax-react";
 import ScrollX from "components/ScrollX";
 
 function DoanRaTable() {
-  const theme = useTheme();
   const columns = useMemo(
     () => [
       {
@@ -51,7 +50,12 @@ function DoanRaTable() {
           );
         },
       },
-      { Header: "Ngày ký", accessor: "NgayKyVanBan", disableGroupBy: true },
+      {
+        Header: "Ngày ký",
+        accessor: (row) => row.NgayKyVanBanFormatted || row.NgayKyVanBan,
+        id: "NgayKyVanBan",
+        disableGroupBy: true,
+      },
       {
         Header: "Số văn bản",
         accessor: "SoVanBanChoPhep",
@@ -60,7 +64,9 @@ function DoanRaTable() {
       { Header: "Mục đích", accessor: "MucDichXuatCanh", disableGroupBy: true },
       {
         Header: "Thời gian xuất cảnh",
-        accessor: "ThoiGianXuatCanh",
+        accessor: (row) =>
+          row.ThoiGianXuatCanhFormatted || row.ThoiGianXuatCanh,
+        id: "ThoiGianXuatCanh",
         disableGroupBy: true,
       },
       { Header: "Quốc gia đến", accessor: "QuocGiaDen", disableGroupBy: true },

@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { deleteDoanRa, getDoanRas } from "./doanraSlice";
+import { deleteDoanRa } from "./doanraSlice";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 function DeleteDoanRaButton({ doanRaID }) {
@@ -9,8 +9,6 @@ function DeleteDoanRaButton({ doanRaID }) {
   const handleDelete = async () => {
     if (window.confirm("Bạn có chắc chắn muốn xóa đoàn ra này?")) {
       await dispatch(deleteDoanRa(doanRaID));
-      // Refresh danh sách sau khi xóa thành công
-      dispatch(getDoanRas());
     }
   };
   return (

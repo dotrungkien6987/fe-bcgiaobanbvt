@@ -79,11 +79,11 @@ export default function BaiBaoFormPage() {
       .transform((v) => (v === "" ? null : v))
       .notRequired(),
     // Nguồn tài liệu tham khảo: không bắt buộc; nếu nhập phải là URL hợp lệ
-    NguonTaiLieuThamKhao: Yup.string()
-      .transform((v) => (v === "" ? null : v))
-      .nullable()
-      .notRequired()
-      .url("Nguồn tài liệu phải là đường dẫn hợp lệ"),
+    // NguonTaiLieuThamKhao: Yup.string()
+    //   .transform((v) => (v === "" ? null : v))
+    //   .nullable()
+    //   .notRequired()
+    //   .url("Nguồn tài liệu phải là đường dẫn hợp lệ"),
     KhoiChuyenMon: Yup.mixed()
       .oneOf(["noi", "ngoai", "dieu-duong", "phong-ban", "can-lam-sang"])
       .required("Khối chuyên môn là bắt buộc"),

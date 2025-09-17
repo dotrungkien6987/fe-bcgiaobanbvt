@@ -1,12 +1,9 @@
 import React, { useState } from "react";
 import { Button } from "@mui/material";
-import { useDispatch } from "react-redux";
-import { getDoanRas } from "./doanraSlice";
 import { Add } from "iconsax-react";
 import DoanRaForm from "./DoanRaForm";
 
 function AddDoanRa() {
-  const dispatch = useDispatch();
   const [openForm, setOpenForm] = useState(false);
 
   const handleOpenForm = () => {
@@ -17,10 +14,7 @@ function AddDoanRa() {
     setOpenForm(false);
   };
 
-  const handleSuccess = () => {
-    // Refresh danh sách sau khi thêm thành công
-    dispatch(getDoanRas());
-  };
+  const handleSuccess = () => {};
 
   return (
     <>

@@ -2,12 +2,37 @@
 import { createSlice } from "@reduxjs/toolkit";
 import * as doanRaApi from "./api";
 import { toast } from "react-toastify";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const initialState = {
   isLoading: false,
   error: null,
   doanRas: [],
   currentDoanRa: null,
+};
+
+const toVNDate = (d) => {
+  if (!d) return null;
+  const m = dayjs(d);
+  if (!m.isValid()) return null;
+  return m.tz
+    ? m.tz("Asia/Ho_Chi_Minh").format("DD/MM/YYYY")
+    : m.format("DD/MM/YYYY");
+};
+
+const normalizeDoanRa = (item) => {
+  if (!item || typeof item !== "object") return item;
+  const rawNgayKy = item.NgayKyVanBan || item.ngayKyVanBan;
+  const rawXuatCanh = item.ThoiGianXuatCanh || item.thoiGianXuatCanh;
+  return {
+    ...item,
+    NgayKyVanBanFormatted: toVNDate(rawNgayKy),
+    ThoiGianXuatCanhFormatted: toVNDate(rawXuatCanh),
+  };
 };
 
 const slice = createSlice({
@@ -27,40 +52,46 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       // Đảm bảo luôn là mảng lấy từ action.payload.data
-      state.doanRas = Array.isArray(action.payload?.data)
+      const list = Array.isArray(action.payload?.data)
         ? action.payload.data
         : [];
+      state.doanRas = list.map(normalizeDoanRa);
     },
 
     // Tạo mới đoàn ra
     createDoanRaSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.doanRas.unshift(action.payload);
+      const created = normalizeDoanRa(action.payload?.data || action.payload);
+      if (created) state.doanRas.unshift(created);
     },
 
     // Lấy chi tiết đoàn ra
     getDoanRaByIdSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      state.currentDoanRa = action.payload;
+      state.currentDoanRa = normalizeDoanRa(
+        action.payload?.data || action.payload
+      );
     },
 
     // Cập nhật đoàn ra
     updateDoanRaSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
+      const updated = normalizeDoanRa(action.payload?.data || action.payload);
       const index = state.doanRas.findIndex(
-        (item) => item._id === action.payload._id
+        (item) => item._id === updated?._id
       );
       if (index !== -1) {
-        state.doanRas[index] = action.payload;
+        state.doanRas[index] = updated;
       }
       if (
         state.currentDoanRa &&
-        state.currentDoanRa._id === action.payload._id
+        updated &&
+        state.currentDoanRa._id === updated._id
       ) {
-        state.currentDoanRa = action.payload;
+        state.currentDoanRa = updated;
       }
     },
 

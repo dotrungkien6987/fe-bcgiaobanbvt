@@ -66,6 +66,7 @@ import HoatDongDashboard from "features/HoatDongBenhVien/HoatDongDashboard";
 import DataSourceExplanation from "features/HoatDongBenhVien/DataSourceExplanation";
 import HoatDongDashBoard1 from "features/HoatDongBenhVien1/HoatDongDashBoard1";
 import DoanRaTable from "features/NghienCuuKhoaHoc/DoanRa/DoanRaTable";
+import DoanRaDetailPage from "features/NghienCuuKhoaHoc/DoanRa/DoanRaDetailPage";
 import QuocGiaTable from "features/Daotao/QuocGia/QuocGiaTable";
 import LoaiChuyenMonTable from "features/Daotao/LoaiChuyenMon/LoaiChuyenMonTable";
 import NhomViecUserList from "features/QuanLyCongViec/NhomViecUser/NhomViecUserList";
@@ -225,6 +226,7 @@ function Router() {
           <Route path="/khoas" element={<KhoaTable />} />
           <Route path="/nhomkhoas" element={<NhomKhoaSoThuTuTable />} />
           <Route path="/doandi" element={<DoanRaTable />} />
+          <Route path="/doandi/:doanRaId" element={<DoanRaDetailPage />} />
           {/* TapSan nested routes */}
           <Route path="/tapsan/*" element={<TapSanRoutes />} />
           <Route
