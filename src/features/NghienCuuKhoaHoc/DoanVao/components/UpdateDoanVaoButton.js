@@ -2,14 +2,14 @@ import React from "react";
 import { Button } from "@mui/material";
 import { Edit } from "iconsax-react";
 
-function UpdateDoanRaButton({ doanRaID, onOpen }) {
+function UpdateDoanVaoButton({ doanVaoID, onOpen }) {
   const handleOpen = (e) => {
     if (e) {
       e.stopPropagation();
       e.preventDefault();
     }
-    if (onOpen) onOpen(doanRaID);
-    else console.warn("UpdateDoanRaButton: missing onOpen handler");
+    if (onOpen) onOpen(doanVaoID);
+    else console.warn("UpdateDoanVaoButton: missing onOpen handler");
   };
 
   return (
@@ -26,4 +26,4 @@ function UpdateDoanRaButton({ doanRaID, onOpen }) {
   );
 }
 
-export default UpdateDoanRaButton;
+export default UpdateDoanVaoButton;

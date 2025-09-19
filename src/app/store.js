@@ -31,6 +31,7 @@ import backupSlice from "../features/Backup/backupSlice";
 import loaichuyenmonReducer from "features/Daotao/LoaiChuyenMon/loaiChuyenMonSlice";
 import baiBaoReducer from "../features/NghienCuuKhoaHoc/TapSan/slices/baiBaoSlice";
 import tapSanReducer from "../features/NghienCuuKhoaHoc/TapSan/slices/tapSanSlice";
+import doanvaoReducer from "../features/NghienCuuKhoaHoc/DoanVao/doanvaoSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -66,6 +67,7 @@ const rootReducer = {
   loaichuyenmon: loaichuyenmonReducer,
   baiBao: baiBaoReducer,
   tapSan: tapSanReducer,
+  doanvao: doanvaoReducer,
 };
 
 const store = configureStore({

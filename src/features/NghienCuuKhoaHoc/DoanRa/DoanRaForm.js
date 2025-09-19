@@ -21,11 +21,12 @@ import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 import dayjs from "dayjs";
 import { createDoanRa, updateDoanRa, getDoanRaById } from "./doanraSlice";
-import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
+import { getAllNhanVien, getDataFix } from "features/NhanVien/nhanvienSlice";
 import SelectNhanVienTable from "./SelectNhanVienTable";
 import Autocomplete from "@mui/material/Autocomplete";
-import countries from "../../../data/countries";
 import CloseIcon from "@mui/icons-material/Close";
+// AttachmentSection dùng chung cho quản lý tệp
+import AttachmentSection from "shared/components/AttachmentSection";
 
 const yupSchema = Yup.object().shape({
   NgayKyVanBan: Yup.date().nullable().required("Bắt buộc chọn ngày ký văn bản"),
@@ -40,7 +41,7 @@ const yupSchema = Yup.object().shape({
 function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
   const dispatch = useDispatch();
   const { currentDoanRa, isLoading } = useSelector((state) => state.doanra);
-  const { nhanviens } = useSelector((state) => state.nhanvien);
+  const { nhanviens, QuocGia } = useSelector((state) => state.nhanvien);
   const [isEditMode, setIsEditMode] = useState(false);
   const [openSelectNV, setOpenSelectNV] = useState(false);
   const [selectedNhanVienIds, setSelectedNhanVienIds] = useState([]);
@@ -56,6 +57,8 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
       QuocGiaDen: "",
       BaoCao: "",
       GhiChu: "",
+      // Field mới chuẩn hoá attachments (object array)
+      Attachments: [],
     },
   });
 
@@ -88,12 +91,29 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
     if (!nhanviens || nhanviens.length === 0) dispatch(getAllNhanVien());
   }, [nhanviens, dispatch]);
 
+  // Load danh mục QuocGia từ DataFix nếu chưa có
+  useEffect(() => {
+    if (!QuocGia || QuocGia.length === 0) {
+      dispatch(getDataFix());
+    }
+  }, [QuocGia, dispatch]);
+
+  // Debug log để kiểm tra props
+  useEffect(() => {
+    console.log("[DoanRaForm] Props changed:", { open, doanRaId, isEditMode });
+  }, [open, doanRaId, isEditMode]);
+
   // Load data khi edit
   useEffect(() => {
     if (doanRaId && open) {
+      console.log(
+        "[DoanRaForm] Setting edit mode and fetching data for ID:",
+        doanRaId
+      );
       setIsEditMode(true);
       dispatch(getDoanRaById(doanRaId));
-    } else {
+    } else if (open && !doanRaId) {
+      console.log("[DoanRaForm] Setting create mode");
       setIsEditMode(false);
       reset({
         NgayKyVanBan: null,
@@ -104,6 +124,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
         QuocGiaDen: "",
         BaoCao: "",
         GhiChu: "",
+        Attachments: [],
       });
     }
   }, [doanRaId, open, dispatch, reset]);
@@ -111,6 +132,17 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
   // Update form khi có data từ Redux
   useEffect(() => {
     if (currentDoanRa && currentDoanRa._id && isEditMode) {
+      // Chuẩn hoá attachments: ưu tiên field mới Attachments, fallback TaiLieuKemTheo (string array)
+      const normalizedAttachments = Array.isArray(currentDoanRa.Attachments)
+        ? currentDoanRa.Attachments
+        : Array.isArray(currentDoanRa.TaiLieuKemTheo)
+        ? currentDoanRa.TaiLieuKemTheo.map((s) => ({
+            url: s,
+            fileName: s.split("/").pop() || "Tài liệu",
+            legacy: true,
+          }))
+        : [];
+
       reset({
         ...currentDoanRa,
         NgayKyVanBan: currentDoanRa.NgayKyVanBan
@@ -119,6 +151,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
         ThoiGianXuatCanh: currentDoanRa.ThoiGianXuatCanh
           ? dayjs(currentDoanRa.ThoiGianXuatCanh)
           : null,
+        Attachments: normalizedAttachments,
       });
       // Prefill selected members
       setSelectedNhanVienIds(
@@ -142,32 +175,55 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
           ? data.ThoiGianXuatCanh.toISOString()
           : null,
         ThanhVien: selectedNhanVienIds, // gửi mảng ObjectId
-        TaiLieuKemTheo: currentDoanRa?.TaiLieuKemTheo || [],
+        Attachments: Array.isArray(data.Attachments) ? data.Attachments : [],
+        // Không còn gửi TaiLieuKemTheo, BE có thể map fallback nếu cần
       };
 
       if (isEditMode && currentDoanRa?._id) {
         await dispatch(updateDoanRa(currentDoanRa._id, doanRaData));
+        onSuccess && onSuccess();
+        // Cập nhật xong vẫn ở chế độ edit
       } else {
-        await dispatch(createDoanRa(doanRaData));
+        const created = await dispatch(createDoanRa(doanRaData));
+        // Sau khi tạo, chuyển form sang chế độ edit để upload file ngay
+        if (created && created.data?._id) {
+          setIsEditMode(true);
+          // Lấy lại chi tiết (phòng trường hợp BE thêm trường mặc định)
+          dispatch(getDoanRaById(created.data._id));
+        }
+        onSuccess && onSuccess();
+        // Không đóng dialog để user tiếp tục upload Attachment
       }
-
-      onSuccess && onSuccess();
-      handleClose();
+      // Không gọi handleClose nếu vừa tạo mới -> giữ mở để thao tác tệp
     } catch (error) {
       console.error("Error submitting form:", error);
     }
   };
 
   const handleClose = () => {
+    console.log("[DoanRaForm] handleClose called");
     reset();
     setSelectedNhanVienIds([]);
     onClose();
   };
 
+  // Guard dialog close to prevent instant close from backdrop or ESC
+  const handleDialogClose = (event, reason) => {
+    console.log("[DoanRaForm] Dialog close triggered:", reason);
+    if (reason === "backdropClick" || reason === "escapeKeyDown") {
+      console.log("[DoanRaForm] Prevented auto close due to:", reason);
+      return; // ignore accidental closes (e.g., click ripple timing)
+    }
+    console.log("[DoanRaForm] Allowing close");
+    handleClose();
+  };
+
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={handleDialogClose}
+      disableEscapeKeyDown
+      keepMounted
       maxWidth="md"
       fullWidth
       PaperProps={{
@@ -417,7 +473,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                 </Grid>
                 <Grid item xs={12} md={6}>
                   <Autocomplete
-                    options={countries}
+                    options={Array.isArray(QuocGia) ? QuocGia : []}
                     getOptionLabel={(option) =>
                       option && option.label
                         ? `${option.label} (${option.code}, ${option.phone})`
@@ -443,7 +499,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                       />
                     )}
                     value={
-                      countries.find(
+                      (Array.isArray(QuocGia) ? QuocGia : []).find(
                         (c) => c.label === methods.getValues("QuocGiaDen")
                       ) || null
                     }
@@ -475,6 +531,58 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                 rows={2}
                 fullWidth
               />
+              {isEditMode && currentDoanRa?._id && (
+                <Box>
+                  <Typography
+                    variant="h6"
+                    color="primary"
+                    sx={{ fontWeight: 600, mt: 2, mb: 1 }}
+                  >
+                    Tài liệu đính kèm
+                  </Typography>
+                  <AttachmentSection
+                    ownerType="DoanRa"
+                    ownerId={currentDoanRa._id}
+                    field="file"
+                    title="Tệp Đoàn Ra"
+                    allowedTypes={[
+                      "application/pdf",
+                      "image/*",
+                      ".doc",
+                      ".docx",
+                      ".xls",
+                      ".xlsx",
+                      ".ppt",
+                      ".pptx",
+                    ]}
+                    maxSizeMB={50}
+                    onChange={() => {
+                      // Cập nhật lại count ngay khi thay đổi file
+                      try {
+                        if (currentDoanRa?._id) {
+                          dispatch(
+                            require("./doanraSlice").refreshDoanRaAttachmentCountOne(
+                              currentDoanRa._id
+                            )
+                          );
+                          // Thông báo ra ngoài (bên DoanRaTable) để sau khi đóng form có thể làm mới UI
+                          onSuccess &&
+                            onSuccess({
+                              type: "attachmentsChanged",
+                              id: currentDoanRa._id,
+                            });
+                        }
+                      } catch (e) {
+                        // silent
+                      }
+                    }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    (Upload chỉ khả dụng sau khi tạo bản ghi. Tạo mới trước rồi
+                    quay lại để thêm tệp.)
+                  </Typography>
+                </Box>
+              )}
             </Stack>
           </FormProvider>
         </Card>

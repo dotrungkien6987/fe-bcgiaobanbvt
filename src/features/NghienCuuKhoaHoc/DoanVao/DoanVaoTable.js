@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Grid,
   IconButton,
@@ -10,43 +11,37 @@ import {
   TableRow,
   TableCell,
 } from "@mui/material";
-import React, { useCallback, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import MainCard from "components/MainCard";
 import CommonTable from "pages/tables/MyTable/CommonTable";
 import {
-  getDoanRas,
-  fetchDoanRaAttachmentsCount,
-  refreshDoanRaAttachmentCountOne,
-} from "./doanraSlice";
+  getDoanVaos,
+  fetchDoanVaoAttachmentsCount,
+  refreshDoanVaoAttachmentCountOne,
+} from "./doanvaoSlice";
 import DownloadIcon from "@mui/icons-material/Download";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import apiService from "app/apiService";
-import AddDoanRa from "./AddDoanRa";
-import DeleteDoanRaButton from "./DeleteDoanRaButton";
-import UpdateDoanRaButton from "./UpdateDoanRaButton";
-import DoanRaView from "./DoanRaView";
-import { Add, Eye } from "iconsax-react";
 import ScrollX from "components/ScrollX";
-import DoanRaForm from "./DoanRaForm";
+import { Add, Eye } from "iconsax-react";
+import DoanVaoForm from "./DoanVaoForm";
+import DoanVaoView from "./DoanVaoView";
+import AddDoanVao from "./components/AddDoanVao";
+import DeleteDoanVaoButton from "./components/DeleteDoanVaoButton";
+import UpdateDoanVaoButton from "./components/UpdateDoanVaoButton";
 
-function DoanRaTable() {
-  const { doanRas, attachmentsCount } = useSelector((state) => state.doanra);
+function DoanVaoTable() {
+  const { doanVaos, attachmentsCount } = useSelector((s) => s.doanvao);
   const dispatch = useDispatch();
 
-  // Local state for lazy popover file list
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [activeId, setActiveId] = React.useState(null);
   const [fileLoading, setFileLoading] = React.useState(false);
   const [files, setFiles] = React.useState([]);
-
-  // Simple in-memory cache (session scope)
-  const fileCacheRef = React.useRef(new Map()); // id -> file[]
-
+  const fileCacheRef = React.useRef(new Map());
   const openPopover = Boolean(anchorEl);
 
-  // Hoist form state to table level to avoid row remount side-effects
   const [openForm, setOpenForm] = React.useState(false);
   const [editingId, setEditingId] = React.useState(null);
   const handleOpenForm = React.useCallback((id) => {
@@ -56,9 +51,7 @@ function DoanRaTable() {
   const handleCloseForm = React.useCallback(() => {
     setOpenForm(false);
     if (editingId) {
-      // Làm mới lại đếm tệp cho bản ghi vừa sửa
-      dispatch(refreshDoanRaAttachmentCountOne(editingId));
-      // Xoá cache danh sách file để popover hiển thị dữ liệu mới ở lần tới
+      dispatch(refreshDoanVaoAttachmentCountOne(editingId));
       try {
         fileCacheRef.current.delete(editingId);
       } catch {}
@@ -69,7 +62,6 @@ function DoanRaTable() {
     e.stopPropagation();
     setAnchorEl(e.currentTarget);
     setActiveId(id);
-    // Use cache first
     const cache = fileCacheRef.current.get(id);
     if (cache) {
       setFiles(cache);
@@ -78,10 +70,8 @@ function DoanRaTable() {
       setFileLoading(true);
       try {
         const res = await apiService.get(
-          `/attachments/DoanRa/${id}/file/files`,
-          {
-            params: { size: 20 },
-          }
+          `/attachments/DoanVao/${id}/file/files`,
+          { params: { size: 20 } }
         );
         const list =
           res?.data?.data?.items ||
@@ -92,14 +82,12 @@ function DoanRaTable() {
         fileCacheRef.current.set(id, list);
         setFiles(list);
       } catch (err) {
-        console.warn("Load file list error", err);
         setFiles([]);
       } finally {
         setFileLoading(false);
       }
     }
   };
-
   const handleCloseFiles = () => {
     setAnchorEl(null);
     setActiveId(null);
@@ -114,11 +102,8 @@ function DoanRaTable() {
       const url = URL.createObjectURL(res.data);
       window.open(url, "_blank", "noopener,noreferrer");
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch (e) {
-      console.warn("Preview error", e);
-    }
+    } catch {}
   };
-
   const downloadFile = async (fileId, filename = "download") => {
     try {
       const res = await apiService.get(
@@ -133,12 +118,10 @@ function DoanRaTable() {
       a.click();
       a.remove();
       setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
-    } catch (e) {
-      console.warn("Download error", e);
-    }
+    } catch {}
   };
 
-  const columns = useMemo(
+  const columns = React.useMemo(
     () => [
       {
         Header: "Actions",
@@ -159,9 +142,9 @@ function DoanRaTable() {
               justifyContent="center"
               spacing={0}
             >
-              <DeleteDoanRaButton doanRaID={row.original._id} />
-              <UpdateDoanRaButton
-                doanRaID={row.original._id}
+              <DeleteDoanVaoButton doanVaoID={row.original._id} />
+              <UpdateDoanVaoButton
+                doanVaoID={row.original._id}
                 onOpen={handleOpenForm}
               />
               <Tooltip title="Xem chi tiết">
@@ -181,7 +164,7 @@ function DoanRaTable() {
       },
       {
         Header: "Ngày ký",
-        accessor: (row) => row.NgayKyVanBanFormatted || row.NgayKyVanBan,
+        accessor: (r) => r.NgayKyVanBanFormatted || r.NgayKyVanBan,
         id: "NgayKyVanBan",
         disableGroupBy: true,
       },
@@ -192,13 +175,11 @@ function DoanRaTable() {
       },
       { Header: "Mục đích", accessor: "MucDichXuatCanh", disableGroupBy: true },
       {
-        Header: "Thời gian xuất cảnh",
-        accessor: (row) =>
-          row.ThoiGianXuatCanhFormatted || row.ThoiGianXuatCanh,
-        id: "ThoiGianXuatCanh",
+        Header: "Thời gian vào làm việc",
+        accessor: (r) => r.ThoiGianVaoLamViecFormatted || r.ThoiGianVaoLamViec,
+        id: "ThoiGianVaoLamViec",
         disableGroupBy: true,
       },
-      { Header: "Quốc gia đến", accessor: "QuocGiaDen", disableGroupBy: true },
       { Header: "Ghi chú", accessor: "GhiChu", disableGroupBy: true },
       {
         Header: "# Tệp",
@@ -223,33 +204,29 @@ function DoanRaTable() {
         },
         disableGroupBy: true,
       },
-      // (Đã bỏ cột preview tệp để đơn giản hoá - dùng chip count + popover lazy nếu cần sau)
       { Header: "_id", accessor: "_id", disableGroupBy: true },
     ],
     [attachmentsCount, handleOpenForm]
   );
 
-  // dispatch đã khai báo phía trên
-  useEffect(() => {
-    dispatch(getDoanRas());
+  React.useEffect(() => {
+    dispatch(getDoanVaos());
   }, [dispatch]);
 
-  const data = useMemo(() => doanRas, [doanRas]);
+  const data = React.useMemo(() => doanVaos, [doanVaos]);
 
-  // Batch load attachments meta when list changes
-  useEffect(() => {
-    if (doanRas && doanRas.length) {
-      const ids = doanRas.map((d) => d._id).filter(Boolean);
-      if (ids.length) {
-        dispatch(fetchDoanRaAttachmentsCount(ids));
-      }
+  React.useEffect(() => {
+    if (doanVaos && doanVaos.length) {
+      const ids = doanVaos.map((d) => d._id).filter(Boolean);
+      if (ids.length) dispatch(fetchDoanVaoAttachmentsCount(ids));
     }
-  }, [doanRas, dispatch]);
-  const renderRowSubComponent = useCallback(
+  }, [doanVaos, dispatch]);
+
+  const renderRowSubComponent = React.useCallback(
     ({ row, visibleColumns }) => (
       <TableRow>
         <TableCell colSpan={visibleColumns?.length || 1} sx={{ p: 1.5 }}>
-          <DoanRaView data={data[Number(row.id)]} />
+          <DoanVaoView data={data[Number(row.id)]} />
         </TableCell>
       </TableRow>
     ),
@@ -259,7 +236,7 @@ function DoanRaTable() {
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
-        <MainCard title="Quản lý Đoàn Ra">
+        <MainCard title="Quản lý Đoàn Vào">
           <ScrollX sx={{ height: 700 }}>
             <CommonTable
               data={data}
@@ -267,27 +244,28 @@ function DoanRaTable() {
               renderRowSubComponent={renderRowSubComponent}
               additionalComponent={
                 <div style={{ display: "flex", alignItems: "flex-end" }}>
-                  <AddDoanRa />
+                  <AddDoanVao />
                 </div>
               }
             />
           </ScrollX>
         </MainCard>
       </Grid>
-      {/* Edit form mounted once at page level to prevent row unmount closing it */}
-      <DoanRaForm
+
+      <DoanVaoForm
         open={openForm}
         onClose={handleCloseForm}
-        doanRaId={editingId}
+        doanVaoId={editingId}
         onSuccess={(evt) => {
           if (evt && evt.type === "attachmentsChanged" && evt.id) {
-            dispatch(refreshDoanRaAttachmentCountOne(evt.id));
+            dispatch(refreshDoanVaoAttachmentCountOne(evt.id));
             try {
               fileCacheRef.current.delete(evt.id);
             } catch {}
           }
         }}
       />
+
       <Popover
         open={openPopover}
         anchorEl={anchorEl}
@@ -313,7 +291,7 @@ function DoanRaTable() {
                   setFileLoading(true);
                   try {
                     const res = await apiService.get(
-                      `/attachments/DoanRa/${activeId}/file/files`,
+                      `/attachments/DoanVao/${activeId}/file/files`,
                       { params: { size: 20 } }
                     );
                     const list =
@@ -324,10 +302,8 @@ function DoanRaTable() {
                       [];
                     fileCacheRef.current.set(activeId, list);
                     setFiles(list);
-                    // đồng bộ lại count (phòng trường hợp thay đổi ngoài form)
-                    dispatch(refreshDoanRaAttachmentCountOne(activeId));
+                    dispatch(refreshDoanVaoAttachmentCountOne(activeId));
                   } catch (e) {
-                    console.warn(e);
                   } finally {
                     setFileLoading(false);
                   }
@@ -402,4 +378,4 @@ function DoanRaTable() {
   );
 }
 
-export default DoanRaTable;
+export default DoanVaoTable;

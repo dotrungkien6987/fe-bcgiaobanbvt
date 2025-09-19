@@ -23,52 +23,55 @@
 
 ### Bước 3: Xây dựng component bảng danh sách Đoàn Ra (`DoanRaTable.js`)
 
-- Hiển thị danh sách Đoàn Ra dạng bảng (table)
-- Các cột: Ngày ký, Số văn bản, Mục đích, Thời gian xuất cảnh, Quốc gia đến, Ghi chú, ...
-- Có nút Thêm mới, Sửa, Xóa trên từng dòng hoặc cuối bảng
-- Kết nối với redux để lấy dữ liệu
+Trạng thái: ĐÃ HOÀN THÀNH
+
+- Hiển thị danh sách dạng bảng với cột `# Tệp` và popover lazy load file.
+- Cột hành động: Xem chi tiết (expand), Sửa (mở form), Xóa.
+- Batch-load số lượng tệp qua API batch-count.
 
 ---
 
 ### Bước 4: Xây dựng form thêm/sửa Đoàn Ra (`DoanRaForm.js`)
 
-- Hiển thị popup form khi Thêm/Sửa
-- Các trường nhập: Ngày ký, Số văn bản, Mục đích, Thời gian xuất cảnh, Quốc gia đến, Ghi chú, TaiLieuKemTheo (nhập link), Thành Viên (multi-select)
-- Không hiển thị các trường isDeleted, timestamps
-- Kết nối redux để submit dữ liệu
+Trạng thái: ĐÃ HOÀN THÀNH
+
+- Chuẩn hóa `Attachments` (object array), fallback đọc `TaiLieuKemTheo`.
+- Upload tệp qua `AttachmentSection` sau khi có `_id`.
+- Guard dialog tránh auto-close; giữ form mở sau khi tạo mới để upload ngay.
 
 ---
 
 ### Bước 5: Xây dựng component chọn thành viên (`SelectNhanVienTable.js`)
 
-- Tham khảo SeLectHocVienTable để xây dựng bảng chọn nhiều nhân viên
-- Lấy danh sách nhân viên từ redux hoặc gọi API getAll
-- Trả về danh sách nhân viên đã chọn cho form Đoàn Ra
+Trạng thái: ĐÃ HOÀN THÀNH
+
+- Chọn nhiều nhân viên, hiển thị bảng tóm tắt các trường cần thiết.
 
 ---
 
 ### Bước 6: Kết nối các component và hoàn thiện luồng CRUD
 
-- Khi nhấn Thêm/Sửa ở bảng, mở popup form, truyền dữ liệu cần thiết
-- Khi submit form, gọi redux thunk để tạo/cập nhật Đoàn Ra
-- Khi nhấn Xóa, xác nhận rồi gọi redux thunk xóa Đoàn Ra
-- Sau mỗi thao tác, cập nhật lại bảng danh sách
+Trạng thái: ĐÃ HOÀN THÀNH
+
+- Đồng bộ cập nhật, đếm tệp, invalidation cache popover sau upload/xóa.
 
 ---
 
 ### Bước 7: Kiểm thử và hoàn thiện UI/UX
 
-- Đảm bảo các thao tác mượt mà, popup đóng/mở đúng, dữ liệu cập nhật realtime
-- Kiểm tra lại các trường hợp lỗi, loading, empty state
-- Đảm bảo UI/UX đồng nhất với các module khác (Khoa, SeLectHocVienTable)
+Trạng thái: TIẾP TỤC CẢI TIẾN
+
+- Đã cải tiến `DoanRaView` (thẻ InfoCard, SectionCard), hiển thị đầy đủ trường.
+- Thành viên: làm giàu dữ liệu từ store `nhanvien` nếu BE chưa populate đủ.
 
 ---
 
 ### Bước 8: Review, bổ sung, tối ưu
 
-- Review từng bước, bổ sung validate nếu cần
-- Tối ưu code, tách nhỏ component nếu cần
-- Bổ sung hướng dẫn sử dụng, comment code rõ ràng
+Trạng thái: ĐANG LÀM
+
+- Bổ sung tài liệu và hướng dẫn kèm flow đính kèm tệp.
+- Đề xuất: filter "Có tệp", phân trang/tìm kiếm BE, mở rộng populate ThanhVien.
 
 ---
 

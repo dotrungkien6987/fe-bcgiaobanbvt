@@ -40,6 +40,35 @@ export async function deleteFile(fileId) {
   return res.data?.data;
 }
 
+// Batch APIs
+// body: { ownerType, field, ids: [] }
+export async function batchCountAttachments(ownerType, field, ids = []) {
+  if (!ids.length) return {};
+  const res = await api.post("attachments/batch-count", {
+    ownerType,
+    field,
+    ids,
+  });
+  return res.data?.data || {};
+}
+
+// body: { ownerType, field, ids: [], limit }
+export async function batchPreviewAttachments(
+  ownerType,
+  field,
+  ids = [],
+  limit = 3
+) {
+  if (!ids.length) return {};
+  const res = await api.post("attachments/batch-preview", {
+    ownerType,
+    field,
+    ids,
+    limit,
+  });
+  return res.data?.data || {};
+}
+
 export function inlineUrl(file) {
   if (!file?._id) return "#";
   return buildAbsoluteUrl(`attachments/files/${file._id}/inline`);

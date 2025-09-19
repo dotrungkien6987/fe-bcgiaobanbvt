@@ -24,7 +24,7 @@ function DoanRaDetailPage() {
   return (
     <Container maxWidth="lg" sx={{ py: 2 }}>
       <Breadcrumbs sx={{ mb: 2 }}>
-        <Link component={RouterLink} underline="hover" to="/nghien-cuu/doan-ra">
+        <Link component={RouterLink} underline="hover" to="/doandi">
           Đoàn Ra
         </Link>
         <Typography color="text.primary">Chi tiết</Typography>

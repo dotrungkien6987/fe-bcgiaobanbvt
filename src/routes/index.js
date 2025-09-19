@@ -82,6 +82,8 @@ import AdminBackupPage from "../pages/AdminBackupPage";
 import TapSanRoutes from "features/NghienCuuKhoaHoc/TapSan/routes";
 import DashboardLopDaoTaoByYear from "features/DashBoard/LopDaoTaoByYear/DashboardLopDaoTaoByYear";
 
+import DoanVaoTable from "features/NghienCuuKhoaHoc/DoanVao/DoanVaoTable";
+
 function Router() {
   return (
     <div>
@@ -226,6 +228,7 @@ function Router() {
           <Route path="/khoas" element={<KhoaTable />} />
           <Route path="/nhomkhoas" element={<NhomKhoaSoThuTuTable />} />
           <Route path="/doandi" element={<DoanRaTable />} />
+          <Route path="/doanden" element={<DoanVaoTable />} />
           <Route path="/doandi/:doanRaId" element={<DoanRaDetailPage />} />
           {/* TapSan nested routes */}
           <Route path="/tapsan/*" element={<TapSanRoutes />} />

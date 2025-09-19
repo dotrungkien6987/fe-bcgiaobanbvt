@@ -143,6 +143,12 @@ const daotaos = {
               type: "item",
               url: "/lopdaotaos/DT0611",
             },
+            {
+              id: "bacsinoitru",
+              title: <>Bác sĩ đa khoa</>,
+              type: "item",
+              url: "/lopdaotaos/DT0612",
+            },
           ],
         },
 

@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { batchCountAttachments } from "shared/services/attachments.api";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -13,6 +14,8 @@ const initialState = {
   error: null,
   doanRas: [],
   currentDoanRa: null,
+  // Batch attachments meta
+  attachmentsCount: {}, // { doanRaId: number }
 };
 
 const toVNDate = (d) => {
@@ -63,7 +66,11 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       const created = normalizeDoanRa(action.payload?.data || action.payload);
-      if (created) state.doanRas.unshift(created);
+      if (created) {
+        state.doanRas.unshift(created);
+        // Thiết lập current ngay để form có _id và mở AttachmentSection cho flow 2 bước
+        state.currentDoanRa = created;
+      }
     },
 
     // Lấy chi tiết đoàn ra
@@ -119,6 +126,15 @@ const slice = createSlice({
     clearError(state) {
       state.error = null;
     },
+
+    // Batch attachments reducers
+    attachmentsCountSuccess(state, action) {
+      // Merge để không mất các id khác
+      state.attachmentsCount = {
+        ...state.attachmentsCount,
+        ...(action.payload || {}),
+      };
+    },
   },
 });
 
@@ -126,6 +142,7 @@ export default slice.reducer;
 
 // Action creators
 export const { resetCurrentDoanRa, clearError } = slice.actions;
+export const { attachmentsCountSuccess } = slice.actions;
 
 // Async actions
 export const getDoanRas = () => async (dispatch) => {
@@ -142,7 +159,21 @@ export const getDoanRas = () => async (dispatch) => {
 export const createDoanRa = (doanRaData) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    const response = await doanRaApi.createDoanRa(doanRaData);
+    // Chuẩn hoá attachments trước khi gửi
+    const normalized = { ...doanRaData };
+    if (
+      !Array.isArray(normalized.Attachments) &&
+      Array.isArray(normalized.TaiLieuKemTheo)
+    ) {
+      normalized.Attachments = normalized.TaiLieuKemTheo.map((s) => ({
+        url: s,
+        fileName: typeof s === "string" ? s.split("/").pop() : "Tài liệu",
+        legacy: true,
+      }));
+    }
+    // Không gửi field TaiLieuKemTheo nữa (BE có thể hỗ trợ fallback nếu còn logic cũ)
+    delete normalized.TaiLieuKemTheo;
+    const response = await doanRaApi.createDoanRa(normalized);
     dispatch(slice.actions.createDoanRaSuccess(response.data));
     toast.success("Tạo thông tin đoàn ra thành công");
     return response.data;
@@ -169,7 +200,19 @@ export const getDoanRaById = (id) => async (dispatch) => {
 export const updateDoanRa = (id, updateData) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    const response = await doanRaApi.updateDoanRa(id, updateData);
+    const normalized = { ...updateData };
+    if (
+      !Array.isArray(normalized.Attachments) &&
+      Array.isArray(normalized.TaiLieuKemTheo)
+    ) {
+      normalized.Attachments = normalized.TaiLieuKemTheo.map((s) => ({
+        url: s,
+        fileName: typeof s === "string" ? s.split("/").pop() : "Tài liệu",
+        legacy: true,
+      }));
+    }
+    delete normalized.TaiLieuKemTheo;
+    const response = await doanRaApi.updateDoanRa(id, normalized);
     dispatch(slice.actions.updateDoanRaSuccess(response.data));
     toast.success("Cập nhật đoàn ra thành công");
     return response.data;
@@ -193,9 +236,35 @@ export const deleteDoanRa = (id) => async (dispatch) => {
   }
 };
 
+// Batch thunks
+
+export const fetchDoanRaAttachmentsCount = (ids) => async (dispatch) => {
+  try {
+    if (!Array.isArray(ids) || !ids.length) return;
+    const data = await batchCountAttachments("DoanRa", "file", ids);
+    dispatch(slice.actions.attachmentsCountSuccess(data));
+  } catch (e) {
+    // Silent fail: tránh làm ồn bảng
+    console.warn("fetchDoanRaAttachmentsCount error", e);
+  }
+};
+
+// Refresh count cho một id sau upload/xóa
+export const refreshDoanRaAttachmentCountOne = (id) => async (dispatch) => {
+  try {
+    if (!id) return;
+    const data = await batchCountAttachments("DoanRa", "file", [id]);
+    dispatch(slice.actions.attachmentsCountSuccess(data));
+  } catch (e) {
+    console.warn("refreshDoanRaAttachmentCountOne error", e);
+  }
+};
+
 // Selectors
 export const selectDoanRa = (state) => state.doanra;
 export const selectDoanRaList = (state) => state.doanra.doanRas;
 export const selectCurrentDoanRa = (state) => state.doanra.currentDoanRa;
 export const selectDoanRaLoading = (state) => state.doanra.isLoading;
 export const selectDoanRaError = (state) => state.doanra.error;
+export const selectDoanRaAttachmentsCount = (state) =>
+  state.doanra.attachmentsCount;
