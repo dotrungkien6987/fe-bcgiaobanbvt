@@ -33,10 +33,10 @@ function NhanVienList() {
   const theme = useTheme();
   const mode = theme.palette.mode;
   const navigate = useNavigate();
-  const {user} = useAuth();
-  
+  const { user } = useAuth();
+
   const isAdmin = user?.PhanQuyen === "admin";
-  
+
   const columns = useMemo(
     () => [
       {
@@ -305,12 +305,19 @@ function NhanVienList() {
         disableGroupBy: true,
       },
       {
+        Header: "Đảng viên",
+        Footer: "Đảng viên",
+        accessor: (row) => Boolean(row.isDangVien),
+        disableGroupBy: true,
+        Cell: ({ value }) => (value ? "Có" : "Không"),
+      },
+      {
         Header: "Đã nghỉ",
         Footer: "Đã nghỉ",
         accessor: (row) => Boolean(row.DaNghi), // chuẩn hóa về boolean
         disableGroupBy: true,
         Cell: ({ value, row }) =>
-          value ? (row.original?.LyDoNghi || "Đã nghỉ") : "Đang công tác",
+          value ? row.original?.LyDoNghi || "Đã nghỉ" : "Đang công tác",
       },
       {
         Header: "_id",

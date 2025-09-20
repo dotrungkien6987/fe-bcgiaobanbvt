@@ -157,13 +157,13 @@ const nghiencuukhoahocs = {
           id: 'taphuan',
           title: 'Đoàn vào',
           type: 'item',
-          url: '/doanden'
+          url: '/doanvao'
         },
         {
           id: 'tapsan',
           title: 'Đoàn ra',
           type: 'item',
-          url: '/doandi'
+          url: '/doanra'
         },
       ]
     },

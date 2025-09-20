@@ -192,6 +192,14 @@ function DoanRaTable() {
       },
       { Header: "Mục đích", accessor: "MucDichXuatCanh", disableGroupBy: true },
       {
+        Header: "Thành viên",
+        id: "ThanhVienCount",
+        accessor: (row) =>
+          Array.isArray(row.ThanhVien) ? row.ThanhVien.length : 0,
+        width: 110,
+        disableGroupBy: true,
+      },
+      {
         Header: "Thời gian xuất cảnh",
         accessor: (row) =>
           row.ThoiGianXuatCanhFormatted || row.ThoiGianXuatCanh,
@@ -212,7 +220,9 @@ function DoanRaTable() {
               size="small"
               variant="outlined"
               color={c > 0 ? "primary" : "default"}
-              label={c === undefined ? "Đang…" : c === 0 ? "0 tệp" : `${c} tệp`}
+              label={
+                c === undefined ? "Chưa có" : c === 0 ? "0 tệp" : `${c} tệp`
+              }
               onClick={(e) => {
                 e.stopPropagation();
                 handleOpenFiles(e, value);

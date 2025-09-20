@@ -85,13 +85,14 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
       KhoaID: null,
       DaNghi: false,
       LyDoNghi: "",
+      isDangVien: false,
     },
   });
 
   const {
     handleSubmit,
     reset,
-    // setValue, (currently unused)
+    setValue,
     watch,
     formState: { isSubmitting },
   } = methods;
@@ -106,6 +107,12 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
 
   const selectedLoaiChuyenMon = watch("LoaiChuyenMon");
   const daNghi = watch("DaNghi");
+  useEffect(() => {
+    // When switching to Đang làm, clear Lý do nghỉ and ensure hidden
+    if (daNghi === false) {
+      setValue("LyDoNghi", "");
+    }
+  }, [daNghi, setValue]);
 
   // Filter TrinhDo list based on selected LoaiChuyenMon
   const trinhDoFiltered = useMemo(() => {
@@ -157,6 +164,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         DaNghi: nhanvien.DaNghi || false,
         LyDoNghi: nhanvien.DaNghi ? nhanvien.LyDoNghi : "",
         PhamViHanhNgheBoSung: nhanvien.PhamViHanhNgheBoSung || null,
+        isDangVien: Boolean(nhanvien.isDangVien),
       });
     } else {
       reset({
@@ -182,6 +190,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         KhoaID: null,
         DaNghi: false,
         LyDoNghi: "",
+        isDangVien: false,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -202,6 +211,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         data.TrinhDoChuyenMon || data.LoaiChuyenMonID?.TrinhDo || "",
       DaNghi: data.DaNghi || false,
       LyDoNghi: data.DaNghi ? data.LyDoNghi : "",
+      isDangVien: Boolean(data.isDangVien),
     };
     // Remove helper fields not needed (optional)
     delete nhanvienUpdate.LoaiChuyenMon;
@@ -400,6 +410,21 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
                     />
                   </Grid>
                 )}
+              </Grid>
+
+              {/* Dòng riêng: Đảng viên */}
+              <Grid container spacing={1}>
+                <Grid item xs={12} sm={6} md={4}>
+                  <FKRadioGroup
+                    row={true}
+                    name="isDangVien"
+                    label="Đảng viên"
+                    options={[
+                      { value: true, label: "Có" },
+                      { value: false, label: "Không" },
+                    ]}
+                  />
+                </Grid>
               </Grid>
 
               {/* Dòng: Liên hệ */}

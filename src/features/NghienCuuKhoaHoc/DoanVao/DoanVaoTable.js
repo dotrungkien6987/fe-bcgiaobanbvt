@@ -175,6 +175,13 @@ function DoanVaoTable() {
       },
       { Header: "Mục đích", accessor: "MucDichXuatCanh", disableGroupBy: true },
       {
+        Header: "Thành viên",
+        id: "ThanhVienCount",
+        accessor: (r) => (Array.isArray(r.ThanhVien) ? r.ThanhVien.length : 0),
+        width: 110,
+        disableGroupBy: true,
+      },
+      {
         Header: "Thời gian vào làm việc",
         accessor: (r) => r.ThoiGianVaoLamViecFormatted || r.ThoiGianVaoLamViec,
         id: "ThoiGianVaoLamViec",

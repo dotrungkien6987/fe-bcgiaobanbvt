@@ -8,7 +8,13 @@ import {
   Radio,
 } from "@mui/material";
 
-function FKRadioGroup({ name, label, options, onChange: customOnChange, ...other }) {
+function FKRadioGroup({
+  name,
+  label,
+  options,
+  onChange: customOnChange,
+  ...other
+}) {
   const { control } = useFormContext();
 
   return (
@@ -24,9 +30,13 @@ function FKRadioGroup({ name, label, options, onChange: customOnChange, ...other
           <RadioGroup
             value={value}
             onChange={(e) => {
-              onChange(e);
+              const raw = e.target.value;
+              let nextVal = raw;
+              if (raw === "true") nextVal = true;
+              else if (raw === "false") nextVal = false;
+              onChange(nextVal);
               if (customOnChange) {
-                customOnChange(e);
+                customOnChange(nextVal);
               }
             }}
             {...other}

@@ -268,6 +268,7 @@ function DoanRaView({ data, dense = false }) {
           DanToc: danToc,
           GioiTinh: gioiTinh,
           NgaySinh: ngaySinh,
+          DangVien: src.isDangVien === true,
         };
       }),
     [rawMembers, nhanviens]
@@ -598,6 +599,7 @@ function DoanRaView({ data, dense = false }) {
                   <TableCell>Khoa</TableCell>
                   <TableCell>Chức danh</TableCell>
                   <TableCell>Chức vụ</TableCell>
+                  <TableCell>Đảng viên</TableCell>
                   <TableCell>Trình độ</TableCell>
                   <TableCell>Dân tộc</TableCell>
                   <TableCell>Giới tính</TableCell>
@@ -615,6 +617,11 @@ function DoanRaView({ data, dense = false }) {
                       },
                       "& td": {
                         py: 1.5,
+                        whiteSpace: "normal",
+                        wordBreak: "break-word",
+                        overflowWrap: "anywhere",
+                        verticalAlign: "top",
+                        lineHeight: 1.4,
                         borderColor: (theme) =>
                           alpha(theme.palette.divider, 0.5),
                       },
@@ -638,6 +645,9 @@ function DoanRaView({ data, dense = false }) {
                     <TableCell sx={{ fontSize: 12 }}>{m.Khoa}</TableCell>
                     <TableCell sx={{ fontSize: 12 }}>{m.ChucDanh}</TableCell>
                     <TableCell sx={{ fontSize: 12 }}>{m.ChucVu}</TableCell>
+                    <TableCell sx={{ fontSize: 12 }}>
+                      {m.DangVien ? "Đảng viên" : ""}
+                    </TableCell>
                     <TableCell sx={{ fontSize: 12 }}>{m.TrinhDo}</TableCell>
                     <TableCell sx={{ fontSize: 12 }}>{m.DanToc}</TableCell>
                     <TableCell sx={{ fontSize: 12 }}>{m.GioiTinh}</TableCell>

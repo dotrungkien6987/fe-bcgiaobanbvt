@@ -5,23 +5,53 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, useFieldArray } from "react-hook-form";
 import {
   Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   Grid,
   Stack,
+  Box,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  IconButton,
+  Tooltip,
+  Typography,
+  Slide,
+  AppBar,
+  Toolbar,
+  Card,
+  CardContent,
+  CardHeader,
 } from "@mui/material";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CloseIcon from "@mui/icons-material/Close";
+import SaveIcon from "@mui/icons-material/Save";
 import { useDispatch, useSelector } from "react-redux";
 import {
   createDoanVao,
   updateDoanVao,
   refreshDoanVaoAttachmentCountOne,
+  getDoanVaoById,
 } from "./doanvaoSlice";
 import { FormProvider, FTextField, FSelect } from "components/form";
 import FDatePicker from "components/form/FDatePicker";
 import AttachmentSection from "shared/components/AttachmentSection";
-import { getDoanVaoById } from "./doanvaoSlice";
+import Autocomplete from "@mui/material/Autocomplete";
+import { getDataFix } from "features/NhanVien/nhanvienSlice";
+
+const memberSchema = Yup.object().shape({
+  Ten: Yup.string().required("Bắt buộc nhập Họ tên"),
+  NgaySinh: Yup.date().nullable().required("Bắt buộc chọn Ngày sinh"),
+  GioiTinh: Yup.mixed()
+    .oneOf(["0", "1"], "Chọn Nam/Nữ")
+    .required("Chọn giới tính"),
+  ChucVu: Yup.string().nullable(),
+  DonViCongTac: Yup.string().nullable(),
+  QuocTich: Yup.string().nullable(),
+  DonViGioiThieu: Yup.string().nullable(),
+});
 
 const schema = Yup.object().shape({
   SoVanBanChoPhep: Yup.string().required("Vui lòng nhập Số văn bản"),
@@ -31,11 +61,17 @@ const schema = Yup.object().shape({
     .nullable()
     .required("Vui lòng chọn Thời gian vào làm việc"),
   GhiChu: Yup.string().nullable(),
+  ThanhVien: Yup.array().of(memberSchema),
+});
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
 });
 
 function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
   const dispatch = useDispatch();
   const { currentDoanVao } = useSelector((s) => s.doanvao || {});
+  const { QuocGia } = useSelector((s) => s.nhanvien || {});
 
   const editing = Boolean(doanVaoId);
 
@@ -56,7 +92,6 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
     control,
   });
 
-  // Load chi tiết khi mở dialog ở chế độ sửa
   React.useEffect(() => {
     if (open && editing && doanVaoId) {
       dispatch(getDoanVaoById(doanVaoId));
@@ -72,7 +107,12 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
     }
   }, [open, editing, doanVaoId, dispatch, reset]);
 
-  // Đổ dữ liệu vào form khi currentDoanVao có
+  React.useEffect(() => {
+    if (open && (!Array.isArray(QuocGia) || QuocGia.length === 0)) {
+      dispatch(getDataFix());
+    }
+  }, [open, QuocGia, dispatch]);
+
   React.useEffect(() => {
     if (open && editing && currentDoanVao && currentDoanVao._id === doanVaoId) {
       reset({
@@ -82,25 +122,68 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
         ThoiGianVaoLamViec: currentDoanVao.ThoiGianVaoLamViec || null,
         GhiChu: currentDoanVao.GhiChu || "",
         ThanhVien: Array.isArray(currentDoanVao.ThanhVien)
-          ? currentDoanVao.ThanhVien
+          ? currentDoanVao.ThanhVien.map((m) => ({
+              ...m,
+              GioiTinh:
+                m.GioiTinh === 0 || m.GioiTinh === 1
+                  ? String(m.GioiTinh)
+                  : m.GioiTinh === "Nam"
+                  ? "0"
+                  : m.GioiTinh === "Nữ"
+                  ? "1"
+                  : "",
+            }))
           : [],
       });
     }
   }, [open, editing, doanVaoId, currentDoanVao, reset]);
 
   const handleDialogClose = (event, reason) => {
-    if (reason === "backdropClick" || reason === "escapeKeyDown") return; // guard
+    if (reason === "backdropClick" || reason === "escapeKeyDown") return;
     onClose?.();
   };
 
   const onSubmit = async (data) => {
+    const payload = {
+      ...data,
+      NgayKyVanBan:
+        data.NgayKyVanBan &&
+        typeof data.NgayKyVanBan?.toISOString === "function"
+          ? data.NgayKyVanBan.toISOString()
+          : data.NgayKyVanBan || null,
+      ThoiGianVaoLamViec:
+        data.ThoiGianVaoLamViec &&
+        typeof data.ThoiGianVaoLamViec?.toISOString === "function"
+          ? data.ThoiGianVaoLamViec.toISOString()
+          : data.ThoiGianVaoLamViec || null,
+      ThanhVien: Array.isArray(data.ThanhVien)
+        ? data.ThanhVien.map((m) => {
+            const raw = m?.GioiTinh;
+            let gioiTinh;
+            if (raw === 0 || raw === 1) gioiTinh = raw;
+            else if (raw === "0" || raw === "Nam") gioiTinh = 0;
+            else if (raw === "1" || raw === "Nữ") gioiTinh = 1;
+            const { GioiTinh, ...rest } = m;
+            return {
+              ...rest,
+              ...(gioiTinh === 0 || gioiTinh === 1
+                ? { GioiTinh: gioiTinh }
+                : {}),
+              NgaySinh:
+                m.NgaySinh && typeof m.NgaySinh?.toISOString === "function"
+                  ? m.NgaySinh.toISOString()
+                  : m.NgaySinh || null,
+            };
+          })
+        : [],
+    };
     let result;
     if (editing) {
-      result = await dispatch(updateDoanVao(doanVaoId, data));
+      result = await dispatch(updateDoanVao(doanVaoId, payload));
       onSuccess?.({ type: "saved", id: doanVaoId });
       onClose?.();
     } else {
-      result = await dispatch(createDoanVao(data));
+      result = await dispatch(createDoanVao(payload));
       const createdId = result?.data?._id;
       onSuccess?.({ type: "saved", id: createdId });
       onClose?.();
@@ -116,139 +199,439 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
   };
 
   return (
-    <Dialog open={open} onClose={handleDialogClose} fullWidth maxWidth="md">
-      <DialogTitle>
-        {editing ? "Cập nhật Đoàn Vào" : "Thêm mới Đoàn Vào"}
-      </DialogTitle>
-      <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-        <DialogContent dividers>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
-              <FTextField name="SoVanBanChoPhep" label="Số văn bản cho phép" />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FDatePicker name="NgayKyVanBan" label="Ngày ký văn bản" />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FTextField name="MucDichXuatCanh" label="Mục đích" />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FDatePicker
-                name="ThoiGianVaoLamViec"
-                label="Thời gian vào làm việc"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <FTextField name="GhiChu" label="Ghi chú" multiline minRows={2} />
-            </Grid>
-          </Grid>
-
-          <Grid container spacing={1.5} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <strong>Thành viên</strong>
-            </Grid>
-            <Grid item xs={12}>
-              {fields.map((field, idx) => (
-                <Grid
-                  container
-                  spacing={1}
-                  key={field.id}
-                  alignItems="center"
-                  sx={{ mb: 0.5 }}
-                >
-                  <Grid item xs={12} md={3}>
-                    <FTextField name={`ThanhVien.${idx}.Ten`} label="Họ tên" />
-                  </Grid>
-                  <Grid item xs={12} md={2}>
-                    <FDatePicker
-                      name={`ThanhVien.${idx}.NgaySinh`}
-                      label="Ngày sinh"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={2}>
-                    <FSelect
-                      name={`ThanhVien.${idx}.GioiTinh`}
-                      label="Giới tính"
-                      options={[
-                        { label: "Nam", value: "Nam" },
-                        { label: "Nữ", value: "Nữ" },
-                        { label: "Khác", value: "Khác" },
-                      ]}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={2}>
-                    <FTextField
-                      name={`ThanhVien.${idx}.ChucVu`}
-                      label="Chức vụ"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FTextField
-                      name={`ThanhVien.${idx}.DonViCongTac`}
-                      label="Đơn vị công tác"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={2}>
-                    <FTextField
-                      name={`ThanhVien.${idx}.QuocTich`}
-                      label="Quốc tịch"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <FTextField
-                      name={`ThanhVien.${idx}.DonViGioiThieu`}
-                      label="Đơn vị giới thiệu"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={2}>
-                    <Button
-                      color="error"
-                      size="small"
-                      onClick={() => remove(idx)}
-                    >
-                      Xóa
-                    </Button>
-                  </Grid>
-                </Grid>
-              ))}
-              <Button
-                size="small"
-                onClick={() =>
-                  append({
-                    Ten: "",
-                    NgaySinh: null,
-                    GioiTinh: "",
-                    ChucVu: "",
-                    DonViCongTac: "",
-                    QuocTich: "",
-                    DonViGioiThieu: "",
-                  })
-                }
-              >
-                Thêm thành viên
-              </Button>
-            </Grid>
-          </Grid>
-
-          <Stack sx={{ mt: 2 }}>
-            {editing && (
-              <AttachmentSection
-                ownerType="DoanVao"
-                ownerId={doanVaoId}
-                field="file"
-                onChange={handleAttachmentsChange}
-              />
-            )}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose} color="inherit">
-            Đóng
-          </Button>
-          <Button type="submit" variant="contained">
+    <Dialog
+      open={open}
+      onClose={handleDialogClose}
+      fullScreen
+      TransitionComponent={Transition}
+      PaperProps={{ sx: { bgcolor: "grey.50" } }}
+    >
+      <AppBar sx={{ position: "relative", bgcolor: "primary.main" }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            onClick={handleDialogClose}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+            {editing ? "Cập nhật Đoàn Vào" : "Thêm mới Đoàn Vào"}
+          </Typography>
+          <Button
+            autoFocus
+            color="inherit"
+            onClick={handleSubmit(onSubmit)}
+            startIcon={<SaveIcon />}
+            variant="outlined"
+            sx={{
+              borderColor: "white",
+              color: "white",
+              "&:hover": {
+                borderColor: "grey.200",
+                bgcolor: "rgba(255,255,255,0.1)",
+              },
+            }}
+          >
             Lưu
           </Button>
-        </DialogActions>
+        </Toolbar>
+      </AppBar>
+
+      <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+        <Box sx={{ flex: 1, overflow: "auto", p: 3 }}>
+          <Grid
+            container
+            spacing={3}
+            maxWidth="xl"
+            sx={{ mx: "auto", width: "100%" }}
+          >
+            <Grid item xs={12} md={7}>
+              <Card elevation={2} sx={{ borderRadius: 2 }}>
+                <CardHeader
+                  title="Thông tin chung"
+                  sx={{
+                    bgcolor: "primary.50",
+                    "& .MuiCardHeader-title": {
+                      fontSize: "1.1rem",
+                      fontWeight: 600,
+                      color: "primary.main",
+                    },
+                  }}
+                />
+                <CardContent sx={{ pt: 3 }}>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} md={6}>
+                      <FTextField
+                        name="SoVanBanChoPhep"
+                        label="Số văn bản cho phép"
+                        variant="outlined"
+                        size="medium"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <FDatePicker
+                        name="NgayKyVanBan"
+                        label="Ngày ký văn bản"
+                        variant="outlined"
+                        size="medium"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <FTextField
+                        name="MucDichXuatCanh"
+                        label="Mục đích"
+                        variant="outlined"
+                        size="medium"
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <FDatePicker
+                        name="ThoiGianVaoLamViec"
+                        label="Thời gian vào làm việc"
+                        variant="outlined"
+                        size="medium"
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <FTextField
+                        name="GhiChu"
+                        label="Ghi chú"
+                        multiline
+                        minRows={3}
+                        variant="outlined"
+                        size="medium"
+                      />
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={5}>
+              <Card elevation={2} sx={{ borderRadius: 2, height: "100%" }}>
+                <CardHeader
+                  title="Tệp đính kèm"
+                  sx={{
+                    bgcolor: "primary.50",
+                    "& .MuiCardHeader-title": {
+                      fontSize: "1.1rem",
+                      fontWeight: 600,
+                      color: "primary.main",
+                    },
+                  }}
+                />
+                <CardContent>
+                  {editing ? (
+                    <AttachmentSection
+                      ownerType="DoanVao"
+                      ownerId={doanVaoId}
+                      field="file"
+                      onChange={handleAttachmentsChange}
+                    />
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Lưu bản ghi để tải tệp đính kèm.
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Card elevation={2} sx={{ borderRadius: 2 }}>
+                <CardHeader
+                  title="Danh sách thành viên"
+                  sx={{
+                    bgcolor: "primary.50",
+                    "& .MuiCardHeader-title": {
+                      fontSize: "1.1rem",
+                      fontWeight: 600,
+                      color: "primary.main",
+                    },
+                  }}
+                />
+                <CardContent sx={{ p: 2 }}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    sx={{ mb: 2 }}
+                  >
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      Thành viên ({fields.length})
+                    </Typography>
+                    <Tooltip title="Thêm thành viên">
+                      <IconButton
+                        color="primary"
+                        size="small"
+                        onClick={() =>
+                          append({
+                            Ten: "",
+                            NgaySinh: null,
+                            GioiTinh: "",
+                            ChucVu: "",
+                            DonViCongTac: "",
+                            QuocTich: "",
+                            DonViGioiThieu: "",
+                          })
+                        }
+                      >
+                        <AddCircleOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                  <Box
+                    sx={{
+                      border: "1px solid #e0e0e0",
+                      borderRadius: 1,
+                      overflowX: "auto",
+                      width: "100%",
+                    }}
+                  >
+                    <Table
+                      stickyHeader
+                      size="small"
+                      sx={{
+                        minWidth: 1480,
+                        width: "100%",
+                        "& .MuiTableCell-root": { px: 1, py: 0.75 },
+                      }}
+                    >
+                      <TableHead>
+                        <TableRow sx={{ bgcolor: "grey.50" }}>
+                          <TableCell
+                            sx={{
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                              minWidth: 48,
+                              width: 48,
+                              textAlign: "center",
+                            }}
+                          >
+                            #
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                              minWidth: 200,
+                              width: 200,
+                            }}
+                          >
+                            Họ tên
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                              minWidth: 130,
+                              width: 130,
+                              textAlign: "center",
+                            }}
+                          >
+                            Ngày sinh
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                              minWidth: 100,
+                              width: 100,
+                              textAlign: "center",
+                            }}
+                          >
+                            Giới tính
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                              minWidth: 160,
+                              width: 160,
+                            }}
+                          >
+                            Chức vụ
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                              minWidth: 200,
+                              width: 200,
+                            }}
+                          >
+                            Đơn vị công tác
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                              minWidth: 140,
+                              width: 140,
+                            }}
+                          >
+                            Quốc tịch
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                              minWidth: 180,
+                              width: 180,
+                            }}
+                          >
+                            Đơn vị giới thiệu
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
+                              minWidth: 84,
+                              width: 84,
+                              textAlign: "center",
+                            }}
+                            align="center"
+                          >
+                            Thao tác
+                          </TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {fields.length === 0 ? (
+                          <TableRow>
+                            <TableCell
+                              colSpan={9}
+                              align="center"
+                              sx={{ color: "text.secondary" }}
+                            >
+                              Chưa có thành viên. Bấm “+” để thêm dòng.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          fields.map((field, idx) => (
+                            <TableRow key={field.id} hover>
+                              <TableCell
+                                sx={{
+                                  whiteSpace: "nowrap",
+                                  textAlign: "center",
+                                }}
+                              >
+                                {idx + 1}
+                              </TableCell>
+                              <TableCell sx={{ minWidth: 200 }}>
+                                <FTextField
+                                  name={`ThanhVien.${idx}.Ten`}
+                                  placeholder="Họ tên"
+                                  variant="standard"
+                                />
+                              </TableCell>
+                              <TableCell
+                                sx={{ minWidth: 130, textAlign: "center" }}
+                              >
+                                <FDatePicker
+                                  name={`ThanhVien.${idx}.NgaySinh`}
+                                  label=" "
+                                />
+                              </TableCell>
+                              <TableCell
+                                sx={{ minWidth: 100, textAlign: "center" }}
+                              >
+                                <FSelect
+                                  name={`ThanhVien.${idx}.GioiTinh`}
+                                  label=" "
+                                  options={[
+                                    { label: "Nam", value: "0" },
+                                    { label: "Nữ", value: "1" },
+                                  ]}
+                                />
+                              </TableCell>
+                              <TableCell sx={{ minWidth: 160 }}>
+                                <FTextField
+                                  name={`ThanhVien.${idx}.ChucVu`}
+                                  placeholder="Chức vụ"
+                                  variant="standard"
+                                />
+                              </TableCell>
+                              <TableCell sx={{ minWidth: 200 }}>
+                                <FTextField
+                                  name={`ThanhVien.${idx}.DonViCongTac`}
+                                  placeholder="Đơn vị công tác"
+                                  variant="standard"
+                                />
+                              </TableCell>
+                              <TableCell sx={{ minWidth: 140 }}>
+                                <Autocomplete
+                                  options={
+                                    Array.isArray(QuocGia) ? QuocGia : []
+                                  }
+                                  getOptionLabel={(opt) =>
+                                    (opt && opt.label) || ""
+                                  }
+                                  isOptionEqualToValue={(o, v) =>
+                                    o.label === v.label
+                                  }
+                                  renderInput={(params) => (
+                                    <FTextField
+                                      {...params}
+                                      name={`ThanhVien.${idx}.QuocTich`}
+                                      placeholder="Quốc tịch"
+                                      variant="standard"
+                                    />
+                                  )}
+                                  value={
+                                    (Array.isArray(QuocGia)
+                                      ? QuocGia
+                                      : []
+                                    ).find(
+                                      (c) =>
+                                        c.label ===
+                                        methods.getValues(
+                                          `ThanhVien.${idx}.QuocTich`
+                                        )
+                                    ) || null
+                                  }
+                                  onChange={(_, value) => {
+                                    methods.setValue(
+                                      `ThanhVien.${idx}.QuocTich`,
+                                      value ? value.label : ""
+                                    );
+                                  }}
+                                />
+                              </TableCell>
+                              <TableCell sx={{ minWidth: 180 }}>
+                                <FTextField
+                                  name={`ThanhVien.${idx}.DonViGioiThieu`}
+                                  placeholder="Đơn vị giới thiệu"
+                                  variant="standard"
+                                />
+                              </TableCell>
+                              <TableCell
+                                align="center"
+                                sx={{ whiteSpace: "nowrap" }}
+                              >
+                                <Tooltip title="Xóa dòng">
+                                  <IconButton
+                                    color="error"
+                                    size="small"
+                                    onClick={() => remove(idx)}
+                                  >
+                                    <DeleteOutlineIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Box>
       </FormProvider>
     </Dialog>
   );

@@ -29,7 +29,7 @@ export const lopDaoTaoGroupConfig = {
       { code: "NCKH017", title: "Sáng kiến cấp bộ" },
       { code: "NCKH018", title: "Sáng kiến cấp nhà nước" },
     ],
-    overrideColumns: { Ten: { Header: "Tên đề tài" } },
+    overrideColumns: { Ten: { Header: "Tên sáng kiến" } },
     addAfter: { Ten: [{ accessor: "XepLoai", Header: "Xếp loại" }] },
     remove: ["HinhThucDaoTao", "TenTapChi", "SoTapChi", "CanBoThamGia"],
   },
