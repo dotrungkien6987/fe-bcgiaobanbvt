@@ -8,13 +8,10 @@ import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 import dayjs from "dayjs";
 import MainCard from "components/MainCard";
-import {
-  getOneLopDaoTaoByID,
-  insertOneLopDaoTao,
-  updateOneLopDaoTao,
-} from "./daotaoSlice";
+import { getOneLopDaoTaoByID } from "./daotaoSlice";
 
-import DropzonePage from "forms/plugins/dropzone";
+// DropzonePage is deprecated here; use shared AttachmentSection instead
+import AttachmentSection from "shared/components/AttachmentSection";
 
 import { getAllHinhThucCapNhat } from "features/NhanVien/hinhthuccapnhatSlice";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
@@ -41,12 +38,12 @@ function DiemDanhLopDaoTaoForm() {
   const { lopdaotaoCurrent } = useSelector((state) => state.daotao);
   const { HinhThucCapNhat } = useSelector((state) => state.hinhthuccapnhat);
   const { NoiDaoTao } = useSelector((state) => state.nhanvien);
-  
+
   const dispatch = useDispatch();
   useEffect(() => {
     if (lopdaotaoID) dispatch(getOneLopDaoTaoByID({ lopdaotaoID, tam: false }));
     //  else dispatch(resetLopDaoTaoCurrent())
-  }, []);
+  }, [dispatch, lopdaotaoID]);
   useEffect(() => {
     if (HinhThucCapNhat.length === 0) {
       dispatch(getAllHinhThucCapNhat());
@@ -54,7 +51,7 @@ function DiemDanhLopDaoTaoForm() {
     if (NoiDaoTao.length === 0) {
       dispatch(getDataFix());
     }
-  }, []);
+  }, [dispatch, HinhThucCapNhat.length, NoiDaoTao.length]);
 
   const methods = useForm({
     resolver: yupResolver(yupSchema),
@@ -73,12 +70,7 @@ function DiemDanhLopDaoTaoForm() {
     },
   });
 
-  const {
-    handleSubmit,
-    reset,
-    setValue,
-    formState: { isSubmitting },
-  } = methods;
+  const { reset } = methods;
 
   useEffect(() => {
     // Kiểm tra xem `lopdaotaoCurrent` có tồn tại và form đang ở chế độ cập nhật không
@@ -120,7 +112,7 @@ function DiemDanhLopDaoTaoForm() {
         NgayKetThuc: null,
       });
     }
-  }, [lopdaotaoCurrent, HinhThucCapNhat]);
+  }, [lopdaotaoCurrent, HinhThucCapNhat, reset]);
 
   // const onSubmitData = (data) => {
   //   console.log("data form", data);
@@ -150,15 +142,38 @@ function DiemDanhLopDaoTaoForm() {
         </Grid>
 
         <Grid item xs={12} md={12}>
-          {lopdaotaoCurrent.MaHinhThucCapNhat?.startsWith("ĐT06") ? (
+          {lopdaotaoCurrent?.MaHinhThucCapNhat?.startsWith("ĐT06") ? (
             <QuaTrinhTichLuyDT06Table />
           ) : (
-            <DiemDanhLopDaoTaoTable numSections={lopdaotaoCurrent.SoLuong} />
+            <DiemDanhLopDaoTaoTable numSections={lopdaotaoCurrent?.SoLuong} />
+          )}
+        </Grid>
+
+        {/* Khu vực đính kèm tài liệu/ảnh dùng shared AttachmentSection */}
+        <Grid item xs={12} md={12}>
+          {lopdaotaoCurrent?._id && (
+            <AttachmentSection
+              ownerType="LopDaoTao"
+              ownerId={lopdaotaoCurrent._id}
+              field="file"
+              title="Tài liệu/Ảnh đính kèm"
+              allowedTypes={[
+                "image/*",
+                "application/pdf",
+                ".doc",
+                ".docx",
+                ".xls",
+                ".xlsx",
+                ".ppt",
+                ".pptx",
+                ".txt",
+              ]}
+              maxSizeMB={100}
+            />
           )}
         </Grid>
       </Grid>
 
-      {/* <DropzonePage /> */}
       {/* <NhanVienList /> */}
     </MainCard>
   );

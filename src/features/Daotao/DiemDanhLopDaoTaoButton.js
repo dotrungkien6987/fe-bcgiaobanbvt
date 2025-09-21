@@ -20,11 +20,11 @@ function DiemDanhLopDaoTaoButton({ lopdaotaoID, isButton = false }) {
         startIcon={<CalendarMonthIcon />}
         onClick={handleUpdate}
       >
-        Điểm danh 
+        Tính tín chỉ 
       </Button>
       
       ) : (
-        <Tooltip title="Điểm danh">
+        <Tooltip title="Tính tín chỉ">
           <IconButton color="primary" onClick={handleUpdate}>
             <CalendarMonthIcon />
           </IconButton>

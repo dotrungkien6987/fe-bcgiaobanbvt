@@ -32,6 +32,8 @@ const initialState = {
   typeHinhThucCapNhat: "All",
 
   hoidongCurrent: "0",
+  // Attachment counts for LopDaoTao rows
+  attachmentsCountLopDaoTao: {},
 };
 
 const slice = createSlice({
@@ -339,6 +341,27 @@ const slice = createSlice({
         action.payload.thanhvienNew
       );
     },
+
+    // Set batch counts for LopDaoTao attachments
+    setAttachmentsCountLopDaoTao(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.attachmentsCountLopDaoTao = {
+        ...state.attachmentsCountLopDaoTao,
+        ...(action.payload || {}),
+      };
+    },
+    // Update single row count
+    setAttachmentCountLopDaoTaoOne(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      const { id, total } = action.payload || {};
+      if (!id) return;
+      state.attachmentsCountLopDaoTao = {
+        ...state.attachmentsCountLopDaoTao,
+        [id]: typeof total === "number" ? total : 0,
+      };
+    },
   },
 });
 export default slice.reducer;
@@ -362,6 +385,40 @@ export const insertOneLopDaoTao =
       toast.error(error.message);
     }
   };
+
+// Batch fetch attachment counts for LopDaoTao
+export const fetchLopDaoTaoAttachmentsCount =
+  (ids = []) =>
+  async (dispatch) => {
+    if (!Array.isArray(ids) || ids.length === 0) return;
+    try {
+      // No loading to avoid global spinner for UI nicety
+      const res = await apiService.post("/attachments/batch-count", {
+        ownerType: "LopDaoTao",
+        field: "file",
+        ids,
+      });
+      const data = res?.data?.data || {};
+      dispatch(slice.actions.setAttachmentsCountLopDaoTao(data));
+    } catch (error) {
+      // Silent fail to avoid toasts storm; still track error state if needed
+      dispatch(slice.actions.hasError(error.message));
+    }
+  };
+
+// Refresh a single LopDaoTao row count
+export const refreshLopDaoTaoAttachmentCountOne = (id) => async (dispatch) => {
+  if (!id) return;
+  try {
+    const res = await apiService.get(
+      `/attachments/LopDaoTao/${id}/file/files/count`
+    );
+    const total = res?.data?.data?.total ?? 0;
+    dispatch(slice.actions.setAttachmentCountLopDaoTaoOne({ id, total }));
+  } catch (error) {
+    dispatch(slice.actions.setAttachmentCountLopDaoTaoOne({ id, total: 0 }));
+  }
+};
 
 export const updateOneLopDaoTao =
   ({ lopdaotaoData, vaitroquydoi }) =>

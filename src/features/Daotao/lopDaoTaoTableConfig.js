@@ -145,3 +145,39 @@ export function resolveLopDaoTaoTitleByCode(
 ) {
   return getTitleForCode(code, fallback);
 }
+
+// Helper: chèn cột "# Tệp" vào sau accessor chỉ định
+export function insertAttachmentsColumn({
+  columns,
+  positionAfterAccessor = "SoThanhVien",
+  cellRenderer,
+  width = 90,
+}) {
+  const out = [];
+  let inserted = false;
+  for (const c of columns) {
+    out.push(c);
+    if (!inserted && c.accessor === positionAfterAccessor) {
+      out.push({
+        Header: "# Tệp",
+        id: "AttachmentsCount",
+        accessor: (row) => row._id,
+        width,
+        disableGroupBy: true,
+        Cell: cellRenderer,
+      });
+      inserted = true;
+    }
+  }
+  if (!inserted) {
+    out.push({
+      Header: "# Tệp",
+      id: "AttachmentsCount",
+      accessor: (row) => row._id,
+      width,
+      disableGroupBy: true,
+      Cell: cellRenderer,
+    });
+  }
+  return out;
+}

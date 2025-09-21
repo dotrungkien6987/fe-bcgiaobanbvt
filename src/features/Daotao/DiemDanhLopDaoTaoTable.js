@@ -242,7 +242,7 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
               startIcon={<SaveIcon />}
               onClick={handleClickSave}
             >
-              Lưu quá trình điểm danh
+              Lưu tín chỉ
             </Button>
           )}
         </Box>
