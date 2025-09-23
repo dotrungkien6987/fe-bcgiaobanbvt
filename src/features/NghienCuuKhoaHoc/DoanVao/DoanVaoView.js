@@ -405,6 +405,11 @@ function DoanVaoView({ data = {} }) {
             value={data.NgayKyVanBanFormatted || data.NgayKyVanBan}
           />
           <FieldItem
+            icon={<DocumentText size={18} />}
+            label="Đơn vị giới thiệu"
+            value={data.DonViGioiThieu}
+          />
+          <FieldItem
             icon={<Calendar size={18} />}
             label="Thời gian vào làm việc"
             value={
@@ -469,7 +474,6 @@ function DoanVaoView({ data = {} }) {
                   <TableCell>Chức vụ</TableCell>
                   <TableCell>Đơn vị công tác</TableCell>
                   <TableCell>Quốc tịch</TableCell>
-                  <TableCell>Đơn vị giới thiệu</TableCell>
                   <TableCell>Số hộ chiếu</TableCell>
                 </TableRow>
               </TableHead>
@@ -526,9 +530,6 @@ function DoanVaoView({ data = {} }) {
                       </TableCell>
                       <TableCell sx={{ fontSize: 12 }}>
                         {m.QuocTich || ""}
-                      </TableCell>
-                      <TableCell sx={{ fontSize: 12 }}>
-                        {m.DonViGioiThieu || ""}
                       </TableCell>
                       <TableCell sx={{ fontSize: 12 }}>
                         {m.SoHoChieu || ""}

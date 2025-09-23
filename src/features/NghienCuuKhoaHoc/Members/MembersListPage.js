@@ -24,6 +24,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete";
 import {
   Search as SearchIcon,
   FilterList as FilterIcon,
@@ -50,6 +51,8 @@ import {
   fetchDoanRaMembers,
   fetchDoanVaoMembers,
 } from "features/NghienCuuKhoaHoc/membersApi";
+import { getDataFix } from "features/NhanVien/nhanvienSlice";
+import apiService from "app/apiService";
 
 export default function MembersListPage({ type = "doanra" }) {
   const dispatch = useDispatch();
@@ -64,14 +67,26 @@ export default function MembersListPage({ type = "doanra" }) {
   const [hasPassport, setHasPassport] = useState("");
   const [drawer, setDrawer] = useState(null);
   const [quocGiaDen, setQuocGiaDen] = useState(""); // doanra
+  const [mucDichXuatCanh, setMucDichXuatCanh] = useState(""); // doanra
+  const [nguonKinhPhi, setNguonKinhPhi] = useState(""); // doanra
+  const [optionsRa, setOptionsRa] = useState({
+    MucDichXuatCanh: [],
+    NguonKinhPhi: [],
+  });
   const [donViGioiThieu, setDonViGioiThieu] = useState(""); // doanvao
   const [showFilters, setShowFilters] = useState(false);
+  const { DonViGioiThieu: DonViGioiThieuList } = useSelector(
+    (s) => s.nhanvien || {}
+  );
 
   const title =
     type === "doanra"
       ? "Danh sách thành viên đoàn ra"
       : "Danh sách thành viên đoàn vào";
   const icon = type === "doanra" ? <FlightIcon /> : <GroupIcon />;
+
+  // Sticky offset for top app bar (responsive)
+  const STICKY_TOP = { xs: 56, sm: 64 };
 
   useEffect(() => {
     const action = type === "doanra" ? loadDoanRaMembers : loadDoanVaoMembers;
@@ -84,10 +99,38 @@ export default function MembersListPage({ type = "doanra" }) {
         toDate: "",
         hasPassport: "",
         quocGiaDen: "",
+        mucDichXuatCanh: "",
         donViGioiThieu: "",
       })
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type]);
+
+  useEffect(() => {
+    if (!Array.isArray(DonViGioiThieuList) || DonViGioiThieuList.length === 0) {
+      dispatch(getDataFix());
+    }
+  }, [dispatch, DonViGioiThieuList]);
+
+  useEffect(() => {
+    if (type === "doanra") {
+      (async () => {
+        try {
+          const res = await apiService.get("/doanra/options");
+          const data = res?.data?.data || {};
+          setOptionsRa({
+            MucDichXuatCanh: Array.isArray(data.MucDichXuatCanh)
+              ? data.MucDichXuatCanh
+              : [],
+            NguonKinhPhi: Array.isArray(data.NguonKinhPhi)
+              ? data.NguonKinhPhi
+              : [],
+          });
+        } catch (e) {
+          // silent fail; Autocomplete still allows freeSolo
+        }
+      })();
+    }
   }, [type]);
 
   const handleFilter = () => {
@@ -100,6 +143,8 @@ export default function MembersListPage({ type = "doanra" }) {
       toDate,
       hasPassport,
       quocGiaDen: type === "doanra" ? quocGiaDen : undefined,
+      mucDichXuatCanh: type === "doanra" ? mucDichXuatCanh : undefined,
+      nguonKinhPhi: type === "doanra" ? nguonKinhPhi : undefined,
       donViGioiThieu: type === "doanvao" ? donViGioiThieu : undefined,
     };
     dispatch(action(payload));
@@ -114,6 +159,8 @@ export default function MembersListPage({ type = "doanra" }) {
       toDate,
       hasPassport,
       quocGiaDen: type === "doanra" ? quocGiaDen : undefined,
+      mucDichXuatCanh: type === "doanra" ? mucDichXuatCanh : undefined,
+      nguonKinhPhi: type === "doanra" ? nguonKinhPhi : undefined,
       donViGioiThieu: type === "doanvao" ? donViGioiThieu : undefined,
     };
     const fetcher =
@@ -132,11 +179,17 @@ export default function MembersListPage({ type = "doanra" }) {
             { header: "Ngày sinh", key: "NgaySinh", width: 14 },
             { header: "Giới tính", key: "GioiTinh", width: 10 },
             { header: "Chức vụ", key: "ChucVu", width: 18 },
-            { header: "Đơn vị công tác", key: "DonViCongTac", width: 24 },
-            { header: "Quốc tịch", key: "QuocTich", width: 14 },
+            { header: "Khoa", key: "Khoa", width: 20 },
+            {
+              header: "Trình độ chuyên môn",
+              key: "TrinhDoChuyenMon",
+              width: 22,
+            },
+            { header: "Đảng viên", key: "DangVien", width: 12 },
             { header: "Số hộ chiếu", key: "SoHoChieu", width: 18 },
             { header: "Mục đích", key: "MucDichXuatCanh", width: 28 },
             { header: "Quốc gia đến", key: "QuocGiaDen", width: 20 },
+            { header: "Nguồn kinh phí", key: "NguonKinhPhi", width: 20 },
             { header: "Số văn bản", key: "SoVanBanChoPhep", width: 16 },
             { header: "Từ ngày", key: "TuNgay", width: 14 },
             { header: "Đến ngày", key: "DenNgay", width: 14 },
@@ -158,7 +211,7 @@ export default function MembersListPage({ type = "doanra" }) {
 
     ws.columns = cols;
     (data.items || []).forEach((r) => {
-      ws.addRow({
+      const row = {
         ...r,
         NgaySinh: r.NgaySinh ? dayjs(r.NgaySinh).format("DD/MM/YYYY") : "",
         GioiTinh:
@@ -169,7 +222,12 @@ export default function MembersListPage({ type = "doanra" }) {
             : "",
         TuNgay: r.TuNgay ? dayjs(r.TuNgay).format("DD/MM/YYYY") : "",
         DenNgay: r.DenNgay ? dayjs(r.DenNgay).format("DD/MM/YYYY") : "",
-      });
+      };
+      if (type === "doanra") {
+        row.Khoa = r.TenKhoa || "";
+        row.DangVien = r.isDangVien ? "Có" : "Không";
+      }
+      ws.addRow(row);
     });
 
     const buf = await wb.xlsx.writeBuffer();
@@ -187,6 +245,8 @@ export default function MembersListPage({ type = "doanra" }) {
     setToDate("");
     setHasPassport("");
     setQuocGiaDen("");
+    setMucDichXuatCanh("");
+    setNguonKinhPhi("");
     setDonViGioiThieu("");
   };
 
@@ -250,13 +310,17 @@ export default function MembersListPage({ type = "doanra" }) {
         ),
       },
       { field: "ChucVu", headerName: "Chức vụ", width: 160 },
+      // Replace DonViCongTac with Khoa (TenKhoa)
       {
-        field: "DonViCongTac",
-        headerName: "Đơn vị công tác",
+        field: type === "doanra" ? "TenKhoa" : "DonViCongTac",
+        headerName: type === "doanra" ? "Khoa" : "Đơn vị công tác",
         flex: 1,
-        minWidth: 200,
+        minWidth: 180,
       },
-      { field: "QuocTich", headerName: "Quốc tịch", width: 130 },
+      // Remove Quốc tịch for Đoàn ra per request
+      ...(type === "doanra"
+        ? []
+        : [{ field: "QuocTich", headerName: "Quốc tịch", width: 130 }]),
       {
         field: "SoHoChieu",
         headerName: "Số hộ chiếu",
@@ -275,6 +339,25 @@ export default function MembersListPage({ type = "doanra" }) {
     ];
 
     const parentRa = [
+      {
+        field: "TrinhDoChuyenMon",
+        headerName: "Trình độ chuyên môn",
+        minWidth: 180,
+        flex: 1,
+      },
+      {
+        field: "isDangVien",
+        headerName: "Đảng viên",
+        width: 120,
+        renderCell: (params) => (
+          <Chip
+            label={params.value ? "Có" : "Không"}
+            size="small"
+            color={params.value ? "success" : "default"}
+            variant={params.value ? "filled" : "outlined"}
+          />
+        ),
+      },
       {
         field: "MucDichXuatCanh",
         headerName: "Mục đích",
@@ -319,6 +402,12 @@ export default function MembersListPage({ type = "doanra" }) {
             {params.formattedValue}
           </Typography>
         ),
+      },
+      {
+        field: "NguonKinhPhi",
+        headerName: "Nguồn kinh phí",
+        minWidth: 160,
+        flex: 1,
       },
     ];
 
@@ -379,6 +468,7 @@ export default function MembersListPage({ type = "doanra" }) {
     toDate,
     hasPassport,
     quocGiaDen,
+    mucDichXuatCanh,
     donViGioiThieu,
   ].filter(Boolean).length;
 
@@ -394,10 +484,18 @@ export default function MembersListPage({ type = "doanra" }) {
       <Paper elevation={3} sx={{ p: 3, mb: 3, borderRadius: 3 }}>
         <Box
           sx={{
+            position: "sticky",
+            top: STICKY_TOP,
+            zIndex: (t) => t.zIndex.appBar - 1,
+            bgcolor: "background.paper",
+            pt: 1,
+            pb: 1.5,
+            mb: 2,
+            borderBottom: 1,
+            borderColor: "divider",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            mb: 2,
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -534,22 +632,64 @@ export default function MembersListPage({ type = "doanra" }) {
                       }}
                     />
                   ) : (
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Đơn vị giới thiệu"
-                      value={donViGioiThieu}
-                      onChange={(e) => setDonViGioiThieu(e.target.value)}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <BusinessIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
+                    <Autocomplete
+                      options={
+                        Array.isArray(DonViGioiThieuList)
+                          ? DonViGioiThieuList.map(
+                              (o) => o?.DonViGioiThieu
+                            ).filter(Boolean)
+                          : []
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Đơn vị giới thiệu"
+                          size="small"
+                          fullWidth
+                        />
+                      )}
+                      value={donViGioiThieu || null}
+                      onChange={(_, value) => setDonViGioiThieu(value || "")}
+                      freeSolo
                     />
                   )}
                 </Grid>
+                {type === "doanra" && (
+                  <>
+                    <Grid item xs={12} md={2}>
+                      <Autocomplete
+                        options={optionsRa.MucDichXuatCanh}
+                        value={mucDichXuatCanh || null}
+                        onChange={(_, v) => setMucDichXuatCanh(v || "")}
+                        freeSolo
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Mục đích xuất cảnh"
+                            size="small"
+                            fullWidth
+                          />
+                        )}
+                      />
+                    </Grid>
+                    <Grid item xs={12} md={2}>
+                      <Autocomplete
+                        options={optionsRa.NguonKinhPhi}
+                        value={nguonKinhPhi || null}
+                        onChange={(_, v) => setNguonKinhPhi(v || "")}
+                        freeSolo
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Nguồn kinh phí"
+                            size="small"
+                            fullWidth
+                          />
+                        )}
+                      />
+                    </Grid>
+                  </>
+                )}
               </Grid>
               <Box
                 sx={{
@@ -602,6 +742,9 @@ export default function MembersListPage({ type = "doanra" }) {
                 toDate,
                 hasPassport,
                 quocGiaDen: type === "doanra" ? quocGiaDen : undefined,
+                mucDichXuatCanh:
+                  type === "doanra" ? mucDichXuatCanh : undefined,
+                nguonKinhPhi: type === "doanra" ? nguonKinhPhi : undefined,
                 donViGioiThieu: type === "doanvao" ? donViGioiThieu : undefined,
               };
               const action =
@@ -622,11 +765,24 @@ export default function MembersListPage({ type = "doanra" }) {
               "& .MuiDataGrid-cell": {
                 borderBottom: "1px solid rgba(224, 224, 224, 0.5)",
               },
+              // Keep the Grid toolbar visible while scrolling inside the grid
+              "& .MuiDataGrid-toolbarContainer": {
+                position: "sticky",
+                top: 0,
+                zIndex: 2,
+                bgcolor: "background.paper",
+                borderBottom: 1,
+                borderColor: "divider",
+              },
               "& .MuiDataGrid-row:hover": {
                 bgcolor: "action.hover",
                 cursor: "pointer",
               },
+              // Make column headers sticky under the toolbar
               "& .MuiDataGrid-columnHeaders": {
+                position: "sticky",
+                top: 56, // approximate toolbar height
+                zIndex: 1,
                 bgcolor: "grey.50",
                 borderBottom: "2px solid",
                 borderColor: "primary.main",
@@ -732,10 +888,12 @@ export default function MembersListPage({ type = "doanra" }) {
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <BusinessIcon color="action" />
                     <Typography variant="body2" fontWeight={500}>
-                      Đơn vị:
+                      {type === "doanra" ? "Khoa:" : "Đơn vị:"}
                     </Typography>
                     <Typography variant="body2">
-                      {drawer.DonViCongTac || "Chưa có"}
+                      {type === "doanra"
+                        ? drawer.TenKhoa || "Chưa có"
+                        : drawer.DonViCongTac || "Chưa có"}
                     </Typography>
                   </Box>
 
@@ -814,6 +972,18 @@ export default function MembersListPage({ type = "doanra" }) {
                       {drawer.SoVanBanChoPhep || "Chưa có"}
                     </Typography>
                   </Box>
+
+                  {type === "doanra" && (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <AssignmentIcon color="action" />
+                      <Typography variant="body2" fontWeight={500}>
+                        Nguồn kinh phí:
+                      </Typography>
+                      <Typography variant="body2">
+                        {drawer.NguonKinhPhi || "Chưa có"}
+                      </Typography>
+                    </Box>
+                  )}
 
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <CalendarIcon color="action" />

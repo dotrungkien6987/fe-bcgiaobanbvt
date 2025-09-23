@@ -167,10 +167,22 @@ const nghiencuukhoahocs = {
           url: "/doanvao",
         },
         {
+          id: "doanvaomember",
+          title: "Danh sách thành viên đoàn vào",
+          type: "item",
+          url: "/doanvao/members",
+        },
+        {
           id: "doanra",
           title: "Đoàn ra",
           type: "item",
           url: "/doanra",
+        },
+          {
+          id: "doanramember",
+          title: "Danh sách thành viên đoàn ra",
+          type: "item",
+          url: "/doanra/members",
         },
       ],
     },

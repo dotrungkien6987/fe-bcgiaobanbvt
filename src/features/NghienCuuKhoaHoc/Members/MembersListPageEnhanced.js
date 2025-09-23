@@ -24,6 +24,7 @@ import {
   Select,
   MenuItem,
 } from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete";
 import {
   Search as SearchIcon,
   FilterList as FilterIcon,
@@ -50,6 +51,7 @@ import {
   fetchDoanRaMembers,
   fetchDoanVaoMembers,
 } from "features/NghienCuuKhoaHoc/membersApi";
+import { getDataFix } from "features/NhanVien/nhanvienSlice";
 
 export default function MembersListPage({ type = "doanra" }) {
   const dispatch = useDispatch();
@@ -66,6 +68,9 @@ export default function MembersListPage({ type = "doanra" }) {
   const [quocGiaDen, setQuocGiaDen] = useState(""); // doanra
   const [donViGioiThieu, setDonViGioiThieu] = useState(""); // doanvao
   const [showFilters, setShowFilters] = useState(false);
+  const { DonViGioiThieu: DonViGioiThieuList } = useSelector(
+    (s) => s.nhanvien || {}
+  );
 
   const title =
     type === "doanra"
@@ -89,6 +94,12 @@ export default function MembersListPage({ type = "doanra" }) {
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type]);
+
+  useEffect(() => {
+    if (!Array.isArray(DonViGioiThieuList) || DonViGioiThieuList.length === 0) {
+      dispatch(getDataFix());
+    }
+  }, [dispatch, DonViGioiThieuList]);
 
   const handleFilter = () => {
     const action = type === "doanra" ? loadDoanRaMembers : loadDoanVaoMembers;
@@ -534,19 +545,25 @@ export default function MembersListPage({ type = "doanra" }) {
                       }}
                     />
                   ) : (
-                    <TextField
-                      fullWidth
-                      size="small"
-                      label="Đơn vị giới thiệu"
-                      value={donViGioiThieu}
-                      onChange={(e) => setDonViGioiThieu(e.target.value)}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <BusinessIcon color="action" />
-                          </InputAdornment>
-                        ),
-                      }}
+                    <Autocomplete
+                      options={
+                        Array.isArray(DonViGioiThieuList)
+                          ? DonViGioiThieuList.map(
+                              (o) => o?.DonViGioiThieu
+                            ).filter(Boolean)
+                          : []
+                      }
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Đơn vị giới thiệu"
+                          size="small"
+                          fullWidth
+                        />
+                      )}
+                      value={donViGioiThieu || null}
+                      onChange={(_, value) => setDonViGioiThieu(value || "")}
+                      freeSolo
                     />
                   )}
                 </Grid>

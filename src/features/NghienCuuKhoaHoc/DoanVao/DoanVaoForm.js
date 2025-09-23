@@ -50,7 +50,6 @@ const memberSchema = Yup.object().shape({
   ChucVu: Yup.string().nullable(),
   DonViCongTac: Yup.string().nullable(),
   QuocTich: Yup.string().nullable(),
-  DonViGioiThieu: Yup.string().nullable(),
   SoHoChieu: Yup.string().nullable(),
 });
 
@@ -58,6 +57,7 @@ const schema = Yup.object().shape({
   SoVanBanChoPhep: Yup.string().required("Vui lòng nhập Số văn bản"),
   NgayKyVanBan: Yup.date().nullable().required("Vui lòng chọn Ngày ký"),
   MucDichXuatCanh: Yup.string().required("Vui lòng nhập Mục đích"),
+  DonViGioiThieu: Yup.string().nullable(),
   TuNgay: Yup.date().nullable(),
   DenNgay: Yup.date()
     .nullable()
@@ -75,7 +75,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
   const dispatch = useDispatch();
   const { currentDoanVao } = useSelector((s) => s.doanvao || {});
-  const { QuocGia } = useSelector((s) => s.nhanvien || {});
+  const { QuocGia, DonViGioiThieu } = useSelector((s) => s.nhanvien || {});
 
   const editing = Boolean(doanVaoId);
 
@@ -85,6 +85,7 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
       SoVanBanChoPhep: "",
       NgayKyVanBan: null,
       MucDichXuatCanh: "",
+      DonViGioiThieu: "",
       TuNgay: null,
       DenNgay: null,
       GhiChu: "",
@@ -105,6 +106,7 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
         SoVanBanChoPhep: "",
         NgayKyVanBan: null,
         MucDichXuatCanh: "",
+        DonViGioiThieu: "",
         TuNgay: null,
         DenNgay: null,
         GhiChu: "",
@@ -114,10 +116,16 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
   }, [open, editing, doanVaoId, dispatch, reset]);
 
   React.useEffect(() => {
-    if (open && (!Array.isArray(QuocGia) || QuocGia.length === 0)) {
+    if (
+      open &&
+      (!Array.isArray(QuocGia) ||
+        QuocGia.length === 0 ||
+        !Array.isArray(DonViGioiThieu) ||
+        DonViGioiThieu.length === 0)
+    ) {
       dispatch(getDataFix());
     }
-  }, [open, QuocGia, dispatch]);
+  }, [open, QuocGia, DonViGioiThieu, dispatch]);
 
   React.useEffect(() => {
     if (open && editing && currentDoanVao && currentDoanVao._id === doanVaoId) {
@@ -125,6 +133,7 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
         SoVanBanChoPhep: currentDoanVao.SoVanBanChoPhep || "",
         NgayKyVanBan: currentDoanVao.NgayKyVanBan || null,
         MucDichXuatCanh: currentDoanVao.MucDichXuatCanh || "",
+        DonViGioiThieu: currentDoanVao.DonViGioiThieu || "",
         TuNgay: currentDoanVao.TuNgay || null,
         DenNgay: currentDoanVao.DenNgay || null,
         GhiChu: currentDoanVao.GhiChu || "",
@@ -300,6 +309,32 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                         fullWidth
                       />
                     </Grid>
+                    <Grid item xs={12} md={6}>
+                      <Autocomplete
+                        options={
+                          Array.isArray(DonViGioiThieu)
+                            ? DonViGioiThieu.map(
+                                (o) => o?.DonViGioiThieu
+                              ).filter(Boolean)
+                            : []
+                        }
+                        renderInput={(params) => (
+                          <FTextField
+                            {...params}
+                            name="DonViGioiThieu"
+                            label="Đơn vị giới thiệu"
+                            variant="outlined"
+                            size="medium"
+                            fullWidth
+                          />
+                        )}
+                        value={methods.watch("DonViGioiThieu") || null}
+                        onChange={(_, value) => {
+                          methods.setValue("DonViGioiThieu", value || "");
+                        }}
+                        freeSolo
+                      />
+                    </Grid>
 
                     {/* Khối thời gian làm việc */}
                     <Grid item xs={12}>
@@ -431,7 +466,6 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                           ChucVu: "",
                           DonViCongTac: "",
                           QuocTich: "",
-                          DonViGioiThieu: "",
                           SoHoChieu: "",
                         })
                       }
@@ -448,50 +482,80 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                     sx={{
                       border: "1px solid",
                       borderColor: "divider",
-                      borderRadius: 2,
-                      overflow: "hidden",
+                      borderRadius: 3,
+                      overflowX: "auto",
+                      overflowY: "hidden",
                       bgcolor: "background.paper",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
                     }}
                   >
                     <Table
                       stickyHeader
                       size="small"
                       sx={{
-                        minWidth: 1640,
+                        minWidth: 1600,
                         width: "100%",
-                        "& .MuiTableCell-root": { px: 1, py: 0.75 },
+                        tableLayout: "fixed",
+                        "& .MuiTableCell-root": {
+                          px: 2,
+                          py: 1.5,
+                          borderBottom: "1px solid rgba(224, 224, 224, 0.3)",
+                          wordWrap: "break-word",
+                          overflow: "hidden",
+                        },
+                        "& .MuiTableBody-root .MuiTableCell-root": {
+                          verticalAlign: "top",
+                          paddingTop: "12px",
+                          paddingBottom: "12px",
+                        },
                       }}
                     >
                       <TableHead>
-                        <TableRow sx={{ bgcolor: "grey.50" }}>
+                        <TableRow
+                          sx={{
+                            background: "none",
+                            bgcolor: "primary.main",
+                            "& .MuiTableCell-head": {
+                              color: "white !important",
+                              fontWeight: 700,
+                              fontSize: "0.875rem",
+                              letterSpacing: "0.5px",
+                              textTransform: "uppercase",
+                              borderBottom: "none",
+                              textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                              position: "sticky",
+                              top: 0,
+                              zIndex: 2,
+                              backgroundColor: "primary.main",
+                            },
+                          }}
+                        >
                           <TableCell
                             sx={{
-                              fontWeight: 600,
+                              fontWeight: 700,
                               whiteSpace: "nowrap",
-                              minWidth: 48,
-                              width: 48,
+                              minWidth: 60,
+                              width: 60,
                               textAlign: "center",
                             }}
                           >
-                            #
+                            STT
                           </TableCell>
                           <TableCell
                             sx={{
-                              fontWeight: 600,
-                              whiteSpace: "nowrap",
-                              minWidth: 200,
-                              width: 200,
+                              fontWeight: 700,
+                              minWidth: 220,
+                              width: 220,
                             }}
                           >
-                            Họ tên
+                            Họ và tên
                           </TableCell>
                           <TableCell
                             sx={{
-                              fontWeight: 600,
+                              fontWeight: 700,
                               whiteSpace: "nowrap",
-                              minWidth: 130,
-                              width: 130,
+                              minWidth: 180,
+                              width: 180,
                               textAlign: "center",
                             }}
                           >
@@ -499,10 +563,10 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                           </TableCell>
                           <TableCell
                             sx={{
-                              fontWeight: 600,
+                              fontWeight: 700,
                               whiteSpace: "nowrap",
-                              minWidth: 100,
-                              width: 100,
+                              minWidth: 110,
+                              width: 110,
                               textAlign: "center",
                             }}
                           >
@@ -510,60 +574,47 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                           </TableCell>
                           <TableCell
                             sx={{
-                              fontWeight: 600,
-                              whiteSpace: "nowrap",
-                              minWidth: 160,
-                              width: 160,
+                              fontWeight: 700,
+                              minWidth: 180,
+                              width: 180,
                             }}
                           >
                             Chức vụ
                           </TableCell>
                           <TableCell
                             sx={{
-                              fontWeight: 600,
-                              whiteSpace: "nowrap",
-                              minWidth: 200,
-                              width: 200,
+                              fontWeight: 700,
+                              minWidth: 220,
+                              width: 220,
                             }}
                           >
                             Đơn vị công tác
                           </TableCell>
                           <TableCell
                             sx={{
-                              fontWeight: 600,
+                              fontWeight: 700,
                               whiteSpace: "nowrap",
-                              minWidth: 140,
-                              width: 140,
+                              minWidth: 220,
+                              width: 220,
                             }}
                           >
                             Quốc tịch
                           </TableCell>
                           <TableCell
                             sx={{
-                              fontWeight: 600,
-                              whiteSpace: "nowrap",
+                              fontWeight: 700,
                               minWidth: 180,
                               width: 180,
-                            }}
-                          >
-                            Đơn vị giới thiệu
-                          </TableCell>
-                          <TableCell
-                            sx={{
-                              fontWeight: 600,
-                              whiteSpace: "nowrap",
-                              minWidth: 160,
-                              width: 160,
                             }}
                           >
                             Số hộ chiếu
                           </TableCell>
                           <TableCell
                             sx={{
-                              fontWeight: 600,
+                              fontWeight: 700,
                               whiteSpace: "nowrap",
-                              minWidth: 84,
-                              width: 84,
+                              minWidth: 100,
+                              width: 100,
                               textAlign: "center",
                             }}
                             align="center"
@@ -576,7 +627,7 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                         {fields.length === 0 ? (
                           <TableRow>
                             <TableCell
-                              colSpan={10}
+                              colSpan={9}
                               align="center"
                               sx={{ color: "text.secondary" }}
                             >
@@ -585,118 +636,293 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                           </TableRow>
                         ) : (
                           fields.map((field, idx) => (
-                            <TableRow key={field.id} hover>
+                            <TableRow
+                              key={field.id}
+                              sx={{
+                                "&:nth-of-type(even)": {
+                                  backgroundColor: "rgba(0, 0, 0, 0.02)",
+                                },
+                                "&:hover": {
+                                  backgroundColor: "rgba(25, 118, 210, 0.08)",
+                                  transform: "translateY(-1px)",
+                                  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                                },
+                                transition: "all 0.2s ease-in-out",
+                                minHeight: "60px",
+                                "& .MuiTableCell-root": {
+                                  borderBottom:
+                                    "1px solid rgba(224, 224, 224, 0.3)",
+                                },
+                              }}
+                            >
                               <TableCell
                                 sx={{
                                   whiteSpace: "nowrap",
                                   textAlign: "center",
+                                  fontWeight: 600,
+                                  color: "primary.main",
+                                  fontSize: "0.95rem",
                                 }}
                               >
                                 {idx + 1}
                               </TableCell>
-                              <TableCell sx={{ minWidth: 200 }}>
+                              <TableCell
+                                sx={{
+                                  minWidth: 220,
+                                  maxWidth: 250,
+                                  verticalAlign: "top",
+                                }}
+                              >
                                 <FTextField
                                   name={`ThanhVien.${idx}.Ten`}
-                                  placeholder="Họ tên"
-                                  variant="standard"
+                                  placeholder="Nhập họ và tên"
+                                  variant="outlined"
+                                  size="small"
+                                  multiline
+                                  maxRows={3}
+                                  sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                      borderRadius: 2,
+                                      "&:hover fieldset": {
+                                        borderColor: "primary.main",
+                                      },
+                                      "&.Mui-focused fieldset": {
+                                        borderWidth: "2px",
+                                      },
+                                    },
+                                    "& .MuiInputBase-input": {
+                                      fontSize: "0.875rem",
+                                      lineHeight: 1.4,
+                                    },
+                                  }}
                                 />
                               </TableCell>
                               <TableCell
-                                sx={{ minWidth: 130, textAlign: "center" }}
+                                sx={{ minWidth: 200, textAlign: "center" }}
                               >
                                 <FDatePicker
                                   name={`ThanhVien.${idx}.NgaySinh`}
-                                  label=" "
+                                  label=""
+                                  size="small"
+                                  fullWidth
+                                  sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                      borderRadius: 2,
+                                    },
+                                  }}
                                 />
                               </TableCell>
                               <TableCell
-                                sx={{ minWidth: 100, textAlign: "center" }}
+                                sx={{ minWidth: 110, textAlign: "center" }}
                               >
                                 <FSelect
                                   name={`ThanhVien.${idx}.GioiTinh`}
-                                  label=" "
+                                  label=""
+                                  size="small"
                                   options={[
                                     { label: "Nam", value: "0" },
                                     { label: "Nữ", value: "1" },
                                   ]}
+                                  sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                      borderRadius: 2,
+                                    },
+                                  }}
                                 />
                               </TableCell>
-                              <TableCell sx={{ minWidth: 160 }}>
+                              <TableCell
+                                sx={{
+                                  minWidth: 180,
+                                  maxWidth: 200,
+                                  verticalAlign: "top",
+                                }}
+                              >
                                 <FTextField
                                   name={`ThanhVien.${idx}.ChucVu`}
                                   placeholder="Chức vụ"
-                                  variant="standard"
+                                  variant="outlined"
+                                  size="small"
+                                  multiline
+                                  maxRows={2}
+                                  sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                      borderRadius: 2,
+                                      "&:hover fieldset": {
+                                        borderColor: "primary.main",
+                                      },
+                                    },
+                                    "& .MuiInputBase-input": {
+                                      fontSize: "0.875rem",
+                                      lineHeight: 1.4,
+                                    },
+                                  }}
                                 />
                               </TableCell>
-                              <TableCell sx={{ minWidth: 200 }}>
+                              <TableCell
+                                sx={{
+                                  minWidth: 220,
+                                  maxWidth: 280,
+                                  verticalAlign: "top",
+                                }}
+                              >
                                 <FTextField
                                   name={`ThanhVien.${idx}.DonViCongTac`}
                                   placeholder="Đơn vị công tác"
-                                  variant="standard"
+                                  variant="outlined"
+                                  size="small"
+                                  multiline
+                                  maxRows={3}
+                                  sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                      borderRadius: 2,
+                                      "&:hover fieldset": {
+                                        borderColor: "primary.main",
+                                      },
+                                    },
+                                    "& .MuiInputBase-input": {
+                                      fontSize: "0.875rem",
+                                      lineHeight: 1.4,
+                                    },
+                                  }}
                                 />
                               </TableCell>
-                              <TableCell sx={{ minWidth: 140 }}>
+                              <TableCell
+                                sx={{
+                                  minWidth: 220,
+                                  maxWidth: 260,
+                                  verticalAlign: "top",
+                                }}
+                              >
                                 <Autocomplete
                                   options={
                                     Array.isArray(QuocGia) ? QuocGia : []
                                   }
-                                  getOptionLabel={(opt) =>
-                                    (opt && opt.label) || ""
-                                  }
-                                  isOptionEqualToValue={(o, v) =>
-                                    o.label === v.label
+                                  getOptionLabel={(opt) => opt?.label || ""}
+                                  isOptionEqualToValue={(option, value) =>
+                                    option?.label === value?.label
                                   }
                                   renderInput={(params) => (
-                                    <FTextField
-                                      {...params}
-                                      name={`ThanhVien.${idx}.QuocTich`}
-                                      placeholder="Quốc tịch"
-                                      variant="standard"
-                                    />
+                                    <Tooltip
+                                      title={params?.inputProps?.value || ""}
+                                      placement="top-start"
+                                    >
+                                      <FTextField
+                                        {...params}
+                                        name={`ThanhVien.${idx}.QuocTich`}
+                                        placeholder="Chọn quốc tịch"
+                                        variant="outlined"
+                                        size="small"
+                                        fullWidth
+                                        sx={{
+                                          "& .MuiOutlinedInput-root": {
+                                            borderRadius: 2,
+                                            "&:hover fieldset": {
+                                              borderColor: "primary.main",
+                                            },
+                                          },
+                                          "& .MuiInputBase-input": {
+                                            fontSize: "0.875rem",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap",
+                                          },
+                                        }}
+                                      />
+                                    </Tooltip>
                                   )}
                                   value={
-                                    (Array.isArray(QuocGia)
-                                      ? QuocGia
-                                      : []
-                                    ).find(
+                                    QuocGia?.find(
                                       (c) =>
                                         c.label ===
-                                        methods.getValues(
+                                        methods.watch(
                                           `ThanhVien.${idx}.QuocTich`
                                         )
                                     ) || null
                                   }
-                                  onChange={(_, value) => {
+                                  onChange={(_, newValue) => {
                                     methods.setValue(
                                       `ThanhVien.${idx}.QuocTich`,
-                                      value ? value.label : ""
+                                      newValue?.label || ""
                                     );
+                                  }}
+                                  size="small"
+                                  renderOption={(props, option) => (
+                                    <Box
+                                      component="li"
+                                      {...props}
+                                      sx={{
+                                        fontSize: "0.875rem",
+                                        whiteSpace: "normal",
+                                        wordWrap: "break-word",
+                                        maxWidth: "300px",
+                                      }}
+                                    >
+                                      {option.label}
+                                    </Box>
+                                  )}
+                                  sx={{
+                                    "& .MuiAutocomplete-inputRoot": {
+                                      borderRadius: 2,
+                                    },
+                                    "& .MuiAutocomplete-popper": {
+                                      maxWidth: "300px !important",
+                                    },
                                   }}
                                 />
                               </TableCell>
-                              <TableCell sx={{ minWidth: 180 }}>
-                                <FTextField
-                                  name={`ThanhVien.${idx}.DonViGioiThieu`}
-                                  placeholder="Đơn vị giới thiệu"
-                                  variant="standard"
-                                />
-                              </TableCell>
-                              <TableCell sx={{ minWidth: 160 }}>
+
+                              <TableCell
+                                sx={{
+                                  minWidth: 180,
+                                  maxWidth: 220,
+                                  verticalAlign: "top",
+                                }}
+                              >
                                 <FTextField
                                   name={`ThanhVien.${idx}.SoHoChieu`}
                                   placeholder="Số hộ chiếu"
-                                  variant="standard"
+                                  variant="outlined"
+                                  size="small"
+                                  multiline
+                                  maxRows={2}
+                                  sx={{
+                                    "& .MuiOutlinedInput-root": {
+                                      borderRadius: 2,
+                                      "&:hover fieldset": {
+                                        borderColor: "primary.main",
+                                      },
+                                    },
+                                    "& .MuiInputBase-input": {
+                                      fontSize: "0.875rem",
+                                      lineHeight: 1.4,
+                                    },
+                                  }}
                                 />
                               </TableCell>
                               <TableCell
                                 align="center"
-                                sx={{ whiteSpace: "nowrap" }}
+                                sx={{
+                                  whiteSpace: "nowrap",
+                                  verticalAlign: "top",
+                                  paddingTop: "16px",
+                                }}
                               >
-                                <Tooltip title="Xóa dòng">
+                                <Tooltip title="Xóa thành viên" arrow>
                                   <IconButton
                                     color="error"
                                     size="small"
                                     onClick={() => remove(idx)}
+                                    sx={{
+                                      borderRadius: 2,
+                                      border: "1px solid transparent",
+                                      "&:hover": {
+                                        backgroundColor: "error.main",
+                                        color: "white",
+                                        borderColor: "error.main",
+                                        transform: "scale(1.1)",
+                                      },
+                                      transition: "all 0.2s ease-in-out",
+                                    }}
                                   >
                                     <DeleteOutlineIcon fontSize="small" />
                                   </IconButton>
