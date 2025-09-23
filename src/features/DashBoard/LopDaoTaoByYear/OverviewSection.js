@@ -4,15 +4,22 @@ import GroupChart from "./GroupChart";
 import DataTable from "./DataTable";
 import { createOverviewColorPalette } from "./constants";
 
-export default function OverviewSection({ rows, mas, labels, years }) {
+export default function OverviewSection({
+  rows,
+  mas,
+  labels,
+  years,
+  title = "Tổng quan",
+  icon = "📈",
+}) {
   const overviewColorPalette = createOverviewColorPalette();
 
   return (
     <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 2 }}>
       <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <Box sx={{ fontSize: 24, mr: 2 }}>📈</Box>
+        <Box sx={{ fontSize: 24, mr: 2 }}>{icon}</Box>
         <Typography variant="h5" sx={{ fontWeight: 600 }}>
-          Tổng quan
+          {title}
         </Typography>
       </Box>
 

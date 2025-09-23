@@ -1,9 +1,4 @@
-import {
-  
-  Grid,
-  Stack,
- 
-} from "@mui/material";
+import { Grid, Stack } from "@mui/material";
 import MainCard from "components/MainCard";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import SimpleTable from "pages/tables/MyTable/SimpleTable";
@@ -32,9 +27,14 @@ function DataFixTable() {
     NguonKinhPhi,
     NoiDaoTao,
     DonVi,
+    // New DataFix fields
+    LoaiHinhYHTH,
+    ChuyenDeTTT,
+    MucDichXuatCanh,
+    DonViGioiThieu,
     HinhThucDaoTao,
-DanToc,
-PhamViHanhNghe,
+    DanToc,
+    PhamViHanhNghe,
   } = useSelector((state) => state.nhanvien);
 
   const data = useMemo(() => {
@@ -52,6 +52,14 @@ PhamViHanhNghe,
       return NguonKinhPhi;
     } else if (name === "NoiDaoTao") {
       return NoiDaoTao;
+    } else if (name === "LoaiHinhYHTH") {
+      return LoaiHinhYHTH;
+    } else if (name === "ChuyenDeTTT") {
+      return ChuyenDeTTT;
+    } else if (name === "MucDichXuatCanh") {
+      return MucDichXuatCanh;
+    } else if (name === "DonViGioiThieu") {
+      return DonViGioiThieu;
     } else if (name === "HinhThucDaoTao") {
       return HinhThucDaoTao;
     } else if (name === "DanToc") {
@@ -72,6 +80,10 @@ PhamViHanhNghe,
     NguonKinhPhi,
     NoiDaoTao,
     DonVi,
+    LoaiHinhYHTH,
+    ChuyenDeTTT,
+    MucDichXuatCanh,
+    DonViGioiThieu,
     HinhThucDaoTao,
     DanToc,
     PhamViHanhNghe,
@@ -93,13 +105,21 @@ PhamViHanhNghe,
       return "Nguồn kinh phí";
     } else if (type === "NoiDaoTao") {
       return "Nơi đào tạo";
+    } else if (type === "LoaiHinhYHTH") {
+      return "Loại hình y học thực hành";
+    } else if (type === "ChuyenDeTTT") {
+      return "Chuyên đề thông tin thuốc";
+    } else if (type === "MucDichXuatCanh") {
+      return "Mục đích xuất cảnh";
+    } else if (type === "DonViGioiThieu") {
+      return "Đơn vị giới thiệu";
     } else if (type === "HinhThucDaoTao") {
       return "Hình thức đào tạo";
     } else if (type === "DanToc") {
       return "Dân tộc";
     } else if (type === "PhamViHanhNghe") {
       return "Phạm vi hành nghề";
-    } 
+    }
     // Thêm các điều kiện khác nếu cần
     else {
       return ""; // Trả về mảng rỗng hoặc giá trị mặc định nếu không khớp

@@ -32,6 +32,8 @@ import loaichuyenmonReducer from "features/Daotao/LoaiChuyenMon/loaiChuyenMonSli
 import baiBaoReducer from "../features/NghienCuuKhoaHoc/TapSan/slices/baiBaoSlice";
 import tapSanReducer from "../features/NghienCuuKhoaHoc/TapSan/slices/tapSanSlice";
 import doanvaoReducer from "../features/NghienCuuKhoaHoc/DoanVao/doanvaoSlice";
+import { doanRaMembersReducer } from "features/NghienCuuKhoaHoc/DoanRa/doanRaMembersSlice";
+import { doanVaoMembersReducer } from "features/NghienCuuKhoaHoc/DoanVao/doanVaoMembersSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -68,6 +70,8 @@ const rootReducer = {
   baiBao: baiBaoReducer,
   tapSan: tapSanReducer,
   doanvao: doanvaoReducer,
+  doanRaMembers: doanRaMembersReducer,
+  doanVaoMembers: doanVaoMembersReducer,
 };
 
 const store = configureStore({

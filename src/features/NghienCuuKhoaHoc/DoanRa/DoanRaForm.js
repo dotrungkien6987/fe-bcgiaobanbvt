@@ -41,9 +41,12 @@ const yupSchema = Yup.object().shape({
   SoVanBanChoPhep: Yup.string().required("Bắt buộc nhập số văn bản cho phép"),
   MucDichXuatCanh: Yup.string().required("Bắt buộc nhập mục đích xuất cảnh"),
   QuocGiaDen: Yup.string().required("Bắt buộc nhập quốc gia đến"),
-  ThoiGianXuatCanh: Yup.date()
+  TuNgay: Yup.date().nullable(),
+  DenNgay: Yup.date()
     .nullable()
-    .required("Bắt buộc chọn thời gian xuất cảnh"),
+    .when("TuNgay", (TuNgay, sch) =>
+      TuNgay ? sch.min(TuNgay, "Đến ngày phải sau hoặc bằng Từ ngày") : sch
+    ),
 });
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -53,9 +56,8 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
   const dispatch = useDispatch();
   const { currentDoanRa } = useSelector((state) => state.doanra);
-  const { nhanviens, QuocGia, NguonKinhPhi } = useSelector(
-    (state) => state.nhanvien
-  );
+  const { nhanviens, QuocGia, NguonKinhPhi, MucDichXuatCanh, DonViGioiThieu } =
+    useSelector((state) => state.nhanvien);
   const [isEditMode, setIsEditMode] = useState(false);
   const [openSelectNV, setOpenSelectNV] = useState(false);
   const [selectedNhanVienIds, setSelectedNhanVienIds] = useState([]);
@@ -66,13 +68,17 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
       NgayKyVanBan: null,
       SoVanBanChoPhep: "",
       MucDichXuatCanh: "",
-      ThoiGianXuatCanh: null,
+      TuNgay: null,
+      DenNgay: null,
       NguonKinhPhi: "",
+      DonViGioiThieu: "",
       QuocGiaDen: "",
       BaoCao: "",
       GhiChu: "",
       // Field mới chuẩn hoá attachments (object array)
       Attachments: [],
+      // Map id -> SoHoChieu cho từng thành viên
+      SoHoChieuById: {},
     },
   });
 
@@ -107,17 +113,21 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
     if (!nhanviens || nhanviens.length === 0) dispatch(getAllNhanVien());
   }, [nhanviens, dispatch]);
 
-  // Load danh mục DataFix (QuocGia, NguonKinhPhi, ...) nếu chưa có
+  // Load danh mục DataFix (QuocGia, NguonKinhPhi, MucDichXuatCanh, DonViGioiThieu, ...) nếu chưa có
   useEffect(() => {
     if (
       !Array.isArray(QuocGia) ||
       QuocGia.length === 0 ||
       !Array.isArray(NguonKinhPhi) ||
-      NguonKinhPhi.length === 0
+      NguonKinhPhi.length === 0 ||
+      !Array.isArray(MucDichXuatCanh) ||
+      MucDichXuatCanh.length === 0 ||
+      !Array.isArray(DonViGioiThieu) ||
+      DonViGioiThieu.length === 0
     ) {
       dispatch(getDataFix());
     }
-  }, [QuocGia, NguonKinhPhi, dispatch]);
+  }, [QuocGia, NguonKinhPhi, MucDichXuatCanh, DonViGioiThieu, dispatch]);
 
   // Debug log để kiểm tra props
   useEffect(() => {
@@ -140,12 +150,15 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
         NgayKyVanBan: null,
         SoVanBanChoPhep: "",
         MucDichXuatCanh: "",
-        ThoiGianXuatCanh: null,
+        TuNgay: null,
+        DenNgay: null,
         NguonKinhPhi: "",
+        DonViGioiThieu: "",
         QuocGiaDen: "",
         BaoCao: "",
         GhiChu: "",
         Attachments: [],
+        SoHoChieuById: {},
       });
     }
   }, [doanRaId, open, dispatch, reset]);
@@ -164,26 +177,96 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
           }))
         : [];
 
+      const sohcMap = {};
+      if (Array.isArray(currentDoanRa.ThanhVien)) {
+        currentDoanRa.ThanhVien.forEach((m) => {
+          // m có thể là id cũ hoặc subdoc { NhanVienId, SoHoChieu }
+          const nvId =
+            (m && m.NhanVienId && (m.NhanVienId._id || m.NhanVienId)) ||
+            (typeof m === "string" ? m : m?._id);
+          if (nvId) {
+            sohcMap[String(nvId)] =
+              m?.SoHoChieu || m?.NhanVienId?.SoHoChieu || "";
+          }
+        });
+      }
       reset({
         ...currentDoanRa,
         NgayKyVanBan: currentDoanRa.NgayKyVanBan
           ? dayjs(currentDoanRa.NgayKyVanBan)
           : null,
-        ThoiGianXuatCanh: currentDoanRa.ThoiGianXuatCanh
-          ? dayjs(currentDoanRa.ThoiGianXuatCanh)
-          : null,
+        TuNgay: currentDoanRa.TuNgay ? dayjs(currentDoanRa.TuNgay) : null,
+        DenNgay: currentDoanRa.DenNgay ? dayjs(currentDoanRa.DenNgay) : null,
         Attachments: normalizedAttachments,
+        SoHoChieuById: sohcMap,
       });
       // Prefill selected members
       setSelectedNhanVienIds(
         Array.isArray(currentDoanRa.ThanhVien)
-          ? currentDoanRa.ThanhVien.map((m) =>
-              typeof m === "string" ? m : m._id
-            )
+          ? currentDoanRa.ThanhVien.map((m) => {
+              if (!m) return null;
+              if (typeof m === "string") return m;
+              if (m.NhanVienId) return m.NhanVienId._id || m.NhanVienId;
+              return m._id || null;
+            }).filter(Boolean)
           : []
       );
     }
   }, [currentDoanRa, reset, isEditMode]);
+
+  // Auto-fill SoHoChieu for selected members from NhanVien data
+  // - If a member is selected and their SoHoChieu is empty/undefined in form state,
+  //   try to populate it from the employee master data (NhanVien.SoHoChieu or aliases)
+  // - Preserve any values the user has already typed
+  // - Prune keys for members that have been unselected
+  useEffect(() => {
+    try {
+      const ids = Array.isArray(selectedNhanVienIds)
+        ? selectedNhanVienIds.map((x) => String(x))
+        : [];
+      const currentMap = methods.getValues("SoHoChieuById") || {};
+      const nextMap = {};
+      let changed = false;
+
+      const getPassport = (nv) =>
+        nv?.SoHoChieu ||
+        nv?.Passport ||
+        nv?.PassportNo ||
+        nv?.PassportNumber ||
+        nv?.SoHoChieuHienTai ||
+        nv?.SoHoChieuMoi ||
+        "";
+
+      ids.forEach((id) => {
+        const existing = currentMap[id];
+        let value = existing;
+        if (existing === undefined || existing === "") {
+          const nv = (nhanviens || []).find(
+            (n) => String(n?._id || n?.id) === id
+          );
+          const auto = getPassport(nv);
+          if (auto) {
+            value = auto;
+          } else if (existing === undefined) {
+            value = ""; // ensure key exists
+          }
+        }
+        nextMap[id] = value;
+        if (currentMap[id] !== value) changed = true;
+      });
+
+      const currentKeys = Object.keys(currentMap);
+      const needPrune =
+        currentKeys.length !== ids.length ||
+        currentKeys.some((k) => !ids.includes(k));
+
+      if (changed || needPrune) {
+        methods.setValue("SoHoChieuById", nextMap, { shouldDirty: true });
+      }
+    } catch (e) {
+      // silent guard
+    }
+  }, [selectedNhanVienIds, nhanviens, methods]);
 
   const onSubmitData = async (data) => {
     try {
@@ -192,10 +275,13 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
         NgayKyVanBan: data.NgayKyVanBan
           ? data.NgayKyVanBan.toISOString()
           : null,
-        ThoiGianXuatCanh: data.ThoiGianXuatCanh
-          ? data.ThoiGianXuatCanh.toISOString()
-          : null,
-        ThanhVien: selectedNhanVienIds, // gửi mảng ObjectId
+        TuNgay: data.TuNgay ? data.TuNgay.toISOString() : null,
+        DenNgay: data.DenNgay ? data.DenNgay.toISOString() : null,
+        // Gửi mảng subdoc { NhanVienId, SoHoChieu }
+        ThanhVien: (selectedNhanVienIds || []).map((id) => ({
+          NhanVienId: id,
+          SoHoChieu: data?.SoHoChieuById?.[id] || "",
+        })),
         Attachments: Array.isArray(data.Attachments) ? data.Attachments : [],
         // Không còn gửi TaiLieuKemTheo, BE có thể map fallback nếu cần
       };
@@ -303,13 +389,14 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                   }}
                 />
                 <CardContent sx={{ pt: 3 }}>
-                  <Grid container spacing={2}>
+                  <Grid container spacing={3}>
                     <Grid item xs={12} md={6}>
                       <FTextField
                         name="SoVanBanChoPhep"
                         label="Số văn bản cho phép"
                         variant="outlined"
                         size="medium"
+                        fullWidth
                       />
                     </Grid>
                     <Grid item xs={12} md={6}>
@@ -318,23 +405,84 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                         label="Ngày ký văn bản"
                         variant="outlined"
                         size="medium"
+                        fullWidth
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
-                      <FTextField
-                        name="MucDichXuatCanh"
-                        label="Mục đích xuất cảnh"
-                        variant="outlined"
-                        size="medium"
+
+                    <Grid item xs={12}>
+                      <Autocomplete
+                        options={
+                          Array.isArray(MucDichXuatCanh)
+                            ? MucDichXuatCanh.map(
+                                (o) => o?.MucDichXuatCanh
+                              ).filter(Boolean)
+                            : []
+                        }
+                        renderInput={(params) => (
+                          <FTextField
+                            {...params}
+                            name="MucDichXuatCanh"
+                            label="Mục đích xuất cảnh"
+                            variant="outlined"
+                            size="medium"
+                            fullWidth
+                          />
+                        )}
+                        value={methods.watch("MucDichXuatCanh") || null}
+                        onChange={(_, value) => {
+                          methods.setValue("MucDichXuatCanh", value || "");
+                        }}
+                        freeSolo
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
-                      <FDatePicker
-                        name="ThoiGianXuatCanh"
-                        label="Thời gian xuất cảnh"
-                        variant="outlined"
-                        size="medium"
-                      />
+
+                    {/* Khối thời gian xuất cảnh */}
+                    <Grid item xs={12}>
+                      <Box
+                        sx={{
+                          border: "1px solid",
+                          borderColor: "divider",
+                          borderRadius: 2,
+                          p: 3,
+                          bgcolor: "grey.25",
+                          position: "relative",
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            position: "absolute",
+                            top: -10,
+                            left: 16,
+                            bgcolor: "background.paper",
+                            px: 1,
+                            color: "primary.main",
+                            fontWeight: 600,
+                          }}
+                        >
+                          Thời gian xuất cảnh
+                        </Typography>
+                        <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                          <Grid item xs={12} md={6}>
+                            <FDatePicker
+                              name="TuNgay"
+                              label="Từ ngày"
+                              variant="outlined"
+                              size="medium"
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <FDatePicker
+                              name="DenNgay"
+                              label="Đến ngày"
+                              variant="outlined"
+                              size="medium"
+                              fullWidth
+                            />
+                          </Grid>
+                        </Grid>
+                      </Box>
                     </Grid>
 
                     <Grid item xs={12} md={6}>
@@ -363,6 +511,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                             label="Quốc gia đến"
                             variant="outlined"
                             size="medium"
+                            fullWidth
                           />
                         )}
                         value={
@@ -378,6 +527,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                         }}
                       />
                     </Grid>
+
                     <Grid item xs={12} md={6}>
                       <Autocomplete
                         options={
@@ -394,6 +544,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                             label="Nguồn kinh phí"
                             variant="outlined"
                             size="medium"
+                            fullWidth
                           />
                         )}
                         value={methods.watch("NguonKinhPhi") || null}
@@ -402,6 +553,34 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                         }}
                       />
                     </Grid>
+
+                    <Grid item xs={12} md={6}>
+                      <Autocomplete
+                        options={
+                          Array.isArray(DonViGioiThieu)
+                            ? DonViGioiThieu.map(
+                                (o) => o?.DonViGioiThieu
+                              ).filter(Boolean)
+                            : []
+                        }
+                        renderInput={(params) => (
+                          <FTextField
+                            {...params}
+                            name="DonViGioiThieu"
+                            label="Đơn vị giới thiệu"
+                            variant="outlined"
+                            size="medium"
+                            fullWidth
+                          />
+                        )}
+                        value={methods.watch("DonViGioiThieu") || null}
+                        onChange={(_, value) => {
+                          methods.setValue("DonViGioiThieu", value || "");
+                        }}
+                        freeSolo
+                      />
+                    </Grid>
+
                     <Grid item xs={12}>
                       <FTextField
                         name="BaoCao"
@@ -410,8 +589,10 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                         minRows={3}
                         variant="outlined"
                         size="medium"
+                        fullWidth
                       />
                     </Grid>
+
                     <Grid item xs={12}>
                       <FTextField
                         name="GhiChu"
@@ -420,6 +601,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                         minRows={2}
                         variant="outlined"
                         size="medium"
+                        fullWidth
                       />
                     </Grid>
                   </Grid>
@@ -572,6 +754,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                             <TableCell>Dân tộc</TableCell>
                             <TableCell>Giới tính</TableCell>
                             <TableCell>Ngày sinh</TableCell>
+                            <TableCell>Số hộ chiếu</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -647,6 +830,13 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                                 <TableCell sx={cellSx}>{danToc}</TableCell>
                                 <TableCell sx={cellSx}>{gioiTinh}</TableCell>
                                 <TableCell sx={cellSx}>{ngaySinh}</TableCell>
+                                <TableCell sx={cellSx}>
+                                  <FTextField
+                                    name={`SoHoChieuById.${id}`}
+                                    placeholder="Nhập số hộ chiếu"
+                                    size="small"
+                                  />
+                                </TableCell>
                               </TableRow>
                             );
                           })}

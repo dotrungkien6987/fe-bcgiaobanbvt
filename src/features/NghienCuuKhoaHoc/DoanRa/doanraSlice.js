@@ -31,10 +31,15 @@ const normalizeDoanRa = (item) => {
   if (!item || typeof item !== "object") return item;
   const rawNgayKy = item.NgayKyVanBan || item.ngayKyVanBan;
   const rawXuatCanh = item.ThoiGianXuatCanh || item.thoiGianXuatCanh;
+  const tu = item.TuNgay || item.tuNgay;
+  const den = item.DenNgay || item.denNgay;
   return {
     ...item,
     NgayKyVanBanFormatted: toVNDate(rawNgayKy),
-    ThoiGianXuatCanhFormatted: toVNDate(rawXuatCanh),
+    ThoiGianXuatCanhFormatted:
+      tu || den
+        ? `${toVNDate(tu) || ""} - ${toVNDate(den) || ""}`
+        : toVNDate(rawXuatCanh),
   };
 };
 

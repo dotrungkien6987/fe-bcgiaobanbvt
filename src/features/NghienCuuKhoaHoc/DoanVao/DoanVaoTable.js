@@ -182,10 +182,49 @@ function DoanVaoTable() {
         disableGroupBy: true,
       },
       {
-        Header: "Thời gian vào làm việc",
-        accessor: (r) => r.ThoiGianVaoLamViecFormatted || r.ThoiGianVaoLamViec,
-        id: "ThoiGianVaoLamViec",
+        Header: "Số hộ chiếu",
+        id: "SoHoChieu",
+        accessor: (r) => r._id,
+        width: 260,
+        Cell: ({ row }) => {
+          const list = Array.isArray(row.original?.ThanhVien)
+            ? row.original.ThanhVien.map((m) => m?.SoHoChieu).filter(Boolean)
+            : [];
+          if (!list.length) return "";
+          const shown = list.slice(0, 3);
+          const extra = list.length - shown.length;
+          return (
+            <Stack direction="row" spacing={0.5} flexWrap="wrap">
+              {shown.map((p, i) => (
+                <Chip
+                  key={`${row.original._id}-pass-${i}`}
+                  size="small"
+                  label={p}
+                  variant="outlined"
+                />
+              ))}
+              {extra > 0 && (
+                <Tooltip title={list.join(", ") || "Xem thêm"}>
+                  <Chip size="small" label={`+${extra}`} />
+                </Tooltip>
+              )}
+            </Stack>
+          );
+        },
         disableGroupBy: true,
+      },
+      {
+        Header: "Thời gian vào làm việc",
+        id: "ThoiGianVaoLamViec",
+        accessor: (row) => row._id,
+        disableGroupBy: true,
+        Cell: ({ row }) => {
+          const r = row.original || {};
+          const fmt = require("utils/formatTime").formatDate_getDate;
+          if (r.TuNgay || r.DenNgay)
+            return `${fmt(r.TuNgay)} - ${fmt(r.DenNgay)}`;
+          return r.ThoiGianVaoLamViecFormatted || r.ThoiGianVaoLamViec || "";
+        },
       },
       { Header: "Ghi chú", accessor: "GhiChu", disableGroupBy: true },
       {

@@ -192,6 +192,11 @@ function DoanRaTable() {
       },
       { Header: "Mục đích", accessor: "MucDichXuatCanh", disableGroupBy: true },
       {
+        Header: "Đơn vị giới thiệu",
+        accessor: "DonViGioiThieu",
+        disableGroupBy: true,
+      },
+      {
         Header: "Thành viên",
         id: "ThanhVienCount",
         accessor: (row) =>
@@ -200,11 +205,45 @@ function DoanRaTable() {
         disableGroupBy: true,
       },
       {
-        Header: "Thời gian xuất cảnh",
-        accessor: (row) =>
-          row.ThoiGianXuatCanhFormatted || row.ThoiGianXuatCanh,
-        id: "ThoiGianXuatCanh",
+        Header: "Số hộ chiếu",
+        id: "SoHoChieu",
+        accessor: (row) => row._id,
+        width: 260,
+        Cell: ({ row }) => {
+          const list = Array.isArray(row.original?.ThanhVien)
+            ? row.original.ThanhVien.map((m) => m?.SoHoChieu).filter(Boolean)
+            : [];
+          if (!list.length) return "";
+          const shown = list.slice(0, 3);
+          const extra = list.length - shown.length;
+          return (
+            <Stack direction="row" spacing={0.5} flexWrap="wrap">
+              {shown.map((p, i) => (
+                <Chip
+                  key={`${row.original._id}-pass-${i}`}
+                  size="small"
+                  label={p}
+                  variant="outlined"
+                />
+              ))}
+              {extra > 0 && <Chip size="small" label={`+${extra}`} />}
+            </Stack>
+          );
+        },
         disableGroupBy: true,
+      },
+      {
+        Header: "Thời gian xuất cảnh",
+        id: "ThoiGianXuatCanh",
+        accessor: (row) => row._id,
+        disableGroupBy: true,
+        Cell: ({ row }) => {
+          const r = row.original || {};
+          const fmt = require("utils/formatTime").formatDate_getDate;
+          if (r.TuNgay || r.DenNgay)
+            return `${fmt(r.TuNgay)} - ${fmt(r.DenNgay)}`;
+          return r.ThoiGianXuatCanhFormatted || r.ThoiGianXuatCanh || "";
+        },
       },
       { Header: "Quốc gia đến", accessor: "QuocGiaDen", disableGroupBy: true },
       { Header: "Ghi chú", accessor: "GhiChu", disableGroupBy: true },

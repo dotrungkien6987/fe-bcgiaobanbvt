@@ -668,34 +668,7 @@ export default function BaiBaoDetailPage() {
                         />
                       </Box>
 
-                      {isTTT && baiBao.NguonTaiLieuThamKhao && (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            minWidth: 220,
-                          }}
-                        >
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            fontWeight="600"
-                            sx={{ mb: 0.5 }}
-                          >
-                            🔗 Nguồn tham khảo
-                          </Typography>
-                          <Typography variant="body2" sx={{ maxWidth: 260 }}>
-                            <a
-                              href={baiBao.NguonTaiLieuThamKhao}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              {baiBao.NguonTaiLieuThamKhao}
-                            </a>
-                          </Typography>
-                        </Box>
-                      )}
+                      {/* Nguồn tham khảo moved to its own section below */}
                     </Stack>
                   </Box>
 
@@ -1262,6 +1235,42 @@ export default function BaiBaoDetailPage() {
                       />
                     </Box>
                   </Box>
+
+                  {/* Nguồn tài liệu tham khảo: placed before Ngày tạo */}
+                  {baiBao.NguonTaiLieuThamKhao && (
+                    <Box>
+                      <Typography
+                        variant="subtitle1"
+                        color="text.secondary"
+                        fontWeight="600"
+                        sx={{ mb: 1 }}
+                      >
+                        🔗 Nguồn tài liệu tham khảo
+                      </Typography>
+                      <Box
+                        sx={{
+                          p: 2,
+                          bgcolor: "grey.50",
+                          borderRadius: 2,
+                          border: "1px solid",
+                          borderColor: "grey.200",
+                        }}
+                      >
+                        <Typography
+                          variant="body2"
+                          sx={{ wordBreak: "break-all" }}
+                        >
+                          <a
+                            href={baiBao.NguonTaiLieuThamKhao}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {baiBao.NguonTaiLieuThamKhao}
+                          </a>
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
 
                   <Box>
                     <Typography

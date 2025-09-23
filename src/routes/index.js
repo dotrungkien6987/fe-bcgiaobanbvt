@@ -84,6 +84,8 @@ import DashboardLopDaoTaoByYear from "features/DashBoard/LopDaoTaoByYear/Dashboa
 
 import DoanVaoTable from "features/NghienCuuKhoaHoc/DoanVao/DoanVaoTable";
 import DoanVaoDetailPage from "features/NghienCuuKhoaHoc/DoanVao/DoanVaoDetailPage";
+import DoanRaMembersPage from "features/NghienCuuKhoaHoc/Members/DoanRaMembersPage";
+import DoanVaoMembersPage from "features/NghienCuuKhoaHoc/Members/DoanVaoMembersPage";
 
 function Router() {
   return (
@@ -230,6 +232,8 @@ function Router() {
           <Route path="/nhomkhoas" element={<NhomKhoaSoThuTuTable />} />
           <Route path="/doanra" element={<DoanRaTable />} />
           <Route path="/doanvao" element={<DoanVaoTable />} />
+          <Route path="/doanra/members" element={<DoanRaMembersPage />} />
+          <Route path="/doanvao/members" element={<DoanVaoMembersPage />} />
           <Route path="/doanra/:doanRaId" element={<DoanRaDetailPage />} />
           <Route path="/doanvao/:doanVaoId" element={<DoanVaoDetailPage />} />
           {/* TapSan nested routes */}

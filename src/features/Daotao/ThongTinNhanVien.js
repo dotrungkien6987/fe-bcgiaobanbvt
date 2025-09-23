@@ -79,6 +79,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
       SoDienThoai: "",
       Email: "",
       CMND: "",
+      SoHoChieu: "",
       GioiTinh: 0,
       SoCCHN: "",
       NgayCapCCHN: null,
@@ -165,6 +166,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         LyDoNghi: nhanvien.DaNghi ? nhanvien.LyDoNghi : "",
         PhamViHanhNgheBoSung: nhanvien.PhamViHanhNgheBoSung || null,
         isDangVien: Boolean(nhanvien.isDangVien),
+        SoHoChieu: nhanvien.SoHoChieu || "",
       });
     } else {
       reset({
@@ -184,6 +186,7 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
         SoDienThoai: "",
         Email: "",
         CMND: "",
+        SoHoChieu: "",
         GioiTinh: 0,
         SoCCHN: "",
         NgayCapCCHN: null,
@@ -325,6 +328,9 @@ function ThongTinNhanVien({ nhanvien, open, handleClose }) {
                 </Grid>
                 <Grid item xs={6} sm={3} md={3} lg={3}>
                   <FTextField name="CMND" label="CMND/CCCD" />
+                </Grid>
+                <Grid item xs={12} sm={6} md={6} lg={6}>
+                  <FTextField name="SoHoChieu" label="Số hộ chiếu" />
                 </Grid>
               </Grid>
 

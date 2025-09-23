@@ -51,15 +51,19 @@ const memberSchema = Yup.object().shape({
   DonViCongTac: Yup.string().nullable(),
   QuocTich: Yup.string().nullable(),
   DonViGioiThieu: Yup.string().nullable(),
+  SoHoChieu: Yup.string().nullable(),
 });
 
 const schema = Yup.object().shape({
   SoVanBanChoPhep: Yup.string().required("Vui lòng nhập Số văn bản"),
   NgayKyVanBan: Yup.date().nullable().required("Vui lòng chọn Ngày ký"),
   MucDichXuatCanh: Yup.string().required("Vui lòng nhập Mục đích"),
-  ThoiGianVaoLamViec: Yup.date()
+  TuNgay: Yup.date().nullable(),
+  DenNgay: Yup.date()
     .nullable()
-    .required("Vui lòng chọn Thời gian vào làm việc"),
+    .when("TuNgay", (TuNgay, sch) =>
+      TuNgay ? sch.min(TuNgay, "Đến ngày phải sau hoặc bằng Từ ngày") : sch
+    ),
   GhiChu: Yup.string().nullable(),
   ThanhVien: Yup.array().of(memberSchema),
 });
@@ -81,7 +85,8 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
       SoVanBanChoPhep: "",
       NgayKyVanBan: null,
       MucDichXuatCanh: "",
-      ThoiGianVaoLamViec: null,
+      TuNgay: null,
+      DenNgay: null,
       GhiChu: "",
       ThanhVien: [],
     },
@@ -100,7 +105,8 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
         SoVanBanChoPhep: "",
         NgayKyVanBan: null,
         MucDichXuatCanh: "",
-        ThoiGianVaoLamViec: null,
+        TuNgay: null,
+        DenNgay: null,
         GhiChu: "",
         ThanhVien: [],
       });
@@ -119,7 +125,8 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
         SoVanBanChoPhep: currentDoanVao.SoVanBanChoPhep || "",
         NgayKyVanBan: currentDoanVao.NgayKyVanBan || null,
         MucDichXuatCanh: currentDoanVao.MucDichXuatCanh || "",
-        ThoiGianVaoLamViec: currentDoanVao.ThoiGianVaoLamViec || null,
+        TuNgay: currentDoanVao.TuNgay || null,
+        DenNgay: currentDoanVao.DenNgay || null,
         GhiChu: currentDoanVao.GhiChu || "",
         ThanhVien: Array.isArray(currentDoanVao.ThanhVien)
           ? currentDoanVao.ThanhVien.map((m) => ({
@@ -151,11 +158,14 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
         typeof data.NgayKyVanBan?.toISOString === "function"
           ? data.NgayKyVanBan.toISOString()
           : data.NgayKyVanBan || null,
-      ThoiGianVaoLamViec:
-        data.ThoiGianVaoLamViec &&
-        typeof data.ThoiGianVaoLamViec?.toISOString === "function"
-          ? data.ThoiGianVaoLamViec.toISOString()
-          : data.ThoiGianVaoLamViec || null,
+      TuNgay:
+        data.TuNgay && typeof data.TuNgay?.toISOString === "function"
+          ? data.TuNgay.toISOString()
+          : data.TuNgay || null,
+      DenNgay:
+        data.DenNgay && typeof data.DenNgay?.toISOString === "function"
+          ? data.DenNgay.toISOString()
+          : data.DenNgay || null,
       ThanhVien: Array.isArray(data.ThanhVien)
         ? data.ThanhVien.map((m) => {
             const raw = m?.GioiTinh;
@@ -261,13 +271,14 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                   }}
                 />
                 <CardContent sx={{ pt: 3 }}>
-                  <Grid container spacing={2}>
+                  <Grid container spacing={3}>
                     <Grid item xs={12} md={6}>
                       <FTextField
                         name="SoVanBanChoPhep"
                         label="Số văn bản cho phép"
                         variant="outlined"
                         size="medium"
+                        fullWidth
                       />
                     </Grid>
                     <Grid item xs={12} md={6}>
@@ -276,24 +287,69 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                         label="Ngày ký văn bản"
                         variant="outlined"
                         size="medium"
+                        fullWidth
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+
+                    <Grid item xs={12}>
                       <FTextField
                         name="MucDichXuatCanh"
                         label="Mục đích"
                         variant="outlined"
                         size="medium"
+                        fullWidth
                       />
                     </Grid>
-                    <Grid item xs={12} md={6}>
-                      <FDatePicker
-                        name="ThoiGianVaoLamViec"
-                        label="Thời gian vào làm việc"
-                        variant="outlined"
-                        size="medium"
-                      />
+
+                    {/* Khối thời gian làm việc */}
+                    <Grid item xs={12}>
+                      <Box
+                        sx={{
+                          border: "1px solid",
+                          borderColor: "divider",
+                          borderRadius: 2,
+                          p: 3,
+                          bgcolor: "grey.25",
+                          position: "relative",
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle2"
+                          sx={{
+                            position: "absolute",
+                            top: -10,
+                            left: 16,
+                            bgcolor: "background.paper",
+                            px: 1,
+                            color: "primary.main",
+                            fontWeight: 600,
+                          }}
+                        >
+                          Thời gian vào làm việc
+                        </Typography>
+                        <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                          <Grid item xs={12} md={6}>
+                            <FDatePicker
+                              name="TuNgay"
+                              label="Từ ngày"
+                              variant="outlined"
+                              size="medium"
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <FDatePicker
+                              name="DenNgay"
+                              label="Đến ngày"
+                              variant="outlined"
+                              size="medium"
+                              fullWidth
+                            />
+                          </Grid>
+                        </Grid>
+                      </Box>
                     </Grid>
+
                     <Grid item xs={12}>
                       <FTextField
                         name="GhiChu"
@@ -302,6 +358,7 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                         minRows={3}
                         variant="outlined"
                         size="medium"
+                        fullWidth
                       />
                     </Grid>
                   </Grid>
@@ -352,49 +409,56 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                     },
                   }}
                 />
-                <CardContent sx={{ p: 2 }}>
+                <CardContent sx={{ p: 3 }}>
                   <Stack
                     direction="row"
                     alignItems="center"
                     justifyContent="space-between"
-                    sx={{ mb: 2 }}
+                    sx={{ mb: 3 }}
                   >
                     <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                       Thành viên ({fields.length})
                     </Typography>
-                    <Tooltip title="Thêm thành viên">
-                      <IconButton
-                        color="primary"
-                        size="small"
-                        onClick={() =>
-                          append({
-                            Ten: "",
-                            NgaySinh: null,
-                            GioiTinh: "",
-                            ChucVu: "",
-                            DonViCongTac: "",
-                            QuocTich: "",
-                            DonViGioiThieu: "",
-                          })
-                        }
-                      >
-                        <AddCircleOutlineIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<AddCircleOutlineIcon />}
+                      onClick={() =>
+                        append({
+                          Ten: "",
+                          NgaySinh: null,
+                          GioiTinh: "",
+                          ChucVu: "",
+                          DonViCongTac: "",
+                          QuocTich: "",
+                          DonViGioiThieu: "",
+                          SoHoChieu: "",
+                        })
+                      }
+                      sx={{
+                        borderRadius: 2,
+                        textTransform: "none",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Thêm thành viên
+                    </Button>
                   </Stack>
                   <Box
                     sx={{
-                      border: "1px solid #e0e0e0",
-                      borderRadius: 1,
-                      overflowX: "auto",
-                      width: "100%",
+                      border: "1px solid",
+                      borderColor: "divider",
+                      borderRadius: 2,
+                      overflow: "hidden",
+                      bgcolor: "background.paper",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
                     }}
                   >
                     <Table
                       stickyHeader
                       size="small"
                       sx={{
-                        minWidth: 1480,
+                        minWidth: 1640,
                         width: "100%",
                         "& .MuiTableCell-root": { px: 1, py: 0.75 },
                       }}
@@ -488,6 +552,16 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                             sx={{
                               fontWeight: 600,
                               whiteSpace: "nowrap",
+                              minWidth: 160,
+                              width: 160,
+                            }}
+                          >
+                            Số hộ chiếu
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              fontWeight: 600,
+                              whiteSpace: "nowrap",
                               minWidth: 84,
                               width: 84,
                               textAlign: "center",
@@ -502,7 +576,7 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                         {fields.length === 0 ? (
                           <TableRow>
                             <TableCell
-                              colSpan={9}
+                              colSpan={10}
                               align="center"
                               sx={{ color: "text.secondary" }}
                             >
@@ -604,6 +678,13 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                                 <FTextField
                                   name={`ThanhVien.${idx}.DonViGioiThieu`}
                                   placeholder="Đơn vị giới thiệu"
+                                  variant="standard"
+                                />
+                              </TableCell>
+                              <TableCell sx={{ minWidth: 160 }}>
+                                <FTextField
+                                  name={`ThanhVien.${idx}.SoHoChieu`}
+                                  placeholder="Số hộ chiếu"
                                   variant="standard"
                                 />
                               </TableCell>

@@ -127,6 +127,7 @@ export default function SelectNhanVienTable({
     normalizedData.find((x) => x._id === id)?._displayName || id;
 
   const handleConfirm = () => {
+    // Trả về mảng id như cũ để tương thích
     onChange?.(selected);
     onClose?.();
   };

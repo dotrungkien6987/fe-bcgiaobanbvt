@@ -234,6 +234,14 @@ function NhanVienList() {
         disableGroupBy: true,
       },
       {
+        Header: "Số hộ chiếu",
+        Footer: "Số hộ chiếu",
+        accessor: "SoHoChieu",
+        dataType: "text",
+        filter: "fuzzyText",
+        disableGroupBy: true,
+      },
+      {
         Header: "Chức danh",
         Footer: "Chức danh",
         accessor: "ChucDanh",

@@ -407,7 +407,17 @@ function DoanVaoView({ data = {} }) {
           <FieldItem
             icon={<Calendar size={18} />}
             label="Thời gian vào làm việc"
-            value={data.ThoiGianVaoLamViecFormatted || data.ThoiGianVaoLamViec}
+            value={
+              data?.TuNgay || data?.DenNgay
+                ? `${require("utils/formatTime").formatDate_getDate(
+                    data?.TuNgay
+                  )} - ${require("utils/formatTime").formatDate_getDate(
+                    data?.DenNgay
+                  )}`
+                : data.ThoiGianVaoLamViecFormatted ||
+                  data.ThoiGianVaoLamViec ||
+                  ""
+            }
           />
           <FieldItem
             icon={<DocumentText size={18} />}
@@ -460,6 +470,7 @@ function DoanVaoView({ data = {} }) {
                   <TableCell>Đơn vị công tác</TableCell>
                   <TableCell>Quốc tịch</TableCell>
                   <TableCell>Đơn vị giới thiệu</TableCell>
+                  <TableCell>Số hộ chiếu</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -518,6 +529,9 @@ function DoanVaoView({ data = {} }) {
                       </TableCell>
                       <TableCell sx={{ fontSize: 12 }}>
                         {m.DonViGioiThieu || ""}
+                      </TableCell>
+                      <TableCell sx={{ fontSize: 12 }}>
+                        {m.SoHoChieu || ""}
                       </TableCell>
                     </TableRow>
                   );

@@ -39,6 +39,11 @@ const initialState = {
   NoiDaoTao: [],
   DonVi: [],
   NhomHinhThucCapNhat: [],
+  // New DataFix master fields
+  LoaiHinhYHTH: [],
+  ChuyenDeTTT: [],
+  MucDichXuatCanh: [],
+  DonViGioiThieu: [],
   HinhThucDaoTao: [],
   DanToc: [],
   PhamViHanhNghe: [],
@@ -139,6 +144,11 @@ const slice = createSlice({
       state.NguonKinhPhi = action.payload.NguonKinhPhi;
       state.NoiDaoTao = action.payload.NoiDaoTao;
       state.NhomHinhThucCapNhat = action.payload.NhomHinhThucCapNhat;
+      // New DataFix fields
+      state.LoaiHinhYHTH = action.payload.LoaiHinhYHTH;
+      state.ChuyenDeTTT = action.payload.ChuyenDeTTT;
+      state.MucDichXuatCanh = action.payload.MucDichXuatCanh;
+      state.DonViGioiThieu = action.payload.DonViGioiThieu;
       state.HinhThucDaoTao = action.payload.HinhThucDaoTao;
       state.DanToc = action.payload.DanToc;
       state.PhamViHanhNghe = action.payload.PhamViHanhNghe;
@@ -160,6 +170,11 @@ const slice = createSlice({
       state.NguonKinhPhi = action.payload.NguonKinhPhi;
       state.NoiDaoTao = action.payload.NoiDaoTao;
       state.NhomHinhThucCapNhat = action.payload.NhomHinhThucCapNhat;
+      // New DataFix fields
+      state.LoaiHinhYHTH = action.payload.LoaiHinhYHTH;
+      state.ChuyenDeTTT = action.payload.ChuyenDeTTT;
+      state.MucDichXuatCanh = action.payload.MucDichXuatCanh;
+      state.DonViGioiThieu = action.payload.DonViGioiThieu;
       state.HinhThucDaoTao = action.payload.HinhThucDaoTao;
       state.DanToc = action.payload.DanToc;
       state.PhamViHanhNghe = action.payload.PhamViHanhNghe;

@@ -200,8 +200,10 @@ function DoanRaView({ data, dense = false }) {
   const members = useMemo(
     () =>
       rawMembers.map((m) => {
-        // Tìm NV đầy đủ trong store để hiển thị đủ cột như trong Form
-        const id = typeof m === "object" ? m._id || m.id : m;
+        // m có thể là id cũ, object NhanVien hoặc subdoc { NhanVienId, SoHoChieu }
+        const id =
+          (m && m.NhanVienId && (m.NhanVienId._id || m.NhanVienId)) ||
+          (typeof m === "object" ? m._id || m.id : m);
         let nv = nhanviens?.find?.((n) => n._id === id);
         if (!nv && typeof m === "object") {
           nv = nhanviens?.find?.(
@@ -212,7 +214,8 @@ function DoanRaView({ data, dense = false }) {
           );
         }
 
-        const src = nv || (typeof m === "object" ? m : {});
+        const src =
+          nv || (m && m.NhanVienId) || (typeof m === "object" ? m : {});
 
         const gioiTinh =
           src.GioiTinh === 0
@@ -269,6 +272,7 @@ function DoanRaView({ data, dense = false }) {
           GioiTinh: gioiTinh,
           NgaySinh: ngaySinh,
           DangVien: src.isDangVien === true,
+          SoHoChieu: m?.SoHoChieu || src.SoHoChieu || "",
         };
       }),
     [rawMembers, nhanviens]
@@ -520,7 +524,15 @@ function DoanRaView({ data, dense = false }) {
           <FieldItem
             icon={<Calendar size={18} />}
             label="Thời gian xuất cảnh"
-            value={data.ThoiGianXuatCanhFormatted || data.ThoiGianXuatCanh}
+            value={
+              data?.TuNgay || data?.DenNgay
+                ? `${require("utils/formatTime").formatDate_getDate(
+                    data?.TuNgay
+                  )} - ${require("utils/formatTime").formatDate_getDate(
+                    data?.DenNgay
+                  )}`
+                : data.ThoiGianXuatCanhFormatted || data.ThoiGianXuatCanh || ""
+            }
           />
           <FieldItem
             icon={<Global size={18} />}
@@ -604,6 +616,7 @@ function DoanRaView({ data, dense = false }) {
                   <TableCell>Dân tộc</TableCell>
                   <TableCell>Giới tính</TableCell>
                   <TableCell>Ngày sinh</TableCell>
+                  <TableCell>Số hộ chiếu</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -652,6 +665,7 @@ function DoanRaView({ data, dense = false }) {
                     <TableCell sx={{ fontSize: 12 }}>{m.DanToc}</TableCell>
                     <TableCell sx={{ fontSize: 12 }}>{m.GioiTinh}</TableCell>
                     <TableCell sx={{ fontSize: 12 }}>{m.NgaySinh}</TableCell>
+                    <TableCell sx={{ fontSize: 12 }}>{m.SoHoChieu}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

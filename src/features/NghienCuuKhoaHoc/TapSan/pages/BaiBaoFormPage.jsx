@@ -35,6 +35,8 @@ import * as Yup from "yup";
 import FormProvider from "components/form/FormProvider";
 import FTextField from "components/form/FTextField";
 import FRadioGroup from "components/form/FRadioGroup";
+import FAutocomplete from "components/form/FAutocomplete";
+import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 import AuthorsSelectorDialog from "../components/AuthorsSelectorDialog";
 import ReviewerSelectorDialog from "../components/ReviewerSelectorDialog";
@@ -55,21 +57,17 @@ export default function BaiBaoFormPage() {
   const [success, setSuccess] = React.useState(null);
   const nhanviens = useSelector((s) => s.nhanvien?.nhanviens || []);
 
-  // Options for TTT chuyên đề (can be adjusted in DataFix later)
-  const CHUYEN_DE_OPTIONS = [
-    { value: "su-dung-thuoc-hop-ly", label: "Sử dụng thuốc hợp lý" },
-    { value: "canh-bao-tac-dung-phu", label: "Cảnh báo tác dụng phụ" },
-    { value: "tuong-tac-thuoc", label: "Tương tác thuốc" },
-    { value: "cap-nhat-khuyen-cao", label: "Cập nhật khuyến cáo" },
-  ];
+  // DataFix lists
+  const { LoaiHinhYHTH = [], ChuyenDeTTT = [] } = useSelector(
+    (s) => s.nhanvien || {}
+  );
 
   const schema = Yup.object().shape({
     LoaiTapSan: Yup.string().oneOf(["YHTH", "TTT"]).required(),
     TieuDe: Yup.string().required("Tiêu đề là bắt buộc"),
     TomTat: Yup.string().nullable(),
-    // Loại hình: không bắt buộc ngay cả với YHTH (mới)
-    LoaiHinh: Yup.mixed()
-      .oneOf(["ky-thuat-moi", "nghien-cuu-khoa-hoc", "ca-lam-sang"]) // allow list
+    // Loại hình: free text (nullable)
+    LoaiHinh: Yup.string()
       .nullable()
       .transform((v) => (v === "" ? null : v))
       .notRequired(),
@@ -85,8 +83,10 @@ export default function BaiBaoFormPage() {
     //   .notRequired()
     //   .url("Nguồn tài liệu phải là đường dẫn hợp lệ"),
     KhoiChuyenMon: Yup.mixed()
-      .oneOf(["noi", "ngoai", "dieu-duong", "phong-ban", "can-lam-sang"])
-      .required("Khối chuyên môn là bắt buộc"),
+      .transform((v) => (v === "" ? null : v))
+      .oneOf(["noi", "ngoai", "dieu-duong", "phong-ban", "can-lam-sang", null])
+      .nullable()
+      .notRequired(),
     SoThuTu: Yup.number()
       .typeError("Số thứ tự phải là số")
       .integer("Số thứ tự phải là số nguyên")
@@ -219,7 +219,11 @@ export default function BaiBaoFormPage() {
     if (!nhanviens || nhanviens.length === 0) {
       dispatch(getAllNhanVien());
     }
-  }, [dispatch, nhanviens]);
+    // Ensure DataFix is loaded for Autocomplete options
+    if (!LoaiHinhYHTH?.length || !ChuyenDeTTT?.length) {
+      dispatch(getDataFix());
+    }
+  }, [dispatch, nhanviens, LoaiHinhYHTH?.length, ChuyenDeTTT?.length]);
 
   const onSubmit = async (data) => {
     try {
@@ -246,8 +250,10 @@ export default function BaiBaoFormPage() {
         payloadRaw.LoaiHinh = undefined;
       } else if (payloadRaw.LoaiTapSan === "YHTH") {
         payloadRaw.NoiDungChuyenDe = undefined;
-        payloadRaw.NguonTaiLieuThamKhao = undefined;
+        // Cho phép NguonTaiLieuThamKhao đối với YHTH (không xóa)
       }
+      // Normalize optional fields to null when empty
+      if (!payloadRaw.KhoiChuyenMon) payloadRaw.KhoiChuyenMon = null;
       const { LoaiTapSan, ...payload } = payloadRaw; // remove helper field
       let result;
       if (isEdit) {
@@ -400,36 +406,44 @@ export default function BaiBaoFormPage() {
                 />
 
                 {values.LoaiTapSan === "YHTH" && (
-                  <FTextField select name="LoaiHinh" label="Loại hình">
-                    <MenuItem value="ky-thuat-moi">Kỹ thuật mới</MenuItem>
-                    <MenuItem value="nghien-cuu-khoa-hoc">
-                      Nghiên cứu khoa học
-                    </MenuItem>
-                    <MenuItem value="ca-lam-sang">Ca lâm sàng</MenuItem>
-                  </FTextField>
+                  <FAutocomplete
+                    name="LoaiHinh"
+                    label="Loại hình"
+                    options={
+                      Array.isArray(LoaiHinhYHTH)
+                        ? LoaiHinhYHTH.map((x) => x?.LoaiHinhYHTH).filter(
+                            Boolean
+                          )
+                        : []
+                    }
+                    freeSolo
+                    disableClearable={false}
+                  />
                 )}
                 {values.LoaiTapSan === "TTT" && (
-                  <>
-                    <FTextField
-                      select
-                      name="NoiDungChuyenDe"
-                      label="Nội dung chuyên đề"
-                    >
-                      {CHUYEN_DE_OPTIONS.map((o) => (
-                        <MenuItem key={o.value} value={o.value}>
-                          {o.label}
-                        </MenuItem>
-                      ))}
-                    </FTextField>
-                    <FTextField
-                      name="NguonTaiLieuThamKhao"
-                      label="Nguồn tài liệu tham khảo (URL)"
-                      placeholder="https://..."
-                    />
-                  </>
+                  <FAutocomplete
+                    name="NoiDungChuyenDe"
+                    label="Nội dung chuyên đề"
+                    options={
+                      Array.isArray(ChuyenDeTTT)
+                        ? ChuyenDeTTT.map((x) => x?.ChuyenDeTTT).filter(Boolean)
+                        : []
+                    }
+                    freeSolo
+                    disableClearable={false}
+                  />
                 )}
 
+                <FTextField
+                  name="NguonTaiLieuThamKhao"
+                  label="Nguồn tài liệu tham khảo (URL)"
+                  placeholder="https://..."
+                />
+
                 <FTextField select name="KhoiChuyenMon" label="Khối chuyên môn">
+                  <MenuItem value="">
+                    <em>Không chọn</em>
+                  </MenuItem>
                   <MenuItem value="noi">Nội</MenuItem>
                   <MenuItem value="ngoai">Ngoại</MenuItem>
                   <MenuItem value="dieu-duong">Điều dưỡng</MenuItem>

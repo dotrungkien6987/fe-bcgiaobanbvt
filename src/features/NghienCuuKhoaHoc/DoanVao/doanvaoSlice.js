@@ -22,12 +22,15 @@ const toVNDate = (d) => {
 
 const normalize = (item) => {
   if (!item || typeof item !== "object") return item;
+  const tu = item.TuNgay || item.tuNgay;
+  const den = item.DenNgay || item.denNgay;
   return {
     ...item,
     NgayKyVanBanFormatted: toVNDate(item.NgayKyVanBan || item.ngayKyVanBan),
-    ThoiGianVaoLamViecFormatted: toVNDate(
-      item.ThoiGianVaoLamViec || item.thoiGianVaoLamViec
-    ),
+    ThoiGianVaoLamViecFormatted:
+      tu || den
+        ? `${toVNDate(tu) || ""} - ${toVNDate(den) || ""}`
+        : toVNDate(item.ThoiGianVaoLamViec || item.thoiGianVaoLamViec),
   };
 };
 

@@ -20,6 +20,17 @@ export const lopDaoTaoGroupConfig = {
     addAfter: { Ten: [{ accessor: "XepLoai", Header: "Xếp loại" }] },
     remove: ["HinhThucDaoTao", "TenTapChi", "SoTapChi", "CanBoThamGia"],
   },
+  NCKH_SHKH: {
+    title: "Quản lý nghiên cứu khoa học (Đề tài)",
+    // Hỗ trợ string hoặc object { code, title }
+    codes: [
+      { code: "NCKH06", title: "Sinh hoạt khoa học" },
+    
+    ],
+    overrideColumns: { Ten: { Header: "Tên sinh hoạt khoa học" } },
+    addAfter: { Ten: [{ accessor: "XepLoai", Header: "Xếp loại" }] },
+    remove: ["HinhThucDaoTao", "TenTapChi", "SoTapChi", "CanBoThamGia","QuyetDinh"],
+  },
   NCKH_SANG_KIEN: {
     title: "Quản lý Sáng kiến",
     // Hỗ trợ string hoặc object { code, title }
