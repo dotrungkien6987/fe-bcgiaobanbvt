@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from "react";
 import useAuth from "../hooks/useAuth";
-import AccountBoxIcon from "@mui/icons-material/AccountBox";
-import ContactMailIcon from "@mui/icons-material/ContactMail";
-import PersonAddRoundedIcon from "@mui/icons-material/PersonAddRounded";
-import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+
 import MenuIcon from "@mui/icons-material/Menu"; // Thêm icon Menu
 import { 
   Box, 
   Card, 
-  Container, 
+ 
   Stack, 
   Tab, 
   Tabs, 
@@ -20,13 +17,12 @@ import {
   Toolbar,
   Badge
 } from "@mui/material";
-import SendTimeExtensionIcon from "@mui/icons-material/SendTimeExtension";
 
 import styled from "@emotion/styled";
 import ChiSoChatLuong from "../features/DashBoard/ChiSoChatLuong";
 import DieuHanh from "../features/DashBoard/DieuHanh";
 import TaiChinh from "../features/DashBoard/TaiChinh";
-import HaiLongNguoiBenh from "../features/DashBoard/HaiLongNguoiBenh";
+
 import DashBoardKhoa from "../features/DashBoard/DashBoardKhoa/DashBoardKhoa";
 import DashBoardDaotao from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaotao/DashBoardDaotao";
 import DashBoardDaotaoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDaoTaoKhoa/DashBoardDaotaoKhoa";

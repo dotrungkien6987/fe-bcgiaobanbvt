@@ -187,6 +187,7 @@ export default function MembersListPage({ type = "doanra" }) {
             },
             { header: "Đảng viên", key: "DangVien", width: 12 },
             { header: "Số hộ chiếu", key: "SoHoChieu", width: 18 },
+            { header: "Có báo cáo?", key: "CoBaoCao", width: 14 },
             { header: "Mục đích", key: "MucDichXuatCanh", width: 28 },
             { header: "Quốc gia đến", key: "QuocGiaDen", width: 20 },
             { header: "Nguồn kinh phí", key: "NguonKinhPhi", width: 20 },
@@ -207,6 +208,7 @@ export default function MembersListPage({ type = "doanra" }) {
             { header: "Từ ngày", key: "TuNgay", width: 14 },
             { header: "Đến ngày", key: "DenNgay", width: 14 },
             { header: "Đơn vị giới thiệu", key: "DonViGioiThieu", width: 24 },
+            { header: "Có báo cáo?", key: "CoBaoCao", width: 14 },
           ];
 
     ws.columns = cols;
@@ -215,9 +217,9 @@ export default function MembersListPage({ type = "doanra" }) {
         ...r,
         NgaySinh: r.NgaySinh ? dayjs(r.NgaySinh).format("DD/MM/YYYY") : "",
         GioiTinh:
-          r.GioiTinh === 1 || r.GioiTinh === "1"
+          r.GioiTinh === 0 || r.GioiTinh === "0"
             ? "Nam"
-            : r.GioiTinh === 0 || r.GioiTinh === "0"
+            : r.GioiTinh === 1 || r.GioiTinh === "1"
             ? "Nữ"
             : "",
         TuNgay: r.TuNgay ? dayjs(r.TuNgay).format("DD/MM/YYYY") : "",
@@ -226,6 +228,10 @@ export default function MembersListPage({ type = "doanra" }) {
       if (type === "doanra") {
         row.Khoa = r.TenKhoa || "";
         row.DangVien = r.isDangVien ? "Có" : "Không";
+        row.CoBaoCao = r.CoBaoCao ? "Có" : "Không";
+      }
+      if (type === "doanvao") {
+        row.CoBaoCao = r.CoBaoCao ? "Có" : "Không";
       }
       ws.addRow(row);
     });
@@ -295,9 +301,9 @@ export default function MembersListPage({ type = "doanra" }) {
         headerName: "Giới tính",
         width: 100,
         valueGetter: ({ value }) =>
-          value === "1" || value === 1
+          value === "0" || value === 0
             ? "Nam"
-            : value === "0" || value === 0
+            : value === "1" || value === 1
             ? "Nữ"
             : "",
         renderCell: (params) => (
@@ -349,6 +355,19 @@ export default function MembersListPage({ type = "doanra" }) {
         field: "isDangVien",
         headerName: "Đảng viên",
         width: 120,
+        renderCell: (params) => (
+          <Chip
+            label={params.value ? "Có" : "Không"}
+            size="small"
+            color={params.value ? "success" : "default"}
+            variant={params.value ? "filled" : "outlined"}
+          />
+        ),
+      },
+      {
+        field: "CoBaoCao",
+        headerName: "Có báo cáo?",
+        width: 140,
         renderCell: (params) => (
           <Chip
             label={params.value ? "Có" : "Không"}
@@ -454,6 +473,19 @@ export default function MembersListPage({ type = "doanra" }) {
             size="small"
             color="info"
             variant="outlined"
+          />
+        ),
+      },
+      {
+        field: "CoBaoCao",
+        headerName: "Có báo cáo?",
+        width: 140,
+        renderCell: (params) => (
+          <Chip
+            label={params.value ? "Có" : "Không"}
+            size="small"
+            color={params.value ? "success" : "default"}
+            variant={params.value ? "filled" : "outlined"}
           />
         ),
       },
@@ -763,29 +795,78 @@ export default function MembersListPage({ type = "doanra" }) {
             sx={{
               border: "none",
               "& .MuiDataGrid-cell": {
-                borderBottom: "1px solid rgba(224, 224, 224, 0.5)",
+                borderBottom: "1px solid rgba(224, 224, 224, 0.3)",
+                fontSize: "0.875rem",
+                padding: "12px 16px",
               },
-              // Keep the Grid toolbar visible while scrolling inside the grid
+              // Toolbar: no sticky to avoid overlapping first row
               "& .MuiDataGrid-toolbarContainer": {
-                position: "sticky",
-                top: 0,
-                zIndex: 2,
                 bgcolor: "background.paper",
-                borderBottom: 1,
-                borderColor: "divider",
+                borderBottom: "1px solid rgba(224, 224, 224, 0.3)",
+                padding: "8px 16px",
+                "& .MuiButton-root": {
+                  textTransform: "none",
+                  fontWeight: 500,
+                },
               },
-              "& .MuiDataGrid-row:hover": {
-                bgcolor: "action.hover",
-                cursor: "pointer",
+              "& .MuiDataGrid-row": {
+                transition: "all 0.2s ease-in-out",
+                "&:hover": {
+                  bgcolor: "rgba(102, 126, 234, 0.05)",
+                  cursor: "pointer",
+                  transform: "translateY(-1px)",
+                  boxShadow: "0 2px 8px rgba(102, 126, 234, 0.1)",
+                },
+                "&:nth-of-type(even)": {
+                  bgcolor: "rgba(0, 0, 0, 0.015)",
+                },
               },
-              // Make column headers sticky under the toolbar
+              // Column headers: modern styled sticky headers
               "& .MuiDataGrid-columnHeaders": {
                 position: "sticky",
-                top: 56, // approximate toolbar height
+                top: 0,
                 zIndex: 1,
-                bgcolor: "grey.50",
-                borderBottom: "2px solid",
-                borderColor: "primary.main",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                borderBottom: "3px solid #667eea",
+                boxShadow: "0 2px 8px rgba(102, 126, 234, 0.15)",
+                "& .MuiDataGrid-columnHeader": {
+                  backgroundColor: "transparent",
+                  color: "white",
+                  fontWeight: 700,
+                  fontSize: "0.875rem",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  padding: "12px 16px",
+                  borderRight: "1px solid rgba(255, 255, 255, 0.2)",
+                  "&:last-child": {
+                    borderRight: "none",
+                  },
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  },
+                  "& .MuiDataGrid-columnHeaderTitle": {
+                    fontWeight: 700,
+                    color: "white",
+                    textShadow: "0 1px 2px rgba(0, 0, 0, 0.2)",
+                  },
+                  "& .MuiDataGrid-iconButtonContainer": {
+                    color: "white",
+                    "& .MuiIconButton-root": {
+                      color: "white",
+                      "&:hover": {
+                        backgroundColor: "rgba(255, 255, 255, 0.15)",
+                      },
+                    },
+                  },
+                  "& .MuiDataGrid-sortIcon": {
+                    color: "white",
+                    opacity: 0.9,
+                  },
+                  "& .MuiDataGrid-menuIcon": {
+                    color: "white",
+                    opacity: 0.8,
+                  },
+                },
               },
             }}
           />
@@ -870,9 +951,9 @@ export default function MembersListPage({ type = "doanra" }) {
                     </Typography>
                     <Chip
                       label={
-                        drawer.GioiTinh === "1" || drawer.GioiTinh === 1
+                        drawer.GioiTinh === "0" || drawer.GioiTinh === 0
                           ? "Nam"
-                          : drawer.GioiTinh === 0 || drawer.GioiTinh === "0"
+                          : drawer.GioiTinh === 1 || drawer.GioiTinh === "1"
                           ? "Nữ"
                           : "Chưa xác định"
                       }
@@ -919,6 +1000,21 @@ export default function MembersListPage({ type = "doanra" }) {
                       variant={drawer.SoHoChieu ? "filled" : "outlined"}
                     />
                   </Box>
+
+                  {type === "doanra" && (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <AssignmentIcon color="action" />
+                      <Typography variant="body2" fontWeight={500}>
+                        Có báo cáo?
+                      </Typography>
+                      <Chip
+                        label={drawer.CoBaoCao ? "Có" : "Không"}
+                        size="small"
+                        color={drawer.CoBaoCao ? "success" : "default"}
+                        variant={drawer.CoBaoCao ? "filled" : "outlined"}
+                      />
+                    </Box>
+                  )}
                 </Stack>
               </CardContent>
             </Card>
@@ -1010,6 +1106,20 @@ export default function MembersListPage({ type = "doanra" }) {
                       <Typography variant="body2">
                         {drawer.DonViGioiThieu}
                       </Typography>
+                    </Box>
+                  )}
+                  {type === "doanvao" && (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <AssignmentIcon color="action" />
+                      <Typography variant="body2" fontWeight={500}>
+                        Có báo cáo?
+                      </Typography>
+                      <Chip
+                        label={drawer.CoBaoCao ? "Có" : "Không"}
+                        size="small"
+                        color={drawer.CoBaoCao ? "success" : "default"}
+                        variant={drawer.CoBaoCao ? "filled" : "outlined"}
+                      />
                     </Box>
                   )}
                 </Stack>

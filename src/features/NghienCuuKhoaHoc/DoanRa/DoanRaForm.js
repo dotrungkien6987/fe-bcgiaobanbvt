@@ -21,7 +21,7 @@ import {
   Slide,
 } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
-import { FTextField, FormProvider } from "components/form";
+import { FTextField, FCheckbox, FormProvider } from "components/form";
 import FDatePicker from "components/form/FDatePicker";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -73,12 +73,13 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
       NguonKinhPhi: "",
       DonViGioiThieu: "",
       QuocGiaDen: "",
-      BaoCao: "",
       GhiChu: "",
       // Field mới chuẩn hoá attachments (object array)
       Attachments: [],
       // Map id -> SoHoChieu cho từng thành viên
       SoHoChieuById: {},
+      // Map id -> CoBaoCao (boolean) cho từng thành viên
+      CoBaoCaoById: {},
     },
   });
 
@@ -155,7 +156,6 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
         NguonKinhPhi: "",
         DonViGioiThieu: "",
         QuocGiaDen: "",
-        BaoCao: "",
         GhiChu: "",
         Attachments: [],
         SoHoChieuById: {},
@@ -178,6 +178,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
         : [];
 
       const sohcMap = {};
+      const baoCaoMap = {};
       if (Array.isArray(currentDoanRa.ThanhVien)) {
         currentDoanRa.ThanhVien.forEach((m) => {
           // m có thể là id cũ hoặc subdoc { NhanVienId, SoHoChieu }
@@ -187,6 +188,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
           if (nvId) {
             sohcMap[String(nvId)] =
               m?.SoHoChieu || m?.NhanVienId?.SoHoChieu || "";
+            baoCaoMap[String(nvId)] = Boolean(m?.CoBaoCao);
           }
         });
       }
@@ -199,6 +201,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
         DenNgay: currentDoanRa.DenNgay ? dayjs(currentDoanRa.DenNgay) : null,
         Attachments: normalizedAttachments,
         SoHoChieuById: sohcMap,
+        CoBaoCaoById: baoCaoMap,
       });
       // Prefill selected members
       setSelectedNhanVienIds(
@@ -225,8 +228,11 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
         ? selectedNhanVienIds.map((x) => String(x))
         : [];
       const currentMap = methods.getValues("SoHoChieuById") || {};
+      const currentBaoCao = methods.getValues("CoBaoCaoById") || {};
       const nextMap = {};
+      const nextBaoCao = {};
       let changed = false;
+      let changedBaoCao = false;
 
       const getPassport = (nv) =>
         nv?.SoHoChieu ||
@@ -252,7 +258,10 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
           }
         }
         nextMap[id] = value;
+        const bc = currentBaoCao[id];
+        nextBaoCao[id] = typeof bc === "boolean" ? bc : false;
         if (currentMap[id] !== value) changed = true;
+        if (currentBaoCao[id] !== nextBaoCao[id]) changedBaoCao = true;
       });
 
       const currentKeys = Object.keys(currentMap);
@@ -262,6 +271,13 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
 
       if (changed || needPrune) {
         methods.setValue("SoHoChieuById", nextMap, { shouldDirty: true });
+      }
+      const currentKeysBC = Object.keys(currentBaoCao);
+      const needPruneBC =
+        currentKeysBC.length !== ids.length ||
+        currentKeysBC.some((k) => !ids.includes(k));
+      if (changedBaoCao || needPruneBC) {
+        methods.setValue("CoBaoCaoById", nextBaoCao, { shouldDirty: true });
       }
     } catch (e) {
       // silent guard
@@ -277,10 +293,11 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
           : null,
         TuNgay: data.TuNgay ? data.TuNgay.toISOString() : null,
         DenNgay: data.DenNgay ? data.DenNgay.toISOString() : null,
-        // Gửi mảng subdoc { NhanVienId, SoHoChieu }
+        // Gửi mảng subdoc { NhanVienId, SoHoChieu, CoBaoCao }
         ThanhVien: (selectedNhanVienIds || []).map((id) => ({
           NhanVienId: id,
           SoHoChieu: data?.SoHoChieuById?.[id] || "",
+          CoBaoCao: Boolean(data?.CoBaoCaoById?.[id]),
         })),
         Attachments: Array.isArray(data.Attachments) ? data.Attachments : [],
         // Không còn gửi TaiLieuKemTheo, BE có thể map fallback nếu cần
@@ -581,17 +598,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                       />
                     </Grid>
 
-                    <Grid item xs={12}>
-                      <FTextField
-                        name="BaoCao"
-                        label="Báo cáo"
-                        multiline
-                        minRows={3}
-                        variant="outlined"
-                        size="medium"
-                        fullWidth
-                      />
-                    </Grid>
+                    {/* Trường BaoCao đã bỏ */}
 
                     <Grid item xs={12}>
                       <FTextField
@@ -755,6 +762,7 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                             <TableCell>Giới tính</TableCell>
                             <TableCell>Ngày sinh</TableCell>
                             <TableCell>Số hộ chiếu</TableCell>
+                            <TableCell>Có báo cáo?</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -835,6 +843,12 @@ function DoanRaForm({ open, onClose, doanRaId = null, onSuccess }) {
                                     name={`SoHoChieuById.${id}`}
                                     placeholder="Nhập số hộ chiếu"
                                     size="small"
+                                  />
+                                </TableCell>
+                                <TableCell sx={cellSx}>
+                                  <FCheckbox
+                                    name={`CoBaoCaoById.${id}`}
+                                    label=""
                                   />
                                 </TableCell>
                               </TableRow>

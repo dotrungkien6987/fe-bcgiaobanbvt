@@ -35,7 +35,7 @@ import {
   refreshDoanVaoAttachmentCountOne,
   getDoanVaoById,
 } from "./doanvaoSlice";
-import { FormProvider, FTextField, FSelect } from "components/form";
+import { FormProvider, FTextField, FSelect, FCheckbox } from "components/form";
 import FDatePicker from "components/form/FDatePicker";
 import AttachmentSection from "shared/components/AttachmentSection";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -66,6 +66,7 @@ const schema = Yup.object().shape({
     ),
   GhiChu: Yup.string().nullable(),
   ThanhVien: Yup.array().of(memberSchema),
+  CoBaoCao: Yup.boolean().notRequired(),
 });
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -89,6 +90,7 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
       TuNgay: null,
       DenNgay: null,
       GhiChu: "",
+      CoBaoCao: false,
       ThanhVien: [],
     },
   });
@@ -110,6 +112,7 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
         TuNgay: null,
         DenNgay: null,
         GhiChu: "",
+        CoBaoCao: false,
         ThanhVien: [],
       });
     }
@@ -137,6 +140,7 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
         TuNgay: currentDoanVao.TuNgay || null,
         DenNgay: currentDoanVao.DenNgay || null,
         GhiChu: currentDoanVao.GhiChu || "",
+        CoBaoCao: Boolean(currentDoanVao.CoBaoCao),
         ThanhVien: Array.isArray(currentDoanVao.ThanhVien)
           ? currentDoanVao.ThanhVien.map((m) => ({
               ...m,
@@ -289,6 +293,9 @@ function DoanVaoForm({ open, onClose, doanVaoId, onSuccess }) {
                         size="medium"
                         fullWidth
                       />
+                    </Grid>
+                    <Grid item xs={12} md={3}>
+                      <FCheckbox name="CoBaoCao" label="Có báo cáo?" />
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <FDatePicker

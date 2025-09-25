@@ -39,6 +39,8 @@ import {
 import MyPieChartForMoney from "./MyPieChartForMoney";
 import TableDoanhThuCanLamSang from "./TableDoanhThuCanLamSang";
 import CardTongTienChuaDuyetKT from "./CardTongTienChuaDuyetKT";
+import ChiSoSummaryForm from "./ChiSoSummaryForm";
+import ChiSoFlowForm from "./ChiSoFlowForm";
 
 const TaiChinh = () => {
   dayjs.tz.setDefault("Asia/Ho_Chi_Minh"); // Cấu hình múi giờ nếu cần
@@ -54,6 +56,9 @@ const TaiChinh = () => {
   const [thang, setThang] = useState();
   const [nam, setNam] = useState();
   const [ngay, setNgay] = useState();
+  // State mở form tổng hợp 6 chỉ số
+  const [openChiSoForm, setOpenChiSoForm] = useState(false);
+  const [openChiSoFlow, setOpenChiSoFlow] = useState(false);
   const {
     dashboadChiSoChatLuong,
     dashboad_NgayChenhLech,
@@ -442,12 +447,7 @@ const TaiChinh = () => {
   const methods = useForm({
     defaultValues,
   });
-  const {
-    handleSubmit,
-    reset,
-    setValue,
-    formState: { isSubmitting },
-  } = methods;
+  // Không cần destructure các hàm không sử dụng ở đây để tránh cảnh báo lint
 
   const colors = [
     { color: "#1939B7" },
@@ -462,6 +462,46 @@ const TaiChinh = () => {
     { color: "#FFBB28" },
     { color: "#2ABC28" },
   ];
+
+  // TÍNH 6 SỐ LIỆU THEO YÊU CẦU (dùng tổng phần tử trong Pie và tổng tiền chưa duyệt)
+  const sumPie = (pieArr) =>
+    Array.isArray(pieArr)
+      ? pieArr.reduce((acc, cur) => acc + (Number(cur?.value) || 0), 0)
+      : 0;
+
+  const tongDuyetKeToan = sumPie(Pie_DoanhThu_DuyetKeToan);
+  const tongTheoChiDinh = sumPie(Pie_DoanhThu_TheoChiDinh);
+
+  const getTongTienChuaKT = (arr, status) => {
+    if (!Array.isArray(arr)) return 0;
+    const found = arr.find((e) => e.vienphistatus === status);
+    return found?.tongtien || 0;
+  };
+  const chuaKT_ThangTruoc_RaVien = getTongTienChuaKT(
+    SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc,
+    1
+  );
+  const chuaKT_ThangTruoc_ChuaRaVien = getTongTienChuaKT(
+    SoLuong_TongTien_ChuaDuyetKeToan_ThangTruoc,
+    0
+  );
+  const chuaKT_ThangNay_RaVien = getTongTienChuaKT(
+    SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai,
+    1
+  );
+  const chuaKT_ThangNay_ChuaRaVien = getTongTienChuaKT(
+    SoLuong_TongTien_ChuaDuyetKeToan_ThangHienTai,
+    0
+  );
+
+  const sixMetrics = {
+    tongDuyetKeToan,
+    tongTheoChiDinh,
+    chuaKT_ThangTruoc_RaVien,
+    chuaKT_ThangTruoc_ChuaRaVien,
+    chuaKT_ThangNay_RaVien,
+    chuaKT_ThangNay_ChuaRaVien,
+  };
   return (
     <Stack>
       <AppBar position="static" sx={{ mb: 1 }}>
@@ -489,8 +529,38 @@ const TaiChinh = () => {
           <DisplayChiSoDashBoard
             ChiSoDashBoard={dashboadChiSoChatLuong.ChiSoDashBoard}
           />
+          <Card sx={{ ml: 1, p: 1, display: "flex", alignItems: "center" }}>
+            <Typography
+              variant="button"
+              sx={{ cursor: "pointer" }}
+              onClick={() => setOpenChiSoForm(true)}
+            >
+              6 chỉ số
+            </Typography>
+          </Card>
+          <Card sx={{ ml: 1, p: 1, display: "flex", alignItems: "center" }}>
+            <Typography
+              variant="button"
+              sx={{ cursor: "pointer" }}
+              onClick={() => setOpenChiSoFlow(true)}
+            >
+              Flow doanh thu
+            </Typography>
+          </Card>
         </Toolbar>
       </AppBar>
+      <ChiSoSummaryForm
+        open={openChiSoForm}
+        onClose={() => setOpenChiSoForm(false)}
+        metrics={sixMetrics}
+        currentDay={ngay}
+      />
+      <ChiSoFlowForm
+        open={openChiSoFlow}
+        onClose={() => setOpenChiSoFlow(false)}
+        metrics={sixMetrics}
+        currentDay={ngay}
+      />
 
       <Grid container spacing={2}>
         <Grid item xs={12} sm={12} md={5} spacing={2}>

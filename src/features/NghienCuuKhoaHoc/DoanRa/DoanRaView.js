@@ -553,14 +553,7 @@ function DoanRaView({ data, dense = false }) {
               span={12}
             />
           )}
-          {data.BaoCao && (
-            <FieldItem
-              icon={<DocumentText size={18} />}
-              label="Báo cáo"
-              value={data.BaoCao}
-              span={12}
-            />
-          )}
+          {/* Trường BaoCao đã bỏ */}
           {data.GhiChu && (
             <FieldItem
               icon={<Note size={18} />}
