@@ -40,7 +40,6 @@ import MyPieChartForMoney from "./MyPieChartForMoney";
 import TableDoanhThuCanLamSang from "./TableDoanhThuCanLamSang";
 import CardTongTienChuaDuyetKT from "./CardTongTienChuaDuyetKT";
 import ChiSoSummaryForm from "./ChiSoSummaryForm";
-import ChiSoFlowForm from "./ChiSoFlowForm";
 
 const TaiChinh = () => {
   dayjs.tz.setDefault("Asia/Ho_Chi_Minh"); // Cấu hình múi giờ nếu cần
@@ -58,7 +57,6 @@ const TaiChinh = () => {
   const [ngay, setNgay] = useState();
   // State mở form tổng hợp 6 chỉ số
   const [openChiSoForm, setOpenChiSoForm] = useState(false);
-  const [openChiSoFlow, setOpenChiSoFlow] = useState(false);
   const {
     dashboadChiSoChatLuong,
     dashboad_NgayChenhLech,
@@ -501,6 +499,15 @@ const TaiChinh = () => {
     chuaKT_ThangTruoc_ChuaRaVien,
     chuaKT_ThangNay_RaVien,
     chuaKT_ThangNay_ChuaRaVien,
+    // Tổng tiền 3 khoa (1006,127,75) đã ra viện (vienphistatus=1) tháng trước - phục vụ hiển thị tạm thời ở ChiSoSummaryForm
+    tongTien3Khoa_RaVien_ThangTruoc: Array.isArray(
+      DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa
+    )
+      ? DoanhThu_ChuaDuyetKeToan_ThangTruoc_TheoKhoa.filter(
+          (e) =>
+            e.vienphistatus === 1 && [1006, 127, 75].includes(Number(e.khoaid))
+        ).reduce((acc, cur) => acc + (Number(cur.tongtien) || 0), 0)
+      : 0,
   };
   return (
     <Stack>
@@ -535,18 +542,10 @@ const TaiChinh = () => {
               sx={{ cursor: "pointer" }}
               onClick={() => setOpenChiSoForm(true)}
             >
-              6 chỉ số
+              Phân tích tài chính
             </Typography>
           </Card>
-          <Card sx={{ ml: 1, p: 1, display: "flex", alignItems: "center" }}>
-            <Typography
-              variant="button"
-              sx={{ cursor: "pointer" }}
-              onClick={() => setOpenChiSoFlow(true)}
-            >
-              Flow doanh thu
-            </Typography>
-          </Card>
+          {/* Nút Flow doanh thu đã được loại bỏ theo yêu cầu */}
         </Toolbar>
       </AppBar>
       <ChiSoSummaryForm
@@ -555,12 +554,7 @@ const TaiChinh = () => {
         metrics={sixMetrics}
         currentDay={ngay}
       />
-      <ChiSoFlowForm
-        open={openChiSoFlow}
-        onClose={() => setOpenChiSoFlow(false)}
-        metrics={sixMetrics}
-        currentDay={ngay}
-      />
+      {/* ChiSoFlowForm đã được loại bỏ theo yêu cầu */}
 
       <Grid container spacing={2}>
         <Grid item xs={12} sm={12} md={5} spacing={2}>
