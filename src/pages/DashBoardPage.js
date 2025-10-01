@@ -1,21 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import useAuth from "../hooks/useAuth";
 
 import MenuIcon from "@mui/icons-material/Menu"; // Thêm icon Menu
-import { 
-  Box, 
-  Card, 
- 
-  Stack, 
-  Tab, 
-  Tabs, 
-  IconButton, 
-  Menu, 
-  MenuItem, 
+import {
+  Box,
+  Card,
+  Stack,
+  Tab,
+  Tabs,
+  IconButton,
+  Menu,
+  MenuItem,
   Typography,
   AppBar,
   Toolbar,
-  Badge
+  Badge,
 } from "@mui/material";
 
 import styled from "@emotion/styled";
@@ -29,6 +28,7 @@ import DashBoardDaotaoKhoa from "features/Daotao/BaoCaoTongHopDaoTao/DashBoardDa
 import DuocVatTu from "features/DashBoard/DuocVatTu/DuocVatTu";
 import BenhNhanNgoaiTinh from "features/His/BenhNhanNgoaiTinh/BenhNhanNgoaiTinh";
 import SoThuTuDashboard from "features/SoThuTuPhongKham/SoThuTuDashboard";
+import BinhQuanBenhAn from "../features/DashBoard/BinhQuanBenhAn";
 
 const TabsWrapperStyled = styled("div")(({ theme }) => ({
   zIndex: 9,
@@ -49,73 +49,82 @@ const TabsWrapperStyled = styled("div")(({ theme }) => ({
 
 // Mapping giữa các mã quyền dashboard và tên tab
 const DASHBOARD_PERMISSION_MAP = {
-  'BNNT': "BỆNH NHÂN NGOẠI TỈNH",
-  'CSCL': "CHỈ SỐ CHẤT LƯỢNG",
-  'ĐH': "ĐIỀU HÀNH",
-  'TC': "TÀI CHÍNH",
-  'TCKHOA': "THEO DÕI THEO KHOA",
-  'DVT': "DƯỢC VẬT TƯ",
-  'ĐT': "ĐÀO TẠO TOÀN VIỆN",
-  'ĐTKHOA': "ĐÀO TẠO THEO KHOA",
-  'SOTHUTU': "SỐ THỨ TỰ BỆNH NHÂN"
+  BNNT: "BỆNH NHÂN NGOẠI TỈNH",
+  CSCL: "CHỈ SỐ CHẤT LƯỢNG",
+  ĐH: "ĐIỀU HÀNH",
+  TC: "TÀI CHÍNH",
+  BQBA: "Bình quân bệnh án",
+  TCKHOA: "THEO DÕI THEO KHOA",
+  DVT: "DƯỢC VẬT TƯ",
+  ĐT: "ĐÀO TẠO TOÀN VIỆN",
+  ĐTKHOA: "ĐÀO TẠO THEO KHOA",
+  SOTHUTU: "SỐ THỨ TỰ BỆNH NHÂN",
 };
 
 function DashBoardPage() {
   const { user } = useAuth();
 
-  // Danh sách tất cả các tab có sẵn
-  const allTabs = [
-    {
-      value: "BỆNH NHÂN NGOẠI TỈNH",
-      component: <BenhNhanNgoaiTinh />,
-      permission: 'BNNT'
-    },
-    {
-      value: "CHỈ SỐ CHẤT LƯỢNG",
-      component: <ChiSoChatLuong />,
-      permission: 'CSCL'
-    },
-    {
-      value: "ĐIỀU HÀNH",
-      component: <DieuHanh />,
-      permission: 'ĐH'
-    },
-    {
-      value: "TÀI CHÍNH",
-      component: <TaiChinh />,
-      permission: 'TC'
-    },
-    {
-      value: "THEO DÕI THEO KHOA",
-      component: <DashBoardKhoa />,
-      permission: 'TCKHOA'
-    },
-    {
-      value: "DƯỢC VẬT TƯ",
-      component: <DuocVatTu />,
-      permission: 'DVT'
-    },
-    {
-      value: "SỐ THỨ TỰ BỆNH NHÂN",
-      component: <SoThuTuDashboard />,
-      permission: 'SOTHUTU'
-    },
-    {
-      value: "ĐÀO TẠO TOÀN VIỆN",
-      component: <DashBoardDaotao />,
-      permission: 'ĐT'
-    },
-    {
-      value: "ĐÀO TẠO THEO KHOA",
-      component: <DashBoardDaotaoKhoa />,
-      permission: 'ĐTKHOA'
-    },
-  ];
+  // Danh sách tất cả các tab có sẵn (memoized)
+  const allTabs = useMemo(
+    () => [
+      {
+        value: "BỆNH NHÂN NGOẠI TỈNH",
+        component: <BenhNhanNgoaiTinh />,
+        permission: "BNNT",
+      },
+      {
+        value: "CHỈ SỐ CHẤT LƯỢNG",
+        component: <ChiSoChatLuong />,
+        permission: "CSCL",
+      },
+      {
+        value: "ĐIỀU HÀNH",
+        component: <DieuHanh />,
+        permission: "ĐH",
+      },
+      {
+        value: "TÀI CHÍNH",
+        component: <TaiChinh />,
+        permission: "TC",
+      },
+      {
+        value: "Bình quân bệnh án",
+        component: <BinhQuanBenhAn />,
+        permission: "BQBA",
+      },
+      {
+        value: "THEO DÕI THEO KHOA",
+        component: <DashBoardKhoa />,
+        permission: "TCKHOA",
+      },
+      {
+        value: "DƯỢC VẬT TƯ",
+        component: <DuocVatTu />,
+        permission: "DVT",
+      },
+      {
+        value: "SỐ THỨ TỰ BỆNH NHÂN",
+        component: <SoThuTuDashboard />,
+        permission: "SOTHUTU",
+      },
+      {
+        value: "ĐÀO TẠO TOÀN VIỆN",
+        component: <DashBoardDaotao />,
+        permission: "ĐT",
+      },
+      {
+        value: "ĐÀO TẠO THEO KHOA",
+        component: <DashBoardDaotaoKhoa />,
+        permission: "ĐTKHOA",
+      },
+    ],
+    []
+  );
 
   // Lọc các tab dựa trên quyền của người dùng
-  const getAuthorizedTabs = () => {
+  const getAuthorizedTabs = useCallback(() => {
     // Nếu là admin, hiển thị tất cả các tab
-    if (user.PhanQuyen === 'admin') {
+    if (user.PhanQuyen === "admin") {
       return allTabs;
     }
 
@@ -126,25 +135,25 @@ function DashBoardPage() {
     let allowedTabs = [];
 
     // Nếu là manager
-    if (user.PhanQuyen === 'manager') {
+    if (user.PhanQuyen === "manager") {
       // Manager mặc định xem được THEO DÕI THEO KHOA và CHỈ SỐ CHẤT LƯỢNG
       allowedTabs = ["THEO DÕI THEO KHOA", "CHỈ SỐ CHẤT LƯỢNG"];
 
       // Thêm các quyền dashboard khác
-      userDashboardPermissions.forEach(permission => {
+      userDashboardPermissions.forEach((permission) => {
         const tabName = DASHBOARD_PERMISSION_MAP[permission];
         if (tabName && !allowedTabs.includes(tabName)) {
           allowedTabs.push(tabName);
         }
       });
-    } 
+    }
     // Các quyền khác (nomal, daotao, noibo)
     else {
       // Mặc định xem được CHỈ SỐ CHẤT LƯỢNG
       allowedTabs = ["CHỈ SỐ CHẤT LƯỢNG"];
 
       // Thêm các quyền dashboard khác
-      userDashboardPermissions.forEach(permission => {
+      userDashboardPermissions.forEach((permission) => {
         const tabName = DASHBOARD_PERMISSION_MAP[permission];
         if (tabName && !allowedTabs.includes(tabName)) {
           allowedTabs.push(tabName);
@@ -153,39 +162,34 @@ function DashBoardPage() {
     }
 
     // Lọc lại danh sách tab theo các quyền đã xác định
-    return allTabs.filter(tab => allowedTabs.includes(tab.value));
-  };
+    return allTabs.filter((tab) => allowedTabs.includes(tab.value));
+  }, [user, allTabs]);
 
-  // Lấy danh sách tab được phép xem
-  const PROFILE_TABS = getAuthorizedTabs();
+  // Lấy danh sách tab được phép xem (memoized)
+  const PROFILE_TABS = useMemo(() => getAuthorizedTabs(), [getAuthorizedTabs]);
 
-  // Thiết lập tab mặc định dựa trên quyền và tab được phép xem
-  const getDefaultTab = () => {
+  // Tab mặc định (memoized)
+  const defaultTab = useMemo(() => {
     if (PROFILE_TABS.length === 0) return "";
-    
-    if (user.PhanQuyen === 'admin') {
-      return "TÀI CHÍNH";
-    } else if (user.PhanQuyen === 'manager') {
-      return "THEO DÕI THEO KHOA";
-    } else {
-      return "CHỈ SỐ CHẤT LƯỢNG";
-    }
-  };
+
+    if (user.PhanQuyen === "admin") return "TÀI CHÍNH";
+    if (user.PhanQuyen === "manager") return "THEO DÕI THEO KHOA";
+    return "CHỈ SỐ CHẤT LƯỢNG";
+  }, [user, PROFILE_TABS]);
 
   const [currentTab, setCurrentTab] = useState("");
-  
+
   // Cập nhật tab mặc định sau khi đã lọc danh sách tab
   useEffect(() => {
-    const defaultTab = getDefaultTab();
     // Kiểm tra xem tab mặc định có tồn tại trong danh sách tab được phép không
-    if (defaultTab && PROFILE_TABS.some(tab => tab.value === defaultTab)) {
+    if (defaultTab && PROFILE_TABS.some((tab) => tab.value === defaultTab)) {
       setCurrentTab(defaultTab);
     } else if (PROFILE_TABS.length > 0) {
       // Nếu không, chọn tab đầu tiên trong danh sách
       setCurrentTab(PROFILE_TABS[0].value);
     }
-  }, [user]);
-  
+  }, [defaultTab, PROFILE_TABS]);
+
   // State cho menu
   const [anchorEl, setAnchorEl] = useState(null);
   const openMenu = Boolean(anchorEl);
@@ -231,7 +235,7 @@ function DashBoardPage() {
           </Typography>
         </Toolbar>
       </AppBar>
-      
+
       {/* Menu cho điều hướng */}
       <Menu
         id="dashboard-menu"
@@ -239,12 +243,12 @@ function DashBoardPage() {
         open={openMenu}
         onClose={handleCloseMenu}
         MenuListProps={{
-          'aria-labelledby': 'menu-button',
+          "aria-labelledby": "menu-button",
         }}
       >
         {PROFILE_TABS.map((tab) => (
-          <MenuItem 
-            key={tab.value} 
+          <MenuItem
+            key={tab.value}
             onClick={() => handleMenuItemClick(tab.value)}
             selected={tab.value === currentTab}
           >
@@ -282,20 +286,22 @@ function DashBoardPage() {
               </Tabs>
             </TabsWrapperStyled>
           </Card>
-          
+
           {PROFILE_TABS.map((tab) => {
             const isMatched = tab.value === currentTab;
             return isMatched && <Box key={tab.value}>{tab.component}</Box>;
           })}
         </>
       ) : (
-        <Box sx={{ 
-          p: 3, 
-          textAlign: 'center', 
-          bgcolor: '#f5f5f5',
-          borderRadius: 2,
-          boxShadow: 1 
-        }}>
+        <Box
+          sx={{
+            p: 3,
+            textAlign: "center",
+            bgcolor: "#f5f5f5",
+            borderRadius: 2,
+            boxShadow: 1,
+          }}
+        >
           <Typography variant="h6" color="text.secondary">
             Bạn không có quyền xem Dashboard nào
           </Typography>

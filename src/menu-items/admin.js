@@ -35,6 +35,12 @@ const admin = {
           type: 'item',
           url: '/usersable'
         },
+        {
+          id: 'teptin',
+          title: 'Quản lý file',
+          type: 'item',
+          url: '/admin/teptin'
+        },
        
       ]
     }

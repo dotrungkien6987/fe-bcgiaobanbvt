@@ -86,6 +86,7 @@ import DoanVaoTable from "features/NghienCuuKhoaHoc/DoanVao/DoanVaoTable";
 import DoanVaoDetailPage from "features/NghienCuuKhoaHoc/DoanVao/DoanVaoDetailPage";
 import DoanRaMembersPage from "features/NghienCuuKhoaHoc/Members/DoanRaMembersPage";
 import DoanVaoMembersPage from "features/NghienCuuKhoaHoc/Members/DoanVaoMembersPage";
+import TepTinAdminPage from "features/QuanLyFile/pages/TepTinAdminPage";
 
 function Router() {
   return (
@@ -238,6 +239,14 @@ function Router() {
           <Route path="/doanvao/:doanVaoId" element={<DoanVaoDetailPage />} />
           {/* TapSan nested routes */}
           <Route path="/tapsan/*" element={<TapSanRoutes />} />
+          <Route
+            path="/admin/teptin"
+            element={
+              <AdminRequire>
+                <TepTinAdminPage />
+              </AdminRequire>
+            }
+          />
           <Route
             path="/quanlycongviec/nhomviec-user"
             element={<NhomViecUserList />}

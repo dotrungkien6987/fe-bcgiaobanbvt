@@ -19,6 +19,7 @@ import {
 import { toast } from "react-toastify";
 
 import { DanhMucBenhVien } from "./DanhMucBenhVien";
+import BinhQuanBenhAn from "./BinhQuanBenhAn";
 
 const initialState = {
   isLoading: false,
@@ -107,6 +108,8 @@ Kho_Unique:[],
   
   //Thoi gian nhom xet nghiem
   ThoiGian_NhomXetNghiem:[],
+
+  BinhQuanBenhAn:[],
 };
 
 const slice = createSlice({
@@ -412,7 +415,10 @@ const slice = createSlice({
         : [] || [];
         
         
-       
+        state.BinhQuanBenhAn = state.chisosObj.json_binhquan_benhan_theokhoa 
+        ? JSON.parse(state.chisosObj.json_binhquan_benhan_theokhoa )
+        : [] || [];
+        
         
     },
 
