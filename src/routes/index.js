@@ -72,7 +72,8 @@ import LoaiChuyenMonTable from "features/Daotao/LoaiChuyenMon/LoaiChuyenMonTable
 import NhomViecUserList from "features/QuanLyCongViec/NhomViecUser/NhomViecUserList";
 import NhiemVuThuongQuyList from "features/QuanLyCongViec/NhiemVuThuongQuy/NhiemVuThuongQuyList";
 import QuanLyNhanVienPage from "features/QuanLyCongViec/QuanLyNhanVien/QuanLyNhanVienPage";
-import GiaoNhiemVuPage from "features/QuanLyCongViec/GiaoNhiemVu/GiaoNhiemVuPage";
+import GiaoNhiemVuPageNew from "features/QuanLyCongViec/GiaoNhiemVu/GiaoNhiemVuPageNew";
+import GiaoNhiemVuPage from "features/QuanLyCongViec/GiaoNhiemVu/old-components/GiaoNhiemVuPage";
 import CongViecByNhanVienPage from "features/QuanLyCongViec/CongViec/CongViecByNhanVienPage";
 import CongViecDetailPage from "features/QuanLyCongViec/CongViec/CongViecDetailPage";
 import TaskMindMapTreeEnhancedPage from "../pages/TaskMindMapTreeEnhancedPage";
@@ -260,8 +261,14 @@ function Router() {
             path="/workmanagement/nhanvien/:nhanVienId/quanly"
             element={<QuanLyNhanVienPage />}
           />
+          {/* New version V2.0 - Table-based UI */}
           <Route
             path="/quanlycongviec/giao-nhiem-vu/:NhanVienID"
+            element={<GiaoNhiemVuPageNew />}
+          />
+          {/* Old version - backup */}
+          <Route
+            path="/quanlycongviec/giao-nhiem-vu-old/:NhanVienID"
             element={<GiaoNhiemVuPage />}
           />
           <Route

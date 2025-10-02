@@ -10,10 +10,10 @@ import {
   setSelectedEmployee,
   assignDuty,
   unassignById,
-} from "./giaoNhiemVuSlice";
-import EmployeeList from "./components/EmployeeList";
-import DutyPicker from "./components/DutyPicker";
-import AssignmentTable from "./components/AssignmentTable";
+} from "../giaoNhiemVuSlice";
+import EmployeeList from "./EmployeeList";
+import DutyPicker from "./DutyPicker";
+import AssignmentTable from "./AssignmentTable";
 import {
   Box,
   CircularProgress,
