@@ -1,9 +1,5 @@
 // project-imports
-import applications from './applications';
-import widget from './widget';
-import formsTables from './forms-tables';
 
-import support from './support';
 import nghiencuukhoahocs from './nghiencuukhoahocs';
 import hethong from './hethong';
 import baocao from './baocao';
@@ -20,9 +16,9 @@ daotaos.roles = ['admin', 'daotao'];
 baocao.roles = ['admin', 'daotao', 'manager'];
 hethong.roles = ['admin','daotao'];
 newfeature.roles = ['admin','noibo'];
-quanlycongviec.roles = ['admin','daotao','default']; // Tất cả đều thấy
+quanlycongviec.roles = ['admin','daotao','nomal','default']; // Tất cả đều thấy
 admin.roles = ['admin']; // Chỉ admin mới thấy
-lichtruc.roles = ['admin', 'default']; // Tất cả đều thấy menu lịch trực
+lichtruc.roles = ['admin', 'nomal','default']; // Tất cả đều thấy menu lịch trực
 
 // ==============================|| MENU ITEMS ||============================== //
 

@@ -77,7 +77,7 @@ const Navigation = () => {
   let getMenu = Menu();
   // Nếu getMenu có roles, đảm bảo gán nó
   if (getMenu && !getMenu.roles) {
-    getMenu.roles = ["noibo", "admin", "daotao", "manager", "default"]; // Dashboard hiện cho tất cả
+    getMenu.roles = ["noibo", "admin", "daotao", "manager", "nomal"]; // Dashboard hiện cho tất cả
   }
 
   const handlerMenuItem = () => {

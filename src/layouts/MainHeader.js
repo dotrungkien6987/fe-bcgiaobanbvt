@@ -51,11 +51,7 @@ function MainHeader() {
     }
   };
   const dispatch = useDispatch();
-  const handleThongBaoSuCo = () => {
-    dispatch(resetBaoCaoSuCoCurent());
-    handleMenuClose();
-    navigate("/suco");
-  };
+
   const handleResetPass = (userId) => {
     setOpenResetPass(true);
     console.log(userId);
@@ -95,28 +91,28 @@ function MainHeader() {
         Home
       </MenuItem>
       {/* {(user.PhanQuyen === "admin" || user.PhanQuyen === "manager") && ( */}
-        <div>
-          <MenuItem
-            onClick={handleMenuClose}
-            to="/dashboard"
-            component={RouterLink}
-            sx={{ mx: 1 }}
-          >
-            DashBoard
-          </MenuItem>
+      <div>
+        <MenuItem
+          onClick={handleMenuClose}
+          to="/dashboard"
+          component={RouterLink}
+          sx={{ mx: 1 }}
+        >
+          DashBoard
+        </MenuItem>
 
-          <MenuItem
-            onClick={handleMenuClose}
-            to="/khuyencaokhoa"
-            component={RouterLink}
-            sx={{ mx: 1 }}
-          >
-            Khuyến cáo khoa
-          </MenuItem>
-        </div>
+        <MenuItem
+          onClick={handleMenuClose}
+          to="/khuyencaokhoa"
+          component={RouterLink}
+          sx={{ mx: 1 }}
+        >
+          Khuyến cáo khoa
+        </MenuItem>
+      </div>
       {/* )} */}
-    
-<Divider sx={{ borderStyle: "dashed" }} />
+
+      <Divider sx={{ borderStyle: "dashed" }} />
       <MenuItem
         onClick={handleMenuClose}
         to="/tongtruc"
@@ -145,16 +141,16 @@ function MainHeader() {
       </MenuItem>
 
       <Divider sx={{ borderStyle: "dashed" }} />
-      
-        <MenuItem
-          onClick={handleMenuClose}
-          to="/lopdaotaos"
-          component={RouterLink}
-          sx={{ mx: 1 }}
-        >
-          Quản lý đào tạo
-        </MenuItem>
-{/*    
+
+      <MenuItem
+        onClick={handleMenuClose}
+        to="/lopdaotaos"
+        component={RouterLink}
+        sx={{ mx: 1 }}
+      >
+        Quản lý đào tạo
+      </MenuItem>
+      {/*    
      
      <Divider sx={{ borderStyle: "dashed" }} />
 <MenuItem
