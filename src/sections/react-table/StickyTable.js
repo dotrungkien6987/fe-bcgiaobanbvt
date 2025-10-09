@@ -14,13 +14,23 @@ import {
 import { styled, useTheme } from "@mui/material/styles";
 
 // third-party
-import { useTable, useSortBy, useGlobalFilter, usePagination } from "react-table";
+import {
+  useTable,
+  useSortBy,
+  useGlobalFilter,
+  usePagination,
+} from "react-table";
 import { useSticky } from "react-table-sticky";
 
 // project-imports
 import MainCard from "components/MainCard";
 import ScrollX from "components/ScrollX";
-import { CSVExport, HeaderSort, HidingSelect, TablePagination } from "components/third-party/ReactTable";
+import {
+  CSVExport,
+  HeaderSort,
+  HidingSelect,
+  TablePagination,
+} from "components/third-party/ReactTable";
 import { ThemeMode } from "configAble";
 import { GlobalFilter } from "utils/react-table";
 
@@ -39,13 +49,19 @@ const TableWrapper = styled("div")(() => ({
   },
 }));
 
-function ReactTable({ columns, data, getHeaderProps, title,additionalComponent, sx }) {
+function ReactTable({
+  columns,
+  data,
+  getHeaderProps,
+  title,
+  additionalComponent,
+  sx,
+}) {
   const defaultColumn = useMemo(
     () => ({
       minWidth: 50,
       width: 100,
       maxWidth: 400,
-      
     }),
     []
   );
@@ -61,23 +77,14 @@ function ReactTable({ columns, data, getHeaderProps, title,additionalComponent, 
     setPageSize,
     setHiddenColumns,
     allColumns,
-    state: {
-      globalFilter,
-      hiddenColumns,
-      pageIndex,
-      pageSize,
-      columnOrder,
-      selectedRowIds,
-    },
+    state: { globalFilter, hiddenColumns, pageIndex, pageSize },
     preGlobalFilteredRows,
     setGlobalFilter,
-    selectedFlatRows,
   } = useTable(
     {
       columns,
       data,
       defaultColumn,
-      
     },
     useGlobalFilter,
     useSortBy,
@@ -93,8 +100,15 @@ function ReactTable({ columns, data, getHeaderProps, title,additionalComponent, 
   );
   let headers = [];
   allColumns.map((item) => {
-    if (!hiddenColumns?.includes(item.id) && item.id !== 'selection' && item.id !== 'edit') {
-      headers.push({ label: typeof item.Header === 'string' ? item.Header : '#', key: item.id });
+    if (
+      !hiddenColumns?.includes(item.id) &&
+      item.id !== "selection" &&
+      item.id !== "edit"
+    ) {
+      headers.push({
+        label: typeof item.Header === "string" ? item.Header : "#",
+        key: item.id,
+      });
     }
     return item;
   });
@@ -222,7 +236,7 @@ ReactTable.propTypes = {
 
 // ==============================|| REACT TABLE - STICKY ||============================== //
 
-const StickyTable = ({ columns, data, title,additionalComponent,sx }) => {
+const StickyTable = ({ columns, data, title, additionalComponent, sx }) => {
   return (
     <ReactTable
       columns={columns}

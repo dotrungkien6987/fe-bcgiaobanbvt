@@ -15,6 +15,7 @@ import { visuallyHidden } from "@mui/utils";
 import { COLORS } from "../constants";
 import PercentageBar from "./PercentageBar";
 import DifferenceCell from "./DifferenceCell";
+import BenchmarkCell from "./BenchmarkCell";
 
 const headCells = [
   { id: "STT", label: "STT", align: "center", minWidth: 40 },
@@ -261,14 +262,20 @@ function DataTable({
                   </TableCell>
                 )}
 
-                {/* Bình quân/ca - với chênh lệch */}
+                {/* Bình quân/ca - chỉ hiển thị giá trị và khuyến cáo (không có chênh lệch) */}
                 <TableCell align="right">
-                  <DifferenceCell
+                  <BenchmarkCell
                     current={row.avg_money_per_case}
-                    difference={row.avg_money_per_case_diff || 0}
+                    difference={0} // ✅ Bỏ chênh lệch
+                    benchmark={
+                      row.KhuyenCaoBinhQuanHSBA
+                        ? row.KhuyenCaoBinhQuanHSBA
+                        : null
+                    }
                     type="money"
                     align="right"
-                    invertColor={false}
+                    invertBenchmarkColor={true} // ✅ Đảo ngược màu: cao hơn KC = xanh
+                    benchmarkFormat="full" // ✅ Hiển thị đầy đủ với dấu phẩy
                   />
                 </TableCell>
 
@@ -284,16 +291,72 @@ function DataTable({
                   </TableCell>
                 )}
 
-                {/* Tổng tỷ lệ (Thuốc + Vật tư) */}
+                {/* Tổng tỷ lệ (Thuốc + Vật tư) với khuyến cáo */}
                 <TableCell align="center">
-                  <PercentageBar
-                    value={
-                      loaiKhoa === "ngoaitru"
-                        ? ty_le_thuoc
-                        : ty_le_thuoc + ty_le_vattu
-                    }
-                    color="#FF6B35"
-                  />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 0.5,
+                    }}
+                  >
+                    {/* Progress bar */}
+                    <PercentageBar
+                      value={
+                        loaiKhoa === "ngoaitru"
+                          ? ty_le_thuoc
+                          : ty_le_thuoc + ty_le_vattu
+                      }
+                      color="#FF6B35"
+                    />
+
+                    {/* Khuyến cáo nếu có */}
+                    {row.KhuyenCaoTyLeThuocVatTu !== null &&
+                      row.KhuyenCaoTyLeThuocVatTu !== undefined && (
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                            padding: "2px 6px",
+                            borderRadius: 1,
+                            backgroundColor:
+                              (loaiKhoa === "ngoaitru"
+                                ? ty_le_thuoc * 100
+                                : (ty_le_thuoc + ty_le_vattu) * 100) >
+                              row.KhuyenCaoTyLeThuocVatTu
+                                ? "rgba(187, 21, 21, 0.1)"
+                                : "rgba(0, 196, 159, 0.1)",
+                            border: `1px solid ${
+                              (loaiKhoa === "ngoaitru"
+                                ? ty_le_thuoc * 100
+                                : (ty_le_thuoc + ty_le_vattu) * 100) >
+                              row.KhuyenCaoTyLeThuocVatTu
+                                ? "#bb1515"
+                                : "#00C49F"
+                            }`,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                              fontWeight: 600,
+                              color:
+                                (loaiKhoa === "ngoaitru"
+                                  ? ty_le_thuoc * 100
+                                  : (ty_le_thuoc + ty_le_vattu) * 100) >
+                                row.KhuyenCaoTyLeThuocVatTu
+                                  ? "#bb1515"
+                                  : "#00C49F",
+                            }}
+                          >
+                            KC: {row.KhuyenCaoTyLeThuocVatTu.toFixed(1)}%
+                          </Typography>
+                        </Box>
+                      )}
+                  </Box>
                 </TableCell>
               </TableRow>
             );

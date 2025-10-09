@@ -57,6 +57,8 @@ import Function2 from "features/NoiBo/Function2";
 import TinhTable from "features/Daotao/DanhMucTinh/TinhTable";
 import HuyenTable from "features/Daotao/DanhMucHuyen/HuyenTable";
 import XaTable from "features/Daotao/DanhMucXa/XaTable";
+import KhoaBinhQuanBenhAnTable from "features/Daotao/KhoaBinhQuanBenhAn/KhoaBinhQuanBenhAnTable";
+import KhuyenCaoKhoaBQBATable from "features/DashBoard/BinhQuanBenhAn/KhuyenCaoKhoaBQBATable";
 import KhoaTable from "features/Daotao/Khoa/KhoaTable";
 import LichTrucPage from "features/LichTruc/LichTrucPage";
 
@@ -88,6 +90,16 @@ import DoanVaoDetailPage from "features/NghienCuuKhoaHoc/DoanVao/DoanVaoDetailPa
 import DoanRaMembersPage from "features/NghienCuuKhoaHoc/Members/DoanRaMembersPage";
 import DoanVaoMembersPage from "features/NghienCuuKhoaHoc/Members/DoanVaoMembersPage";
 import TepTinAdminPage from "features/QuanLyFile/pages/TepTinAdminPage";
+import {
+  DanhGiaKPIPage,
+  XemKPIPage,
+  BaoCaoKPIPage,
+} from "features/QuanLyCongViec/KPI/pages";
+import { TieuChiDanhGiaList } from "features/QuanLyCongViec/TieuChiDanhGia";
+import {
+  ChuKyDanhGiaList,
+  ChuKyDanhGiaView,
+} from "features/QuanLyCongViec/ChuKyDanhGia";
 
 function Router() {
   return (
@@ -221,6 +233,18 @@ function Router() {
           <Route path="/loaichuyenmon" element={<LoaiChuyenMonTable />} />
           <Route path="/Huyen" element={<HuyenTable />} />
           <Route
+            path="/khoa-binh-quan-benh-an"
+            element={<KhoaBinhQuanBenhAnTable />}
+          />
+          <Route
+            path="/khuyen-cao-khoa-bqba"
+            element={
+              <AdminRequire>
+                <KhuyenCaoKhoaBQBATable />
+              </AdminRequire>
+            }
+          />
+          <Route
             path="/backup-admin"
             element={
               <AdminRequire>
@@ -255,6 +279,44 @@ function Router() {
           <Route
             path="/quanlycongviec/nhiemvu-thuongquy"
             element={<NhiemVuThuongQuyList />}
+          />
+          {/* KPI Management Routes */}
+          <Route
+            path="/quanlycongviec/kpi/danh-gia"
+            element={<DanhGiaKPIPage />}
+          />
+          <Route path="/quanlycongviec/kpi/xem" element={<XemKPIPage />} />
+          <Route
+            path="/quanlycongviec/kpi/bao-cao"
+            element={
+              <AdminRequire>
+                <BaoCaoKPIPage />
+              </AdminRequire>
+            }
+          />
+          <Route
+            path="/quanlycongviec/kpi/tieu-chi"
+            element={
+              <AdminRequire>
+                <TieuChiDanhGiaList />
+              </AdminRequire>
+            }
+          />
+          <Route
+            path="/quanlycongviec/kpi/chu-ky"
+            element={
+              <AdminRequire>
+                <ChuKyDanhGiaList />
+              </AdminRequire>
+            }
+          />
+          <Route
+            path="/quanlycongviec/kpi/chu-ky/:id"
+            element={
+              <AdminRequire>
+                <ChuKyDanhGiaView />
+              </AdminRequire>
+            }
           />
           <Route path="/workmanagement/nhanvien" element={<NhanVienList />} />
           <Route

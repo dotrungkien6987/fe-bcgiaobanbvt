@@ -11,6 +11,7 @@ import {
   getDataNewestByNgay,
   getDataNewestByNgayChenhLech,
 } from "./dashboardSlice";
+import { getAllKhuyenCao } from "./BinhQuanBenhAn/khuyenCaoKhoaBQBASlice";
 
 // Import components và utilities từ thư mục refactored
 import {
@@ -40,6 +41,8 @@ const BinhQuanBenhAn = () => {
     dashboadChiSoChatLuong,
     dashboad_NgayChenhLech,
   } = useSelector((state) => state.dashboard) || {};
+  const { khuyenCaoList } =
+    useSelector((state) => state.khuyenCaoKhoaBQBA) || {};
   const BLUE = "#1939B7";
 
   // Ngày đang xem + ngày tính chênh lệch (mặc định hôm qua)
@@ -71,8 +74,24 @@ const BinhQuanBenhAn = () => {
     const validRows = rows.filter((r) => r && r.TenKhoa && r.KhoaID);
 
     // Tính chênh lệch
-    return calculateDifference(validRows, prevRows, ngay);
-  }, [rowsFromStore, rowsChenhLech, ngay]);
+    const rowsWithDiff = calculateDifference(validRows, prevRows, ngay);
+
+    // Merge khuyến cáo vào từng row
+    return rowsWithDiff.map((row) => {
+      const khuyenCao = khuyenCaoList?.find(
+        (kc) =>
+          kc.KhoaID === row.KhoaID &&
+          kc.LoaiKhoa === row.LoaiKhoa &&
+          kc.Nam === nam
+      );
+
+      return {
+        ...row,
+        KhuyenCaoBinhQuanHSBA: khuyenCao?.KhuyenCaoBinhQuanHSBA || null,
+        KhuyenCaoTyLeThuocVatTu: khuyenCao?.KhuyenCaoTyLeThuocVatTu || null,
+      };
+    });
+  }, [rowsFromStore, rowsChenhLech, ngay, khuyenCaoList, nam]);
 
   // Tách dữ liệu theo LoaiKhoa
   const rowsNoiTru = useMemo(() => {
@@ -237,6 +256,13 @@ const BinhQuanBenhAn = () => {
     setNam(js.year());
     dispatch(getDataNewestByNgay(js.toISOString()));
   }, [date, dispatch]);
+
+  // Fetch khuyến cáo theo năm
+  useEffect(() => {
+    if (nam) {
+      dispatch(getAllKhuyenCao(nam));
+    }
+  }, [nam, dispatch]);
 
   // Gọi API cho ngày tính chênh lệch
   useEffect(() => {

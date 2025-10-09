@@ -560,8 +560,10 @@ const slice = createSlice({
 
       // Parse BinhQuanBenhAn_NgayChenhLech
       state.BinhQuanBenhAn_NgayChenhLech = state.chisosObj_NgayChenhLech
-        .BinhQuanBenhAn
-        ? JSON.parse(state.chisosObj_NgayChenhLech.BinhQuanBenhAn)
+        .json_binhquan_benhan_theokhoa
+        ? JSON.parse(
+            state.chisosObj_NgayChenhLech.json_binhquan_benhan_theokhoa
+          )
         : [] || [];
 
       // Parse ThongKe_VienPhi_DuyetKeToan_NgayChenhLech

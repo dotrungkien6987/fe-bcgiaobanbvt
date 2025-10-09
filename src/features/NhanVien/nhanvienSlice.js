@@ -52,6 +52,7 @@ const initialState = {
   Huyen: [],
   Xa: [],
   QuocGia: [],
+  KhoaBinhQuanBenhAn: [],
 };
 
 const slice = createSlice({
@@ -157,6 +158,7 @@ const slice = createSlice({
       state.Huyen = action.payload.Huyen;
       state.Xa = action.payload.Xa;
       state.QuocGia = action.payload.QuocGia;
+      state.KhoaBinhQuanBenhAn = action.payload.KhoaBinhQuanBenhAn;
     },
     updateOrInsertDatafixSuccess(state, action) {
       state.isLoading = false;
@@ -183,6 +185,7 @@ const slice = createSlice({
       state.Huyen = action.payload.Huyen;
       state.Xa = action.payload.Xa;
       state.QuocGia = action.payload.QuocGia;
+      state.KhoaBinhQuanBenhAn = action.payload.KhoaBinhQuanBenhAn;
     },
     importNhanViensSuccess(state, action) {
       state.isLoading = false;

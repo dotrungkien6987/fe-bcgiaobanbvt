@@ -36,6 +36,8 @@ export function exportToCSV(rows, loaiKhoa) {
     "avg_money_per_case",
     "ty_le_thuoc",
     "ty_le_vattu",
+    "KhuyenCaoBinhQuanHSBA",
+    "KhuyenCaoTyLeThuocVatTu",
   ];
   const csv = [headers.join(",")]
     .concat(
@@ -51,6 +53,8 @@ export function exportToCSV(rows, loaiKhoa) {
           r.avg_money_per_case,
           r.ty_le_thuoc,
           r.ty_le_vattu,
+          r.KhuyenCaoBinhQuanHSBA || "",
+          r.KhuyenCaoTyLeThuocVatTu || "",
         ].join(",")
       )
     )
@@ -72,7 +76,7 @@ export function exportToCSV(rows, loaiKhoa) {
 }
 
 /**
- * Tính chênh lệch giữa 2 mảng dữ liệu theo KhoaID
+ * Tính chênh lệch giữa 2 mảng dữ liệu theo KhoaID + LoaiKhoa
  * @param {Array} currentData - Dữ liệu ngày hiện tại
  * @param {Array} previousData - Dữ liệu ngày trước
  * @param {number} ngay - Ngày hiện tại (nếu = 1 thì không tính chênh lệch)
@@ -93,38 +97,46 @@ export function calculateDifference(currentData, previousData, ngay) {
     }));
   }
 
-  // Map previousData theo KhoaID để tra cứu nhanh
+  // Map previousData theo composite key: KhoaID + LoaiKhoa
+  // VD: "5_noitru", "5_ngoaitru" là 2 key khác nhau
   const previousMap = new Map();
   previousData.forEach((item) => {
-    if (item.KhoaID) {
-      previousMap.set(item.KhoaID, item);
+    if (item.KhoaID && item.LoaiKhoa) {
+      const compositeKey = `${item.KhoaID}_${item.LoaiKhoa}`;
+      previousMap.set(compositeKey, item);
     }
   });
 
   // Tính chênh lệch
   return currentData.map((current) => {
-    const previous = previousMap.get(current.KhoaID);
+    const compositeKey = `${current.KhoaID}_${current.LoaiKhoa}`;
+    const previous = previousMap.get(compositeKey);
 
     if (!previous) {
-      // Khoa mới, không có dữ liệu trước
+      // Khoa mới, không có dữ liệu trước → diff = 0 (không có gì để so sánh)
       return {
         ...current,
-        vienphi_count_diff: current.vienphi_count,
-        total_money_diff: current.total_money,
-        total_thuoc_diff: current.total_thuoc,
-        total_vattu_diff: current.total_vattu,
-        avg_money_per_case_diff: current.avg_money_per_case,
+        vienphi_count_diff: 0,
+        total_money_diff: 0,
+        total_thuoc_diff: 0,
+        total_vattu_diff: 0,
+        avg_money_per_case_diff: 0,
       };
     }
 
+    // Tính chênh lệch: current - previous
     return {
       ...current,
-      vienphi_count_diff: current.vienphi_count - (previous.vienphi_count || 0),
-      total_money_diff: current.total_money - (previous.total_money || 0),
-      total_thuoc_diff: current.total_thuoc - (previous.total_thuoc || 0),
-      total_vattu_diff: current.total_vattu - (previous.total_vattu || 0),
+      vienphi_count_diff:
+        (current.vienphi_count || 0) - (previous.vienphi_count || 0),
+      total_money_diff:
+        (current.total_money || 0) - (previous.total_money || 0),
+      total_thuoc_diff:
+        (current.total_thuoc || 0) - (previous.total_thuoc || 0),
+      total_vattu_diff:
+        (current.total_vattu || 0) - (previous.total_vattu || 0),
       avg_money_per_case_diff:
-        current.avg_money_per_case - (previous.avg_money_per_case || 0),
+        (current.avg_money_per_case || 0) - (previous.avg_money_per_case || 0),
     };
   });
 }

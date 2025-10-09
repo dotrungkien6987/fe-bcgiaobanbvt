@@ -1,5 +1,3 @@
-import { useSelector } from "react-redux";
-
 export function removeAndRenumber(benhnhans, n) {
   // Remove the element with Stt = n
   const filteredBenhnhans = benhnhans.filter((benhNhan) => benhNhan.Stt !== n);
@@ -18,7 +16,7 @@ export function getTextFromNumber(number) {
     5: "phẫu thuật",
     6: "vào viện ngoài giờ",
     7: "can thiệp",
-    8:"theo dõi",
+    8: "theo dõi",
   };
   return mapping[number] || "Invalid input";
 }
@@ -120,26 +118,29 @@ export function findKhoasInBaocaongays(baocaongays, khoas) {
   const khoaGiaoBan = khoas.filter(
     (khoa) =>
       (khoa.LoaiKhoa === "noi" ||
-      khoa.LoaiKhoa === "ngoai" ||
-      khoa.LoaiKhoa === "pkyc" ||
-      khoa.LoaiKhoa === "xnhh" ||
-      khoa.LoaiKhoa === "kkb" ||
-      khoa.LoaiKhoa === "gmhs" ||
-      khoa.LoaiKhoa === "xnhs" ||
-      khoa.LoaiKhoa === "xnhh" ||
-      khoa.LoaiKhoa === "xnvs" ||
-      khoa.LoaiKhoa === "tdcn" ||
-      khoa.LoaiKhoa === "clc" ||
-      khoa.LoaiKhoa === "hhtm" ||
-      khoa.LoaiKhoa === "kkb" ) &&![2, 7, 38].includes(khoa.HisDepartmentType)
+        khoa.LoaiKhoa === "ngoai" ||
+        khoa.LoaiKhoa === "pkyc" ||
+        khoa.LoaiKhoa === "xnhh" ||
+        khoa.LoaiKhoa === "kkb" ||
+        khoa.LoaiKhoa === "gmhs" ||
+        khoa.LoaiKhoa === "xnhs" ||
+        khoa.LoaiKhoa === "xnhh" ||
+        khoa.LoaiKhoa === "xnvs" ||
+        khoa.LoaiKhoa === "tdcn" ||
+        khoa.LoaiKhoa === "clc" ||
+        khoa.LoaiKhoa === "hhtm" ||
+        khoa.LoaiKhoa === "kkb") &&
+      ![2, 7, 38].includes(khoa.HisDepartmentType)
   );
-  
+
   const khoaIdsInBaocaongays = new Set(
     baocaongays.map((baocaongay) => baocaongay.KhoaID._id)
   );
 
   // Lọc ra các khoa có _id tồn tại trong baocaongays
-  const KhoaDaGuis = khoaGiaoBan.filter((khoa) => khoaIdsInBaocaongays.has(khoa._id));
+  const KhoaDaGuis = khoaGiaoBan.filter((khoa) =>
+    khoaIdsInBaocaongays.has(khoa._id)
+  );
 
   // Lọc ra các khoa có _id không tồn tại trong baocaongays
   const KhoaChuaGuis = khoaGiaoBan.filter(
@@ -277,7 +278,6 @@ export function calculateTongChiSo(baocaongays) {
   let TongToanVien = 0;
   let BHYTToanVien = 0;
   let VienPhiToanVien = 0;
-  
 
   let TongNoi = 0;
   let BHYTNoi = 0;
@@ -588,7 +588,7 @@ const khoaToDepartmentGroupMapping = [
   {
     MaKhoa: "CSGN",
     departmentgroupid: 158,
-  },  
+  },
   {
     MaKhoa: "HSTC",
     departmentgroupid: 3,
@@ -933,8 +933,8 @@ export function ConvertDoanhThuCanLamSang(
     "DN",
     "MDLX",
     "CNHH",
-   "XNHHnew",
-   'SPECT',
+    "XNHHnew",
+    "SPECT",
     "khac",
   ];
 
@@ -1589,49 +1589,64 @@ export function ConvertMangVienPhiThemTong(doanhThu) {
 
 export function chiaNhomDaoTao(arr) {
   // Mảng 1: Saudaihoc - Lọc ra các đối tượng có MaHinhThucCapNhat có 4 ký tự đầu là 'ĐT06' và lopDaoTaoCount > 0
-  const saudaihoc = arr.filter(item => item.lopDaoTaoCount > 0 && item.MaHinhThucCapNhat.startsWith('ĐT06'));
+  const saudaihoc = arr.filter(
+    (item) =>
+      item.lopDaoTaoCount > 0 && item.MaHinhThucCapNhat.startsWith("ĐT06")
+  );
 
   // Mảng 2: Đối tượng có 2 ký tự đầu là 'ĐT' nhưng khác 'ĐT06' và lopDaoTaoCount > 0
-  const dtKhac = arr.filter(item => 
-    item.lopDaoTaoCount > 0 && 
-    item.MaHinhThucCapNhat.startsWith('ĐT') && 
-    !item.MaHinhThucCapNhat.startsWith('ĐT06')
+  const dtKhac = arr.filter(
+    (item) =>
+      item.lopDaoTaoCount > 0 &&
+      item.MaHinhThucCapNhat.startsWith("ĐT") &&
+      !item.MaHinhThucCapNhat.startsWith("ĐT06")
   );
 
   // Mảng 3: Đối tượng có 4 ký tự đầu là 'NCKH' và lopDaoTaoCount > 0
-  const nckh = arr.filter(item => item.lopDaoTaoCount > 0 && item.MaHinhThucCapNhat.startsWith('NCKH'));
+  const nckh = arr.filter(
+    (item) =>
+      item.lopDaoTaoCount > 0 && item.MaHinhThucCapNhat.startsWith("NCKH")
+  );
 
   return { saudaihoc, dtKhac, nckh };
 }
 
 export function isNullOrEmptyObject(obj) {
-  return obj === null || (typeof obj === 'object' && Object.keys(obj).length === 0);
+  return (
+    obj === null || (typeof obj === "object" && Object.keys(obj).length === 0)
+  );
 }
 
 export function summarizeMedicineStore(data) {
   // Tạo một Map để lưu thông tin duy nhất cho mỗi medicinestoreid
-  console.log('summarizeMedicineStore',data);
+  console.log("summarizeMedicineStore", data);
   const storeMap = new Map();
 
-  data.forEach(item => {
-      const { medicinestoretype, medicinestoreid, medicinestorename, giaban, soluong } = item;
+  data.forEach((item) => {
+    const {
+      medicinestoretype,
+      medicinestoreid,
+      medicinestorename,
+      giaban,
+      soluong,
+    } = item;
 
-      // Tính tổng tiền cho item hiện tại
-      const tongTien = giaban * soluong;
+    // Tính tổng tiền cho item hiện tại
+    const tongTien = giaban * soluong;
 
-      // Nếu medicinestoreid đã tồn tại trong Map, cập nhật tongtien
-      if (storeMap.has(medicinestoreid)) {
-          const existing = storeMap.get(medicinestoreid);
-          existing.tongtien += tongTien;
-      } else {
-          // Nếu chưa tồn tại, thêm mới vào Map
-          storeMap.set(medicinestoreid, {
-            medicinestoretype,
-              medicinestoreid,
-              medicinestorename,
-              tongtien: tongTien
-          });
-      }
+    // Nếu medicinestoreid đã tồn tại trong Map, cập nhật tongtien
+    if (storeMap.has(medicinestoreid)) {
+      const existing = storeMap.get(medicinestoreid);
+      existing.tongtien += tongTien;
+    } else {
+      // Nếu chưa tồn tại, thêm mới vào Map
+      storeMap.set(medicinestoreid, {
+        medicinestoretype,
+        medicinestoreid,
+        medicinestorename,
+        tongtien: tongTien,
+      });
+    }
   });
 
   // Trả kết quả dưới dạng mảng
@@ -1642,17 +1657,17 @@ export function getUniqueMedicineStores(data) {
   // Tạo Map để lưu các cặp medicinestoreid và thông tin tương ứng duy nhất
   const storeMap = new Map();
 
-  data.forEach(item => {
-      const { medicinestoreid, medicinestorename, medicinestoretype } = item;
+  data.forEach((item) => {
+    const { medicinestoreid, medicinestorename, medicinestoretype } = item;
 
-      // Chỉ thêm vào Map nếu medicinestoreid chưa tồn tại
-      if (!storeMap.has(medicinestoreid)) {
-          storeMap.set(medicinestoreid, {
-              medicinestoreid,
-              medicinestorename,
-              medicinestoretype
-          });
-      }
+    // Chỉ thêm vào Map nếu medicinestoreid chưa tồn tại
+    if (!storeMap.has(medicinestoreid)) {
+      storeMap.set(medicinestoreid, {
+        medicinestoreid,
+        medicinestorename,
+        medicinestoretype,
+      });
+    }
   });
 
   // Chuyển Map thành mảng các đối tượng

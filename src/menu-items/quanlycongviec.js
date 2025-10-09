@@ -10,6 +10,11 @@ import {
   MessageProgramming,
   MenuBoard,
   Airplane,
+  PresentionChart,
+  MedalStar,
+  StatusUp,
+  Setting2,
+  Calendar2,
 } from "iconsax-react";
 
 // icons
@@ -21,6 +26,11 @@ const icons = {
   contactus: I24Support,
   landing: Airplane,
   bank: Bank,
+  chart: PresentionChart,
+  medal: MedalStar,
+  status: StatusUp,
+  setting: Setting2,
+  calendar: Calendar2,
 };
 
 // ==============================|| MENU ITEMS - PAGES ||============================== //
@@ -71,7 +81,6 @@ const quanlycongviec = {
           url: "/workmanagement/nhanvien/:NhanVienID/quanly",
         },
 
-      
         {
           id: "giaonhiemvu",
           title: "Phân công cho nhân viên của tôi",
@@ -80,17 +89,72 @@ const quanlycongviec = {
           url: "/quanlycongviec/giao-nhiem-vu/:NhanVienID",
         },
 
-      
         {
           id: "nhiemvuthuongquy",
           title: "Nhiệm vụ thường quy",
           type: "item",
           url: "/quanlycongviec/nhiemvu-thuongquy",
         },
-       
       ],
     },
 
+    // ==============================
+    // KPI Management Menu
+    // ==============================
+    {
+      id: "kpi",
+      title: "Đánh giá KPI",
+      type: "collapse",
+      icon: icons.medal,
+      children: [
+        {
+          id: "kpi-xem",
+          title: "KPI của tôi",
+          type: "item",
+          url: "/quanlycongviec/kpi/xem",
+          icon: icons.status,
+          breadcrumbs: true,
+        },
+        {
+          id: "kpi-danhgia",
+          title: "Chấm điểm KPI",
+          type: "item",
+          url: "/quanlycongviec/kpi/danh-gia",
+          icon: icons.medal,
+          breadcrumbs: true,
+        },
+        {
+          id: "kpi-baocao",
+          title: "Báo cáo & Thống kê",
+          type: "item",
+          url: "/quanlycongviec/kpi/bao-cao",
+          icon: icons.chart,
+          breadcrumbs: true,
+          // Chỉ admin (Role >= 3) mới thấy
+          roles: ["admin"],
+        },
+        {
+          id: "kpi-tieuchi",
+          title: "Quản lý tiêu chí",
+          type: "item",
+          url: "/quanlycongviec/kpi/tieu-chi",
+          icon: icons.setting,
+          breadcrumbs: true,
+          // Chỉ admin (Role >= 3) mới thấy
+          roles: ["admin"],
+        },
+        {
+          id: "kpi-chuky",
+          title: "Quản lý chu kỳ",
+          type: "item",
+          url: "/quanlycongviec/kpi/chu-ky",
+          icon: icons.calendar,
+          breadcrumbs: true,
+          // Chỉ admin (Role >= 3) mới thấy
+          roles: ["admin"],
+        },
+      ],
+    },
   ],
 };
 

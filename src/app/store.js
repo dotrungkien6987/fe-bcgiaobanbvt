@@ -35,6 +35,8 @@ import doanvaoReducer from "../features/NghienCuuKhoaHoc/DoanVao/doanvaoSlice";
 import { doanRaMembersReducer } from "features/NghienCuuKhoaHoc/DoanRa/doanRaMembersSlice";
 import { doanVaoMembersReducer } from "features/NghienCuuKhoaHoc/DoanVao/doanVaoMembersSlice";
 import tepTinAdminReducer from "features/QuanLyFile/tepTinAdminSlice";
+import kpiSlice from "features/QuanLyCongViec/KPI/kpiSlice";
+import khuyenCaoKhoaBQBAReducer from "../features/DashBoard/BinhQuanBenhAn/khuyenCaoKhoaBQBASlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -74,6 +76,8 @@ const rootReducer = {
   doanRaMembers: doanRaMembersReducer,
   doanVaoMembers: doanVaoMembersReducer,
   tepTinAdmin: tepTinAdminReducer,
+  kpi: kpiSlice,
+  khuyenCaoKhoaBQBA: khuyenCaoKhoaBQBAReducer,
 };
 
 const store = configureStore({

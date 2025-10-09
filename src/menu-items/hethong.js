@@ -1,8 +1,14 @@
 // third-party
 
-
 // assets
-import { Setting2, I24Support, Security, MessageProgramming, DollarSquare, Airplane } from 'iconsax-react';
+import {
+  Setting2,
+  I24Support,
+  Security,
+  MessageProgramming,
+  DollarSquare,
+  Airplane,
+} from "iconsax-react";
 
 // icons
 const icons = {
@@ -11,154 +17,164 @@ const icons = {
   maintenance: MessageProgramming,
   pricing: DollarSquare,
   contactus: I24Support,
-  landing: Airplane
+  landing: Airplane,
 };
 
 // ==============================|| MENU ITEMS - PAGES ||============================== //
 
 const hethong = {
-  id: 'group-hethong',
+  id: "group-hethong",
   title: "Hệ thống",
-  type: 'group',
+  type: "group",
   icon: icons.page,
   children: [
-   
     {
-      id: 'danhmucdaotao',
-      title: 'Cấu hình danh mục',
-      type: 'collapse',
+      id: "danhmucdaotao",
+      title: "Cấu hình danh mục",
+      type: "collapse",
       icon: icons.page,
       children: [
         {
-          id: 'NhomHinhThuc',
-          title: 'Nhóm hình thức cập nhật',
-          type: 'item',
-          url: '/nhomhinhthuc'
+          id: "NhomHinhThuc",
+          title: "Nhóm hình thức cập nhật",
+          type: "item",
+          url: "/nhomhinhthuc",
         },
         {
-          id: 'HinhThucCapNhat',
-          title: 'Hình thức cập nhật',
-          type: 'item',
-          url: '/hinhthuc'
+          id: "HinhThucCapNhat",
+          title: "Hình thức cập nhật",
+          type: "item",
+          url: "/hinhthuc",
         },
         {
-          id: 'TrinhDoChuyenMonQuyDoi',
-          title: 'Trình độ chuyên môn.',
-          type: 'item',
-          url: '/trinhdochuyenmon'
+          id: "TrinhDoChuyenMonQuyDoi",
+          title: "Trình độ chuyên môn.",
+          type: "item",
+          url: "/trinhdochuyenmon",
         },
         {
-          id: 'HoiDong',
-          title: 'Hội đồng',
-          type: 'item',
-          url: '/hoidong'
+          id: "HoiDong",
+          title: "Hội đồng",
+          type: "item",
+          url: "/hoidong",
         },
         {
-          id: 'DonVi',
-          title: 'Đơn vị quy đổi',
-          type: 'item',
-          url: '/datafix/DonVi'
+          id: "DonVi",
+          title: "Đơn vị quy đổi",
+          type: "item",
+          url: "/datafix/DonVi",
         },
         {
-          id: 'VaiTro',
-          title: 'Vai trò',
-          type: 'item',
-          url: '/datafix/VaiTro'
+          id: "VaiTro",
+          title: "Vai trò",
+          type: "item",
+          url: "/datafix/VaiTro",
         },
         {
-          id: 'ChucDanh',
-          title: 'Chức danh',
-          type: 'item',
-          url: '/datafix/ChucDanh'
+          id: "ChucDanh",
+          title: "Chức danh",
+          type: "item",
+          url: "/datafix/ChucDanh",
         },
         {
-          id: 'ChucVu',
-          title: 'Chức vụ',
-          type: 'item',
-          url: '/datafix/ChucVu'
+          id: "ChucVu",
+          title: "Chức vụ",
+          type: "item",
+          url: "/datafix/ChucVu",
         },
         {
-          id: 'TrinhDoChuyenMon',
-          title: 'Trình độ chuyên môn',
-          type: 'item',
-          url: '/datafix/TrinhDoChuyenMon'
+          id: "TrinhDoChuyenMon",
+          title: "Trình độ chuyên môn",
+          type: "item",
+          url: "/datafix/TrinhDoChuyenMon",
         },
         {
-          id: 'NguonKinhPhi',
-          title: 'Nguồn kinh phí',
-          type: 'item',
-          url: '/datafix/NguonKinhPhi'
+          id: "NguonKinhPhi",
+          title: "Nguồn kinh phí",
+          type: "item",
+          url: "/datafix/NguonKinhPhi",
         },
         {
-          id: 'NoiDaoTao',
-          title: 'Nơi đào tạo',
-          type: 'item',
-          url: '/datafix/NoiDaoTao'
+          id: "NoiDaoTao",
+          title: "Nơi đào tạo",
+          type: "item",
+          url: "/datafix/NoiDaoTao",
         },
         {
-          id: 'HinhThucDaoTao',
-          title: 'Hình thức đào tạo',
-          type: 'item',
-          url: '/datafix/HinhThucDaoTao'
+          id: "HinhThucDaoTao",
+          title: "Hình thức đào tạo",
+          type: "item",
+          url: "/datafix/HinhThucDaoTao",
         },
         {
-          id: 'DanToc',
-          title: 'Dân tộc',
-          type: 'item',
-          url: '/datafix/DanToc'
+          id: "DanToc",
+          title: "Dân tộc",
+          type: "item",
+          url: "/datafix/DanToc",
         },
         {
-          id: 'PhamViHanhNghe',
-          title: 'Phạm Vi Hành Nghề',
-          type: 'item',
-          url: '/datafix/PhamViHanhNghe'
+          id: "PhamViHanhNghe",
+          title: "Phạm Vi Hành Nghề",
+          type: "item",
+          url: "/datafix/PhamViHanhNghe",
         },
         {
-          id: 'Tinh',
-          title: 'Tỉnh',
-          type: 'item',
-          url: '/tinh'
+          id: "Tinh",
+          title: "Tỉnh",
+          type: "item",
+          url: "/tinh",
         },
         {
-          id: 'Huyen',
-          title: 'Huyện',
-          type: 'item',
-          url: '/huyen'
+          id: "Huyen",
+          title: "Huyện",
+          type: "item",
+          url: "/huyen",
         },
         {
-          id: 'Xa',
-          title: 'Xã',
-          type: 'item',
-          url: '/xa'
+          id: "Xa",
+          title: "Xã",
+          type: "item",
+          url: "/xa",
         },
         {
-          id: 'quocgia',
-          title: 'Quốc gia',
-          type: 'item',
-          url: '/quocgia'
+          id: "quocgia",
+          title: "Quốc gia",
+          type: "item",
+          url: "/quocgia",
         },
         {
-          id: 'Khoa',
-          title: 'Danh mục khoa',
-          type: 'item',
-          url: '/khoas'
+          id: "Khoa",
+          title: "Danh mục khoa",
+          type: "item",
+          url: "/khoas",
         },
         {
-          id: 'NhomKhoa',
-          title: 'Nhóm các khoa',
-          type: 'item',
-          url: '/nhomkhoas'
+          id: "KhoaBinhQuanBenhAn",
+          title: "Khoa bình quân bệnh án",
+          type: "item",
+          url: "/khoa-binh-quan-benh-an",
         },
         {
-          id: 'LoaiChuyenMon',
-          title: 'Loại chuyên môn',
-          type: 'item',
-          url: '/loaichuyenmon'
+          id: "KhuyenCaoKhoaBQBA",
+          title: "Khuyến cáo khoa BQBA",
+          type: "item",
+          url: "/khuyen-cao-khoa-bqba",
         },
-        
-      ]
-    }
-  ]
+        {
+          id: "NhomKhoa",
+          title: "Nhóm các khoa",
+          type: "item",
+          url: "/nhomkhoas",
+        },
+        {
+          id: "LoaiChuyenMon",
+          title: "Loại chuyên môn",
+          type: "item",
+          url: "/loaichuyenmon",
+        },
+      ],
+    },
+  ],
 };
 
 export default hethong;
