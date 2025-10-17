@@ -123,6 +123,7 @@ const quanlycongviec = {
           icon: icons.medal,
           breadcrumbs: true,
         },
+      
         {
           id: "kpi-baocao",
           title: "Báo cáo & Thống kê",

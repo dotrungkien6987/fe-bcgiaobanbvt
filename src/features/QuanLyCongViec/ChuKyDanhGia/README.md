@@ -60,9 +60,44 @@ ChuKyDanhGia/
 
 ### 4. Xóa chu kỳ
 
-- Chỉ xóa được chu kỳ `isDong = true`
-- Soft delete: `isDeleted = true`
-- Frontend tự động filter `!isDeleted`
+**Business Rules (Simplified Cascade Validation):**
+
+1. **Không cho xóa chu kỳ đã hoàn thành** (`isDong = true`)
+
+   - Lý do: Cần giữ lại lịch sử để kiểm toán và báo cáo
+   - UI: Nút xóa bị disabled với tooltip giải thích
+
+2. **Kiểm tra dữ liệu liên quan** (DanhGiaKPI)
+
+   - Backend đếm số bản đánh giá KPI liên quan
+   - Nếu `soDanhGia > 0` → Reject với message chi tiết
+   - Error message: "Không thể xóa chu kỳ đánh giá vì đã có X bản đánh giá liên quan..."
+
+3. **Auto-đóng trước khi xóa**
+   - Nếu chu kỳ đang mở (`isDong = false`) NHƯNG không có đánh giá
+   - Backend tự động set `isDong = true` trước khi soft delete
+
+**Flow:**
+
+```
+User click "Xóa"
+  ↓
+Backend validate:
+  ├─ isDong = true? → Reject (giữ audit trail)
+  ├─ Có DanhGiaKPI? → Reject (có dữ liệu liên quan)
+  └─ isDong = false & không có DanhGiaKPI? → Auto đóng → Cho phép xóa
+  ↓
+Soft delete: isDeleted = true
+  ↓
+Frontend: Hiển thị success/error message rõ ràng
+```
+
+**Ưu điểm so với design cũ:**
+
+- ✅ Đơn giản: Không cần thêm trạng thái "DA_XOA", "HUY"
+- ✅ An toàn: Backend validate cascade trước khi xóa
+- ✅ User-friendly: Error message chi tiết từ backend
+- ✅ Phù hợp pattern hiện tại của hệ thống
 
 ## API Endpoints
 
@@ -200,3 +235,10 @@ Quản lý công việc → KPI → Chu kỳ đánh giá
 - **Unique constraint**: Không cho tạo 2 chu kỳ cùng Tháng/Năm
 - **Single open cycle**: Chỉ cho phép 1 chu kỳ mở tại 1 thời điểm
 - **Auto-generate TenChuKy**: Nếu để trống, tự động tạo từ `Tháng ${Thang}/${Nam}`
+- **Delete validation**: Cascade check trước khi xóa - xem chi tiết tại [DELETE_VALIDATION.md](./DELETE_VALIDATION.md)
+
+## Related Documentation
+
+- [DELETE_VALIDATION.md](./DELETE_VALIDATION.md) - Chi tiết quy tắc xóa chu kỳ với cascade validation
+- [DUPLICATE_PREVENTION.md](./DUPLICATE_PREVENTION.md) - Giải thích unique constraint và error handling
+- [KPI_WORKFLOW.md](../KPI/docs/KPI_WORKFLOW.md) - Quy trình nghiệp vụ đầy đủ của hệ thống KPI

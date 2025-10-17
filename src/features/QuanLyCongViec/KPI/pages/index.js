@@ -4,6 +4,5 @@
  * Export all page components for KPI management system
  */
 
-export { default as DanhGiaKPIPage } from "./DanhGiaKPIPage";
 export { default as XemKPIPage } from "./XemKPIPage";
 export { default as BaoCaoKPIPage } from "./BaoCaoKPIPage";

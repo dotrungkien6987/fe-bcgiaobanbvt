@@ -24,7 +24,6 @@ function ThongTinTieuChiDanhGia({ open, handleClose, tieuChi }) {
     LoaiTieuChi: "TANG_DIEM",
     GiaTriMin: 0,
     GiaTriMax: 10,
-    TrongSoMacDinh: 1.0,
     TrangThaiHoatDong: true,
   });
 
@@ -41,7 +40,6 @@ function ThongTinTieuChiDanhGia({ open, handleClose, tieuChi }) {
           LoaiTieuChi: tieuChi.LoaiTieuChi || "TANG_DIEM",
           GiaTriMin: tieuChi.GiaTriMin || 0,
           GiaTriMax: tieuChi.GiaTriMax || 10,
-          TrongSoMacDinh: tieuChi.TrongSoMacDinh || 1.0,
           TrangThaiHoatDong: tieuChi.TrangThaiHoatDong ?? true,
         });
       } else {
@@ -52,7 +50,6 @@ function ThongTinTieuChiDanhGia({ open, handleClose, tieuChi }) {
           LoaiTieuChi: "TANG_DIEM",
           GiaTriMin: 0,
           GiaTriMax: 10,
-          TrongSoMacDinh: 1.0,
           TrangThaiHoatDong: true,
         });
       }
@@ -79,10 +76,6 @@ function ThongTinTieuChiDanhGia({ open, handleClose, tieuChi }) {
       newErrors.GiaTriMax = "Giá trị Max phải lớn hơn Giá trị Min";
     }
 
-    if (formData.TrongSoMacDinh <= 0) {
-      newErrors.TrongSoMacDinh = "Trọng số phải lớn hơn 0";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -96,7 +89,6 @@ function ThongTinTieuChiDanhGia({ open, handleClose, tieuChi }) {
       LoaiTieuChi: formData.LoaiTieuChi,
       GiaTriMin: parseFloat(formData.GiaTriMin),
       GiaTriMax: parseFloat(formData.GiaTriMax),
-      TrongSoMacDinh: parseFloat(formData.TrongSoMacDinh),
       TrangThaiHoatDong: formData.TrangThaiHoatDong,
     };
 
@@ -151,23 +143,14 @@ function ThongTinTieuChiDanhGia({ open, handleClose, tieuChi }) {
             </TextField>
           </Grid>
 
-          {/* Trọng số mặc định */}
+          {/* Đơn vị (placeholder cho grid layout) */}
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
-              label="Trọng số mặc định *"
-              type="number"
-              value={formData.TrongSoMacDinh}
-              onChange={(e) =>
-                handleInputChange("TrongSoMacDinh", parseFloat(e.target.value))
-              }
-              inputProps={{
-                min: 0.1,
-                max: 10,
-                step: 0.1,
-              }}
-              error={!!errors.TrongSoMacDinh}
-              helperText={errors.TrongSoMacDinh || "Ví dụ: 1.0, 1.5, 2.0"}
+              label="Đơn vị"
+              value="%"
+              disabled
+              helperText="Đơn vị tính mặc định là phần trăm (%)"
             />
           </Grid>
 

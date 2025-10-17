@@ -99,6 +99,47 @@ const handleFormSubmit = async (data) => {
 
 ## Hướng dẫn sử dụng cho User
 
+### 1. Khi tạo chu kỳ mới
+
+**Q: Tại sao không thêm được chu kỳ lần 2?**
+A: Mỗi tháng/năm chỉ được có **1 chu kỳ duy nhất**. Nếu đã tạo "Tháng 1/2024" thì không thể tạo thêm nữa.
+
+**Giải pháp:**
+
+- Chọn tháng/năm khác (VD: Tháng 2/2024, Tháng 3/2024...)
+- Hoặc **chỉnh sửa** chu kỳ hiện tại thay vì tạo mới
+- Hoặc **xóa** chu kỳ cũ (nếu chưa có đánh giá) rồi tạo lại
+
+### 2. Khi xóa chu kỳ
+
+**Q: Khi nào có thể xóa chu kỳ?**
+A:
+
+- ✅ Chu kỳ mới tạo, chưa có bản đánh giá KPI nào
+- ✅ Chu kỳ đã đóng, chưa có bản đánh giá KPI nào
+
+**Q: Khi nào KHÔNG thể xóa?**
+A:
+
+- ❌ Chu kỳ đã có bản đánh giá KPI (dù chỉ 1 bản)
+- ❌ Chu kỳ đã hoàn thành (cần giữ lịch sử kiểm toán)
+
+**Q: Muốn xóa chu kỳ có đánh giá thì làm sao?**
+A:
+
+1. Xóa tất cả bản đánh giá KPI trong chu kỳ đó trước
+2. Sau đó mới xóa chu kỳ
+3. Hoặc liên hệ quản trị viên nếu cần hỗ trợ
+
+### 3. Error messages bạn có thể gặp
+
+| Error Message                                     | Nguyên nhân                | Giải pháp                                          |
+| ------------------------------------------------- | -------------------------- | -------------------------------------------------- |
+| "Chu kỳ đánh giá tháng X/Y đã tồn tại"            | Tạo trùng tháng/năm        | Chọn tháng/năm khác hoặc chỉnh sửa chu kỳ hiện tại |
+| "Không thể xóa chu kỳ đã hoàn thành..."           | Xóa chu kỳ `isDong = true` | Không thể xóa (giữ audit trail)                    |
+| "Không thể xóa... đã có X bản đánh giá liên quan" | Chu kỳ có DanhGiaKPI       | Xóa các đánh giá trước hoặc liên hệ admin          |
+| "[object Object]" (đã fix)                        | Lỗi hiển thị error cũ      | Đã fix, giờ hiển thị message rõ ràng               |
+
 ### Cách thêm nhiều chu kỳ
 
 1. **Chu kỳ 1**: Tháng = 1, Năm = 2024 ✅

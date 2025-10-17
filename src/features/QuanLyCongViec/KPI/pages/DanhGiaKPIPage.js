@@ -23,6 +23,7 @@ import MainCard from "components/MainCard";
 import DanhGiaKPITable from "../components/DanhGiaKPITable";
 import DanhGiaKPIFormDialog from "../components/DanhGiaKPIFormDialog";
 import DanhGiaKPIDetailDialog from "../components/DanhGiaKPIDetailDialog";
+import { SelectNhanVienButton } from "../components/SelectNhanVien";
 
 import {
   getDanhGiaKPIs,
@@ -59,6 +60,7 @@ function DanhGiaKPIPage() {
     isOpenFormDialog,
     isOpenDetailDialog,
     filterChuKyID,
+    filterNhanVienID,
     filterTrangThai,
   } = useSelector((state) => state.kpi);
 
@@ -94,10 +96,11 @@ function DanhGiaKPIPage() {
   useEffect(() => {
     const filters = {};
     if (filterChuKyID) filters.ChuKyDanhGiaID = filterChuKyID;
+    if (filterNhanVienID) filters.NhanVienID = filterNhanVienID;
     if (filterTrangThai) filters.TrangThai = filterTrangThai;
 
     dispatch(getDanhGiaKPIs(filters));
-  }, [dispatch, filterChuKyID, filterTrangThai]);
+  }, [dispatch, filterChuKyID, filterNhanVienID, filterTrangThai]);
 
   const handleChuKyChange = (event) => {
     const chuKyId = event.target.value;
@@ -114,6 +117,7 @@ function DanhGiaKPIPage() {
   const handleRefresh = () => {
     const filters = {};
     if (filterChuKyID) filters.ChuKyDanhGiaID = filterChuKyID;
+    if (filterNhanVienID) filters.NhanVienID = filterNhanVienID;
     if (filterTrangThai) filters.TrangThai = filterTrangThai;
     dispatch(getDanhGiaKPIs(filters));
   };
@@ -203,7 +207,12 @@ function DanhGiaKPIPage() {
 
         {/* Filters */}
         <Grid item xs={12}>
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="center"
+            flexWrap="wrap"
+          >
             {/* Chu kỳ Filter */}
             <FormControl sx={{ minWidth: 250 }}>
               <InputLabel>Chu kỳ đánh giá</InputLabel>
@@ -234,6 +243,9 @@ function DanhGiaKPIPage() {
                 ))}
               </Select>
             </FormControl>
+
+            {/* Nhân viên Filter */}
+            <SelectNhanVienButton />
 
             {/* Trạng thái Filter */}
             <FormControl sx={{ minWidth: 200 }}>

@@ -95,13 +95,6 @@ function TieuChiDanhGiaList() {
         Cell: ({ value }) => value?.toFixed(1) || "10",
       },
       {
-        Header: "Trọng số",
-        Footer: "Trọng số",
-        accessor: "TrongSoMacDinh",
-        disableGroupBy: true,
-        Cell: ({ value }) => value?.toFixed(2) || "1.00",
-      },
-      {
         Header: "Mô tả",
         Footer: "Mô tả",
         accessor: "MoTa",
@@ -164,7 +157,6 @@ function TieuChiDanhGiaList() {
               renderRowSubComponent={renderRowSubComponent}
               additionalComponent={
                 <div style={{ display: "flex", alignItems: "flex-end" }}>
-                  <ExcelButton />
                   <AddTieuChiDanhGiaButton />
                 </div>
               }

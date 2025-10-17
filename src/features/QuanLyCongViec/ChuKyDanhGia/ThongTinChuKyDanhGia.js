@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import {
@@ -10,6 +11,7 @@ import {
   Button,
   Stack,
   Grid,
+  Divider,
 } from "@mui/material";
 import {
   FormProvider,
@@ -17,6 +19,8 @@ import {
   FDatePicker,
 } from "../../../components/form";
 import dayjs from "dayjs";
+import TieuChiConfigSection from "./TieuChiConfigSection";
+import { getPreviousCriteria } from "../KPI/kpiSlice";
 
 const yupSchema = Yup.object().shape({
   TenChuKy: Yup.string().max(255, "Tên chu kỳ không được quá 255 ký tự"),
@@ -38,7 +42,18 @@ const yupSchema = Yup.object().shape({
 });
 
 function ThongTinChuKyDanhGia({ open, handleClose, item = null, onSubmit }) {
+  const dispatch = useDispatch();
   const isEdit = Boolean(item?._id);
+
+  // State for tiêu chí
+  const [tieuChiList, setTieuChiList] = useState(item?.TieuChiCauHinh || []);
+
+  const handleCopyFromPrevious = async () => {
+    const previousCriteria = await dispatch(getPreviousCriteria());
+    if (previousCriteria && previousCriteria.length > 0) {
+      setTieuChiList(previousCriteria);
+    }
+  };
 
   const defaultValues = {
     TenChuKy: item?.TenChuKy || "",
@@ -62,8 +77,14 @@ function ThongTinChuKyDanhGia({ open, handleClose, item = null, onSubmit }) {
 
   const handleFormSubmit = async (data) => {
     try {
-      await onSubmit(data);
+      // Include tiêu chí configuration
+      const payload = {
+        ...data,
+        TieuChiCauHinh: tieuChiList,
+      };
+      await onSubmit(payload);
       reset();
+      setTieuChiList([]);
       handleClose();
     } catch (error) {
       // Error đã được handle trong Redux action với toast.error
@@ -74,6 +95,7 @@ function ThongTinChuKyDanhGia({ open, handleClose, item = null, onSubmit }) {
 
   const handleCancel = () => {
     reset();
+    setTieuChiList([]);
     handleClose();
   };
 
@@ -84,7 +106,13 @@ function ThongTinChuKyDanhGia({ open, handleClose, item = null, onSubmit }) {
   }));
 
   return (
-    <Dialog open={open} onClose={handleCancel} maxWidth="md" fullWidth>
+    <Dialog
+      open={open}
+      onClose={handleCancel}
+      maxWidth="lg"
+      fullWidth
+      fullScreen
+    >
       <DialogTitle>
         {isEdit ? "Chỉnh sửa chu kỳ đánh giá" : "Thêm chu kỳ đánh giá mới"}
       </DialogTitle>
@@ -149,6 +177,16 @@ function ThongTinChuKyDanhGia({ open, handleClose, item = null, onSubmit }) {
               multiline
               rows={3}
               placeholder="Nhập mô tả cho chu kỳ đánh giá"
+            />
+
+            {/* Tiêu chí configuration */}
+            <Divider sx={{ my: 2 }} />
+
+            <TieuChiConfigSection
+              tieuChiList={tieuChiList}
+              onChange={setTieuChiList}
+              onCopyFromPrevious={!isEdit ? handleCopyFromPrevious : undefined}
+              readOnly={false}
             />
           </Stack>
         </DialogContent>

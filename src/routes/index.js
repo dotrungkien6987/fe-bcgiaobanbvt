@@ -90,11 +90,8 @@ import DoanVaoDetailPage from "features/NghienCuuKhoaHoc/DoanVao/DoanVaoDetailPa
 import DoanRaMembersPage from "features/NghienCuuKhoaHoc/Members/DoanRaMembersPage";
 import DoanVaoMembersPage from "features/NghienCuuKhoaHoc/Members/DoanVaoMembersPage";
 import TepTinAdminPage from "features/QuanLyFile/pages/TepTinAdminPage";
-import {
-  DanhGiaKPIPage,
-  XemKPIPage,
-  BaoCaoKPIPage,
-} from "features/QuanLyCongViec/KPI/pages";
+import { XemKPIPage, BaoCaoKPIPage } from "features/QuanLyCongViec/KPI/pages";
+import { DanhGiaKPIDashboard } from "features/QuanLyCongViec/KPI/v2/pages";
 import { TieuChiDanhGiaList } from "features/QuanLyCongViec/TieuChiDanhGia";
 import {
   ChuKyDanhGiaList,
@@ -283,7 +280,7 @@ function Router() {
           {/* KPI Management Routes */}
           <Route
             path="/quanlycongviec/kpi/danh-gia"
-            element={<DanhGiaKPIPage />}
+            element={<DanhGiaKPIDashboard />}
           />
           <Route path="/quanlycongviec/kpi/xem" element={<XemKPIPage />} />
           <Route
