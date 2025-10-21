@@ -28,11 +28,18 @@ function NhiemVuThuongQuyView({ data }) {
 
         <Grid item xs={12} md={6}>
           <Typography variant="subtitle2" color="textSecondary">
-            Mức độ khó
+            Độ khó mặc định (tham khảo)
           </Typography>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Rating value={data.MucDoKho} max={10} readOnly size="small" />
-            <Typography variant="body2">({data.MucDoKho}/10)</Typography>
+            <Rating
+              value={data.MucDoKhoDefault || 5}
+              max={10}
+              readOnly
+              size="small"
+            />
+            <Typography variant="body2">
+              ({data.MucDoKhoDefault || 5}/10)
+            </Typography>
           </Box>
         </Grid>
 

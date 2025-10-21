@@ -37,7 +37,7 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
     TenNhiemVu: "",
     MoTa: "",
     KhoaID: "",
-    MucDoKho: 5.0,
+    MucDoKhoDefault: 5.0,
     TrangThaiHoatDong: true,
   });
 
@@ -59,7 +59,7 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
           TenNhiemVu: nhiemvuThuongQuy.TenNhiemVu || "",
           MoTa: nhiemvuThuongQuy.MoTa || "",
           KhoaID: nhiemvuThuongQuy.KhoaID?._id || nhiemvuThuongQuy.KhoaID || "",
-          MucDoKho: nhiemvuThuongQuy.MucDoKho || 5.0,
+          MucDoKhoDefault: nhiemvuThuongQuy.MucDoKhoDefault || 5.0,
           TrangThaiHoatDong: nhiemvuThuongQuy.TrangThaiHoatDong ?? true,
         });
         // Set selected khoa for edit
@@ -74,7 +74,7 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
           TenNhiemVu: "",
           MoTa: "",
           KhoaID: user?.KhoaID || "",
-          MucDoKho: 5.0,
+          MucDoKhoDefault: 5.0,
           TrangThaiHoatDong: true,
         });
         // Set default selected khoa
@@ -172,12 +172,12 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
               <Grid item xs={8}>
                 <Box sx={{ px: 2 }}>
                   <Typography gutterBottom>
-                    Mức độ khó: {formData.MucDoKho}/10
+                    Độ khó mặc định (tham khảo): {formData.MucDoKhoDefault}/10
                   </Typography>
                   <Slider
-                    value={formData.MucDoKho}
+                    value={formData.MucDoKhoDefault}
                     onChange={(e, value) =>
-                      handleInputChange("MucDoKho", value)
+                      handleInputChange("MucDoKhoDefault", value)
                     }
                     aria-labelledby="muc-do-kho-slider"
                     valueLabelDisplay="auto"
@@ -190,14 +190,14 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
               <Grid item xs={4}>
                 <TextField
                   fullWidth
-                  label="Mức độ khó"
+                  label="Độ khó mặc định"
                   type="number"
-                  value={formData.MucDoKho}
+                  value={formData.MucDoKhoDefault}
                   onChange={(e) => {
                     const value = parseFloat(e.target.value);
                     if (!isNaN(value) && value >= 1.0 && value <= 10.0) {
                       handleInputChange(
-                        "MucDoKho",
+                        "MucDoKhoDefault",
                         Math.round(value * 10) / 10
                       );
                     }

@@ -90,6 +90,14 @@ const quanlycongviec = {
         },
 
         {
+          id: "giaonhiemvu-theo-chuky",
+          title: "📅 Phân công theo chu kỳ",
+          type: "item",
+          // ✅ FIX: Point to LIST view (no :NhanVienID param needed)
+          url: "/quanlycongviec/giao-nhiem-vu-chu-ky",
+        },
+
+        {
           id: "nhiemvuthuongquy",
           title: "Nhiệm vụ thường quy",
           type: "item",
@@ -116,14 +124,32 @@ const quanlycongviec = {
           breadcrumbs: true,
         },
         {
-          id: "kpi-danhgia",
+          id: "kpi-danhgia-nhanvien",
           title: "Chấm điểm KPI",
+          type: "item",
+          url: "/quanlycongviec/kpi/danh-gia-nhan-vien",
+          icon: icons.medal,
+          breadcrumbs: true,
+          chip: {
+            label: "MỚI",
+            color: "success",
+            size: "small",
+          },
+        },
+        {
+          id: "kpi-danhgia-old",
+          title: "Chấm điểm KPI (Cũ)",
           type: "item",
           url: "/quanlycongviec/kpi/danh-gia",
           icon: icons.medal,
           breadcrumbs: true,
+          chip: {
+            label: "DEPRECATED",
+            color: "error",
+            size: "small",
+          },
         },
-      
+
         {
           id: "kpi-baocao",
           title: "Báo cáo & Thống kê",

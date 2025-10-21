@@ -8,6 +8,8 @@ const initialState = {
   danhGiaKPIs: [], // Danh sách đánh giá KPI
   danhGiaKPICurrent: null, // Đánh giá KPI đang xem/chỉnh sửa
   nhiemVuThuongQuys: [], // Danh sách nhiệm vụ thường quy của KPI hiện tại
+  // ✅ V2 list used by reducers approve/undo (avoid undefined.findIndex)
+  danhSachDanhGiaKPI: [],
   thongKeKPIs: [], // Thống kê KPI theo chu kỳ
   tieuChiDanhGias: [], // Danh sách tiêu chí đánh giá (TANG_DIEM/GIAM_DIEM)
   chuKyDanhGias: [], // Danh sách chu kỳ đánh giá
@@ -308,7 +310,15 @@ const slice = createSlice({
     getChamDiemDetailSuccess(state, action) {
       state.isLoading = false;
       state.currentDanhGiaKPI = action.payload.danhGiaKPI;
-      state.currentNhiemVuList = action.payload.nhiemVuList;
+      // ✅ Ensure nhiemVuList has proper structure with ChiTietDiem array
+      state.currentNhiemVuList = (action.payload.nhiemVuList || []).map(
+        (nv) => ({
+          ...nv,
+          ChiTietDiem: nv.ChiTietDiem || [],
+          TongDiemTieuChi: nv.TongDiemTieuChi || 0,
+          DiemNhiemVu: nv.DiemNhiemVu || 0,
+        })
+      );
       state.syncWarning = action.payload.syncWarning || null; // ← NEW: Store sync warning
     },
 
@@ -319,11 +329,22 @@ const slice = createSlice({
 
     // Update điểm tiêu chí (local state, chưa save)
     // ✅ FIX: Changed from tieuChiId to tieuChiIndex
+    // ✅ FIX: Find by _id, NhiemVuThuongQuyID._id, or index for rows without _id
     updateTieuChiScore(state, action) {
       const { nhiemVuId, tieuChiIndex, diemDat } = action.payload;
-      const nhiemVu = state.currentNhiemVuList.find(
-        (nv) => nv._id === nhiemVuId
-      );
+
+      // Try to find by _id first, then by NhiemVuThuongQuyID._id, then by index
+      const nhiemVu = state.currentNhiemVuList.find((nv, idx) => {
+        if (nv._id && String(nv._id) === String(nhiemVuId)) return true;
+        if (
+          nv.NhiemVuThuongQuyID?._id &&
+          String(nv.NhiemVuThuongQuyID._id) === String(nhiemVuId)
+        )
+          return true;
+        if (idx === nhiemVuId) return true; // fallback to index
+        return false;
+      });
+
       if (nhiemVu && nhiemVu.ChiTietDiem[tieuChiIndex]) {
         // Direct access by index (no more TieuChiID lookup)
         nhiemVu.ChiTietDiem[tieuChiIndex].DiemDat = diemDat;
@@ -374,13 +395,27 @@ const slice = createSlice({
       }
     },
 
-    // Duyệt KPI (V2)
+    // ✅ ENHANCED: Duyệt KPI success với update state đầy đủ
     approveKPISuccess(state, action) {
       state.isSaving = false;
-      const approvedKPI = action.payload;
+      state.isLoading = false;
 
+      const approvedKPI = action.payload.danhGiaKPI;
+
+      // Update current DanhGiaKPI
       if (state.currentDanhGiaKPI) {
-        state.currentDanhGiaKPI.TrangThai = approvedKPI.TrangThai;
+        state.currentDanhGiaKPI = approvedKPI;
+      }
+
+      // Update trong danh sách
+      if (!Array.isArray(state.danhSachDanhGiaKPI)) {
+        state.danhSachDanhGiaKPI = [];
+      }
+      const index = state.danhSachDanhGiaKPI.findIndex(
+        (item) => item._id === approvedKPI._id
+      );
+      if (index !== -1) {
+        state.danhSachDanhGiaKPI[index] = approvedKPI;
       }
 
       // Update trong dashboard
@@ -389,6 +424,41 @@ const slice = createSlice({
       );
       if (nvInDashboard) {
         nvInDashboard.danhGiaKPI = approvedKPI;
+      }
+
+      // Update summary
+      updateDashboardSummary(state);
+    },
+
+    // ✅ NEW: Hủy duyệt KPI success
+    undoApproveKPISuccess(state, action) {
+      state.isLoading = false;
+      state.isSaving = false;
+
+      const undoneKPI = action.payload.danhGiaKPI;
+
+      // Update current DanhGiaKPI
+      if (state.currentDanhGiaKPI) {
+        state.currentDanhGiaKPI = undoneKPI;
+      }
+
+      // Update trong danh sách
+      if (!Array.isArray(state.danhSachDanhGiaKPI)) {
+        state.danhSachDanhGiaKPI = [];
+      }
+      const index = state.danhSachDanhGiaKPI.findIndex(
+        (item) => item._id === undoneKPI._id
+      );
+      if (index !== -1) {
+        state.danhSachDanhGiaKPI[index] = undoneKPI;
+      }
+
+      // Update trong dashboard
+      const nvInDashboard = state.dashboardData.nhanVienList.find(
+        (item) => item.danhGiaKPI?._id === undoneKPI._id
+      );
+      if (nvInDashboard) {
+        nvInDashboard.danhGiaKPI = undoneKPI;
       }
 
       // Update summary
@@ -439,6 +509,16 @@ export default slice.reducer;
 // ====================
 // ACTIONS - Đánh giá KPI
 // ====================
+
+// ✅ Helper: Safe extraction of danhGiaKPI from API response
+function pickDanhGiaKPI(res) {
+  return (
+    res?.data?.data?.danhGiaKPI ||
+    res?.data?.danhGiaKPI ||
+    res?.danhGiaKPI ||
+    null
+  );
+}
 
 /**
  * Lấy danh sách đánh giá KPI với filter
@@ -1038,22 +1118,25 @@ export const getDashboardData = (chuKyId) => async (dispatch) => {
 
 /**
  * Lấy chi tiết để chấm điểm
- * V2 - Gọi endpoint /cham-diem (auto-create nếu chưa có)
- * Trả về: DanhGiaKPI + DanhGiaNhiemVuThuongQuy[] + syncWarning (if criteria changed)
+ * V2 - Gọi endpoint /cham-diem-tieu-chi (auto-create nếu chưa có)
+ * Trả về: DanhGiaKPI + DanhGiaNhiemVuThuongQuy[] với ChiTietDiem từ TieuChiCauHinh
  */
 export const getChamDiemDetail = (chuKyId, nhanVienId) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    // Gọi endpoint mới - Tự động tạo nếu chưa có
-    const response = await apiService.get("/workmanagement/kpi/cham-diem", {
-      params: { chuKyId, nhanVienId },
-    });
+    // Gọi endpoint mới - Criteria-based KPI evaluation
+    const response = await apiService.get(
+      "/workmanagement/kpi/cham-diem-tieu-chi",
+      {
+        params: { chuKyId, nhanVienId },
+      }
+    );
 
     dispatch(
       slice.actions.getChamDiemDetailSuccess({
         danhGiaKPI: response.data.data.danhGiaKPI,
-        nhiemVuList: response.data.data.nhiemVuList,
-        syncWarning: response.data.data.syncWarning, // ← NEW: Criteria change detection
+        nhiemVuList: response.data.data.danhGiaNhiemVuList,
+        syncWarning: null, // Can add criteria sync detection later if needed
       })
     );
   } catch (error) {
@@ -1082,51 +1165,146 @@ export const saveDiemNhiemVu = (nhiemVuId, chiTietDiem) => async (dispatch) => {
 };
 
 /**
- * Lưu tất cả điểm nhiệm vụ (batch save)
+ * ✅ ENHANCED: Lưu nháp tất cả điểm nhiệm vụ (batch save)
+ * - Filter nhiệm vụ có điểm
+ * - Better error messages
+ * - Show progress count
  */
 export const saveAllNhiemVu = () => async (dispatch, getState) => {
-  const { currentNhiemVuList } = getState().kpi;
-
-  // Filter nhiệm vụ đã chấm điểm (có điểm > 0)
-  const scoredTasks = currentNhiemVuList.filter((nv) => nv.TongDiemTieuChi > 0);
-
-  if (scoredTasks.length === 0) {
-    toast.info("Chưa có nhiệm vụ nào được chấm điểm");
-    return;
-  }
-
   dispatch(slice.actions.startSaving());
 
   try {
-    // Save tuần tự để tránh race condition
-    for (const nv of scoredTasks) {
-      await apiService.put(`/workmanagement/kpi/nhiem-vu/${nv._id}`, {
-        ChiTietDiem: nv.ChiTietDiem,
+    const { currentNhiemVuList, currentDanhGiaKPI } = getState().kpi;
+
+    if (!currentDanhGiaKPI?._id) {
+      throw new Error("Không tìm thấy thông tin đánh giá KPI");
+    }
+
+    // Filter: Chỉ gửi nhiệm vụ có điểm
+    const nhiemVuWithScores = currentNhiemVuList.filter((nv) => {
+      const hasScore = nv.ChiTietDiem?.some((cd) => cd.DiemDat > 0);
+      return hasScore;
+    });
+
+    if (nhiemVuWithScores.length === 0) {
+      toast.warning("Vui lòng chấm điểm ít nhất 1 nhiệm vụ trước khi lưu");
+      dispatch(slice.actions.stopSaving());
+      return;
+    }
+
+    // Prepare payload
+    const payload = {
+      nhiemVuList: nhiemVuWithScores.map((nv) => ({
+        NhiemVuThuongQuyID:
+          typeof nv.NhiemVuThuongQuyID === "object"
+            ? nv.NhiemVuThuongQuyID._id
+            : nv.NhiemVuThuongQuyID,
         MucDoKho: nv.MucDoKho,
+        ChiTietDiem: nv.ChiTietDiem.map((cd) => ({
+          TenTieuChi: cd.TenTieuChi,
+          LoaiTieuChi: cd.LoaiTieuChi,
+          DiemDat: cd.DiemDat || 0,
+          GiaTriMin: cd.GiaTriMin,
+          GiaTriMax: cd.GiaTriMax,
+          DonVi: cd.DonVi,
+          MoTa: cd.MoTa,
+          GhiChu: cd.GhiChu,
+        })),
         GhiChu: nv.GhiChu || "",
-      });
-    }
+      })),
+    };
 
-    // Refresh lại data sau khi save tất cả
-    const { currentDanhGiaKPI } = getState().kpi;
-    if (currentDanhGiaKPI) {
-      const response = await apiService.get("/workmanagement/kpi/cham-diem", {
-        params: {
-          chuKyId: currentDanhGiaKPI.ChuKyID._id,
-          nhanVienId: currentDanhGiaKPI.NhanVienID._id,
-        },
-      });
+    const response = await apiService.post(
+      `/workmanagement/kpi/luu-tat-ca/${currentDanhGiaKPI._id}`,
+      payload
+    );
 
-      dispatch(
-        slice.actions.getChamDiemDetailSuccess({
-          danhGiaKPI: response.data.data.danhGiaKPI,
-          nhiemVuList: response.data.data.nhiemVuList,
-        })
-      );
-    }
+    // Update state với data mới từ backend
+    dispatch(
+      slice.actions.getChamDiemDetailSuccess({
+        danhGiaKPI: response.data.data.danhGiaKPI,
+        nhiemVuList: response.data.data.danhGiaNhiemVuList,
+      })
+    );
 
     dispatch(slice.actions.stopSaving());
-    toast.success(`Đã lưu ${scoredTasks.length} nhiệm vụ thành công`);
+
+    // ✅ ENHANCED: Better success message with count
+    toast.success(
+      `✅ Đã lưu nháp ${nhiemVuWithScores.length} nhiệm vụ thành công!`
+    );
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(`❌ Lỗi lưu nháp: ${error.message}`);
+  }
+};
+
+/**
+ * ✅ ENHANCED: Duyệt KPI với transaction atomic
+ * - Validate tất cả nhiệm vụ có điểm
+ * - Gửi payload đầy đủ cho batch upsert
+ * - Backend xử lý trong transaction
+ */
+export const approveKPI = (danhGiaKPIId) => async (dispatch, getState) => {
+  dispatch(slice.actions.startSaving());
+
+  try {
+    const { currentNhiemVuList } = getState().kpi;
+
+    // Validate: Tất cả nhiệm vụ phải có điểm
+    const allScored = currentNhiemVuList.every((nv) => nv.TongDiemTieuChi > 0);
+
+    if (!allScored) {
+      const unscoredCount = currentNhiemVuList.filter(
+        (nv) => nv.TongDiemTieuChi === 0
+      ).length;
+      toast.error(
+        `Còn ${unscoredCount} nhiệm vụ chưa chấm điểm. Vui lòng hoàn thành trước khi duyệt KPI.`
+      );
+      dispatch(slice.actions.stopSaving());
+      return;
+    }
+
+    // Prepare payload - Tất cả nhiệm vụ với điểm đầy đủ
+    const payload = {
+      nhiemVuList: currentNhiemVuList.map((nv) => ({
+        _id: nv._id,
+        NhiemVuThuongQuyID:
+          typeof nv.NhiemVuThuongQuyID === "object"
+            ? nv.NhiemVuThuongQuyID._id
+            : nv.NhiemVuThuongQuyID,
+        MucDoKho: nv.MucDoKho,
+        ChiTietDiem: nv.ChiTietDiem.map((cd) => ({
+          TenTieuChi: cd.TenTieuChi,
+          LoaiTieuChi: cd.LoaiTieuChi,
+          DiemDat: cd.DiemDat,
+          GiaTriMin: cd.GiaTriMin,
+          GiaTriMax: cd.GiaTriMax,
+          DonVi: cd.DonVi,
+          MoTa: cd.MoTa,
+          GhiChu: cd.GhiChu,
+        })),
+        TongDiemTieuChi: nv.TongDiemTieuChi,
+        DiemNhiemVu: nv.DiemNhiemVu,
+      })),
+    };
+
+    // Call approve endpoint với transaction
+    const response = await apiService.post(
+      `/workmanagement/kpi/duyet-kpi-tieu-chi/${danhGiaKPIId}`,
+      payload
+    );
+
+    const dg = pickDanhGiaKPI(response);
+    if (!dg) {
+      throw new Error("Phản hồi không hợp lệ: thiếu dữ liệu danhGiaKPI");
+    }
+
+    dispatch(slice.actions.approveKPISuccess({ danhGiaKPI: dg }));
+
+    // ✅ ENHANCED: Success message với tổng điểm
+    const tongDiem = dg.TongDiemKPI || 0;
+    toast.success(`✅ Duyệt KPI thành công! Tổng điểm: ${tongDiem.toFixed(1)}`);
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
@@ -1134,34 +1312,30 @@ export const saveAllNhiemVu = () => async (dispatch, getState) => {
 };
 
 /**
- * Duyệt KPI (chuyển trạng thái sang DA_DUYET)
+ * ✅ NEW: Hủy duyệt KPI
+ * @param {Object} payload - { danhGiaKPIId: String, lyDo: String }
  */
-export const approveKPI = (danhGiaKPIId) => async (dispatch, getState) => {
-  const { currentNhiemVuList } = getState().kpi;
-
-  // Validation: Check tất cả nhiệm vụ đã chấm chưa
-  const unscoredTasks = currentNhiemVuList.filter(
-    (nv) => nv.TongDiemTieuChi === 0
-  );
-
-  if (unscoredTasks.length > 0) {
-    toast.error(
-      `Còn ${unscoredTasks.length} nhiệm vụ chưa chấm điểm. Vui lòng hoàn thành trước khi duyệt.`
-    );
-    return;
-  }
-
+export const undoApproveKPI = (payload) => async (dispatch) => {
   dispatch(slice.actions.startSaving());
   try {
-    const response = await apiService.put(
-      `/workmanagement/kpi/${danhGiaKPIId}/duyet`
+    const { danhGiaKPIId, lyDo } = payload;
+
+    const response = await apiService.post(
+      `/workmanagement/kpi/huy-duyet-kpi/${danhGiaKPIId}`,
+      { lyDo }
     );
 
-    dispatch(slice.actions.approveKPISuccess(response.data.data.danhGiaKPI));
-    toast.success("Đã duyệt KPI thành công");
+    const dg = pickDanhGiaKPI(response);
+    if (!dg) {
+      throw new Error("Phản hồi không hợp lệ: thiếu dữ liệu danhGiaKPI");
+    }
+
+    dispatch(slice.actions.undoApproveKPISuccess({ danhGiaKPI: dg }));
+
+    toast.success("✅ Đã hủy duyệt KPI thành công! Có thể chỉnh sửa lại điểm.");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message);
+    toast.error(`❌ Lỗi hủy duyệt KPI: ${error.message}`);
   }
 };
 

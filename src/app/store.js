@@ -22,6 +22,7 @@ import nhomViecUserSlice from "../features/QuanLyCongViec/NhomViecUser/nhomViecU
 import nhiemvuThuongQuySlice from "../features/QuanLyCongViec/NhiemVuThuongQuy/nhiemvuThuongQuySlice";
 import quanLyNhanVienSlice from "../features/QuanLyCongViec/QuanLyNhanVien/quanLyNhanVienSlice";
 import giaoNhiemVuSlice from "../features/QuanLyCongViec/GiaoNhiemVu/giaoNhiemVuSlice";
+import cycleAssignmentSlice from "../features/QuanLyCongViec/GiaoNhiemVu/cycleAssignmentSlice";
 import congViecSlice from "../features/QuanLyCongViec/CongViec/congViecSlice";
 import nhanvienManagementSlice from "../features/QuanLyCongViec/NhanVien/nhanvienManagementSlice";
 import quanLyTepTinSlice from "../features/QuanLyCongViec/CongViec/QuanLyTepTin/quanLyTepTinSlice";
@@ -36,6 +37,7 @@ import { doanRaMembersReducer } from "features/NghienCuuKhoaHoc/DoanRa/doanRaMem
 import { doanVaoMembersReducer } from "features/NghienCuuKhoaHoc/DoanVao/doanVaoMembersSlice";
 import tepTinAdminReducer from "features/QuanLyFile/tepTinAdminSlice";
 import kpiSlice from "features/QuanLyCongViec/KPI/kpiSlice";
+import kpiEvaluationSlice from "features/QuanLyCongViec/KPI/kpiEvaluationSlice";
 import khuyenCaoKhoaBQBAReducer from "../features/DashBoard/BinhQuanBenhAn/khuyenCaoKhoaBQBASlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
@@ -63,6 +65,7 @@ const rootReducer = {
   nhiemvuThuongQuy: nhiemvuThuongQuySlice,
   quanLyNhanVien: quanLyNhanVienSlice,
   giaoNhiemVu: giaoNhiemVuSlice,
+  cycleAssignment: cycleAssignmentSlice,
   congViec: congViecSlice,
   nhanvienManagement: nhanvienManagementSlice,
   quanLyTepTin: quanLyTepTinSlice,
@@ -77,6 +80,7 @@ const rootReducer = {
   doanVaoMembers: doanVaoMembersReducer,
   tepTinAdmin: tepTinAdminReducer,
   kpi: kpiSlice,
+  kpiEvaluation: kpiEvaluationSlice,
   khuyenCaoKhoaBQBA: khuyenCaoKhoaBQBAReducer,
 };
 

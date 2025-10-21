@@ -75,6 +75,8 @@ import NhomViecUserList from "features/QuanLyCongViec/NhomViecUser/NhomViecUserL
 import NhiemVuThuongQuyList from "features/QuanLyCongViec/NhiemVuThuongQuy/NhiemVuThuongQuyList";
 import QuanLyNhanVienPage from "features/QuanLyCongViec/QuanLyNhanVien/QuanLyNhanVienPage";
 import GiaoNhiemVuPageNew from "features/QuanLyCongViec/GiaoNhiemVu/GiaoNhiemVuPageNew";
+import CycleAssignmentListPage from "features/QuanLyCongViec/GiaoNhiemVu/CycleAssignmentListPage";
+import CycleAssignmentDetailPage from "features/QuanLyCongViec/GiaoNhiemVu/CycleAssignmentDetailPage";
 import GiaoNhiemVuPage from "features/QuanLyCongViec/GiaoNhiemVu/old-components/GiaoNhiemVuPage";
 import CongViecByNhanVienPage from "features/QuanLyCongViec/CongViec/CongViecByNhanVienPage";
 import CongViecDetailPage from "features/QuanLyCongViec/CongViec/CongViecDetailPage";
@@ -91,6 +93,7 @@ import DoanRaMembersPage from "features/NghienCuuKhoaHoc/Members/DoanRaMembersPa
 import DoanVaoMembersPage from "features/NghienCuuKhoaHoc/Members/DoanVaoMembersPage";
 import TepTinAdminPage from "features/QuanLyFile/pages/TepTinAdminPage";
 import { XemKPIPage, BaoCaoKPIPage } from "features/QuanLyCongViec/KPI/pages";
+import KPIEvaluationPage from "features/QuanLyCongViec/KPI/pages/KPIEvaluationPage";
 import { DanhGiaKPIDashboard } from "features/QuanLyCongViec/KPI/v2/pages";
 import { TieuChiDanhGiaList } from "features/QuanLyCongViec/TieuChiDanhGia";
 import {
@@ -282,6 +285,10 @@ function Router() {
             path="/quanlycongviec/kpi/danh-gia"
             element={<DanhGiaKPIDashboard />}
           />
+          <Route
+            path="/quanlycongviec/kpi/danh-gia-nhan-vien"
+            element={<KPIEvaluationPage />}
+          />
           <Route path="/quanlycongviec/kpi/xem" element={<XemKPIPage />} />
           <Route
             path="/quanlycongviec/kpi/bao-cao"
@@ -324,6 +331,16 @@ function Router() {
           <Route
             path="/quanlycongviec/giao-nhiem-vu/:NhanVienID"
             element={<GiaoNhiemVuPageNew />}
+          />
+          {/* Cycle-based assignment: LIST view (all employees) */}
+          <Route
+            path="/quanlycongviec/giao-nhiem-vu-chu-ky"
+            element={<CycleAssignmentListPage />}
+          />
+          {/* Cycle-based assignment: DETAIL view (one employee) */}
+          <Route
+            path="/quanlycongviec/giao-nhiem-vu-chu-ky/:NhanVienID"
+            element={<CycleAssignmentDetailPage />}
           />
           {/* Old version - backup */}
           <Route

@@ -225,16 +225,25 @@ export const fetchAssignmentTotals =
 
 // Mutations
 export const assignDuty =
-  ({ employeeId, dutyId }) =>
+  (
+    { employeeId, dutyId, mucDoKho = null } // ✅ SLICE 1: Accept mucDoKho
+  ) =>
   async (dispatch) => {
     dispatch(slice.actions.startLoading());
     try {
+      const payload = {
+        NhanVienID: employeeId,
+        NhiemVuThuongQuyID: dutyId,
+      };
+
+      // ✅ SLICE 1: Add MucDoKho if provided
+      if (mucDoKho !== null && mucDoKho !== undefined) {
+        payload.MucDoKho = mucDoKho;
+      }
+
       const res = await apiService.post(
         `/workmanagement/giao-nhiem-vu/assignments`,
-        {
-          NhanVienID: employeeId,
-          NhiemVuThuongQuyID: dutyId,
-        }
+        payload
       );
       const assignment = res?.data?.data || res?.data;
       dispatch(slice.actions.assignDutySuccess(assignment));
@@ -372,7 +381,9 @@ export const removeAllAssignments = (employeeId) => async (dispatch) => {
       await dispatch(fetchAssignmentsByEmployee(employeeId));
       await dispatch(fetchAssignmentTotals([employeeId]));
     } catch (refreshErr) {
-      toast.warn("Gỡ thành công nhưng tải lại dữ liệu thất bại. Vui lòng refresh trang.");
+      toast.warn(
+        "Gỡ thành công nhưng tải lại dữ liệu thất bại. Vui lòng refresh trang."
+      );
     }
 
     dispatch(slice.actions.hasError(null));

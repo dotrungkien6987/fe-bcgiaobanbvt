@@ -112,6 +112,12 @@ const initialState = {
   //Đếm vienphi duyệt kể toán cho Bình quân bệnh án
   ThongKe_VienPhi_DuyetKeToan: {},
   ThongKe_VienPhi_DuyetKeToan_NgayChenhLech: {},
+
+  // Dữ liệu Bình quân bệnh án theo Doanh thu dự kiến
+  BinhQuanBenhAn_DuKien: [],
+  BinhQuanBenhAn_DuKien_NgayChenhLech: [],
+  ThongKe_VienPhi_DuKien: {},
+  ThongKe_VienPhi_DuKien_NgayChenhLech: {},
 };
 
 const slice = createSlice({
@@ -484,6 +490,15 @@ const slice = createSlice({
         .json_thongke_vienphi_duyetketoan
         ? JSON.parse(state.chisosObj.json_thongke_vienphi_duyetketoan)
         : {};
+
+      // Parse dữ liệu Doanh thu dự kiến
+      state.BinhQuanBenhAn_DuKien = state.chisosObj.json_binhquan_benhan_dukien
+        ? JSON.parse(state.chisosObj.json_binhquan_benhan_dukien)
+        : [] || [];
+
+      state.ThongKe_VienPhi_DuKien = state.chisosObj.json_thongke_vienphi_dukien
+        ? JSON.parse(state.chisosObj.json_thongke_vienphi_dukien)
+        : {};
     },
 
     getDataNewestByNgayChenhLechSuccess(state, action) {
@@ -572,6 +587,17 @@ const slice = createSlice({
         ? JSON.parse(
             state.chisosObj_NgayChenhLech.json_thongke_vienphi_duyetketoan
           )
+        : {};
+
+      // Parse dữ liệu Doanh thu dự kiến cho ngày chênh lệch
+      state.BinhQuanBenhAn_DuKien_NgayChenhLech = state.chisosObj_NgayChenhLech
+        .json_binhquan_benhan_dukien
+        ? JSON.parse(state.chisosObj_NgayChenhLech.json_binhquan_benhan_dukien)
+        : [] || [];
+
+      state.ThongKe_VienPhi_DuKien_NgayChenhLech = state.chisosObj_NgayChenhLech
+        .json_thongke_vienphi_dukien
+        ? JSON.parse(state.chisosObj_NgayChenhLech.json_thongke_vienphi_dukien)
         : {};
     },
 

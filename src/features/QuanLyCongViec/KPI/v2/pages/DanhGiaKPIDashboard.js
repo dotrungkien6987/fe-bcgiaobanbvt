@@ -156,7 +156,7 @@ function DanhGiaKPIDashboard() {
       {/* Header */}
       <Box mb={4}>
         <Typography variant="h4" fontWeight="bold" gutterBottom>
-          Đánh Giá KPI Nhân Viên
+          Đánh Giá KPI Nhân Viên 1
         </Typography>
         <Typography variant="body1" color="text.secondary">
           Chu kỳ: <strong>{autoSelectedChuKy.TenChuKy}</strong> (

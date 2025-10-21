@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
@@ -14,19 +14,26 @@ import {
   IconButton,
   Divider,
   CircularProgress,
+  TextField,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import SaveIcon from "@mui/icons-material/Save";
 import WarningIcon from "@mui/icons-material/Warning";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import UndoIcon from "@mui/icons-material/Undo";
+import HistoryIcon from "@mui/icons-material/History";
 import dayjs from "dayjs";
+import { toast } from "react-toastify";
+import useAuth from "../../../../../hooks/useAuth";
 
 import ChamDiemKPITable from "./ChamDiemKPITable";
+import KPIHistoryDialog from "./KPIHistoryDialog";
 import {
   updateTieuChiScoreLocal,
   saveAllNhiemVu,
   approveKPI,
+  undoApproveKPI,
   clearCurrentChamDiem,
   resetCriteria,
   clearSyncWarning, // ✅ FIX: Add clearSyncWarning import
@@ -39,6 +46,7 @@ import {
  * - open: Boolean
  * - onClose: Function
  * - nhanVien: Object { _id, Ten, MaNhanVien, KhoaID }
+ * - readOnly: Boolean (optional) - Chế độ xem, không cho sửa
  *
  * Features:
  * - Hiển thị tất cả nhiệm vụ thường quy
@@ -47,8 +55,9 @@ import {
  * - Progress indicator
  * - Validation before approve
  * - Auto-save individual tasks
+ * - Read-only mode for viewing approved KPI
  */
-function ChamDiemKPIDialog({ open, onClose, nhanVien }) {
+function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
   const dispatch = useDispatch();
   const {
     currentDanhGiaKPI,
@@ -57,6 +66,13 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien }) {
     isSaving,
     syncWarning, // ← NEW: Criteria change detection
   } = useSelector((state) => state.kpi);
+
+  // Check if editable (not approved AND not in readOnly mode)
+  const isEditable = useMemo(() => {
+    if (readOnly) return false;
+    if (!currentDanhGiaKPI) return true;
+    return currentDanhGiaKPI.TrangThai !== "DA_DUYET";
+  }, [currentDanhGiaKPI, readOnly]);
 
   // Calculate progress
   const progress = useMemo(() => {
@@ -91,26 +107,115 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien }) {
     return currentNhiemVuList.filter((nv) => nv.TongDiemTieuChi === 0);
   }, [currentNhiemVuList]);
 
+  // ========== UNDO APPROVAL STATE ==========
+  const [openUndoDialog, setOpenUndoDialog] = useState(false);
+  const [undoReason, setUndoReason] = useState("");
+  const { user } = useAuth();
+
+  // ========== HISTORY STATE ==========
+  const [openHistory, setOpenHistory] = useState(false);
+
+  // Check permission to undo approval
+  const canUndoApproval = useMemo(() => {
+    if (!currentDanhGiaKPI || currentDanhGiaKPI.TrangThai !== "DA_DUYET") {
+      return { allowed: false, reason: "KPI chưa được duyệt" };
+    }
+
+    // Admin có quyền hủy duyệt không giới hạn
+    const isAdmin = user?.PhanQuyen === "admin";
+    if (isAdmin) {
+      return { allowed: true, reason: null, isAdmin: true };
+    }
+
+    // Quản lý KPI: Kiểm tra trong vòng 7 ngày
+    if (currentDanhGiaKPI.NgayDuyet) {
+      const approvalDate = dayjs(currentDanhGiaKPI.NgayDuyet);
+      const now = dayjs();
+      const daysSinceApproval = now.diff(approvalDate, "day");
+
+      // TODO: Backend cần populate QuanLyNhanVien để kiểm tra chính xác
+      // Tạm thời cho phép nếu trong vòng 7 ngày
+      if (daysSinceApproval <= 7) {
+        return {
+          allowed: true,
+          reason: null,
+          isManager: true,
+          daysRemaining: 7 - daysSinceApproval,
+        };
+      } else {
+        return {
+          allowed: false,
+          reason: `Chỉ có thể hủy duyệt trong vòng 7 ngày. Đã qua ${daysSinceApproval} ngày.`,
+        };
+      }
+    }
+
+    return { allowed: false, reason: "Không có quyền hủy duyệt KPI này" };
+  }, [currentDanhGiaKPI, user]);
+
   // ✅ FIX: Changed signature from tieuChiId to tieuChiIndex
   const handleScoreChange = (nhiemVuId, tieuChiIndex, newScore) => {
     dispatch(updateTieuChiScoreLocal(nhiemVuId, tieuChiIndex, newScore));
   };
 
   const handleSaveAll = () => {
+    if (progress.scored === 0) {
+      toast.warning("Vui lòng chấm điểm ít nhất 1 nhiệm vụ trước khi lưu nháp");
+      return;
+    }
     dispatch(saveAllNhiemVu());
   };
 
   const handleApprove = () => {
     if (!canApprove) {
+      toast.error("Vui lòng chấm đủ điểm tất cả nhiệm vụ trước khi duyệt KPI");
       return;
     }
     dispatch(approveKPI(currentDanhGiaKPI._id));
+  };
+
+  // ========== UNDO APPROVAL HANDLERS ==========
+  const handleOpenUndoDialog = () => {
+    if (!canUndoApproval.allowed) {
+      toast.error(canUndoApproval.reason || "Không có quyền hủy duyệt");
+      return;
+    }
+    setOpenUndoDialog(true);
+  };
+
+  const handleCloseUndoDialog = () => {
+    setOpenUndoDialog(false);
+    setUndoReason("");
+  };
+
+  const handleConfirmUndo = () => {
+    if (!undoReason.trim()) {
+      toast.warning("Vui lòng nhập lý do hủy duyệt");
+      return;
+    }
+
+    if (undoReason.trim().length < 10) {
+      toast.warning("Lý do hủy duyệt phải có ít nhất 10 ký tự");
+      return;
+    }
+
+    dispatch(
+      undoApproveKPI({
+        danhGiaKPIId: currentDanhGiaKPI._id,
+        lyDo: undoReason.trim(),
+      })
+    );
+    handleCloseUndoDialog();
   };
 
   const handleClose = () => {
     dispatch(clearCurrentChamDiem());
     onClose();
   };
+
+  // History handlers
+  const handleOpenHistory = () => setOpenHistory(true);
+  const handleCloseHistory = () => setOpenHistory(false);
 
   const handleResetCriteria = () => {
     if (currentDanhGiaKPI) {
@@ -191,7 +296,7 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien }) {
                 letterSpacing: "0.5px",
               }}
             >
-              📊 Đánh Giá KPI
+              {readOnly ? "👁️ Xem Chi Tiết KPI" : "📊 Đánh Giá KPI"}
             </Typography>
             <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
               <Chip
@@ -534,7 +639,7 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien }) {
         <ChamDiemKPITable
           nhiemVuList={currentNhiemVuList}
           onScoreChange={handleScoreChange}
-          readOnly={isApproved}
+          readOnly={!isEditable}
         />
       </DialogContent>
 
@@ -569,10 +674,91 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien }) {
           Đóng
         </Button>
 
+        {/* History button */}
+        <Button
+          onClick={handleOpenHistory}
+          size="large"
+          startIcon={<HistoryIcon />}
+          sx={{ fontWeight: 600 }}
+        >
+          Lịch sử
+        </Button>
+
         <Box sx={{ flexGrow: 1 }} />
 
-        {!isApproved && (
+        {/* ========== APPROVED STATUS: Show info + undo button ========== */}
+        {isApproved && (
           <>
+            {/* Info box: Approval date */}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+                px: 3,
+                py: 1.5,
+                borderRadius: 2,
+                background: "linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)",
+                border: "2px solid #86efac",
+              }}
+            >
+              <CheckCircleIcon sx={{ color: "#16a34a", fontSize: 24 }} />
+              <Box>
+                <Typography variant="body2" fontWeight="600" color="#15803d">
+                  Đã duyệt KPI
+                </Typography>
+                <Typography variant="caption" color="#166534">
+                  {dayjs(currentDanhGiaKPI.NgayDuyet).format(
+                    "DD/MM/YYYY HH:mm"
+                  )}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Undo button */}
+            <Button
+              variant="outlined"
+              startIcon={<UndoIcon />}
+              size="large"
+              onClick={handleOpenUndoDialog}
+              disabled={isSaving || !canUndoApproval.allowed}
+              sx={{
+                borderRadius: 2,
+                px: 4,
+                fontWeight: 600,
+                borderWidth: 2,
+                borderColor: canUndoApproval.allowed
+                  ? "warning.main"
+                  : "error.main",
+                color: canUndoApproval.allowed ? "warning.main" : "error.main",
+                "&:hover": {
+                  borderWidth: 2,
+                  borderColor: canUndoApproval.allowed
+                    ? "warning.dark"
+                    : "error.dark",
+                  bgcolor: canUndoApproval.allowed
+                    ? "warning.lighter"
+                    : "error.lighter",
+                  transform: "translateY(-2px)",
+                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
+                },
+                "&:disabled": {
+                  borderWidth: 2,
+                  borderColor: "grey.300",
+                  color: "grey.400",
+                },
+                transition: "all 0.2s ease",
+              }}
+            >
+              🔄 Hủy duyệt KPI
+            </Button>
+          </>
+        )}
+
+        {/* ========== NOT APPROVED: Show draft + approve buttons ========== */}
+        {!isApproved && !readOnly && (
+          <>
+            {/* ✅ ENHANCED: Lưu nháp - Secondary action với progress */}
             <Button
               variant="outlined"
               startIcon={<SaveIcon />}
@@ -584,23 +770,29 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien }) {
                 px: 4,
                 fontWeight: 600,
                 borderWidth: 2,
-                borderColor: "primary.main",
-                color: "primary.main",
+                borderColor: "grey.400",
+                color: "text.secondary",
                 "&:hover": {
                   borderWidth: 2,
+                  borderColor: "grey.600",
+                  bgcolor: "grey.50",
                   transform: "translateY(-2px)",
-                  boxShadow: "0 4px 16px rgba(102, 126, 234, 0.4)",
-                  bgcolor: "primary.lighter",
+                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
                 },
                 "&:disabled": {
                   borderWidth: 2,
+                  borderColor: "grey.300",
+                  color: "grey.400",
                 },
                 transition: "all 0.2s ease",
               }}
             >
-              {isSaving ? "Đang lưu..." : "💾 Lưu tất cả"}
+              {isSaving
+                ? "Đang lưu nháp..."
+                : `💾 Lưu nháp (${progress.scored}/${progress.total})`}
             </Button>
 
+            {/* ✅ ENHANCED: Duyệt KPI - Primary action với gradient */}
             <Button
               variant="contained"
               startIcon={<CheckCircleIcon />}
@@ -609,17 +801,22 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien }) {
               disabled={!canApprove || isSaving}
               sx={{
                 borderRadius: 2,
-                px: 4,
+                px: 5,
                 fontWeight: 700,
-                background: "#10b981",
+                fontSize: "1.05rem",
+                minWidth: 200,
+                height: 48,
+                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
                 boxShadow: "0 4px 16px rgba(16, 185, 129, 0.4)",
                 "&:hover": {
-                  background: "#059669",
+                  background:
+                    "linear-gradient(135deg, #059669 0%, #047857 100%)",
                   transform: "translateY(-2px)",
                   boxShadow: "0 6px 20px rgba(16, 185, 129, 0.5)",
                 },
                 "&:disabled": {
                   background: "rgba(0,0,0,0.12)",
+                  color: "rgba(0,0,0,0.26)",
                 },
                 transition: "all 0.2s ease",
               }}
@@ -629,6 +826,138 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien }) {
           </>
         )}
       </DialogActions>
+
+      {/* ========== UNDO CONFIRMATION DIALOG ========== */}
+      <Dialog
+        open={openUndoDialog}
+        onClose={handleCloseUndoDialog}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { borderRadius: 3 },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            background: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+            color: "#92400e",
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            py: 2.5,
+          }}
+        >
+          <UndoIcon sx={{ fontSize: 28 }} />
+          Xác Nhận Hủy Duyệt KPI
+        </DialogTitle>
+
+        <DialogContent sx={{ mt: 3 }}>
+          {/* Warning alert */}
+          <Alert severity="warning" sx={{ mb: 3, borderRadius: 2 }}>
+            <Typography variant="body2" fontWeight="600" gutterBottom>
+              ⚠️ Hành động này sẽ:
+            </Typography>
+            <ul style={{ margin: "8px 0", paddingLeft: "20px" }}>
+              <li>Đưa KPI về trạng thái Chưa duyệt</li>
+              <li>Cho phép chỉnh sửa lại điểm số</li>
+              <li>Lưu lại lịch sử hủy duyệt</li>
+            </ul>
+          </Alert>
+
+          {/* KPI info box */}
+          <Box
+            sx={{
+              p: 2.5,
+              borderRadius: 2,
+              background: "#f9fafb",
+              border: "1px solid #e5e7eb",
+              mb: 3,
+            }}
+          >
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              Thông tin KPI:
+            </Typography>
+            <Typography variant="body1" fontWeight="600">
+              {nhanVien?.HoTen}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Tháng {dayjs(currentDanhGiaKPI?.ThangDanhGia).format("MM/YYYY")}
+            </Typography>
+            <Typography variant="body2" color="success.main" fontWeight="600">
+              Điểm hiện tại: {totalKPIScore.toFixed(2)}
+            </Typography>
+          </Box>
+
+          {/* Permission info */}
+          {canUndoApproval.isManager && (
+            <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
+              <Typography variant="caption">
+                💡 Quản lý KPI chỉ có thể hủy duyệt trong vòng 7 ngày.
+                <br />
+                Còn lại: <strong>{canUndoApproval.daysRemaining} ngày</strong>
+              </Typography>
+            </Alert>
+          )}
+
+          {/* Reason input */}
+          <TextField
+            multiline
+            rows={4}
+            fullWidth
+            placeholder="Nhập lý do hủy duyệt... (ít nhất 10 ký tự)"
+            value={undoReason}
+            onChange={(e) => {
+              if (e.target.value.length <= 500) {
+                setUndoReason(e.target.value);
+              }
+            }}
+            helperText={`${undoReason.length}/500 ký tự`}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 2,
+              },
+            }}
+          />
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, py: 2.5, gap: 2 }}>
+          <Button
+            onClick={handleCloseUndoDialog}
+            variant="outlined"
+            size="large"
+            sx={{
+              borderRadius: 2,
+              px: 3,
+              fontWeight: 600,
+            }}
+          >
+            Hủy bỏ
+          </Button>
+          <Button
+            variant="contained"
+            color="warning"
+            size="large"
+            onClick={handleConfirmUndo}
+            disabled={undoReason.trim().length < 10 || isSaving}
+            sx={{
+              borderRadius: 2,
+              px: 4,
+              fontWeight: 700,
+              minWidth: 180,
+            }}
+          >
+            {isSaving ? "Đang xử lý..." : "Xác nhận hủy duyệt"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <KPIHistoryDialog
+        open={openHistory}
+        onClose={handleCloseHistory}
+        currentDanhGiaKPI={currentDanhGiaKPI}
+        isApproved={isApproved}
+      />
     </Dialog>
   );
 }

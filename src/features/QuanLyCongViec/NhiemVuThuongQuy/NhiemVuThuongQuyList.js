@@ -69,11 +69,11 @@ function NhiemVuThuongQuyList() {
         disableGroupBy: true,
       },
       {
-        Header: "Mức độ khó",
-        Footer: "Mức độ khó",
-        accessor: "MucDoKho",
+        Header: "Độ khó mặc định",
+        Footer: "Độ khó mặc định",
+        accessor: "MucDoKhoDefault",
         disableGroupBy: true,
-        Cell: ({ value }) => `${value}/10`,
+        Cell: ({ value }) => `${value || "NA"}/10`,
       },
       {
         Header: "Mô tả",

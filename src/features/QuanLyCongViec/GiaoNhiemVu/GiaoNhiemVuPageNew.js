@@ -8,6 +8,7 @@ import {
   copyAssignments,
 } from "./giaoNhiemVuSlice";
 import EmployeeOverviewTable from "./components/EmployeeOverviewTable";
+import AssignSingleDutyButton from "./components/AssignSingleDutyButton";
 import {
   Box,
   CircularProgress,
@@ -217,7 +218,20 @@ const GiaoNhiemVuPage = () => {
       <Divider sx={{ my: 3 }} />
 
       {/* Main Table */}
-      <MainCard title="Danh sách nhân viên" content={false}>
+      <MainCard
+        title="Danh sách nhân viên"
+        content={false}
+        secondary={
+          <AssignSingleDutyButton
+            employees={employees
+              .map((e) => {
+                const raw = e.ThongTinNhanVienDuocQuanLy;
+                return Array.isArray(raw) ? raw[0] : raw;
+              })
+              .filter(Boolean)}
+          />
+        }
+      >
         <Box sx={{ p: 2 }}>
           <EmployeeOverviewTable
             employees={employees}

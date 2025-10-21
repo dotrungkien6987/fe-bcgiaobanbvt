@@ -1,6 +1,22 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Stack, Card, Typography, Tabs, Tab } from "@mui/material";
+import {
+  Stack,
+  Card,
+  Typography,
+  Tabs,
+  Tab,
+  ToggleButtonGroup,
+  ToggleButton,
+  Chip,
+  Tooltip,
+  Alert,
+  Collapse,
+  Box,
+} from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import InfoIcon from "@mui/icons-material/Info";
 import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
@@ -38,12 +54,20 @@ const BinhQuanBenhAn = () => {
     BinhQuanBenhAn_NgayChenhLech: rowsChenhLech,
     ThongKe_VienPhi_DuyetKeToan,
     ThongKe_VienPhi_DuyetKeToan_NgayChenhLech,
+    BinhQuanBenhAn_DuKien: rowsFromStore_DuKien,
+    BinhQuanBenhAn_DuKien_NgayChenhLech: rowsChenhLech_DuKien,
+    ThongKe_VienPhi_DuKien,
+    ThongKe_VienPhi_DuKien_NgayChenhLech,
     dashboadChiSoChatLuong,
     dashboad_NgayChenhLech,
   } = useSelector((state) => state.dashboard) || {};
   const { khuyenCaoList } =
     useSelector((state) => state.khuyenCaoKhoaBQBA) || {};
   const BLUE = "#1939B7";
+
+  // State toggle giữa "Duyệt kế toán" và "Doanh thu dự kiến"
+  const [loaiDoanhThu, setLoaiDoanhThu] = useState("duyetketoan");
+  const [showModeAlert, setShowModeAlert] = useState(true);
 
   // Ngày đang xem + ngày tính chênh lệch (mặc định hôm qua)
   const [date, setDate] = useState(dayjs());
@@ -66,11 +90,29 @@ const BinhQuanBenhAn = () => {
   const [orderNgoaiTru, setOrderNgoaiTru] = useState("desc");
   const [orderByNgoaiTru, setOrderByNgoaiTru] = useState("total_money");
 
+  // Chọn data source dựa vào loaiDoanhThu
+  const currentRowsFromStore =
+    loaiDoanhThu === "duyetketoan" ? rowsFromStore : rowsFromStore_DuKien;
+  const currentRowsChenhLech =
+    loaiDoanhThu === "duyetketoan" ? rowsChenhLech : rowsChenhLech_DuKien;
+  const currentThongKeVienPhi =
+    loaiDoanhThu === "duyetketoan"
+      ? ThongKe_VienPhi_DuyetKeToan
+      : ThongKe_VienPhi_DuKien;
+  const currentThongKeVienPhi_NgayChenhLech =
+    loaiDoanhThu === "duyetketoan"
+      ? ThongKe_VienPhi_DuyetKeToan_NgayChenhLech
+      : ThongKe_VienPhi_DuKien_NgayChenhLech;
+
   // Dữ liệu nguồn: lấy từ Redux, bỏ qua các bản ghi chưa có thông tin
   // Tính chênh lệch với ngày trước
   const baseRows = useMemo(() => {
-    const rows = Array.isArray(rowsFromStore) ? rowsFromStore : [];
-    const prevRows = Array.isArray(rowsChenhLech) ? rowsChenhLech : [];
+    const rows = Array.isArray(currentRowsFromStore)
+      ? currentRowsFromStore
+      : [];
+    const prevRows = Array.isArray(currentRowsChenhLech)
+      ? currentRowsChenhLech
+      : [];
     const validRows = rows.filter((r) => r && r.TenKhoa && r.KhoaID);
 
     // Tính chênh lệch
@@ -91,7 +133,7 @@ const BinhQuanBenhAn = () => {
         KhuyenCaoTyLeThuocVatTu: khuyenCao?.KhuyenCaoTyLeThuocVatTu || null,
       };
     });
-  }, [rowsFromStore, rowsChenhLech, ngay, khuyenCaoList, nam]);
+  }, [currentRowsFromStore, currentRowsChenhLech, ngay, khuyenCaoList, nam]);
 
   // Tách dữ liệu theo LoaiKhoa
   const rowsNoiTru = useMemo(() => {
@@ -281,6 +323,13 @@ const BinhQuanBenhAn = () => {
     return () => clearInterval(id);
   }, [isToday, date, dispatch]);
 
+  // Auto-show alert khi switch mode
+  useEffect(() => {
+    setShowModeAlert(true);
+    const timer = setTimeout(() => setShowModeAlert(false), 4000);
+    return () => clearTimeout(timer);
+  }, [loaiDoanhThu]);
+
   const handleRequestSortNoiTru = (event, property) => {
     const isAsc = orderByNoiTru === property && orderNoiTru === "asc";
     setOrderNoiTru(isAsc ? "desc" : "asc");
@@ -314,7 +363,50 @@ const BinhQuanBenhAn = () => {
   };
 
   return (
-    <Stack spacing={2} sx={{ p: { xs: 0.5, sm: 1 } }}>
+    <Stack spacing={2} sx={{ p: { xs: 0.5, sm: 1 }, position: "relative" }}>
+      {/* Sticky Mode Indicator - Luôn hiển thị góc phải */}
+      <Chip
+        icon={
+          loaiDoanhThu === "duyetketoan" ? (
+            <CheckCircleIcon
+              sx={{ fontSize: { xs: "0.9rem", sm: "1.1rem" } }}
+            />
+          ) : (
+            <TrendingUpIcon sx={{ fontSize: { xs: "0.9rem", sm: "1.1rem" } }} />
+          )
+        }
+        label={
+          <Box>
+            <Typography
+              sx={{
+                fontSize: { xs: "0.7rem", sm: "0.85rem" },
+                fontWeight: 700,
+              }}
+            >
+              {loaiDoanhThu === "duyetketoan" ? "Duyệt KT" : "Dự kiến"}
+            </Typography>
+          </Box>
+        }
+        color={loaiDoanhThu === "duyetketoan" ? "success" : "warning"}
+        variant="filled"
+        sx={{
+          position: "fixed",
+          top: { xs: 70, sm: 80 },
+          right: { xs: 10, sm: 20 },
+          zIndex: 1100,
+          px: { xs: 1, sm: 1.5 },
+          py: { xs: 2, sm: 2.5 },
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          fontWeight: 700,
+          transition: "all 0.3s ease",
+          "&:hover": {
+            transform: "scale(1.05)",
+            boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+          },
+        }}
+      />
+
+      {/* Card tiêu đề với subtitle */}
       <Card
         sx={{
           fontWeight: "bold",
@@ -323,6 +415,9 @@ const BinhQuanBenhAn = () => {
           p: { xs: 0.5, sm: 1 },
           boxShadow: 3,
           borderRadius: 3,
+          borderLeft: "6px solid",
+          borderLeftColor:
+            loaiDoanhThu === "duyetketoan" ? "#4caf50" : "#ff9800",
         }}
       >
         <Typography
@@ -333,7 +428,51 @@ const BinhQuanBenhAn = () => {
         >
           Bình quân bệnh án
         </Typography>
+        <Typography
+          sx={{
+            fontSize: { xs: "0.7rem", sm: "0.85rem" },
+            textAlign: "center",
+            opacity: 0.95,
+            mt: 0.5,
+            fontWeight: 400,
+            fontStyle: "italic",
+          }}
+        >
+          {loaiDoanhThu === "duyetketoan"
+            ? "📊 Theo doanh thu đã duyệt kế toán"
+            : "📈 Theo doanh thu dự kiến"}
+        </Typography>
       </Card>
+
+      {/* Alert Banner - Hiện khi switch mode */}
+      <Collapse in={showModeAlert}>
+        <Alert
+          severity={loaiDoanhThu === "duyetketoan" ? "success" : "warning"}
+          icon={<InfoIcon />}
+          onClose={() => setShowModeAlert(false)}
+          sx={{
+            fontSize: { xs: "0.75rem", sm: "0.9rem" },
+            fontWeight: 600,
+            borderRadius: 2,
+            boxShadow: 2,
+            "& .MuiAlert-message": {
+              width: "100%",
+            },
+          }}
+        >
+          {loaiDoanhThu === "duyetketoan" ? (
+            <>
+              <strong>Đang xem:</strong> Dữ liệu đã{" "}
+              <strong>duyệt kế toán</strong> (số liệu chính thức) ✅
+            </>
+          ) : (
+            <>
+              <strong>Đang xem:</strong> Dữ liệu{" "}
+              <strong>doanh thu dự kiến</strong> (số liệu ước tính) 📊
+            </>
+          )}
+        </Alert>
+      </Collapse>
 
       {/* Chọn ngày + hiển thị thời gian số liệu */}
       <Card
@@ -375,7 +514,11 @@ const BinhQuanBenhAn = () => {
           </Stack>
 
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              alignItems="center"
+            >
               <DatePicker
                 label="Ngày xem"
                 value={date}
@@ -404,6 +547,66 @@ const BinhQuanBenhAn = () => {
                   },
                 }}
               />
+
+              {/* Enhanced Toggle với Tooltip */}
+              <Tooltip
+                title={
+                  <Box sx={{ p: 0.5 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                      {loaiDoanhThu === "duyetketoan"
+                        ? "Đang xem: Duyệt kế toán ✅"
+                        : "Đang xem: Doanh thu dự kiến 📊"}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ display: "block", mt: 0.5, opacity: 0.9 }}
+                    >
+                      Click để chuyển đổi
+                    </Typography>
+                  </Box>
+                }
+                arrow
+                placement="top"
+              >
+                <ToggleButtonGroup
+                  value={loaiDoanhThu}
+                  exclusive
+                  onChange={(e, val) => val && setLoaiDoanhThu(val)}
+                  size="small"
+                  sx={{
+                    minWidth: { xs: "100%", sm: "auto" },
+                    border: "2px solid",
+                    borderColor:
+                      loaiDoanhThu === "duyetketoan" ? "#4caf50" : "#ff9800",
+                    borderRadius: 2,
+                    bgcolor: "background.paper",
+                    "& .MuiToggleButton-root": {
+                      fontSize: { xs: "0.7rem", sm: "0.8rem" },
+                      px: { xs: 1.5, sm: 2 },
+                      py: { xs: 0.8, sm: 1 },
+                      fontWeight: 600,
+                      transition: "all 0.2s ease",
+                      "&.Mui-selected": {
+                        bgcolor:
+                          loaiDoanhThu === "duyetketoan"
+                            ? "success.main"
+                            : "warning.main",
+                        color: "#fff",
+                        transform: "scale(1.02)",
+                        "&:hover": {
+                          bgcolor:
+                            loaiDoanhThu === "duyetketoan"
+                              ? "success.dark"
+                              : "warning.dark",
+                        },
+                      },
+                    },
+                  }}
+                >
+                  <ToggleButton value="duyetketoan">📊 Duyệt KT</ToggleButton>
+                  <ToggleButton value="dukien">📈 Dự kiến</ToggleButton>
+                </ToggleButtonGroup>
+              </Tooltip>
             </Stack>
           </LocalizationProvider>
         </Stack>
@@ -485,18 +688,17 @@ const BinhQuanBenhAn = () => {
 
       {/* Overall Summary Cards - Toàn viện */}
       <OverallSummaryCards
-        totalAll={ThongKe_VienPhi_DuyetKeToan?.total_all || 0}
+        totalAll={currentThongKeVienPhi?.total_all || 0}
         totalAll_diff={
-          (ThongKe_VienPhi_DuyetKeToan?.total_all || 0) -
-          (ThongKe_VienPhi_DuyetKeToan_NgayChenhLech?.total_all || 0)
+          (currentThongKeVienPhi?.total_all || 0) -
+          (currentThongKeVienPhi_NgayChenhLech?.total_all || 0)
         }
         ngoaitruKhongNhapVien={
-          ThongKe_VienPhi_DuyetKeToan?.ngoaitru_khong_nhapvien || 0
+          currentThongKeVienPhi?.ngoaitru_khong_nhapvien || 0
         }
         ngoaitruKhongNhapVien_diff={
-          (ThongKe_VienPhi_DuyetKeToan?.ngoaitru_khong_nhapvien || 0) -
-          (ThongKe_VienPhi_DuyetKeToan_NgayChenhLech?.ngoaitru_khong_nhapvien ||
-            0)
+          (currentThongKeVienPhi?.ngoaitru_khong_nhapvien || 0) -
+          (currentThongKeVienPhi_NgayChenhLech?.ngoaitru_khong_nhapvien || 0)
         }
       />
 
@@ -578,10 +780,10 @@ const BinhQuanBenhAn = () => {
             totals={totalsNoiTru}
             filteredLength={filteredNoiTru.length}
             loaiKhoa="noitru"
-            thongKeCount={ThongKe_VienPhi_DuyetKeToan?.noitru || 0}
+            thongKeCount={currentThongKeVienPhi?.noitru || 0}
             thongKeCount_diff={
-              (ThongKe_VienPhi_DuyetKeToan?.noitru || 0) -
-              (ThongKe_VienPhi_DuyetKeToan_NgayChenhLech?.noitru || 0)
+              (currentThongKeVienPhi?.noitru || 0) -
+              (currentThongKeVienPhi_NgayChenhLech?.noitru || 0)
             }
           />
 
@@ -610,10 +812,10 @@ const BinhQuanBenhAn = () => {
             totals={totalsNgoaiTru}
             filteredLength={filteredNgoaiTru.length}
             loaiKhoa="ngoaitru"
-            thongKeCount={ThongKe_VienPhi_DuyetKeToan?.ngoaitru || 0}
+            thongKeCount={currentThongKeVienPhi?.ngoaitru || 0}
             thongKeCount_diff={
-              (ThongKe_VienPhi_DuyetKeToan?.ngoaitru || 0) -
-              (ThongKe_VienPhi_DuyetKeToan_NgayChenhLech?.ngoaitru || 0)
+              (currentThongKeVienPhi?.ngoaitru || 0) -
+              (currentThongKeVienPhi_NgayChenhLech?.ngoaitru || 0)
             }
           />
 

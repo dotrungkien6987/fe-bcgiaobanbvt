@@ -31,6 +31,127 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
 /**
+ * ScoreInput - Isolated input component with local state
+ * Prevents re-render focus loss by using controlled local state
+ * Only dispatches to Redux on blur/enter
+ */
+function ScoreInput({
+  initialValue,
+  min,
+  max,
+  unit,
+  onCommit,
+  disabled,
+  isGiamDiem,
+}) {
+  const [localValue, setLocalValue] = useState(initialValue || 0);
+  const inputRef = useRef(null);
+
+  // Sync with prop changes from external updates
+  useEffect(() => {
+    setLocalValue(initialValue || 0);
+  }, [initialValue]);
+
+  const handleChange = (e) => {
+    const rawValue = e.target.value;
+    if (rawValue === "" || rawValue === null) {
+      setLocalValue("");
+      return;
+    }
+    const val = parseFloat(rawValue);
+    if (!Number.isNaN(val)) {
+      setLocalValue(val);
+    }
+  };
+
+  const handleCommit = () => {
+    let val = parseFloat(localValue);
+    if (localValue === "" || Number.isNaN(val)) {
+      val = min; // Default to min if empty
+    }
+    // Clamp to range
+    if (val < min) val = min;
+    if (val > max) val = max;
+
+    setLocalValue(val);
+    onCommit(val);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleCommit();
+      inputRef.current?.blur(); // Unfocus after commit
+    }
+  };
+
+  return (
+    <Box>
+      <TextField
+        inputRef={inputRef}
+        type="number"
+        value={localValue}
+        onChange={handleChange}
+        onBlur={handleCommit}
+        onKeyDown={handleKeyDown}
+        onFocus={(e) => e.target.select()}
+        disabled={disabled}
+        inputProps={{
+          min,
+          max,
+          step: 1,
+          style: {
+            textAlign: "center",
+            padding: "6px 8px",
+            fontSize: "0.85rem",
+            fontWeight: "700",
+          },
+        }}
+        sx={{
+          width: 100,
+          "& .MuiOutlinedInput-root": {
+            borderRadius: 1,
+            bgcolor: "white",
+            "&:hover": {
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            },
+            "&.Mui-focused": {
+              boxShadow: "0 4px 12px rgba(102, 126, 234, 0.3)",
+            },
+          },
+        }}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                fontWeight="600"
+              >
+                {unit || "%"}
+              </Typography>
+            </InputAdornment>
+          ),
+        }}
+      />
+      {isGiamDiem && (
+        <Chip
+          label="−"
+          size="small"
+          sx={{
+            mt: 0.5,
+            height: 20,
+            fontSize: "0.75rem",
+            fontWeight: "700",
+            bgcolor: "error.main",
+            color: "white",
+          }}
+        />
+      )}
+    </Box>
+  );
+}
+
+/**
  * ChamDiemKPITable - Compact table layout for KPI scoring
  *
  * Props:
@@ -44,13 +165,14 @@ function ChamDiemKPITable({
   readOnly = false,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [expandedRow, setExpandedRow] = useState(null);
+  // ✅ Store expanded row id as string to avoid ObjectId reference issues across renders
+  const [expandedRowId, setExpandedRowId] = useState(null);
   const expandedRowRef = useRef(null);
   const tableContainerRef = useRef(null);
 
   // Ensure expanded row is fully visible inside the scroll container
   const ensureExpandedRowVisible = () => {
-    if (!expandedRow || !expandedRowRef.current || !tableContainerRef.current)
+    if (!expandedRowId || !expandedRowRef.current || !tableContainerRef.current)
       return;
     const container = tableContainerRef.current;
     const rowEl = expandedRowRef.current;
@@ -71,13 +193,13 @@ function ChamDiemKPITable({
 
   // Run after expandedRow changes (initial expand)
   useEffect(() => {
-    if (!expandedRow) return;
+    if (!expandedRowId) return;
     const timer = setTimeout(() => {
       ensureExpandedRowVisible();
     }, 180);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expandedRow]);
+  }, [expandedRowId]);
 
   // Filter tasks by search
   const filteredList = useMemo(() => {
@@ -105,7 +227,8 @@ function ChamDiemKPITable({
   );
 
   const toggleExpandRow = (nhiemVuId) => {
-    setExpandedRow(expandedRow === nhiemVuId ? null : nhiemVuId);
+    const idStr = String(nhiemVuId);
+    setExpandedRowId((prev) => (prev === idStr ? null : idStr));
   };
 
   // Calculate tiêu chí score with correct formula
@@ -329,11 +452,15 @@ function ChamDiemKPITable({
 
           <TableBody>
             {filteredList.map((nhiemVu, index) => {
-              const isExpanded = expandedRow === nhiemVu._id;
+              // ✅ Use stable unique id per row: prefer assignment _id, fallback to task template id, then index
+              const baseId =
+                nhiemVu?._id || nhiemVu?.NhiemVuThuongQuyID?._id || index;
+              const rowId = String(baseId);
+              const isExpanded = expandedRowId === rowId;
               const isScored = nhiemVu.TongDiemTieuChi > 0;
 
               return (
-                <React.Fragment key={nhiemVu._id}>
+                <React.Fragment key={rowId}>
                   <TableRow
                     hover
                     sx={{
@@ -370,7 +497,7 @@ function ChamDiemKPITable({
                     <TableCell>
                       <IconButton
                         size="small"
-                        onClick={() => toggleExpandRow(nhiemVu._id)}
+                        onClick={() => toggleExpandRow(rowId)}
                         sx={{
                           transition: "all 0.3s ease",
                           "&:hover": {
@@ -444,16 +571,14 @@ function ChamDiemKPITable({
                     </TableCell>
 
                     {/* Tiêu chí scores */}
-                    {nhiemVu.ChiTietDiem.map((tieuChi, tcIdx) => {
+                    {nhiemVu.ChiTietDiem?.map((tieuChi, tcIdx) => {
                       const giaTriMin = tieuChi.GiaTriMin;
                       const giaTriMax = tieuChi.GiaTriMax;
                       const isGiamDiem = tieuChi.LoaiTieuChi === "GIAM_DIEM";
-                      // ✅ FIX: Unique input id/name for React to track focus
-                      const inputId = `score-${nhiemVu._id}-${tcIdx}`;
 
                       return (
                         <TableCell
-                          key={`${nhiemVu._id}-tc-${tcIdx}`}
+                          key={`${rowId}-tc-${tcIdx}`}
                           align="center"
                           sx={{
                             py: 1.2,
@@ -465,111 +590,17 @@ function ChamDiemKPITable({
                             borderColor: "divider",
                           }}
                         >
-                          <TextField
-                            // ✅ FIX: Add unique id and name
-                            id={inputId}
-                            name={inputId}
-                            type="number"
-                            value={tieuChi.DiemDat || 0}
-                            onChange={(e) => {
-                              const rawValue = e.target.value;
-
-                              // ✅ FIX: Allow empty input (when user deletes all)
-                              if (rawValue === "" || rawValue === null) {
-                                handleScoreChange(nhiemVu._id, tcIdx, 0);
-                                return;
-                              }
-
-                              let val = parseFloat(rawValue);
-
-                              // Skip if not a valid number
-                              if (Number.isNaN(val)) return;
-
-                              // Clamp to min/max range
-                              if (val < giaTriMin) val = giaTriMin;
-                              if (val > giaTriMax) val = giaTriMax;
-
-                              handleScoreChange(nhiemVu._id, tcIdx, val);
-                            }}
-                            onBlur={(e) => {
-                              // On blur, ensure value is within min/max range
-                              const rawValue = e.target.value;
-                              let val = parseFloat(rawValue);
-
-                              // If empty or invalid, set to min
-                              if (rawValue === "" || Number.isNaN(val)) {
-                                handleScoreChange(
-                                  nhiemVu._id,
-                                  tcIdx,
-                                  giaTriMin
-                                );
-                                return;
-                              }
-
-                              // Clamp to range
-                              if (val < giaTriMin) val = giaTriMin;
-                              if (val > giaTriMax) val = giaTriMax;
-
-                              if (val !== tieuChi.DiemDat) {
-                                handleScoreChange(nhiemVu._id, tcIdx, val);
-                              }
-                            }}
-                            // ✅ FIX: Auto-select on focus for better UX
-                            onFocus={(e) => e.target.select()}
+                          <ScoreInput
+                            initialValue={tieuChi.DiemDat}
+                            min={giaTriMin}
+                            max={giaTriMax}
+                            unit={tieuChi.DonVi}
+                            onCommit={(val) =>
+                              handleScoreChange(baseId, tcIdx, val)
+                            }
                             disabled={readOnly}
-                            inputProps={{
-                              min: giaTriMin,
-                              max: giaTriMax,
-                              step: 1, // Integer step for cleaner input
-                              style: {
-                                textAlign: "center",
-                                padding: "6px 8px",
-                                fontSize: "0.85rem",
-                                fontWeight: "700",
-                              },
-                            }}
-                            sx={{
-                              width: 100,
-                              "& .MuiOutlinedInput-root": {
-                                borderRadius: 1,
-                                bgcolor: "white",
-                                "&:hover": {
-                                  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                                },
-                                "&.Mui-focused": {
-                                  boxShadow:
-                                    "0 4px 12px rgba(102, 126, 234, 0.3)",
-                                },
-                              },
-                            }}
-                            InputProps={{
-                              endAdornment: (
-                                <InputAdornment position="end">
-                                  <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                    fontWeight="600"
-                                  >
-                                    {tieuChi.DonVi || "%"}
-                                  </Typography>
-                                </InputAdornment>
-                              ),
-                            }}
+                            isGiamDiem={isGiamDiem}
                           />
-                          {isGiamDiem && (
-                            <Chip
-                              label="−"
-                              size="small"
-                              sx={{
-                                mt: 0.5,
-                                height: 20,
-                                fontSize: "0.75rem",
-                                fontWeight: "700",
-                                bgcolor: "error.main",
-                                color: "white",
-                              }}
-                            />
-                          )}
                         </TableCell>
                       );
                     })}
