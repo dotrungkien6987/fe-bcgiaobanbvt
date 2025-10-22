@@ -160,9 +160,11 @@ export const getEmployeesForEvaluation = (cycleId) => async (dispatch) => {
     // Transform to match expected format with danhGiaKPI
     const employees = (nhanVienList || []).map((item) => ({
       employee: item.nhanVien,
-      assignedCount: item.progress?.total || 0,
-      totalDuties: item.progress?.total || 0,
+      assignedCount: item.progress?.total || 0, // Số nhiệm vụ được phân công
+      scoredCount: item.progress?.scored || 0, // ✅ NEW: Số nhiệm vụ đã chấm điểm
+      totalDuties: item.progress?.total || 0, // Để tương thích với code cũ
       danhGiaKPI: item.danhGiaKPI || null,
+      progress: item.progress || { scored: 0, total: 0, percentage: 0 }, // ✅ NEW: Giữ nguyên progress object
     }));
 
     dispatch(slice.actions.getEmployeesSuccess(employees));

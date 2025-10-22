@@ -468,20 +468,14 @@ function KPIEvaluationPage() {
                   const employee = item.employee || item.nhanVien || {};
                   const danhGiaKPI = item.danhGiaKPI || null;
                   const isApproved = danhGiaKPI?.TrangThai === "DA_DUYET";
-                  const progress =
-                    item.totalDuties > 0
-                      ? (item.assignedCount / item.totalDuties) * 100
-                      : 0;
 
-                  // Debug log
-                  if (index === 0) {
-                    console.log("First employee item:", {
-                      item,
-                      employee,
-                      danhGiaKPI,
-                      isApproved,
-                    });
-                  }
+                  // ✅ FIX: Tính tiến độ từ số nhiệm vụ ĐÃ CHẤM / số nhiệm vụ ĐƯỢC GIAO
+                  const scoredCount =
+                    item.scoredCount || item.progress?.scored || 0;
+                  const assignedCount =
+                    item.assignedCount || item.progress?.total || 0;
+                  const progressPercentage =
+                    assignedCount > 0 ? (scoredCount / assignedCount) * 100 : 0;
 
                   return (
                     <TableRow key={employee._id || index}>
@@ -504,13 +498,13 @@ function KPIEvaluationPage() {
 
                       <TableCell align="center">
                         <Chip
-                          label={`${item.assignedCount || 0}/${
-                            item.totalDuties || 0
-                          }`}
+                          label={`${scoredCount}/${assignedCount}`}
                           size="small"
                           color={
-                            (item.assignedCount || 0) > 0
-                              ? "primary"
+                            scoredCount === assignedCount && assignedCount > 0
+                              ? "success"
+                              : scoredCount > 0
+                              ? "warning"
                               : "default"
                           }
                         />
@@ -527,17 +521,17 @@ function KPIEvaluationPage() {
                         >
                           <Box sx={{ minWidth: 50 }}>
                             <Typography variant="body2">
-                              {progress.toFixed(0)}%
+                              {progressPercentage.toFixed(0)}%
                             </Typography>
                           </Box>
                           <Box sx={{ width: "100%", maxWidth: 100 }}>
                             <LinearProgress
                               variant="determinate"
-                              value={progress}
+                              value={progressPercentage}
                               color={
-                                progress >= 80
+                                progressPercentage === 100 && assignedCount > 0
                                   ? "success"
-                                  : progress >= 50
+                                  : progressPercentage > 0
                                   ? "warning"
                                   : "error"
                               }

@@ -1233,6 +1233,16 @@ export const saveAllNhiemVu = () => async (dispatch, getState) => {
     toast.success(
       `✅ Đã lưu nháp ${nhiemVuWithScores.length} nhiệm vụ thành công!`
     );
+
+    // ✅ NEW: Reload employees list to update table
+    const cycleId = currentDanhGiaKPI.ChuKyID?._id || currentDanhGiaKPI.ChuKyID;
+    if (cycleId) {
+      // Import dynamically to avoid circular dependency
+      const { getEmployeesForEvaluation } = await import(
+        "./kpiEvaluationSlice"
+      );
+      dispatch(getEmployeesForEvaluation(cycleId));
+    }
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(`❌ Lỗi lưu nháp: ${error.message}`);
@@ -1305,6 +1315,18 @@ export const approveKPI = (danhGiaKPIId) => async (dispatch, getState) => {
     // ✅ ENHANCED: Success message với tổng điểm
     const tongDiem = dg.TongDiemKPI || 0;
     toast.success(`✅ Duyệt KPI thành công! Tổng điểm: ${tongDiem.toFixed(1)}`);
+
+    // ✅ NEW: Reload employees list to update table
+    const { currentDanhGiaKPI } = getState().kpi;
+    const cycleId =
+      currentDanhGiaKPI?.ChuKyID?._id || currentDanhGiaKPI?.ChuKyID;
+    if (cycleId) {
+      // Import dynamically to avoid circular dependency
+      const { getEmployeesForEvaluation } = await import(
+        "./kpiEvaluationSlice"
+      );
+      dispatch(getEmployeesForEvaluation(cycleId));
+    }
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
@@ -1315,7 +1337,7 @@ export const approveKPI = (danhGiaKPIId) => async (dispatch, getState) => {
  * ✅ NEW: Hủy duyệt KPI
  * @param {Object} payload - { danhGiaKPIId: String, lyDo: String }
  */
-export const undoApproveKPI = (payload) => async (dispatch) => {
+export const undoApproveKPI = (payload) => async (dispatch, getState) => {
   dispatch(slice.actions.startSaving());
   try {
     const { danhGiaKPIId, lyDo } = payload;
@@ -1333,6 +1355,18 @@ export const undoApproveKPI = (payload) => async (dispatch) => {
     dispatch(slice.actions.undoApproveKPISuccess({ danhGiaKPI: dg }));
 
     toast.success("✅ Đã hủy duyệt KPI thành công! Có thể chỉnh sửa lại điểm.");
+
+    // ✅ NEW: Reload employees list to update table
+    const { currentDanhGiaKPI } = getState().kpi;
+    const cycleId =
+      currentDanhGiaKPI?.ChuKyID?._id || currentDanhGiaKPI?.ChuKyID;
+    if (cycleId) {
+      // Import dynamically to avoid circular dependency
+      const { getEmployeesForEvaluation } = await import(
+        "./kpiEvaluationSlice"
+      );
+      dispatch(getEmployeesForEvaluation(cycleId));
+    }
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(`❌ Lỗi hủy duyệt KPI: ${error.message}`);

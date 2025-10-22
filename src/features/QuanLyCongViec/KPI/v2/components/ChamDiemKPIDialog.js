@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
@@ -115,6 +115,10 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
   // ========== HISTORY STATE ==========
   const [openHistory, setOpenHistory] = useState(false);
 
+  // ========== AUTO-CLOSE STATE ==========
+  // ✅ NEW: Track if approval just happened in this dialog session
+  const [justApproved, setJustApproved] = useState(false);
+
   // Check permission to undo approval
   const canUndoApproval = useMemo(() => {
     if (!currentDanhGiaKPI || currentDanhGiaKPI.TrangThai !== "DA_DUYET") {
@@ -171,6 +175,7 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
       toast.error("Vui lòng chấm đủ điểm tất cả nhiệm vụ trước khi duyệt KPI");
       return;
     }
+    setJustApproved(true); // ✅ Set flag before dispatching approve action
     dispatch(approveKPI(currentDanhGiaKPI._id));
   };
 
@@ -226,6 +231,41 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
   const handleDismissSyncWarning = () => {
     dispatch(clearSyncWarning());
   };
+
+  // ✅ Reset justApproved flag when dialog opens
+  useEffect(() => {
+    if (open) {
+      setJustApproved(false);
+    }
+  }, [open]);
+
+  // ✅ FIX: Auto-close dialog ONLY when approval just happened in this session
+  useEffect(() => {
+    if (
+      justApproved &&
+      currentDanhGiaKPI?.TrangThai === "DA_DUYET" &&
+      !readOnly &&
+      open &&
+      !isLoading &&
+      !isSaving
+    ) {
+      const timer = setTimeout(() => {
+        dispatch(clearCurrentChamDiem());
+        onClose();
+        setJustApproved(false); // Reset flag after closing
+      }, 1500); // Delay 1.5s để user thấy toast success
+
+      return () => clearTimeout(timer);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    justApproved,
+    currentDanhGiaKPI?.TrangThai,
+    readOnly,
+    open,
+    isLoading,
+    isSaving,
+  ]);
 
   if (isLoading && !currentDanhGiaKPI) {
     return (
