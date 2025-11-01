@@ -13,6 +13,43 @@ This is a **bilingual React + Node.js hospital management system** with two main
 - **Backend**: Express.js + MongoDB (Mongoose) + JWT auth + Multer file uploads
 - **Architecture**: Feature-based folder structure with Redux slices per domain
 
+## ⚠️ CRITICAL: User vs NhanVien Model Distinction
+
+**DO NOT CONFUSE User and NhanVien models:**
+
+### User Model (Authentication & Authorization)
+- Used for login/authentication via `useAuth()` hook
+- Contains: `_id`, `UserName`, `PassWord`, `Email`, `PhanQuyen` (role), `KhoaID` (department)
+- **Important**: User has `NhanVienID` field that references NhanVien model
+- Example structure:
+  ```javascript
+  {
+    _id: "64f3cb6035c717ab00d75b8b",
+    UserName: "kiendt",
+    NhanVienID: "66b1dba74f79822a4752d90d", // ← Reference to NhanVien
+    PhanQuyen: "manager",
+    KhoaID: { _id: "...", TenKhoa: "..." },
+    HoTen: "Đỗ Trung Kiên",
+    Email: "dotrungkien6987@gmail.com"
+  }
+  ```
+
+### NhanVien Model (Employee/Staff Data)
+- Used in work management (Quản Lý Công Việc) module
+- Contains detailed employee information and work-related data
+- All relationships in work management use `NhanVienID` (refers to NhanVien._id, NOT User._id)
+- Models using NhanVienID: NhanVienNhiemVu, DanhGiaKPI, QuanLyNhanVien, etc.
+
+### Best Practice:
+```javascript
+// ✅ CORRECT: Get NhanVienID from authenticated user
+const { user } = useAuth();
+const nhanVienId = user?.NhanVienID; // Use this for work management APIs
+
+// ❌ WRONG: Using User._id for work management
+const userId = user?._id; // This is User ID, not NhanVien ID!
+```
+
 ## Critical Patterns & Conventions
 
 ### 1. Redux State Management Pattern

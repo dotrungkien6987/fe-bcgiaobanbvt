@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -41,12 +41,42 @@ const yupSchema = Yup.object().shape({
   MoTa: Yup.string().max(1000, "Mô tả không được quá 1000 ký tự"),
 });
 
+// ✅ Tiêu chí FIXED - sẽ hiển thị ngay cả khi thêm mới
+const FIXED_CRITERION = {
+  TenTieuChi: "Mức độ hoàn thành công việc",
+  LoaiTieuChi: "TANG_DIEM",
+  GiaTriMin: 0,
+  GiaTriMax: 100,
+  DonVi: "%",
+  ThuTu: 0,
+  IsMucDoHoanThanh: true,
+  GhiChu: "Tiêu chí cố định, cho phép nhân viên tự đánh giá",
+};
+
 function ThongTinChuKyDanhGia({ open, handleClose, item = null, onSubmit }) {
   const dispatch = useDispatch();
   const isEdit = Boolean(item?._id);
 
-  // State for tiêu chí
-  const [tieuChiList, setTieuChiList] = useState(item?.TieuChiCauHinh || []);
+  // ✅ State for tiêu chí - LUÔN bao gồm FIXED criterion
+  const [tieuChiList, setTieuChiList] = useState(() => {
+    if (item?.TieuChiCauHinh) {
+      // Edit mode: use existing criteria
+      return item.TieuChiCauHinh;
+    }
+    // Create mode: start with FIXED criterion
+    return [FIXED_CRITERION];
+  });
+
+  // ✅ Reset tieuChiList when dialog opens/closes
+  useEffect(() => {
+    if (open) {
+      if (item?.TieuChiCauHinh) {
+        setTieuChiList(item.TieuChiCauHinh);
+      } else {
+        setTieuChiList([FIXED_CRITERION]);
+      }
+    }
+  }, [open, item]);
 
   const handleCopyFromPrevious = async () => {
     const previousCriteria = await dispatch(getPreviousCriteria());
@@ -77,10 +107,16 @@ function ThongTinChuKyDanhGia({ open, handleClose, item = null, onSubmit }) {
 
   const handleFormSubmit = async (data) => {
     try {
-      // Include tiêu chí configuration
+      // ✅ Filter out FIXED criterion before submitting
+      // Backend will preserve or auto-create it
+      const userDefinedCriteria = tieuChiList.filter(
+        (tc) => tc.IsMucDoHoanThanh !== true
+      );
+
+      // Include tiêu chí configuration (without FIXED criterion)
       const payload = {
         ...data,
-        TieuChiCauHinh: tieuChiList,
+        TieuChiCauHinh: userDefinedCriteria,
       };
       await onSubmit(payload);
       reset();

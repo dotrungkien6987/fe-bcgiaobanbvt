@@ -98,9 +98,27 @@ const slice = createSlice({
       state.error = null;
       state.nhanviens = action.payload.map((nhanvien) => ({
         ...nhanvien,
-        TenKhoa: nhanvien.KhoaID.TenKhoa,
+        TenKhoa: nhanvien.KhoaID ? nhanvien.KhoaID.TenKhoa : "",
         Sex: nhanvien.GioiTinh === 0 ? "Nam" : "Nữ",
       }));
+    },
+    getNhanVienByIdSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      // Add or update nhanvien in the list
+      const index = state.nhanviens.findIndex(
+        (nv) => nv._id === action.payload._id
+      );
+      const nhanvienWithKhoa = {
+        ...action.payload,
+        TenKhoa: action.payload.KhoaID ? action.payload.KhoaID.TenKhoa : "",
+        Sex: action.payload.GioiTinh === 0 ? "Nam" : "Nữ",
+      };
+      if (index >= 0) {
+        state.nhanviens[index] = nhanvienWithKhoa;
+      } else {
+        state.nhanviens.push(nhanvienWithKhoa);
+      }
     },
     insertOneNhanVienSuccess(state, action) {
       state.isLoading = false;
@@ -299,6 +317,19 @@ export const getAllNhanVien = () => async (dispatch) => {
     toast.error(error.message);
   }
 };
+
+// Get one nhanvien by ID (simple - only basic info with KhoaID populated)
+export const getNhanVienById = (nhanvienID) => async (dispatch) => {
+  dispatch(slice.actions.startLoading);
+  try {
+    const response = await apiService.get(`/nhanvien/simple/${nhanvienID}`);
+    dispatch(slice.actions.getNhanVienByIdSuccess(response.data.data));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
 export const getOneNhanVienByID = (nhanvienID) => async (dispatch) => {
   dispatch(slice.actions.startLoading);
   try {

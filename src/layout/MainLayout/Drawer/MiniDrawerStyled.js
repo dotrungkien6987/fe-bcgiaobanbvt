@@ -11,27 +11,34 @@ const openedMixin = (theme) => ({
   display: "flex",
   flexDirection: "column",
   transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
+    easing: theme.transitions.easing.easeInOut, // Smooth transition
+    duration: 300, // Consistent 300ms
   }),
   overflowX: "hidden",
   overflowY: "auto",
+  borderRight: `1px solid ${theme.palette.divider}`,
 });
 
 const closedMixin = (theme) => ({
   transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
+    easing: theme.transitions.easing.easeInOut, // Smooth transition
+    duration: 300, // Consistent 300ms
   }),
   overflowX: "hidden",
   width: MINI_DRAWER_WIDTH,
   height: "100vh",
   display: "flex",
   flexDirection: "column",
+  borderRight: `1px solid ${theme.palette.divider}`,
   "& .MuiListItemIcon-root": {
     minWidth: 0,
     marginRight: 0,
     justifyContent: "center",
+  },
+  // Hide text smoothly
+  "& .MuiListItemText-root": {
+    opacity: 0,
+    transition: "opacity 200ms",
   },
 });
 

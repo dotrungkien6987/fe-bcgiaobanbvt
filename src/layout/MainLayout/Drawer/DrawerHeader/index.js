@@ -32,10 +32,22 @@ const DrawerHeader = ({ open }) => {
         width: isHorizontal ? { xs: "50%", lg: DRAWER_WIDTH + 50 } : "inherit",
         paddingTop: isHorizontal ? { xs: "10px", lg: "0" } : "8px",
         paddingBottom: isHorizontal ? { xs: "18px", lg: "0" } : "8px",
-        paddingLeft: isHorizontal ? { xs: "24px", lg: "0" } : open ? "24px" : 0,
+        paddingLeft: isHorizontal
+          ? { xs: "24px", lg: "0" }
+          : open
+          ? "24px"
+          : "8px", // Padding 8px khi đóng thay vì 0
+        paddingRight: open ? "24px" : "8px", // Thêm padding right
       }}
     >
-      <Logo isIcon={!open} sx={{ width: open ? "auto" : 50, height: "auto" }} />
+      <Logo
+        isIcon={!open}
+        sx={{
+          width: open ? "auto" : 48, // 48px thay vì 50px để có space breathing
+          height: "auto",
+          maxWidth: "100%", // Prevent overflow
+        }}
+      />
     </DrawerHeaderStyled>
   );
 };

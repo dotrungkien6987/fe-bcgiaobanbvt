@@ -10,11 +10,14 @@ import {
   Button,
   Paper,
   Tooltip,
+  Alert,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import LockIcon from "@mui/icons-material/Lock";
+import PersonIcon from "@mui/icons-material/Person";
 
 /**
  * TieuChiConfigSection - Component cấu hình tiêu chí cho chu kỳ đánh giá
@@ -24,6 +27,8 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
  * - onChange: (newList) => void
  * - onCopyFromPrevious: () => void (optional)
  * - readOnly: boolean (default: false)
+ *
+ * ✅ NEW: Automatically displays FIXED criterion (IsMucDoHoanThanh) as read-only
  */
 function TieuChiConfigSection({
   tieuChiList = [],
@@ -31,6 +36,10 @@ function TieuChiConfigSection({
   onCopyFromPrevious,
   readOnly = false,
 }) {
+  // ✅ Separate FIXED criterion from user-defined ones
+  const fixedCriterion = tieuChiList.find((tc) => tc.IsMucDoHoanThanh === true);
+  const userCriteria = tieuChiList.filter((tc) => tc.IsMucDoHoanThanh !== true);
+
   const handleAdd = () => {
     const newTieuChi = {
       TenTieuChi: "",
@@ -40,18 +49,23 @@ function TieuChiConfigSection({
       DonVi: "%",
       ThuTu: tieuChiList.length,
       GhiChu: "",
+      IsMucDoHoanThanh: false, // ✅ Explicitly set to false
     };
     onChange([...tieuChiList, newTieuChi]);
   };
 
   const handleUpdate = (index, field, value) => {
+    // ✅ Find actual index in original list (accounting for FIXED criterion)
+    const actualIndex = fixedCriterion ? index + 1 : index;
     const updated = [...tieuChiList];
-    updated[index] = { ...updated[index], [field]: value };
+    updated[actualIndex] = { ...updated[actualIndex], [field]: value };
     onChange(updated);
   };
 
   const handleDelete = (index) => {
-    const updated = tieuChiList.filter((_, i) => i !== index);
+    // ✅ Find actual index in original list
+    const actualIndex = fixedCriterion ? index + 1 : index;
+    const updated = tieuChiList.filter((_, i) => i !== actualIndex);
     // Re-index ThuTu
     updated.forEach((tc, i) => (tc.ThuTu = i));
     onChange(updated);
@@ -85,8 +99,71 @@ function TieuChiConfigSection({
         bộ tiêu chí riêng, đảm bảo tính độc lập và không ảnh hưởng chu kỳ khác.
       </Typography>
 
+      {/* ✅ NEW: Display FIXED criterion (read-only) */}
+      {fixedCriterion && (
+        <Alert severity="info" icon={<PersonIcon />} sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+            <LockIcon
+              fontSize="small"
+              sx={{ verticalAlign: "middle", mr: 0.5 }}
+            />
+            Tiêu chí tự đánh giá (Hệ thống)
+          </Typography>
+          <Paper
+            sx={{
+              p: 2,
+              mt: 1,
+              bgcolor: "grey.50",
+              border: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <Stack spacing={1}>
+              <Box display="flex" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">
+                  Tên tiêu chí:
+                </Typography>
+                <Typography variant="body2" fontWeight="bold">
+                  {fixedCriterion.TenTieuChi}
+                </Typography>
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">
+                  Loại:
+                </Typography>
+                <Chip label="Tăng điểm" size="small" color="success" />
+              </Box>
+              <Box display="flex" justifyContent="space-between">
+                <Typography variant="body2" color="text.secondary">
+                  Thang điểm:
+                </Typography>
+                <Typography variant="body2">
+                  {fixedCriterion.GiaTriMin} - {fixedCriterion.GiaTriMax}
+                  {fixedCriterion.DonVi}
+                </Typography>
+              </Box>
+            </Stack>
+          </Paper>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mt: 1, display: "block" }}
+          >
+            💡 Tiêu chí này được tạo tự động và không thể chỉnh sửa. Nhân viên
+            sẽ tự đánh giá tiêu chí này.
+          </Typography>
+        </Alert>
+      )}
+
+      {/* User-defined criteria header */}
+      {fixedCriterion && (
+        <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+          Tiêu chí do quản lý cấu hình:
+        </Typography>
+      )}
+
       <Stack spacing={2}>
-        {tieuChiList.map((tc, index) => (
+        {userCriteria.map((tc, index) => (
           <Paper
             key={index}
             sx={{
@@ -268,9 +345,24 @@ function TieuChiConfigSection({
           </Typography>
           <Stack direction="row" spacing={2} flexWrap="wrap">
             <Chip
-              label={`${tieuChiList.length} tiêu chí`}
+              label={`${tieuChiList.length} tiêu chí tổng`}
               size="small"
               color="primary"
+              variant="outlined"
+            />
+            {fixedCriterion && (
+              <Chip
+                label="1 tiêu chí hệ thống"
+                size="small"
+                color="info"
+                variant="outlined"
+                icon={<LockIcon fontSize="small" />}
+              />
+            )}
+            <Chip
+              label={`${userCriteria.length} tiêu chí tự định nghĩa`}
+              size="small"
+              color="default"
               variant="outlined"
             />
             <Chip
@@ -295,7 +387,7 @@ function TieuChiConfigSection({
         </Box>
       )}
 
-      {tieuChiList.length === 0 && !readOnly && (
+      {userCriteria.length === 0 && !readOnly && (
         <Box
           mt={2}
           p={4}

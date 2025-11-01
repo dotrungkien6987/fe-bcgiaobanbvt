@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 
 // material-ui
 import { alpha, useTheme } from "@mui/material/styles";
@@ -18,12 +18,10 @@ import { MenuOrientation, ThemeMode } from "configAble";
 import { HambergerMenu } from "iconsax-react";
 import { useDispatch, useSelector } from "react-redux";
 import { openDrawer } from "features/Menu/menuSlice";
-import useAuth from "hooks/useAuth";
 
 // ==============================|| MAIN LAYOUT - HEADER ||============================== //
 
 const Header = () => {
-  const { user } = useAuth();
   const theme = useTheme();
   const downLG = useMediaQuery(theme.breakpoints.down("lg"));
 
@@ -43,16 +41,6 @@ const Header = () => {
       ? "background.default"
       : "secondary.100";
 
-  useEffect(() => {
-    if (user.PhanQuyen === "admin" || user.PhanQuyen === "daotao" || user.PhanQuyen === "noibo") {
-      console.log("user", user);
-      return;
-    }
-    console.log("user", user);
-    if (drawerOpen) {
-      dispatch(openDrawer(false));
-    }
-  }, [drawerOpen]);
   // common header
   const dispatch = useDispatch();
   const mainHeader = (

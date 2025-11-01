@@ -1,33 +1,33 @@
 // ==============================|| THEME CONSTANT ||============================== //
 
-export const twitterColor = '#1DA1F2';
-export const facebookColor = '#3b5998';
-export const linkedInColor = '#0e76a8';
+export const twitterColor = "#1DA1F2";
+export const facebookColor = "#3b5998";
+export const linkedInColor = "#0e76a8";
 
-export const APP_DEFAULT_PATH = '/dashboard/default';
+export const APP_DEFAULT_PATH = "/dashboard/default";
 export const HORIZONTAL_MAX_ITEM = 6;
 export const DRAWER_WIDTH = 280;
-export const MINI_DRAWER_WIDTH = 50;
+export const MINI_DRAWER_WIDTH = 64; // Tăng từ 50px lên 64px cho UX tốt hơn
 export const HEADER_HEIGHT = 74;
 
 export const ThemeMode = {
-  LIGHT: 'light',
-  DARK: 'dark'
+  LIGHT: "light",
+  DARK: "dark",
 };
 
 export const MenuOrientation = {
-  VERTICAL: 'vertical',
-  HORIZONTAL: 'horizontal'
+  VERTICAL: "vertical",
+  HORIZONTAL: "horizontal",
 };
 
 export const ThemeDirection = {
-  LTR: 'ltr',
-  RTL: 'rtl'
+  LTR: "ltr",
+  RTL: "rtl",
 };
 
 export const DropzopType = {
-  default: 'DEFAULT',
-  standard: 'STANDARD'
+  default: "DEFAULT",
+  standard: "STANDARD",
 };
 
 // ==============================|| THEME CONFIG ||============================== //
@@ -51,7 +51,7 @@ const config = {
    * 'ro'
    * 'zh'
    */
-  i18n: 'en',
+  i18n: "en",
 
   /**
    * the props used for menu orientation (diffrent theme layout).
@@ -105,7 +105,7 @@ const config = {
    * 'theme7'
    * 'theme8'
    */
-  presetColor: 'default',
+  presetColor: "default",
 
   /**
    * the props used for default theme direction
@@ -122,7 +122,7 @@ const config = {
    * default - false which show card without box-shadow and background default
    * true - will show card with box-shadow and background pure white
    */
-  themeContrast: false
+  themeContrast: false,
 };
 
 export default config;

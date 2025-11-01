@@ -19,6 +19,13 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from "@mui/material";
 import {
   ExpandMore,
@@ -28,6 +35,7 @@ import {
   TrendingDown,
 } from "@mui/icons-material";
 import dayjs from "dayjs";
+import useAuth from "hooks/useAuth";
 import { duyetDanhGiaKPI, huyDuyetDanhGiaKPI } from "../kpiSlice";
 
 /**
@@ -42,13 +50,13 @@ import { duyetDanhGiaKPI, huyDuyetDanhGiaKPI } from "../kpiSlice";
  * Props:
  * - open: Boolean
  * - handleClose: Function
- * - tieuChiDanhGias: Array
+ * - viewMode: "manager" | "employee" (default: "manager")
  */
 
 const DanhGiaKPIDetailDialog = ({
   open,
   handleClose,
-  tieuChiDanhGias = [],
+  viewMode = "manager",
 }) => {
   const dispatch = useDispatch();
 
@@ -56,7 +64,9 @@ const DanhGiaKPIDetailDialog = ({
     useSelector((state) => state.kpi);
 
   const { nhanviens } = useSelector((state) => state.nhanvien);
-  const currentUser = useSelector((state) => state.user.user);
+
+  // ✅ CORRECT: Use useAuth() hook as per best practice
+  const { user: currentUser } = useAuth();
 
   const nhanVienInfo = useMemo(() => {
     if (!danhGiaKPICurrent?.NhanVienID) return null;
@@ -70,10 +80,7 @@ const DanhGiaKPIDetailDialog = ({
     );
   }, [danhGiaKPICurrent, chuKyDanhGias]);
 
-  const getTieuChiName = (tieuChiId) => {
-    const tc = tieuChiDanhGias.find((item) => item._id === tieuChiId);
-    return tc?.TenTieuChi || "N/A";
-  };
+  // No longer needed - criteria names are embedded in ChiTietDiem
 
   const handleDuyet = async () => {
     if (danhGiaKPICurrent?._id) {
@@ -103,7 +110,8 @@ const DanhGiaKPIDetailDialog = ({
       : "error";
 
   // Check permissions
-  const canApprove = currentUser?.Role >= 2; // Manager or Admin
+  const isManagerView = viewMode === "manager";
+  const canApprove = isManagerView && currentUser?.PhanQuyen >= 2; // Manager or Admin
   const isDuyet = TrangThai === "DA_DUYET";
 
   return (
@@ -283,68 +291,180 @@ const DanhGiaKPIDetailDialog = ({
 
                         <Divider />
 
-                        <Typography variant="subtitle2">
-                          Chi tiết tiêu chí:
+                        {/* ✅ ENHANCED: Criteria scoring table with permission-based columns */}
+                        <Typography variant="subtitle2" gutterBottom>
+                          Chi tiết tiêu chí chấm điểm:
                         </Typography>
                         {nhiemVu.ChiTietDiem &&
                         nhiemVu.ChiTietDiem.length > 0 ? (
-                          <Stack spacing={1}>
-                            {nhiemVu.ChiTietDiem.map((chiTiet, idx) => {
-                              const tieuChi = tieuChiDanhGias.find(
-                                (tc) => tc._id === chiTiet.TieuChiDanhGiaID
-                              );
-                              const isTangDiem =
-                                tieuChi?.LoaiTieuChi === "TANG_DIEM";
+                          <TableContainer component={Paper} variant="outlined">
+                            <Table size="small">
+                              <TableHead>
+                                <TableRow>
+                                  <TableCell>Tiêu chí</TableCell>
+                                  <TableCell align="center">Loại</TableCell>
+                                  <TableCell align="right">
+                                    Điểm tự đánh giá
+                                  </TableCell>
+                                  {isDuyet && (
+                                    <>
+                                      <TableCell align="right">
+                                        Điểm quản lý
+                                      </TableCell>
+                                      <TableCell align="right">
+                                        Điểm cuối cùng
+                                      </TableCell>
+                                    </>
+                                  )}
+                                  {!isDuyet && (
+                                    <TableCell align="left">Ghi chú</TableCell>
+                                  )}
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {nhiemVu.ChiTietDiem.map((chiTiet, idx) => {
+                                  const isTangDiem =
+                                    chiTiet.LoaiTieuChi === "TANG_DIEM";
+                                  const isMucDoHoanThanh =
+                                    chiTiet.IsMucDoHoanThanh;
 
-                              return (
-                                <Card key={idx} variant="outlined">
-                                  <CardContent sx={{ py: 1.5 }}>
-                                    <Stack
-                                      direction="row"
-                                      spacing={2}
-                                      alignItems="center"
-                                    >
-                                      {isTangDiem ? (
-                                        <TrendingUp color="success" />
-                                      ) : (
-                                        <TrendingDown color="error" />
-                                      )}
-                                      <Stack flex={1}>
-                                        <Typography
-                                          variant="body2"
-                                          fontWeight={500}
+                                  // Calculate DiemCuoiCung for IsMucDoHoanThanh criteria
+                                  let diemCuoiCung = null;
+                                  if (
+                                    isDuyet &&
+                                    isMucDoHoanThanh &&
+                                    chiTiet.DiemDat !== null &&
+                                    nhiemVu.DiemTuDanhGia !== null &&
+                                    nhiemVu.DiemTuDanhGia !== undefined
+                                  ) {
+                                    diemCuoiCung =
+                                      (chiTiet.DiemDat * 2 +
+                                        nhiemVu.DiemTuDanhGia) /
+                                      3;
+                                  }
+
+                                  return (
+                                    <TableRow key={idx}>
+                                      <TableCell>
+                                        <Stack
+                                          direction="row"
+                                          spacing={1}
+                                          alignItems="center"
                                         >
-                                          {getTieuChiName(
-                                            chiTiet.TieuChiDanhGiaID
+                                          {isTangDiem ? (
+                                            <TrendingUp
+                                              fontSize="small"
+                                              color="success"
+                                            />
+                                          ) : (
+                                            <TrendingDown
+                                              fontSize="small"
+                                              color="error"
+                                            />
                                           )}
-                                        </Typography>
-                                        {chiTiet.GhiChu && (
+                                          <Typography variant="body2">
+                                            {chiTiet.TenTieuChi || "N/A"}
+                                          </Typography>
+                                        </Stack>
+                                      </TableCell>
+                                      <TableCell align="center">
+                                        <Chip
+                                          label={
+                                            isTangDiem
+                                              ? "Tăng điểm"
+                                              : "Giảm điểm"
+                                          }
+                                          size="small"
+                                          color={
+                                            isTangDiem ? "success" : "error"
+                                          }
+                                          variant="outlined"
+                                        />
+                                      </TableCell>
+                                      <TableCell align="right">
+                                        {isMucDoHoanThanh ? (
+                                          <Typography
+                                            variant="body2"
+                                            color="primary"
+                                            fontWeight={500}
+                                          >
+                                            {nhiemVu.DiemTuDanhGia?.toFixed(
+                                              2
+                                            ) || "0.00"}
+                                          </Typography>
+                                        ) : (
+                                          <Typography
+                                            variant="body2"
+                                            color="text.disabled"
+                                          >
+                                            -
+                                          </Typography>
+                                        )}
+                                      </TableCell>
+                                      {isDuyet && (
+                                        <>
+                                          <TableCell align="right">
+                                            <Typography
+                                              variant="body2"
+                                              color="warning.main"
+                                              fontWeight={500}
+                                            >
+                                              {chiTiet.DiemDat !== null
+                                                ? `${
+                                                    isTangDiem ? "+" : ""
+                                                  }${chiTiet.DiemDat?.toFixed(
+                                                    2
+                                                  )}`
+                                                : "-"}
+                                            </Typography>
+                                          </TableCell>
+                                          <TableCell align="right">
+                                            {diemCuoiCung !== null ? (
+                                              <Typography
+                                                variant="body2"
+                                                color="success.main"
+                                                fontWeight={600}
+                                              >
+                                                {diemCuoiCung.toFixed(2)}
+                                              </Typography>
+                                            ) : (
+                                              <Typography
+                                                variant="body2"
+                                                color={
+                                                  isTangDiem
+                                                    ? "success.main"
+                                                    : "error.main"
+                                                }
+                                                fontWeight={500}
+                                              >
+                                                {chiTiet.DiemDat !== null
+                                                  ? `${
+                                                      isTangDiem ? "+" : ""
+                                                    }${chiTiet.DiemDat?.toFixed(
+                                                      2
+                                                    )}`
+                                                  : "-"}
+                                              </Typography>
+                                            )}
+                                          </TableCell>
+                                        </>
+                                      )}
+                                      {!isDuyet && (
+                                        <TableCell>
                                           <Typography
                                             variant="caption"
                                             color="text.secondary"
                                           >
-                                            {chiTiet.GhiChu}
+                                            {chiTiet.GhiChu || "-"}
                                           </Typography>
-                                        )}
-                                      </Stack>
-                                      <Typography
-                                        variant="body2"
-                                        color={
-                                          isTangDiem
-                                            ? "success.main"
-                                            : "error.main"
-                                        }
-                                        fontWeight={500}
-                                      >
-                                        {isTangDiem ? "+" : ""}
-                                        {chiTiet.DiemDat} điểm
-                                      </Typography>
-                                    </Stack>
-                                  </CardContent>
-                                </Card>
-                              );
-                            })}
-                          </Stack>
+                                        </TableCell>
+                                      )}
+                                    </TableRow>
+                                  );
+                                })}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
                         ) : (
                           <Typography variant="caption" color="text.secondary">
                             Chưa có chi tiết tiêu chí

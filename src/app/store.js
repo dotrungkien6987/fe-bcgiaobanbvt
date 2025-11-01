@@ -39,6 +39,7 @@ import tepTinAdminReducer from "features/QuanLyFile/tepTinAdminSlice";
 import kpiSlice from "features/QuanLyCongViec/KPI/kpiSlice";
 import kpiEvaluationSlice from "features/QuanLyCongViec/KPI/kpiEvaluationSlice";
 import khuyenCaoKhoaBQBAReducer from "../features/DashBoard/BinhQuanBenhAn/khuyenCaoKhoaBQBASlice";
+import baoCaoKPIReducer from "features/QuanLyCongViec/BaoCaoThongKeKPI/baoCaoKPISlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -82,6 +83,7 @@ const rootReducer = {
   kpi: kpiSlice,
   kpiEvaluation: kpiEvaluationSlice,
   khuyenCaoKhoaBQBA: khuyenCaoKhoaBQBAReducer,
+  baoCaoKPI: baoCaoKPIReducer,
 };
 
 const store = configureStore({

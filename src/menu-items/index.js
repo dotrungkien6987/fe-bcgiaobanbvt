@@ -16,7 +16,7 @@ daotaos.roles = ['admin', 'daotao'];
 baocao.roles = ['admin', 'daotao', 'manager'];
 hethong.roles = ['admin','daotao'];
 newfeature.roles = ['admin','noibo'];
-quanlycongviec.roles = ['admin','daotao','nomal','default']; // Tất cả đều thấy
+quanlycongviec.roles = ['admin','daotao','nomal','manager','default']; // Tất cả đều thấy
 admin.roles = ['admin']; // Chỉ admin mới thấy
 lichtruc.roles = ['admin', 'nomal','default']; // Tất cả đều thấy menu lịch trực
 

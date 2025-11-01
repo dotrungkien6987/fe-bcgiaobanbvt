@@ -26,6 +26,9 @@ import {
   Paper,
   alpha,
   useTheme,
+  Tooltip,
+  Avatar,
+  Badge as MuiBadge,
 } from "@mui/material";
 import {
   ArrowLeft,
@@ -34,8 +37,14 @@ import {
   Delete,
   Add,
   CalendarMonth,
+  Lock,
+  CheckCircle,
+  Warning,
+  TrendingUp,
+  Assignment,
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
+import dayjs from "dayjs";
 
 import {
   getAssignmentsByCycle,
@@ -74,7 +83,18 @@ const CycleAssignmentDetailPage = () => {
     availableDuties,
     employee,
     selectedChuKyId,
+    selectedChuKy, // ✅ NEW: Cycle info (with isDong)
+    kpiStatus, // ✅ NEW: "CHUA_DUYET" | "DA_DUYET" | null
+    managerScoresMap, // ✅ NEW: For pre-validation
   } = useSelector((state) => state.cycleAssignment);
+
+  // 🔍 DEBUG: Log Redux state
+  console.log("🔍 Redux cycleAssignment state:", {
+    selectedChuKyId,
+    kpiStatus,
+    managerScoresMap,
+    assignedTasksCount: assignedTasks?.length,
+  });
 
   // Local state for cycle selector and copy dialog
   const [cycles, setCycles] = useState([]); // ✅ DEFENSIVE: Initialize as empty array
@@ -86,6 +106,10 @@ const CycleAssignmentDetailPage = () => {
 
   // ✅ DEFENSIVE: Ensure cycles is always an array
   const safeCycles = Array.isArray(cycles) ? cycles : [];
+
+  // ✅ Get selected cycle info from local cycles state
+  const selectedCycleInfo =
+    safeCycles.find((c) => c._id === selectedChuKyId) || selectedChuKy;
 
   // Fetch cycles on mount
   useEffect(() => {
@@ -146,10 +170,46 @@ const CycleAssignmentDetailPage = () => {
       assignedTasks.map((t) => ({
         NhiemVuThuongQuyID: t.NhiemVuThuongQuyID._id,
         MucDoKho: t.MucDoKho || 5.0,
+        DiemTuDanhGia: t.DiemTuDanhGia || 0, // ✅ FIX: Include self-assessment score
         _task: t.NhiemVuThuongQuyID, // Keep full object for display
       }))
     );
   }, [assignedTasks]);
+
+  // ✅ NEW: Pre-validation helpers
+  // Helper: chuẩn hóa lấy id nhiệm vụ dạng string
+  const getDutyId = (raw) =>
+    typeof raw === "string" ? raw : raw?._id || raw?.toString?.() || "";
+
+  // Fallback: gọi BE kiểm tra nhanh nếu map chưa có
+  const hasManagerScore = async (dutyId) => {
+    const key = (getDutyId(dutyId) || "").toString();
+    if (key && managerScoresMap && managerScoresMap[key]) return true;
+    try {
+      const res = await apiService.get(
+        "/workmanagement/kpi/danh-gia-nhiem-vu/has-score",
+        {
+          params: {
+            nhanVienId: employeeId,
+            chuKyId: selectedChuKyId,
+            nhiemVuId: key,
+          },
+        }
+      );
+      return !!res?.data?.data?.has;
+    } catch (e) {
+      console.warn("has-score fallback failed:", e);
+      return false; // Không chặn lầm nếu lỗi mạng; BE sẽ chặn ở nút Lưu
+    }
+  };
+  // Removed old canRemoveTask/canUpdateDifficulty; logic is in handlers with fallback API
+
+  const getTaskName = (task) => {
+    if (typeof task.NhiemVuThuongQuyID === "object") {
+      return task.NhiemVuThuongQuyID.TenNhiemVu || "Không rõ";
+    }
+    return task._task?.TenNhiemVu || "Không rõ";
+  };
 
   const handleCycleChange = (event) => {
     const newCycleId = event.target.value;
@@ -166,23 +226,101 @@ const CycleAssignmentDetailPage = () => {
     dispatch(addTaskLocally({ duty, mucDoKho: duty.MucDoKhoDefault || 5.0 }));
   };
 
-  const handleRemoveTask = (dutyId) => {
-    setWorkingTasks(
-      workingTasks.filter((t) => t.NhiemVuThuongQuyID !== dutyId)
+  const handleRemoveTask = async (dutyId) => {
+    // ✅ PRE-VALIDATION: Check if task can be removed
+    const dutyKey = getDutyId(dutyId);
+    const task = workingTasks.find(
+      (t) => getDutyId(t.NhiemVuThuongQuyID) === dutyKey
     );
-    dispatch(removeTaskLocally(dutyId));
+    if (!task) return;
+
+    // 🔍 DEBUG: Log validation data
+    console.log("🔍 DEBUG handleRemoveTask:", {
+      dutyId,
+      task,
+      managerScoresMap,
+      hasManagerScore: managerScoresMap && managerScoresMap[dutyId],
+    });
+
+    // Check điểm tự đánh giá trước
+    if (task.DiemTuDanhGia && task.DiemTuDanhGia > 0) {
+      toast.error(
+        `❌ Không thể xóa "${getTaskName(
+          task
+        )}"\n\nNhiệm vụ đã có điểm tự đánh giá (${
+          task.DiemTuDanhGia
+        } điểm)\nVui lòng nhân viên đưa điểm về 0 trên trang 'Tự đánh giá KPI' trước khi xóa.`,
+        { autoClose: 6000 }
+      );
+      return;
+    }
+
+    // Check điểm quản lý chấm: dùng map trước, fallback gọi BE
+    const mgr = await hasManagerScore(dutyKey);
+    const validation = mgr
+      ? {
+          allowed: false,
+          reason: "Nhiệm vụ đã có điểm chấm từ quản lý",
+          details:
+            "Vui lòng xóa điểm trên trang 'Quản lý chấm điểm' trước khi xóa nhiệm vụ.",
+        }
+      : { allowed: true };
+
+    console.log("🔍 Validation result:", validation);
+
+    if (!validation.allowed) {
+      toast.error(
+        `❌ Không thể xóa "${getTaskName(task)}"\n\n${validation.reason}\n${
+          validation.details
+        }`,
+        { autoClose: 6000 }
+      );
+      return; // ❌ BLOCK ACTION
+    }
+
+    // ✅ OK to remove
+    setWorkingTasks((prev) =>
+      prev.filter((t) => getDutyId(t.NhiemVuThuongQuyID) !== dutyKey)
+    );
+    dispatch(removeTaskLocally(dutyKey));
   };
 
-  const handleDifficultyChange = (dutyId, newValue) => {
+  const handleDifficultyChange = async (dutyId, newValue) => {
     const value = parseFloat(newValue);
-    if (value >= 1.0 && value <= 10.0) {
-      setWorkingTasks(
-        workingTasks.map((t) =>
-          t.NhiemVuThuongQuyID === dutyId ? { ...t, MucDoKho: value } : t
-        )
-      );
-      dispatch(updateDifficultyLocally({ dutyId, mucDoKho: value }));
+
+    // Validate range
+    if (value < 1.0 || value > 10.0) {
+      return;
     }
+
+    // ✅ PRE-VALIDATION: Check if difficulty can be changed
+    const dutyKey = getDutyId(dutyId);
+    const task = workingTasks.find(
+      (t) => getDutyId(t.NhiemVuThuongQuyID) === dutyKey
+    );
+    if (!task) return;
+
+    // Chỉ check điểm quản lý chấm (IGNORE tự đánh giá)
+    const mgr = await hasManagerScore(dutyKey);
+    if (mgr) {
+      toast.error(
+        `❌ Không thể thay đổi mức độ khó cho "${getTaskName(
+          task
+        )}"\n\nNhiệm vụ đã có điểm chấm từ quản lý.\nVui lòng xóa điểm trên trang 'Quản lý chấm điểm' trước.`,
+        { autoClose: 6000 }
+      );
+      return; // ❌ BLOCK ACTION
+    }
+
+    // ✅ OK to change
+    setWorkingTasks((prev) =>
+      prev.map((t) =>
+        getDutyId(t.NhiemVuThuongQuyID) === dutyKey
+          ? { ...t, MucDoKho: value }
+          : t
+      )
+    );
+    dispatch(updateDifficultyLocally({ dutyId: dutyKey, mucDoKho: value }));
   };
 
   const handleSave = async () => {
@@ -194,20 +332,53 @@ const CycleAssignmentDetailPage = () => {
       return;
     }
 
+    // ✅ ROLLBACK: Save snapshot for restore on error
+    const snapshot = [...workingTasks];
+
     // Prepare payload
     const tasks = workingTasks.map((t) => ({
       NhiemVuThuongQuyID: t.NhiemVuThuongQuyID,
       MucDoKho: t.MucDoKho,
     }));
 
-    await dispatch(
-      batchUpdateCycleAssignments(employeeId, selectedChuKyId, tasks)
-    );
+    try {
+      await dispatch(
+        batchUpdateCycleAssignments(employeeId, selectedChuKyId, tasks)
+      );
+      // Success toast handled in slice
+    } catch (error) {
+      // ✅ ROLLBACK: Restore UI to previous state
+      setWorkingTasks(snapshot);
+
+      // ✅ Handle specific error types from backend
+      if (error.errorType === "KPI_APPROVED") {
+        toast.error(
+          "🔒 KPI đã được duyệt.\nVui lòng hủy duyệt trên trang 'Đánh giá KPI' trước khi thay đổi phân công.",
+          { autoClose: 5000 }
+        );
+      } else if (error.errorType === "CYCLE_CLOSED") {
+        toast.error("Chu kỳ đã đóng. Không thể thay đổi phân công.", {
+          autoClose: 5000,
+        });
+      } else if (error.errorType === "HAS_EVALUATION_SCORE") {
+        toast.error(error.message, { autoClose: 8000 });
+      } else if (error.errorType === "HAS_MANAGER_SCORE") {
+        toast.error(error.message, { autoClose: 8000 });
+      } else {
+        toast.error(error.message || "Có lỗi xảy ra khi lưu");
+      }
+    }
   };
 
   const handleCopyFromCycle = async () => {
     if (!selectedCopyFromCycle) {
       toast.error("Vui lòng chọn chu kỳ nguồn");
+      return;
+    }
+    if (isEditingBlocked) {
+      toast.error("🔒 Không thể copy khi KPI đã duyệt hoặc chu kỳ đã đóng.", {
+        autoClose: 5000,
+      });
       return;
     }
     await dispatch(
@@ -219,6 +390,10 @@ const CycleAssignmentDetailPage = () => {
   const handleBack = () => {
     navigate(-1);
   };
+
+  // ✅ NEW: Check if editing is blocked (KPI approved or cycle closed)
+  const isEditingBlocked =
+    kpiStatus === "DA_DUYET" || selectedChuKy?.isDong === true;
 
   if (!employee && isLoading) {
     return (
@@ -234,93 +409,420 @@ const CycleAssignmentDetailPage = () => {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3 } }}>
-      {/* Header */}
+    <Box
+      sx={{
+        p: { xs: 2, sm: 3 },
+        background: `linear-gradient(135deg, ${alpha(
+          theme.palette.primary.main,
+          0.02
+        )} 0%, ${alpha(theme.palette.secondary.main, 0.02)} 100%)`,
+        minHeight: "100vh",
+      }}
+    >
+      {/* Header with Back Button */}
       <Stack direction="row" spacing={2} alignItems="center" mb={3}>
-        <IconButton onClick={handleBack} color="primary">
-          <ArrowLeft />
-        </IconButton>
+        <Tooltip title="Quay lại danh sách">
+          <IconButton
+            onClick={handleBack}
+            sx={{
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              "&:hover": {
+                bgcolor: alpha(theme.palette.primary.main, 0.2),
+                borderColor: alpha(theme.palette.primary.main, 0.4),
+                transform: "scale(1.05)",
+              },
+              transition: "all 0.2s ease-in-out",
+            }}
+          >
+            <ArrowLeft />
+          </IconButton>
+        </Tooltip>
         <Box flex={1}>
-          <Typography variant="h4" fontWeight={600}>
-            Giao nhiệm vụ theo chu kỳ
+          <Typography
+            variant="h4"
+            fontWeight={700}
+            sx={{
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            📋 Giao nhiệm vụ theo chu kỳ
           </Typography>
-          {employee && (
-            <Typography variant="body2" color="text.secondary" mt={0.5}>
-              Nhân viên: <strong>{employee.Ten}</strong> ({employee.MaNhanVien})
-              {employee.KhoaID && ` - ${employee.KhoaID.TenKhoa}`}
-            </Typography>
-          )}
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Phân công nhiệm vụ và thiết lập mức độ khó cho từng nhân viên
+          </Typography>
         </Box>
       </Stack>
 
-      {/* Cycle Selector */}
+      {/* Employee Info Card */}
+      {employee && (
+        <Card
+          elevation={0}
+          sx={{
+            mb: 3,
+            background: `linear-gradient(135deg, ${alpha(
+              theme.palette.primary.main,
+              0.08
+            )} 0%, ${alpha(theme.palette.primary.main, 0.03)} 100%)`,
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+            borderRadius: 2,
+          }}
+        >
+          <CardContent sx={{ py: 2 }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item>
+                <Avatar
+                  sx={{
+                    width: 56,
+                    height: 56,
+                    bgcolor: theme.palette.primary.main,
+                    fontSize: "1.5rem",
+                    fontWeight: 700,
+                    boxShadow: `0 4px 12px ${alpha(
+                      theme.palette.primary.main,
+                      0.3
+                    )}`,
+                  }}
+                >
+                  {employee.Ten?.charAt(0)?.toUpperCase()}
+                </Avatar>
+              </Grid>
+              <Grid item xs>
+                <Typography variant="h6" fontWeight={700} gutterBottom>
+                  {employee.Ten}
+                </Typography>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={{ xs: 1, sm: 2 }}
+                  divider={
+                    <Divider
+                      orientation="vertical"
+                      flexItem
+                      sx={{ display: { xs: "none", sm: "block" } }}
+                    />
+                  }
+                >
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <MuiBadge
+                      sx={{
+                        color: theme.palette.primary.main,
+                        fontSize: 18,
+                      }}
+                    />
+                    <Typography variant="body2" fontWeight={500}>
+                      {employee.MaNhanVien}
+                    </Typography>
+                  </Stack>
+                  {employee.KhoaID && (
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Assignment
+                        sx={{
+                          color: theme.palette.primary.main,
+                          fontSize: 18,
+                        }}
+                      />
+                      <Typography variant="body2" fontWeight={500}>
+                        {employee.KhoaID.TenKhoa}
+                      </Typography>
+                    </Stack>
+                  )}
+                </Stack>
+              </Grid>
+              <Grid item>
+                <Stack spacing={1} alignItems="flex-end">
+                  <Chip
+                    icon={<TrendingUp />}
+                    label={`${workingTasks.length} nhiệm vụ`}
+                    color="primary"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: "0.875rem",
+                      boxShadow: `0 2px 8px ${alpha(
+                        theme.palette.primary.main,
+                        0.2
+                      )}`,
+                    }}
+                  />
+                  <Chip
+                    label={`Độ khó: ${workingTasks
+                      .reduce((sum, t) => sum + (t.MucDoKho || 0), 0)
+                      .toFixed(1)}`}
+                    size="small"
+                    sx={{
+                      fontWeight: 600,
+                      bgcolor: alpha(theme.palette.success.main, 0.1),
+                      color: "success.main",
+                      border: `1px solid ${alpha(
+                        theme.palette.success.main,
+                        0.3
+                      )}`,
+                    }}
+                  />
+                </Stack>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Cycle Selector & Actions */}
       <Card
+        elevation={0}
         sx={{
           mb: 3,
-          bgcolor: alpha(theme.palette.primary.main, 0.05),
-          border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+          background: alpha(theme.palette.background.paper, 0.9),
+          backdropFilter: "blur(20px)",
+          border: `1px solid ${alpha(theme.palette.divider, 0.15)}`,
+          borderRadius: 2,
+          boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.05)}`,
         }}
       >
         <CardContent>
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            alignItems="center"
-          >
-            <FormControl fullWidth sx={{ maxWidth: 400 }}>
-              <InputLabel>Chọn chu kỳ đánh giá</InputLabel>
-              <Select
-                value={selectedChuKyId || ""}
-                onChange={handleCycleChange}
-                label="Chọn chu kỳ đánh giá"
-                disabled={loadingCycles}
-                startAdornment={
-                  <CalendarMonth sx={{ mr: 1, color: "action.active" }} />
-                }
-              >
-                {safeCycles.map((cycle) => (
-                  <MenuItem key={cycle._id} value={cycle._id}>
-                    {cycle.TenChuKy} (
-                    {new Date(cycle.TuNgay).toLocaleDateString()} -{" "}
-                    {new Date(cycle.DenNgay).toLocaleDateString()})
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            {selectedChuKyId && (
-              <Stack direction="row" spacing={1}>
-                <FormControl size="small" sx={{ minWidth: 200 }}>
-                  <InputLabel>Copy từ chu kỳ</InputLabel>
-                  <Select
-                    value={selectedCopyFromCycle}
-                    onChange={(e) => setSelectedCopyFromCycle(e.target.value)}
-                    label="Copy từ chu kỳ"
-                  >
-                    {safeCycles
-                      .filter((c) => c._id !== selectedChuKyId)
-                      .map((cycle) => (
-                        <MenuItem key={cycle._id} value={cycle._id}>
-                          {cycle.TenChuKy}
-                        </MenuItem>
-                      ))}
-                  </Select>
-                </FormControl>
-                <Button
-                  variant="outlined"
-                  startIcon={
-                    isCopying ? <CircularProgress size={16} /> : <ContentCopy />
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Chọn chu kỳ đánh giá</InputLabel>
+                <Select
+                  value={selectedChuKyId || ""}
+                  onChange={handleCycleChange}
+                  label="Chọn chu kỳ đánh giá"
+                  disabled={loadingCycles}
+                  startAdornment={
+                    <CalendarMonth
+                      sx={{ mr: 1, color: "primary.main", fontSize: 24 }}
+                    />
                   }
-                  onClick={handleCopyFromCycle}
-                  disabled={!selectedCopyFromCycle || isCopying}
+                  sx={{
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: alpha(theme.palette.primary.main, 0.3),
+                    },
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: alpha(theme.palette.primary.main, 0.5),
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: theme.palette.primary.main,
+                      borderWidth: 2,
+                    },
+                  }}
                 >
-                  Copy
-                </Button>
-              </Stack>
+                  {safeCycles.map((cycle) => (
+                    <MenuItem key={cycle._id} value={cycle._id}>
+                      <Stack spacing={0.5} sx={{ py: 0.5 }}>
+                        <Typography fontWeight={600}>
+                          {cycle.TenChuKy}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          📅{" "}
+                          {cycle.NgayBatDau
+                            ? dayjs(cycle.NgayBatDau).format("DD/MM/YYYY")
+                            : cycle.TuNgay
+                            ? dayjs(cycle.TuNgay).format("DD/MM/YYYY")
+                            : "N/A"}{" "}
+                          →{" "}
+                          {cycle.NgayKetThuc
+                            ? dayjs(cycle.NgayKetThuc).format("DD/MM/YYYY")
+                            : cycle.DenNgay
+                            ? dayjs(cycle.DenNgay).format("DD/MM/YYYY")
+                            : "N/A"}
+                        </Typography>
+                      </Stack>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            {selectedChuKyId && !isEditingBlocked && (
+              <Grid item xs={12} md={6}>
+                <Stack
+                  direction="row"
+                  spacing={1.5}
+                  alignItems="center"
+                  justifyContent={{ xs: "flex-start", md: "flex-end" }}
+                >
+                  <FormControl size="small" sx={{ minWidth: 240 }}>
+                    <InputLabel>Copy từ chu kỳ khác</InputLabel>
+                    <Select
+                      value={selectedCopyFromCycle}
+                      onChange={(e) => setSelectedCopyFromCycle(e.target.value)}
+                      label="Copy từ chu kỳ khác"
+                      startAdornment={
+                        <ContentCopy
+                          sx={{ mr: 1, color: "action.active", fontSize: 20 }}
+                        />
+                      }
+                    >
+                      {safeCycles
+                        .filter((c) => c._id !== selectedChuKyId)
+                        .map((cycle) => (
+                          <MenuItem key={cycle._id} value={cycle._id}>
+                            {cycle.TenChuKy}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                  <Button
+                    variant="contained"
+                    startIcon={
+                      isCopying ? (
+                        <CircularProgress size={16} />
+                      ) : (
+                        <ContentCopy />
+                      )
+                    }
+                    onClick={handleCopyFromCycle}
+                    disabled={!selectedCopyFromCycle || isCopying}
+                    sx={{
+                      borderRadius: 1.5,
+                      textTransform: "none",
+                      fontWeight: 600,
+                      px: 2.5,
+                      boxShadow: `0 2px 8px ${alpha(
+                        theme.palette.primary.main,
+                        0.3
+                      )}`,
+                      "&:hover": {
+                        boxShadow: `0 4px 12px ${alpha(
+                          theme.palette.primary.main,
+                          0.4
+                        )}`,
+                      },
+                    }}
+                  >
+                    Copy
+                  </Button>
+                </Stack>
+              </Grid>
             )}
-          </Stack>
+          </Grid>
+
+          {/* Cycle Info Display */}
+          {selectedCycleInfo && (
+            <Card
+              elevation={0}
+              sx={{
+                mt: 2,
+                bgcolor: alpha(theme.palette.info.main, 0.05),
+                border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+                borderRadius: 1.5,
+              }}
+            >
+              <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={4}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <CalendarMonth
+                        sx={{ color: "info.main", fontSize: 20 }}
+                      />
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Ngày bắt đầu
+                        </Typography>
+                        <Typography variant="body2" fontWeight={600}>
+                          {selectedCycleInfo.NgayBatDau
+                            ? dayjs(selectedCycleInfo.NgayBatDau).format(
+                                "DD/MM/YYYY"
+                              )
+                            : "N/A"}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <CheckCircle sx={{ color: "info.main", fontSize: 20 }} />
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Ngày kết thúc
+                        </Typography>
+                        <Typography variant="body2" fontWeight={600}>
+                          {selectedCycleInfo.NgayKetThuc
+                            ? dayjs(selectedCycleInfo.NgayKetThuc).format(
+                                "DD/MM/YYYY"
+                              )
+                            : "N/A"}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Lock sx={{ color: "info.main", fontSize: 20 }} />
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Trạng thái
+                        </Typography>
+                        <Typography variant="body2" fontWeight={600}>
+                          {selectedCycleInfo.isDong ? (
+                            <Chip
+                              label="Đã đóng"
+                              size="small"
+                              color="error"
+                              sx={{ height: 22, fontSize: "0.75rem" }}
+                            />
+                          ) : (
+                            <Chip
+                              label="Đang mở"
+                              size="small"
+                              color="success"
+                              sx={{ height: 22, fontSize: "0.75rem" }}
+                            />
+                          )}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          )}
         </CardContent>
       </Card>
+
+      {/* ✅ Warning Banner - KPI đã duyệt hoặc Chu kỳ đã đóng */}
+      {selectedChuKyId && kpiStatus === "DA_DUYET" && (
+        <Alert
+          severity="error"
+          icon={<Lock />}
+          sx={{
+            mb: 3,
+            borderRadius: 2,
+            border: `1px solid ${alpha(theme.palette.error.main, 0.3)}`,
+            bgcolor: alpha(theme.palette.error.main, 0.05),
+          }}
+        >
+          <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+            🔒 KPI Đã Được Duyệt
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9 }}>
+            Không thể thêm/sửa/xóa nhiệm vụ khi KPI đã được duyệt. Vui lòng hủy
+            duyệt KPI trên trang "Đánh giá KPI" trước khi thay đổi phân công.
+          </Typography>
+        </Alert>
+      )}
+
+      {selectedChuKyId && selectedChuKy?.isDong && kpiStatus !== "DA_DUYET" && (
+        <Alert
+          severity="warning"
+          icon={<Lock />}
+          sx={{
+            mb: 3,
+            borderRadius: 2,
+            border: `1px solid ${alpha(theme.palette.warning.main, 0.3)}`,
+            bgcolor: alpha(theme.palette.warning.main, 0.05),
+          }}
+        >
+          <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+            🔒 Chu Kỳ Đã Đóng
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.9 }}>
+            Không thể thay đổi phân công nhiệm vụ khi chu kỳ đánh giá đã đóng.
+          </Typography>
+        </Alert>
+      )}
 
       {!selectedChuKyId ? (
         <Alert severity="info" icon={<CalendarMonth />}>
@@ -337,53 +839,132 @@ const CycleAssignmentDetailPage = () => {
             {/* Left Column: Available Duties */}
             <Grid item xs={12} md={5}>
               <MainCard
-                title={`📚 Danh sách nhiệm vụ (${availableDuties.length})`}
+                elevation={0}
+                sx={{
+                  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                  borderRadius: 2,
+                }}
+                title={
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Assignment sx={{ color: "primary.main" }} />
+                    <Typography variant="h6" fontWeight={600}>
+                      Danh sách nhiệm vụ
+                    </Typography>
+                    <Chip
+                      label={availableDuties.length}
+                      size="small"
+                      color="primary"
+                      sx={{ fontWeight: 700 }}
+                    />
+                  </Stack>
+                }
               >
                 {availableDuties.length === 0 ? (
-                  <Alert severity="success">
-                    Tất cả nhiệm vụ đã được gán! 🎉
+                  <Alert
+                    severity="success"
+                    icon={<CheckCircle />}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    <Typography variant="body2" fontWeight={500}>
+                      Tất cả nhiệm vụ đã được gán! 🎉
+                    </Typography>
                   </Alert>
                 ) : (
-                  <List sx={{ maxHeight: 600, overflow: "auto" }}>
+                  <List
+                    sx={{
+                      maxHeight: "calc(100vh - 420px)",
+                      minHeight: 400,
+                      overflow: "auto",
+                      pr: 1,
+                    }}
+                  >
                     {availableDuties.map((duty) => (
                       <ListItem
                         key={duty._id}
-                        button
-                        onClick={() => handleAddTask(duty)}
+                        onClick={() => {
+                          if (isEditingBlocked) return;
+                          handleAddTask(duty);
+                        }}
                         sx={{
-                          border: `1px solid ${theme.palette.divider}`,
-                          borderRadius: 1,
+                          border: `1px solid ${alpha(
+                            theme.palette.divider,
+                            0.2
+                          )}`,
+                          borderRadius: 1.5,
                           mb: 1,
+                          cursor: isEditingBlocked ? "not-allowed" : "pointer",
+                          opacity: isEditingBlocked ? 0.5 : 1,
+                          transition: "all 0.2s ease-in-out",
                           "&:hover": {
-                            bgcolor: alpha(theme.palette.primary.main, 0.05),
+                            bgcolor: isEditingBlocked
+                              ? "transparent"
+                              : alpha(theme.palette.primary.main, 0.08),
+                            borderColor: isEditingBlocked
+                              ? alpha(theme.palette.divider, 0.2)
+                              : alpha(theme.palette.primary.main, 0.4),
+                            transform: isEditingBlocked
+                              ? "none"
+                              : "translateX(4px)",
                           },
+                          py: 1,
+                          px: 1.5,
                         }}
                       >
                         <ListItemText
-                          primary={duty.TenNhiemVu}
+                          primary={
+                            <Typography
+                              variant="body2"
+                              fontWeight={500}
+                              sx={{ fontSize: "0.9375rem" }} // 15px
+                            >
+                              {duty.TenNhiemVu}
+                            </Typography>
+                          }
                           secondary={
-                            <Stack direction="row" spacing={1} mt={0.5}>
-                              <Chip
-                                label={`Độ khó: ${
-                                  duty.MucDoKhoDefault || 5
-                                }/10`}
-                                size="small"
-                                color="default"
-                              />
-                            </Stack>
+                            <Chip
+                              label={`Độ khó: ${duty.MucDoKhoDefault || 5}/10`}
+                              size="small"
+                              sx={{
+                                mt: 0.5,
+                                height: 20,
+                                fontSize: "0.8125rem", // 13px - tăng từ 12px
+                                fontWeight: 600,
+                              }}
+                            />
                           }
                         />
                         <ListItemSecondaryAction>
-                          <IconButton
-                            edge="end"
-                            color="primary"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleAddTask(duty);
-                            }}
+                          <Tooltip
+                            title={
+                              isEditingBlocked ? "Đã khóa" : "Thêm nhiệm vụ"
+                            }
                           >
-                            <Add />
-                          </IconButton>
+                            <span>
+                              <IconButton
+                                edge="end"
+                                size="small"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (!isEditingBlocked) handleAddTask(duty);
+                                }}
+                                disabled={isEditingBlocked}
+                                sx={{
+                                  bgcolor: alpha(
+                                    theme.palette.primary.main,
+                                    0.1
+                                  ),
+                                  "&:hover": {
+                                    bgcolor: alpha(
+                                      theme.palette.primary.main,
+                                      0.2
+                                    ),
+                                  },
+                                }}
+                              >
+                                <Add fontSize="small" />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
                         </ListItemSecondaryAction>
                       </ListItem>
                     ))}
@@ -395,72 +976,174 @@ const CycleAssignmentDetailPage = () => {
             {/* Right Column: Assigned Tasks */}
             <Grid item xs={12} md={7}>
               <MainCard
-                title={`📝 Nhiệm vụ đã gán (${workingTasks.length})`}
-                secondary={
-                  <Button
-                    variant="contained"
-                    startIcon={
-                      isSaving ? <CircularProgress size={16} /> : <Save />
-                    }
-                    onClick={handleSave}
-                    disabled={isSaving || workingTasks.length === 0}
+                elevation={0}
+                sx={{
+                  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                  borderRadius: 2,
+                }}
+                title={
+                  <Stack
+                    direction="row"
+                    spacing={2}
+                    alignItems="center"
+                    justifyContent="space-between"
                   >
-                    Lưu thay đổi
-                  </Button>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <TrendingUp sx={{ color: "success.main" }} />
+                      <Typography variant="h6" fontWeight={600}>
+                        Nhiệm vụ đã gán
+                      </Typography>
+                      <MuiBadge
+                        badgeContent={workingTasks.length}
+                        color="success"
+                        max={99}
+                        sx={{
+                          "& .MuiBadge-badge": {
+                            fontWeight: 700,
+                            fontSize: "0.8125rem", // 13px - tăng từ 12px
+                          },
+                        }}
+                      >
+                        <Box sx={{ width: 24 }} />
+                      </MuiBadge>
+                    </Stack>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      startIcon={
+                        isSaving ? <CircularProgress size={16} /> : <Save />
+                      }
+                      onClick={handleSave}
+                      disabled={
+                        isSaving ||
+                        workingTasks.length === 0 ||
+                        isEditingBlocked
+                      }
+                      sx={{
+                        borderRadius: 1.5,
+                        textTransform: "none",
+                        fontWeight: 600,
+                        px: 2,
+                        boxShadow: isEditingBlocked
+                          ? "none"
+                          : `0 2px 8px ${alpha(
+                              theme.palette.primary.main,
+                              0.3
+                            )}`,
+                        ...(isEditingBlocked && {
+                          bgcolor: alpha(theme.palette.grey[500], 0.3),
+                          color: theme.palette.text.primary,
+                          opacity: 0.8,
+                          "&:hover": {
+                            bgcolor: alpha(theme.palette.grey[500], 0.3),
+                          },
+                        }),
+                      }}
+                    >
+                      {isEditingBlocked ? "🔒 Đã khóa" : "Lưu thay đổi"}
+                    </Button>
+                  </Stack>
                 }
               >
                 {workingTasks.length === 0 ? (
-                  <Alert severity="info">
-                    Chưa có nhiệm vụ nào được gán. Chọn từ danh sách bên trái để
-                    thêm.
+                  <Alert
+                    severity="info"
+                    icon={<Warning />}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    <Typography variant="body2">
+                      Chưa có nhiệm vụ nào được gán. Chọn từ danh sách bên trái
+                      để thêm.
+                    </Typography>
                   </Alert>
                 ) : (
-                  <List sx={{ maxHeight: 600, overflow: "auto" }}>
-                    {workingTasks.map((task, index) => (
-                      <Paper
-                        key={task.NhiemVuThuongQuyID}
-                        elevation={1}
-                        sx={{ p: 2, mb: 2 }}
-                      >
-                        <Stack spacing={2}>
+                  <>
+                    <Box
+                      sx={{
+                        maxHeight: "calc(100vh - 420px)",
+                        minHeight: 400,
+                        overflow: "auto",
+                        pr: 1,
+                      }}
+                    >
+                      {workingTasks.map((task, index) => (
+                        <Paper
+                          key={task.NhiemVuThuongQuyID}
+                          elevation={0}
+                          sx={{
+                            p: 1.5,
+                            mb: 1.5,
+                            border: `1px solid ${alpha(
+                              theme.palette.divider,
+                              0.2
+                            )}`,
+                            borderRadius: 1.5,
+                            transition: "all 0.2s ease-in-out",
+                            "&:hover": {
+                              borderColor: alpha(
+                                theme.palette.primary.main,
+                                0.4
+                              ),
+                              boxShadow: `0 2px 8px ${alpha(
+                                theme.palette.primary.main,
+                                0.1
+                              )}`,
+                            },
+                            ...(isEditingBlocked && {
+                              bgcolor: alpha(theme.palette.grey[100], 0.3),
+                            }),
+                          }}
+                        >
                           <Stack
                             direction="row"
-                            justifyContent="space-between"
-                            alignItems="flex-start"
+                            spacing={1.5}
+                            alignItems="center"
                           >
+                            {/* STT */}
+                            <Chip
+                              label={index + 1}
+                              size="small"
+                              sx={{
+                                minWidth: 32,
+                                height: 26,
+                                fontWeight: 700,
+                                fontSize: "0.875rem", // 14px - tăng từ 12.8px
+                                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                color: "primary.main",
+                              }}
+                            />
+
+                            {/* Task Name */}
                             <Box flex={1}>
-                              <Typography variant="subtitle1" fontWeight={600}>
-                                {index + 1}.{" "}
+                              <Typography
+                                variant="body2"
+                                fontWeight={600}
+                                sx={{
+                                  lineHeight: 1.4,
+                                  opacity: isEditingBlocked ? 0.85 : 1,
+                                  color: isEditingBlocked
+                                    ? theme.palette.text.primary
+                                    : "inherit",
+                                  fontSize: "0.9375rem", // 15px - tăng từ 14px
+                                }}
+                              >
                                 {task._task?.TenNhiemVu || "Nhiệm vụ"}
                               </Typography>
                               <Typography
                                 variant="caption"
-                                color="text.secondary"
+                                sx={{
+                                  color: theme.palette.text.secondary,
+                                  opacity: isEditingBlocked ? 0.75 : 0.7,
+                                  fontSize: "0.8125rem", // 13px - tăng từ 12px
+                                }}
                               >
-                                Độ khó mặc định:{" "}
-                                {task._task?.MucDoKhoDefault || 5}/10 (tham
-                                khảo)
+                                Mặc định: {task._task?.MucDoKhoDefault || 5}/10
                               </Typography>
                             </Box>
-                            <IconButton
-                              color="error"
-                              size="small"
-                              onClick={() =>
-                                handleRemoveTask(task.NhiemVuThuongQuyID)
-                              }
-                            >
-                              <Delete />
-                            </IconButton>
-                          </Stack>
 
-                          <Stack
-                            direction="row"
-                            spacing={2}
-                            alignItems="center"
-                          >
+                            {/* Difficulty Input - COMPACT */}
                             <TextField
                               type="number"
-                              label="Độ khó thực tế"
                               value={task.MucDoKho}
                               onChange={(e) =>
                                 handleDifficultyChange(
@@ -472,13 +1155,40 @@ const CycleAssignmentDetailPage = () => {
                                 min: 1.0,
                                 max: 10.0,
                                 step: 0.5,
+                                style: {
+                                  textAlign: "center",
+                                  fontWeight: 700,
+                                  fontSize: "0.9375rem", // 15px - tăng từ 14px
+                                },
                               }}
                               size="small"
-                              sx={{ width: 150 }}
-                              helperText="1.0 - 10.0"
+                              disabled={isEditingBlocked}
+                              sx={{
+                                width: 80,
+                                "& .MuiInputBase-input": {
+                                  py: 0.75,
+                                  ...(isEditingBlocked && {
+                                    color: theme.palette.text.primary,
+                                    WebkitTextFillColor:
+                                      theme.palette.text.primary,
+                                    opacity: 0.85,
+                                  }),
+                                },
+                                "& .MuiOutlinedInput-root": {
+                                  ...(isEditingBlocked && {
+                                    bgcolor: alpha(
+                                      theme.palette.grey[200],
+                                      0.5
+                                    ),
+                                  }),
+                                },
+                              }}
                             />
+
+                            {/* Difficulty Chip */}
                             <Chip
                               label={`${task.MucDoKho}/10`}
+                              size="small"
                               color={
                                 task.MucDoKho <= 3
                                   ? "success"
@@ -486,33 +1196,96 @@ const CycleAssignmentDetailPage = () => {
                                   ? "warning"
                                   : "error"
                               }
+                              sx={{
+                                minWidth: 56,
+                                fontWeight: 700,
+                                fontSize: "0.8125rem", // 13px - tăng từ 12px
+                              }}
                             />
+
+                            {/* Delete Button */}
+                            <Tooltip
+                              title={
+                                isEditingBlocked ? "Đã khóa" : "Xóa nhiệm vụ"
+                              }
+                            >
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  onClick={() =>
+                                    handleRemoveTask(task.NhiemVuThuongQuyID)
+                                  }
+                                  disabled={isEditingBlocked}
+                                  sx={{
+                                    color: "error.main",
+                                    opacity: isEditingBlocked ? 0.5 : 1,
+                                    "&:hover": {
+                                      bgcolor: alpha(
+                                        theme.palette.error.main,
+                                        0.1
+                                      ),
+                                    },
+                                  }}
+                                >
+                                  <Delete fontSize="small" />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
                           </Stack>
-                        </Stack>
-                      </Paper>
-                    ))}
-                  </List>
+                        </Paper>
+                      ))}
+                    </Box>
+
+                    {/* Summary Footer */}
+                    <Divider sx={{ my: 2 }} />
+                    <Stack
+                      direction="row"
+                      spacing={3}
+                      justifyContent="space-between"
+                      sx={{
+                        px: 1,
+                        py: 1,
+                        bgcolor: alpha(theme.palette.primary.main, 0.05),
+                        borderRadius: 1.5,
+                      }}
+                    >
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          fontWeight={500}
+                          sx={{ fontSize: "0.8125rem" }} // 13px - tăng từ 12px
+                        >
+                          Tổng cộng:
+                        </Typography>
+                        <Chip
+                          label={`${workingTasks.length} nhiệm vụ`}
+                          size="small"
+                          color="primary"
+                          sx={{ fontWeight: 700, fontSize: "0.8125rem" }} // 13px
+                        />
+                      </Stack>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          fontWeight={500}
+                          sx={{ fontSize: "0.8125rem" }} // 13px - tăng từ 12px
+                        >
+                          Tổng độ khó:
+                        </Typography>
+                        <Chip
+                          label={workingTasks
+                            .reduce((sum, t) => sum + (t.MucDoKho || 0), 0)
+                            .toFixed(1)}
+                          size="small"
+                          color="success"
+                          sx={{ fontWeight: 700, fontSize: "0.8125rem" }} // 13px
+                        />
+                      </Stack>
+                    </Stack>
+                  </>
                 )}
-
-                <Divider sx={{ my: 2 }} />
-
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    Tổng cộng: <strong>{workingTasks.length}</strong> nhiệm vụ
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Tổng độ khó:{" "}
-                    <strong>
-                      {workingTasks
-                        .reduce((sum, t) => sum + (t.MucDoKho || 0), 0)
-                        .toFixed(1)}
-                    </strong>
-                  </Typography>
-                </Stack>
               </MainCard>
             </Grid>
           </Grid>

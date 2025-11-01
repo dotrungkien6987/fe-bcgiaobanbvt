@@ -49,11 +49,25 @@ const MainDrawer = ({ window }) => {
               flex: 1,
               overflowY: "auto",
               overflowX: "hidden",
-              paddingRight: "4px",
-              paddingLeft: "8px",
+              paddingRight: drawerOpen ? "4px" : "8px", // Tăng padding khi mini để scrollbar không che icon
+              paddingLeft: drawerOpen ? "8px" : "4px",
               paddingBottom: "16px",
               paddingTop: "8px",
               position: "relative",
+              // Custom scrollbar styling
+              "&::-webkit-scrollbar": {
+                width: drawerOpen ? "6px" : "4px",
+              },
+              "&::-webkit-scrollbar-track": {
+                background: "transparent",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                background: "rgba(0,0,0,0.2)",
+                borderRadius: "4px",
+                "&:hover": {
+                  background: "rgba(0,0,0,0.3)",
+                },
+              },
             }}
           >
             {drawerContent}

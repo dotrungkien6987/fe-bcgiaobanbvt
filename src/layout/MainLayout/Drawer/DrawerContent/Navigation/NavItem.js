@@ -24,6 +24,23 @@ import { MenuOrientation, ThemeMode } from "configAble";
 import { useDispatch, useSelector } from "react-redux";
 import { activeID, activeItem, openDrawer } from "features/Menu/menuSlice";
 
+// ✨ ICON ANIMATIONS KEYFRAMES
+const iconAnimations = {
+  "@keyframes iconBounce": {
+    "0%, 100%": { transform: "translateY(0)" },
+    "50%": { transform: "translateY(-4px)" },
+  },
+  "@keyframes iconPulse": {
+    "0%, 100%": { transform: "scale(1)" },
+    "50%": { transform: "scale(1.1)" },
+  },
+  "@keyframes iconShake": {
+    "0%, 100%": { transform: "rotate(0deg)" },
+    "25%": { transform: "rotate(-5deg)" },
+    "75%": { transform: "rotate(5deg)" },
+  },
+};
+
 // ==============================|| NAVIGATION - ITEM ||============================== //
 
 const NavItem = ({ item, level }) => {
@@ -86,7 +103,7 @@ const NavItem = ({ item, level }) => {
             zIndex: 1201,
             pl: drawerOpen ? `${level * 20}px` : 1.5,
             py: !drawerOpen && level === 1 ? 1.25 : 1,
-            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Consistent 300ms transition
             position: "relative",
             overflow: "hidden",
             ...(drawerOpen && {
@@ -118,16 +135,17 @@ const NavItem = ({ item, level }) => {
                 },
                 "&.Mui-selected": {
                   color: iconSelectedColor,
-                  bgcolor:
+                  // ✨ GRADIENT BACKGROUND
+                  background:
                     theme.palette.mode === ThemeMode.DARK
-                      ? "primary.dark"
-                      : "primary.lighter",
+                      ? `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`
+                      : `linear-gradient(135deg, ${theme.palette.primary.lighter} 0%, ${theme.palette.primary.light} 100%)`,
                   "&:hover": {
                     color: iconSelectedColor,
-                    bgcolor:
+                    background:
                       theme.palette.mode === ThemeMode.DARK
-                        ? "primary.main"
-                        : "primary.light",
+                        ? `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`
+                        : `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 100%)`,
                   },
                   "&::before": {
                     content: '""',
@@ -135,25 +153,53 @@ const NavItem = ({ item, level }) => {
                     left: 0,
                     top: 0,
                     bottom: 0,
-                    width: 3,
-                    bgcolor: "primary.main",
-                    borderRadius: "0 2px 2px 0",
+                    width: 4,
+                    background: `linear-gradient(180deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                    borderRadius: "0 4px 4px 0",
+                    boxShadow: "2px 0 8px rgba(0,0,0,0.3)",
+                  },
+                  // ✨ SHIMMER EFFECT
+                  "&::after": {
+                    content: '""',
+                    position: "absolute",
+                    top: 0,
+                    left: "-100%",
+                    width: "100%",
+                    height: "100%",
+                    background:
+                      "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)",
+                    animation: "shimmer 3s infinite",
+                  },
+                  "@keyframes shimmer": {
+                    "0%": { left: "-100%" },
+                    "100%": { left: "100%" },
                   },
                 },
               }),
             ...(!drawerOpen && {
-              px: 2.75,
+              mx: 0.5, // Thêm margin khi mini drawer
+              my: 0.5,
+              borderRadius: 1,
               justifyContent: "center",
               "&:hover": {
-                bgcolor: "transparent",
-                transform: "scale(1.05)",
+                bgcolor:
+                  theme.palette.mode === ThemeMode.DARK
+                    ? "secondary.dark"
+                    : "secondary.lighter",
+                transform: "scale(1.08)",
               },
               "&.Mui-selected": {
+                bgcolor:
+                  theme.palette.mode === ThemeMode.DARK
+                    ? "primary.dark"
+                    : "primary.lighter",
                 "&:hover": {
-                  bgcolor: "transparent",
-                  transform: "scale(1.05)",
+                  bgcolor:
+                    theme.palette.mode === ThemeMode.DARK
+                      ? "primary.main"
+                      : "primary.light",
+                  transform: "scale(1.08)",
                 },
-                bgcolor: "transparent",
               },
             }),
           }}
@@ -203,11 +249,20 @@ const NavItem = ({ item, level }) => {
                   minWidth: 38,
                   color: isSelected ? iconSelectedColor : textColor,
                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  // ✨ ADD KEYFRAMES
+                  ...iconAnimations,
+                  // ✨ ICON ANIMATION ON HOVER
+                  "& svg": {
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  },
+                  "&:hover svg": {
+                    animation: "iconBounce 0.6s ease-in-out",
+                  },
                   ...(!drawerOpen &&
                     level === 1 && {
                       borderRadius: 1,
-                      width: 46,
-                      height: 46,
+                      width: 48,
+                      height: 48,
                       alignItems: "center",
                       justifyContent: "center",
                       display: "flex",
@@ -215,47 +270,27 @@ const NavItem = ({ item, level }) => {
                       "&:hover": {
                         bgcolor:
                           theme.palette.mode === ThemeMode.DARK
-                            ? "secondary.light"
+                            ? "secondary.dark"
                             : "secondary.200",
-                        transform: "rotateY(10deg) scale(1.1)",
-                        "&::after": {
-                          content: '""',
-                          position: "absolute",
-                          inset: -2,
-                          borderRadius: 1,
-                          padding: 2,
-                          background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                          mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                          maskComposite: "xor",
-                          opacity: 0.6,
-                        },
+                        transform: "scale(1.1)",
+                      },
+                      "&:hover svg": {
+                        animation: "iconBounce 0.6s ease-in-out",
                       },
                     }),
                   ...(!drawerOpen &&
                     isSelected && {
                       bgcolor:
                         theme.palette.mode === ThemeMode.DARK
-                          ? "secondary.100"
+                          ? "primary.dark"
                           : "primary.lighter",
                       color: iconSelectedColor,
-                      animation: "pulse 2s infinite",
-                      "@keyframes pulse": {
-                        "0%": {
-                          boxShadow: `0 0 0 0 ${theme.palette.primary.main}40`,
-                        },
-                        "70%": {
-                          boxShadow: `0 0 0 10px ${theme.palette.primary.main}00`,
-                        },
-                        "100%": {
-                          boxShadow: `0 0 0 0 ${theme.palette.primary.main}00`,
-                        },
-                      },
                       "&:hover": {
                         bgcolor:
                           theme.palette.mode === ThemeMode.DARK
-                            ? "secondary.200"
-                            : "primary.lighter",
-                        transform: "rotateY(10deg) scale(1.1)",
+                            ? "primary.main"
+                            : "primary.light",
+                        transform: "scale(1.1)",
                       },
                     }),
                 }}

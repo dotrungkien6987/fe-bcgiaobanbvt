@@ -10,6 +10,9 @@ const initialState = {
   employeeId: null,
   employee: null,
   selectedChuKyId: null,
+  selectedChuKy: null, // ✅ NEW: Full cycle info (with isDong)
+  kpiStatus: null, // ✅ NEW: "CHUA_DUYET" | "DA_DUYET" | null
+  managerScoresMap: {}, // ✅ NEW: { [nhiemVuId]: DanhGiaNhiemVuThuongQuy }
 
   // Data for current cycle
   assignedTasks: [],
@@ -46,10 +49,16 @@ const slice = createSlice({
       state.assignedTasks = action.payload.assignedTasks || [];
       state.availableDuties = action.payload.availableDuties || [];
       state.employee = action.payload.employee || null;
+      state.selectedChuKy = action.payload.selectedChuKy || null; // ✅ NEW
+      state.kpiStatus = action.payload.kpiStatus || null; // ✅ NEW
+      state.managerScoresMap = action.payload.managerScoresMap || {}; // ✅ NEW: For pre-validation
     },
 
     startSaving(state) {
       state.isSaving = true;
+    },
+    stopSaving(state) {
+      state.isSaving = false; // ✅ NEW: Fix loading stuck bug
     },
     batchUpdateSuccess(state, action) {
       state.isSaving = false;
@@ -132,7 +141,77 @@ export const getAssignmentsByCycle =
         `/workmanagement/giao-nhiem-vu/nhan-vien/${employeeId}/by-cycle`,
         { params }
       );
-      dispatch(slice.actions.getAssignmentsByCycleSuccess(response.data.data));
+
+      // ✅ NEW: Load thêm KPI status, cycle info, và manager scores
+      let kpiStatus = null;
+      let selectedChuKy = null;
+      let managerScoresMap = {};
+
+      if (chuKyId) {
+        // Load cycle info
+        try {
+          const chuKyResponse = await apiService.get(
+            `/workmanagement/chu-ky-danh-gia/${chuKyId}`
+          );
+          selectedChuKy = chuKyResponse.data.data;
+        } catch (err) {
+          console.warn("Could not load cycle info:", err);
+        }
+
+        // Load KPI status
+        try {
+          const kpiResponse = await apiService.get(`/workmanagement/kpi`, {
+            params: { ChuKyDanhGiaID: chuKyId, NhanVienID: employeeId },
+          });
+          const kpiList =
+            kpiResponse.data.data?.danhGiaKPIs || kpiResponse.data.data;
+          console.log("🔍 KPI status response:", kpiResponse.data);
+          console.log("🔍 KPI list:", kpiList);
+          if (kpiList && kpiList.length > 0) {
+            kpiStatus = kpiList[0].TrangThai; // "CHUA_DUYET" or "DA_DUYET"
+            console.log("✅ KPI Status:", kpiStatus);
+          } else {
+            console.log("⚠️ No KPI found for this employee and cycle");
+          }
+        } catch (err) {
+          console.error("❌ Error loading KPI status:", err);
+        }
+
+        // ✅ NEW: Load manager scores (điểm quản lý đã chấm)
+        try {
+          const scoresResponse = await apiService.get(
+            `/workmanagement/kpi/danh-gia-nhiem-vu`,
+            {
+              params: { nhanVienId: employeeId, chuKyId },
+            }
+          );
+          const scoresList = scoresResponse.data.data || [];
+          console.log("🔍 Manager scores loaded:", scoresList);
+
+          // Build map: { [nhiemVuId]: score }
+          managerScoresMap = scoresList.reduce((acc, score) => {
+            const nhiemVuId =
+              typeof score.NhiemVuThuongQuyID === "object"
+                ? score.NhiemVuThuongQuyID._id
+                : score.NhiemVuThuongQuyID;
+            acc[nhiemVuId] = score;
+            return acc;
+          }, {});
+
+          console.log("🔍 Manager scores map built:", managerScoresMap);
+        } catch (err) {
+          console.warn("Could not load manager scores:", err);
+        }
+      }
+
+      dispatch(
+        slice.actions.getAssignmentsByCycleSuccess({
+          ...response.data.data,
+          kpiStatus,
+          selectedChuKy,
+          managerScoresMap, // ✅ NEW
+        })
+      );
       dispatch(slice.actions.setEmployee(employeeId));
       dispatch(slice.actions.setSelectedChuKy(chuKyId));
     } catch (error) {
@@ -152,8 +231,10 @@ export const batchUpdateCycleAssignments =
       dispatch(slice.actions.batchUpdateSuccess(response.data.data));
       toast.success("Cập nhật nhiệm vụ thành công");
     } catch (error) {
+      dispatch(slice.actions.stopSaving()); // ✅ FIX: Reset loading state
       dispatch(slice.actions.hasError(error.message));
-      toast.error(error.message);
+      // Don't toast here - let component handle specific errors
+      throw error; // ✅ Re-throw for component to catch
     }
   };
 

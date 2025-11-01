@@ -24,6 +24,7 @@ import DanhGiaKPITable from "../components/DanhGiaKPITable";
 import DanhGiaKPIFormDialog from "../components/DanhGiaKPIFormDialog";
 import DanhGiaKPIDetailDialog from "../components/DanhGiaKPIDetailDialog";
 import { SelectNhanVienButton } from "../components/SelectNhanVien";
+import useAuth from "hooks/useAuth";
 
 import {
   getDanhGiaKPIs,
@@ -66,7 +67,9 @@ function DanhGiaKPIPage() {
 
   const { nhanviens } = useSelector((state) => state.nhanvien);
   const { nhiemVuThuongQuys } = useSelector((state) => state.nhiemvuThuongQuy);
-  const currentUser = useSelector((state) => state.user.user);
+
+  // ✅ CORRECT: Use useAuth() hook as per best practice
+  const { user: currentUser } = useAuth();
 
   const [selectedChuKy, setSelectedChuKy] = useState("");
   const [selectedTrangThai, setSelectedTrangThai] = useState("");
@@ -140,7 +143,11 @@ function DanhGiaKPIPage() {
   );
 
   // Check if current user can create KPI (Manager hoặc Admin)
-  const canCreateKPI = currentUser?.Role >= 2; // Manager = 2, Admin = 3
+  // ✅ FIXED: Use PhanQuyen from User model
+  const canCreateKPI =
+    currentUser?.PhanQuyen === "manager" ||
+    currentUser?.PhanQuyen === "admin" ||
+    currentUser?.PhanQuyen === "daotao";
 
   return (
     <MainCard>
@@ -296,6 +303,7 @@ function DanhGiaKPIPage() {
         open={isOpenDetailDialog}
         handleClose={handleCloseDetailDialog}
         tieuChiDanhGias={tieuChiDanhGias}
+        viewMode="manager"
       />
     </MainCard>
   );

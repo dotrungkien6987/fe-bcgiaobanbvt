@@ -11,7 +11,7 @@ const initialState = {
   // ✅ V2 list used by reducers approve/undo (avoid undefined.findIndex)
   danhSachDanhGiaKPI: [],
   thongKeKPIs: [], // Thống kê KPI theo chu kỳ
-  tieuChiDanhGias: [], // Danh sách tiêu chí đánh giá (TANG_DIEM/GIAM_DIEM)
+  // tieuChiDanhGias: [], // DEPRECATED - Tiêu chí giờ lưu trong ChuKyDanhGia.TieuChiCauHinh[]
   chuKyDanhGias: [], // Danh sách chu kỳ đánh giá
   selectedChuKyDanhGia: null, // Chu kỳ đánh giá đang xem chi tiết
   nhanVienDuocQuanLy: [], // Danh sách nhân viên được quản lý (theo QuanLyNhanVien)
@@ -32,6 +32,10 @@ const initialState = {
   currentDanhGiaKPI: null, // Unified: replace danhGiaKPICurrent
   currentNhiemVuList: [], // Unified: replace nhiemVuThuongQuys
   syncWarning: null, // ← NEW: Criteria change detection { hasChanges, added, removed, modified, canReset }
+
+  // ✅ NEW: Self-assessment feature (Tự đánh giá KPI)
+  assignments: [], // Danh sách NhanVienNhiemVu cho trang tự đánh giá
+  currentNhanVien: null, // Thông tin chi tiết NhanVien hiện tại (cho trang tự đánh giá)
 
   // UI states
   isLoading: false,
@@ -72,7 +76,8 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.danhGiaKPICurrent = action.payload.danhGiaKPI;
-      state.nhiemVuThuongQuys = action.payload.nhiemVuThuongQuys || [];
+      // ✅ FIX: Map danhGiaNhiemVu from backend to nhiemVuThuongQuys in state
+      state.nhiemVuThuongQuys = action.payload.danhGiaNhiemVu || [];
     },
     createDanhGiaKPISuccess(state, action) {
       state.isLoading = false;
@@ -158,38 +163,7 @@ const slice = createSlice({
       state.thongKeKPIs = action.payload;
     },
 
-    // Tiêu chí đánh giá
-    getTieuChiDanhGiasSuccess(state, action) {
-      state.isLoading = false;
-      state.error = null;
-      state.tieuChiDanhGias = action.payload;
-    },
-    createTieuChiDanhGiaSuccess(state, action) {
-      state.isLoading = false;
-      state.error = null;
-      state.tieuChiDanhGias.unshift(action.payload);
-    },
-    updateTieuChiDanhGiaSuccess(state, action) {
-      state.isLoading = false;
-      state.error = null;
-      const index = state.tieuChiDanhGias.findIndex(
-        (item) => item._id === action.payload._id
-      );
-      if (index !== -1) {
-        state.tieuChiDanhGias[index] = action.payload;
-      }
-    },
-    deleteTieuChiDanhGiaSuccess(state, action) {
-      state.isLoading = false;
-      state.error = null;
-      // Soft delete: Cập nhật isDeleted = true thay vì xóa khỏi array
-      const index = state.tieuChiDanhGias.findIndex(
-        (item) => item._id === action.payload
-      );
-      if (index !== -1) {
-        state.tieuChiDanhGias[index].isDeleted = true;
-      }
-    },
+    // Tiêu chí đánh giá (DEPRECATED - no longer used with cycle-based criteria)
 
     // Chu kỳ đánh giá
     getChuKyDanhGiasSuccess(state, action) {
@@ -310,13 +284,15 @@ const slice = createSlice({
     getChamDiemDetailSuccess(state, action) {
       state.isLoading = false;
       state.currentDanhGiaKPI = action.payload.danhGiaKPI;
-      // ✅ Ensure nhiemVuList has proper structure with ChiTietDiem array
+      // ✅ V2: Chỉ lưu raw data, KHÔNG tính TongDiemTieuChi & DiemNhiemVu
+      // Component sẽ tự tính real-time với calculateNhiemVuScore()
       state.currentNhiemVuList = (action.payload.nhiemVuList || []).map(
         (nv) => ({
           ...nv,
           ChiTietDiem: nv.ChiTietDiem || [],
-          TongDiemTieuChi: nv.TongDiemTieuChi || 0,
-          DiemNhiemVu: nv.DiemNhiemVu || 0,
+          // ❌ REMOVED V2: Không lưu calculated fields
+          // TongDiemTieuChi: nv.TongDiemTieuChi || 0,
+          // DiemNhiemVu: nv.DiemNhiemVu || 0,
         })
       );
       state.syncWarning = action.payload.syncWarning || null; // ← NEW: Store sync warning
@@ -328,10 +304,15 @@ const slice = createSlice({
     },
 
     // Update điểm tiêu chí (local state, chưa save)
-    // ✅ FIX: Changed from tieuChiId to tieuChiIndex
-    // ✅ FIX: Find by _id, NhiemVuThuongQuyID._id, or index for rows without _id
+    // ✅ V2: Chỉ update ChiTietDiem, KHÔNG tính TongDiemTieuChi & DiemNhiemVu
+    // Component sẽ tự tính real-time với calculateNhiemVuScore()
     updateTieuChiScore(state, action) {
-      const { nhiemVuId, tieuChiIndex, diemDat } = action.payload;
+      const {
+        nhiemVuId,
+        tieuChiIndex,
+        diemDat,
+        fieldName = "DiemDat",
+      } = action.payload;
 
       // Try to find by _id first, then by NhiemVuThuongQuyID._id, then by index
       const nhiemVu = state.currentNhiemVuList.find((nv, idx) => {
@@ -346,25 +327,24 @@ const slice = createSlice({
       });
 
       if (nhiemVu && nhiemVu.ChiTietDiem[tieuChiIndex]) {
-        // Direct access by index (no more TieuChiID lookup)
-        nhiemVu.ChiTietDiem[tieuChiIndex].DiemDat = diemDat;
+        const tieuChi = nhiemVu.ChiTietDiem[tieuChiIndex];
 
-        // Recalculate nhiệm vụ score (correct formula: all divide by 100)
-        nhiemVu.TongDiemTieuChi = nhiemVu.ChiTietDiem.reduce((sum, tc) => {
-          const score = (tc.DiemDat || 0) / 100;
-          return sum + (tc.LoaiTieuChi === "GIAM_DIEM" ? -score : score);
-        }, 0);
+        // ✅ V2: Chỉ update field, KHÔNG tính toán
+        if (fieldName === "DiemQuanLy") {
+          tieuChi.DiemQuanLy = diemDat;
+        } else {
+          tieuChi.DiemDat = diemDat;
+        }
 
-        nhiemVu.DiemNhiemVu = nhiemVu.TongDiemTieuChi * (nhiemVu.MucDoKho || 5);
+        // ❌ REMOVED V2: Không tính lại TongDiemTieuChi & DiemNhiemVu ở đây
+        // Component ChamDiemKPITable sẽ tự tính real-time với:
+        // - calculateNhiemVuScore(nhiemVu, diemTuDanhGia)
+        // - Áp dụng công thức V2: (DiemQuanLy × 2 + DiemTuDanhGia) / 3
       }
 
-      // Recalculate tổng điểm KPI
-      if (state.currentDanhGiaKPI) {
-        state.currentDanhGiaKPI.TongDiemKPI = state.currentNhiemVuList.reduce(
-          (sum, nv) => sum + (nv.DiemNhiemVu || 0),
-          0
-        );
-      }
+      // ❌ REMOVED V2: Không tính lại TongDiemKPI ở đây
+      // Component ChamDiemKPIDialog sẽ tự tính real-time với:
+      // - calculateTotalScore(currentNhiemVuList, diemTuDanhGiaMap)
     },
 
     // Lưu điểm nhiệm vụ (backend response)
@@ -472,6 +452,48 @@ const slice = createSlice({
     clearCurrentChamDiem(state) {
       state.currentDanhGiaKPI = null;
       state.currentNhiemVuList = [];
+    },
+
+    // ============================================================================
+    // ✅ NEW: Self-assessment reducers (Tự đánh giá KPI)
+    // ============================================================================
+
+    /**
+     * Lấy danh sách assignments của nhân viên theo chu kỳ
+     * For: TuDanhGiaKPIPage
+     */
+    layDanhSachNhiemVuSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.assignments = action.payload;
+    },
+
+    /**
+     * Nhân viên tự chấm điểm - thành công
+     * Note: Dùng chung startSaving reducer đã có sẵn
+     */
+    nhanVienTuChamDiemSuccess(state, action) {
+      state.isSaving = false;
+      state.error = null;
+      const updatedAssignment = action.payload;
+
+      // Update assignment in list
+      const index = state.assignments?.findIndex(
+        (a) => a._id === updatedAssignment._id
+      );
+      if (index !== -1 && state.assignments) {
+        state.assignments[index] = updatedAssignment;
+      }
+    },
+
+    /**
+     * Lấy thông tin chi tiết NhanVien - thành công
+     * For: TuDanhGiaKPIPage
+     */
+    getCurrentNhanVienSuccess(state, action) {
+      state.isLoading = false;
+      state.error = null;
+      state.currentNhanVien = action.payload;
     },
   },
 });
@@ -692,6 +714,54 @@ export const huyDuyetDanhGiaKPI = (danhGiaKPIId) => async (dispatch) => {
 };
 
 /**
+ * ✅ NEW: Nhân viên tự chấm điểm tiêu chí "Mức độ hoàn thành"
+ * @param {String} danhGiaNhiemVuId - ID của DanhGiaNhiemVuThuongQuy
+ * @param {Object} diemTuDanhGia - { "Mức độ hoàn thành công việc": 85 }
+ */
+export const nhanVienChamDiem =
+  (danhGiaNhiemVuId, diemTuDanhGia) => async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await apiService.put(
+        `/workmanagement/kpi/danh-gia-nhiem-vu/${danhGiaNhiemVuId}/nhan-vien-cham-diem`,
+        { diemTuDanhGia }
+      );
+      // Update local state if needed
+      dispatch(
+        slice.actions.chamDiemNhiemVuSuccess(response.data.data.danhGia)
+      );
+      toast.success("Tự chấm điểm thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
+
+/**
+ * ✅ NEW: Quản lý chấm điểm tất cả tiêu chí
+ * @param {String} danhGiaNhiemVuId - ID của DanhGiaNhiemVuThuongQuy
+ * @param {Object} chiTietDiem - { "Mức độ hoàn thành công việc": 90, "Tiêu chí 1": 80, ... }
+ */
+export const quanLyChamDiem =
+  (danhGiaNhiemVuId, chiTietDiem) => async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await apiService.put(
+        `/workmanagement/kpi/danh-gia-nhiem-vu/${danhGiaNhiemVuId}/quan-ly-cham-diem`,
+        { chiTietDiem }
+      );
+      // Update local state
+      dispatch(
+        slice.actions.chamDiemNhiemVuSuccess(response.data.data.danhGia)
+      );
+      toast.success("Chấm điểm thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
+
+/**
  * Lấy thống kê KPI theo chu kỳ
  * @param {String} chuKyDanhGiaId
  */
@@ -710,92 +780,10 @@ export const getThongKeKPITheoChuKy = (chuKyDanhGiaId) => async (dispatch) => {
 };
 
 // ====================
-// ACTIONS - Tiêu chí đánh giá
+// ACTIONS - Tiêu chí đánh giá (DEPRECATED)
+// Tiêu chí giờ quản lý trong ChuKyDanhGia.TieuChiCauHinh[]
+// See: _archive_2025-10-24/TIEU_CHI_MASTER_REMOVED.md
 // ====================
-
-/**
- * Lấy danh sách tiêu chí đánh giá
- * @param {Object} filters - { LoaiTieuChi: "TANG_DIEM" | "GIAM_DIEM" }
- */
-export const getTieuChiDanhGias =
-  (filters = {}) =>
-  async (dispatch) => {
-    dispatch(slice.actions.startLoading());
-    try {
-      const queryParams = new URLSearchParams();
-      if (filters.LoaiTieuChi)
-        queryParams.append("LoaiTieuChi", filters.LoaiTieuChi);
-
-      const response = await apiService.get(
-        `/workmanagement/tieu-chi-danh-gia?${queryParams.toString()}`
-      );
-      dispatch(
-        slice.actions.getTieuChiDanhGiasSuccess(response.data.data.tieuChis)
-      );
-    } catch (error) {
-      dispatch(slice.actions.hasError(error.message));
-      toast.error(error.message);
-    }
-  };
-
-/**
- * Tạo tiêu chí đánh giá
- * @param {Object} data - { TenTieuChi, MoTa, LoaiTieuChi, GiaTriMin, GiaTriMax, DonVi }
- */
-export const createTieuChiDanhGia = (data) => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
-  try {
-    const response = await apiService.post(
-      "/workmanagement/tieu-chi-danh-gia",
-      data
-    );
-    dispatch(
-      slice.actions.createTieuChiDanhGiaSuccess(response.data.data.tieuChi)
-    );
-    toast.success("Tạo tiêu chí đánh giá thành công");
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message);
-  }
-};
-
-/**
- * Cập nhật tiêu chí đánh giá
- * @param {String} tieuChiId
- * @param {Object} data - { TenTieuChi, MoTa, LoaiTieuChi, GiaTriMin, GiaTriMax, DonVi }
- */
-export const updateTieuChiDanhGia = (tieuChiId, data) => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
-  try {
-    const response = await apiService.put(
-      `/workmanagement/tieu-chi-danh-gia/${tieuChiId}`,
-      data
-    );
-    dispatch(
-      slice.actions.updateTieuChiDanhGiaSuccess(response.data.data.tieuChi)
-    );
-    toast.success("Cập nhật tiêu chí đánh giá thành công");
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message);
-  }
-};
-
-/**
- * Xóa tiêu chí đánh giá
- * @param {String} tieuChiId
- */
-export const deleteTieuChiDanhGia = (tieuChiId) => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
-  try {
-    await apiService.delete(`/workmanagement/tieu-chi-danh-gia/${tieuChiId}`);
-    dispatch(slice.actions.deleteTieuChiDanhGiaSuccess(tieuChiId));
-    toast.success("Xóa tiêu chí đánh giá thành công");
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message);
-  }
-};
 
 // ====================
 // ACTIONS - Chu kỳ đánh giá
@@ -1192,7 +1180,7 @@ export const saveAllNhiemVu = () => async (dispatch, getState) => {
       return;
     }
 
-    // Prepare payload
+    // ✅ V2: Prepare payload - CHỈ gửi ChiTietDiem với IsMucDoHoanThanh flag
     const payload = {
       nhiemVuList: nhiemVuWithScores.map((nv) => ({
         NhiemVuThuongQuyID:
@@ -1209,6 +1197,7 @@ export const saveAllNhiemVu = () => async (dispatch, getState) => {
           DonVi: cd.DonVi,
           MoTa: cd.MoTa,
           GhiChu: cd.GhiChu,
+          IsMucDoHoanThanh: cd.IsMucDoHoanThanh || false, // ✅ V2: Preserve flag
         })),
         GhiChu: nv.GhiChu || "",
       })),
@@ -1250,7 +1239,7 @@ export const saveAllNhiemVu = () => async (dispatch, getState) => {
 };
 
 /**
- * ✅ ENHANCED: Duyệt KPI với transaction atomic
+ * ✅ V2: Duyệt KPI với transaction atomic
  * - Validate tất cả nhiệm vụ có điểm
  * - Gửi payload đầy đủ cho batch upsert
  * - Backend xử lý trong transaction
@@ -1261,12 +1250,16 @@ export const approveKPI = (danhGiaKPIId) => async (dispatch, getState) => {
   try {
     const { currentNhiemVuList } = getState().kpi;
 
-    // Validate: Tất cả nhiệm vụ phải có điểm
-    const allScored = currentNhiemVuList.every((nv) => nv.TongDiemTieuChi > 0);
+    // ✅ V2: Validate bằng cách check ChiTietDiem có điểm không
+    const allScored = currentNhiemVuList.every(
+      (nv) =>
+        nv.ChiTietDiem && nv.ChiTietDiem.some((tc) => (tc.DiemDat || 0) > 0)
+    );
 
     if (!allScored) {
       const unscoredCount = currentNhiemVuList.filter(
-        (nv) => nv.TongDiemTieuChi === 0
+        (nv) =>
+          !nv.ChiTietDiem || !nv.ChiTietDiem.some((tc) => (tc.DiemDat || 0) > 0)
       ).length;
       toast.error(
         `Còn ${unscoredCount} nhiệm vụ chưa chấm điểm. Vui lòng hoàn thành trước khi duyệt KPI.`
@@ -1275,7 +1268,8 @@ export const approveKPI = (danhGiaKPIId) => async (dispatch, getState) => {
       return;
     }
 
-    // Prepare payload - Tất cả nhiệm vụ với điểm đầy đủ
+    // ✅ V2: Prepare payload - CHỈ gửi ChiTietDiem, KHÔNG gửi TongDiemTieuChi & DiemNhiemVu
+    // Backend sẽ tự tính trong method duyet()
     const payload = {
       nhiemVuList: currentNhiemVuList.map((nv) => ({
         _id: nv._id,
@@ -1293,9 +1287,10 @@ export const approveKPI = (danhGiaKPIId) => async (dispatch, getState) => {
           DonVi: cd.DonVi,
           MoTa: cd.MoTa,
           GhiChu: cd.GhiChu,
+          IsMucDoHoanThanh: cd.IsMucDoHoanThanh || false, // ✅ V2: Preserve flag
         })),
-        TongDiemTieuChi: nv.TongDiemTieuChi,
-        DiemNhiemVu: nv.DiemNhiemVu,
+        GhiChu: nv.GhiChu || "",
+        // ❌ REMOVED V2: Không gửi TongDiemTieuChi & DiemNhiemVu
       })),
     };
 
@@ -1319,7 +1314,8 @@ export const approveKPI = (danhGiaKPIId) => async (dispatch, getState) => {
     // ✅ NEW: Reload employees list to update table
     const { currentDanhGiaKPI } = getState().kpi;
     const cycleId =
-      currentDanhGiaKPI?.ChuKyID?._id || currentDanhGiaKPI?.ChuKyID;
+      currentDanhGiaKPI?.ChuKyDanhGiaID?._id ||
+      currentDanhGiaKPI?.ChuKyDanhGiaID;
     if (cycleId) {
       // Import dynamically to avoid circular dependency
       const { getEmployeesForEvaluation } = await import(
@@ -1359,7 +1355,8 @@ export const undoApproveKPI = (payload) => async (dispatch, getState) => {
     // ✅ NEW: Reload employees list to update table
     const { currentDanhGiaKPI } = getState().kpi;
     const cycleId =
-      currentDanhGiaKPI?.ChuKyID?._id || currentDanhGiaKPI?.ChuKyID;
+      currentDanhGiaKPI?.ChuKyDanhGiaID?._id ||
+      currentDanhGiaKPI?.ChuKyDanhGiaID;
     if (cycleId) {
       // Import dynamically to avoid circular dependency
       const { getEmployeesForEvaluation } = await import(
@@ -1376,12 +1373,18 @@ export const undoApproveKPI = (payload) => async (dispatch, getState) => {
 /**
  * Local update điểm tiêu chí (chưa save backend)
  * Dùng cho real-time feedback khi user nhập điểm
- * ✅ FIX: Changed from tieuChiId to tieuChiIndex (no more TieuChiID references)
+ * ✅ UPDATED: Support fieldName for IsMucDoHoanThanh (DiemQuanLy vs DiemDat)
  */
 export const updateTieuChiScoreLocal =
-  (nhiemVuId, tieuChiIndex, diemDat) => (dispatch) => {
+  (nhiemVuId, tieuChiIndex, diemDat, fieldName = "DiemDat") =>
+  (dispatch) => {
     dispatch(
-      slice.actions.updateTieuChiScore({ nhiemVuId, tieuChiIndex, diemDat })
+      slice.actions.updateTieuChiScore({
+        nhiemVuId,
+        tieuChiIndex,
+        diemDat,
+        fieldName,
+      })
     );
   };
 
@@ -1437,4 +1440,86 @@ export const clearCurrentChamDiem = () => (dispatch) => {
 
 export const clearSyncWarning = () => (dispatch) => {
   dispatch(slice.actions.clearSyncWarning());
+};
+
+// ====================
+// ✅ NEW: Self-assessment actions (Tự đánh giá KPI)
+// ====================
+
+/**
+ * Lấy danh sách nhiệm vụ của nhân viên theo chu kỳ
+ * For: TuDanhGiaKPIPage
+ */
+export const layDanhSachNhiemVu = (nhanVienId, chuKyId) => async (dispatch) => {
+  dispatch(slice.actions.startLoading());
+  try {
+    const response = await apiService.get("/workmanagement/giao-nhiem-vu", {
+      params: { nhanVienId, chuKyId },
+    });
+    dispatch(slice.actions.layDanhSachNhiemVuSuccess(response.data.data));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+/**
+ * Nhân viên tự chấm điểm nhiều nhiệm vụ cùng lúc (Batch update)
+ * For: TuDanhGiaKPIPage - Save all button
+ * ✅ OPTIMIZED: Gọi 1 API batch thay vì loop nhiều API
+ */
+export const nhanVienTuChamDiemBatch = (assignments) => async (dispatch) => {
+  dispatch(slice.actions.startSaving());
+  try {
+    const response = await apiService.post(
+      `/workmanagement/giao-nhiem-vu/tu-cham-diem-batch`,
+      { assignments }
+    );
+
+    const { success, failed, successCount, failCount } = response.data.data;
+
+    // ✅ Update Redux state với các nhiệm vụ thành công
+    success.forEach((assignment) => {
+      dispatch(slice.actions.nhanVienTuChamDiemSuccess(assignment));
+    });
+
+    dispatch(slice.actions.stopSaving());
+
+    // ✅ Hiển thị toast phù hợp
+    if (failCount === 0) {
+      toast.success(`Đã lưu thành công ${successCount} nhiệm vụ`);
+    } else if (successCount === 0) {
+      toast.error(`Lưu thất bại ${failCount} nhiệm vụ`);
+    } else {
+      toast.warning(
+        `Lưu thành công ${successCount} nhiệm vụ, thất bại ${failCount} nhiệm vụ`
+      );
+    }
+
+    // ✅ Log failed items for debugging
+    if (failCount > 0) {
+      console.warn("Failed assignments:", failed);
+    }
+  } catch (error) {
+    dispatch(slice.actions.stopSaving());
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+/**
+ * Lấy thông tin chi tiết NhanVien
+ * For: TuDanhGiaKPIPage
+ */
+export const getCurrentNhanVien = (nhanVienId) => async (dispatch) => {
+  dispatch(slice.actions.startLoading());
+  try {
+    const response = await apiService.get(
+      `/workmanagement/nhanvien/${nhanVienId}`
+    );
+    dispatch(slice.actions.getCurrentNhanVienSuccess(response.data.data));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
 };

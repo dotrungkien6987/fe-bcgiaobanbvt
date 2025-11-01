@@ -92,6 +92,9 @@ function KPIEvaluationPage() {
     assignments: giaoAssignments,
   } = useSelector((s) => s.giaoNhiemVu || {});
 
+  // ✅ FIX: Listen to KPI slice changes (approve/undo)
+  const { currentDanhGiaKPI } = useSelector((s) => s.kpi || {});
+
   useEffect(() => {
     if (selectedCycleId) {
       dispatch(getEmployeesForEvaluation(selectedCycleId));
@@ -102,6 +105,8 @@ function KPIEvaluationPage() {
     lastBulkAssign,
     lastBatchUpdate,
     giaoAssignments?.length,
+    currentDanhGiaKPI?.TrangThai, // ✅ Reload when KPI status changes (approved/undone)
+    currentDanhGiaKPI?.TongDiemKPI, // ✅ Reload when KPI score changes
   ]);
 
   // Calculate statistics
@@ -111,11 +116,20 @@ function KPIEvaluationPage() {
       (e) => e.danhGiaKPI?.TrangThai === "DA_DUYET"
     ).length;
     const pending = total - evaluated;
+
+    // ✅ V2 LOGIC: Chỉ tính điểm trung bình cho KPI ĐÃ DUYỆT
+    const evaluatedEmployees = employees.filter(
+      (e) =>
+        e.danhGiaKPI?.TrangThai === "DA_DUYET" &&
+        e.danhGiaKPI?.TongDiemKPI != null
+    );
     const avgScore =
-      employees
-        .filter((e) => e.danhGiaKPI?.TongDiemKPI)
-        .reduce((sum, e) => sum + e.danhGiaKPI.TongDiemKPI, 0) /
-        (evaluated || 1) || 0;
+      evaluatedEmployees.length > 0
+        ? evaluatedEmployees.reduce(
+            (sum, e) => sum + e.danhGiaKPI.TongDiemKPI,
+            0
+          ) / evaluatedEmployees.length
+        : 0;
 
     return { total, evaluated, pending, avgScore };
   }, [employees]);
@@ -469,13 +483,29 @@ function KPIEvaluationPage() {
                   const danhGiaKPI = item.danhGiaKPI || null;
                   const isApproved = danhGiaKPI?.TrangThai === "DA_DUYET";
 
-                  // ✅ FIX: Tính tiến độ từ số nhiệm vụ ĐÃ CHẤM / số nhiệm vụ ĐƯỢC GIAO
-                  const scoredCount =
-                    item.scoredCount || item.progress?.scored || 0;
+                  // ✅ FIX: Chuẩn hóa dữ liệu tiến độ (đa nguồn BE/FE)
+                  const progress = item.progress || {};
+                  // Tổng nhiệm vụ được phân công
                   const assignedCount =
-                    item.assignedCount || item.progress?.total || 0;
+                    (progress.assigned ??
+                      progress.total ??
+                      item.assignedCount ??
+                      progress.assignedCount ??
+                      0) | 0;
+                  // Số nhiệm vụ đã chấm
+                  const scoredCount =
+                    (progress.scored ??
+                      item.scoredCount ??
+                      progress.managerScored ??
+                      0) | 0;
+                  // Phần trăm tiến độ
                   const progressPercentage =
-                    assignedCount > 0 ? (scoredCount / assignedCount) * 100 : 0;
+                    progress.percentage !== undefined &&
+                    progress.percentage !== null
+                      ? progress.percentage
+                      : assignedCount > 0
+                      ? Math.round((scoredCount / assignedCount) * 100)
+                      : 0;
 
                   return (
                     <TableRow key={employee._id || index}>
@@ -520,14 +550,14 @@ function KPIEvaluationPage() {
                           }}
                         >
                           <Box sx={{ minWidth: 50 }}>
-                            <Typography variant="body2">
-                              {progressPercentage.toFixed(0)}%
+                            <Typography variant="body2" fontWeight={600}>
+                              {progressPercentage}%
                             </Typography>
                           </Box>
                           <Box sx={{ width: "100%", maxWidth: 100 }}>
                             <LinearProgress
                               variant="determinate"
-                              value={progressPercentage}
+                              value={Math.min(progressPercentage, 100)}
                               color={
                                 progressPercentage === 100 && assignedCount > 0
                                   ? "success"
@@ -542,7 +572,9 @@ function KPIEvaluationPage() {
                       </TableCell>
 
                       <TableCell align="center">
-                        {item.danhGiaKPI?.TongDiemKPI != null ? (
+                        {/* ✅ V2 LOGIC: Chỉ hiển thị TongDiemKPI khi ĐÃ DUYỆT */}
+                        {item.danhGiaKPI?.TrangThai === "DA_DUYET" &&
+                        item.danhGiaKPI?.TongDiemKPI != null ? (
                           <Box
                             sx={{
                               display: "inline-block",
@@ -571,9 +603,16 @@ function KPIEvaluationPage() {
                             {item.danhGiaKPI.TongDiemKPI.toFixed(1)}
                           </Box>
                         ) : (
-                          <Typography variant="caption" color="text.secondary">
-                            —
-                          </Typography>
+                          <Chip
+                            label="Chưa duyệt"
+                            size="small"
+                            color="default"
+                            sx={{
+                              fontStyle: "italic",
+                              bgcolor: "grey.100",
+                              color: "text.secondary",
+                            }}
+                          />
                         )}
                       </TableCell>
 
@@ -625,7 +664,7 @@ function KPIEvaluationPage() {
                         >
                           <Tooltip
                             title={
-                              !item.assignedCount || item.assignedCount === 0
+                              assignedCount === 0
                                 ? "Nhân viên chưa được phân công nhiệm vụ nào trong chu kỳ này"
                                 : ""
                             }
@@ -635,10 +674,7 @@ function KPIEvaluationPage() {
                                 size="small"
                                 variant="contained"
                                 onClick={() => handleEvaluate(employee)}
-                                disabled={
-                                  !item.assignedCount ||
-                                  item.assignedCount === 0
-                                }
+                                disabled={assignedCount === 0}
                               >
                                 Đánh giá
                               </Button>
@@ -646,7 +682,7 @@ function KPIEvaluationPage() {
                           </Tooltip>
                           <Tooltip
                             title={
-                              !item.assignedCount || item.assignedCount === 0
+                              assignedCount === 0
                                 ? "Nhân viên chưa được phân công nhiệm vụ nào trong chu kỳ này"
                                 : ""
                             }
@@ -656,10 +692,7 @@ function KPIEvaluationPage() {
                                 size="small"
                                 variant="outlined"
                                 onClick={() => handleViewKPI(employee)}
-                                disabled={
-                                  !item.assignedCount ||
-                                  item.assignedCount === 0
-                                }
+                                disabled={assignedCount === 0}
                               >
                                 Xem KPI
                               </Button>

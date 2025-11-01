@@ -39,6 +39,9 @@ import {
   clearSyncWarning, // ✅ FIX: Add clearSyncWarning import
 } from "../../kpiSlice";
 
+// ✅ V2: Import calculation utilities
+import { calculateTotalScore } from "../../../../../utils/kpiCalculation";
+
 /**
  * ChamDiemKPIDialog - Dialog chấm điểm KPI cho nhân viên
  *
@@ -78,19 +81,36 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
   const progress = useMemo(() => {
     const total = currentNhiemVuList.length;
     const scored = currentNhiemVuList.filter(
-      (nv) => nv.TongDiemTieuChi > 0
+      (nv) => nv.ChiTietDiem && nv.ChiTietDiem.some((tc) => tc.DiemDat > 0)
     ).length;
     const percentage = total > 0 ? (scored / total) * 100 : 0;
     return { scored, total, percentage };
   }, [currentNhiemVuList]);
 
-  // Calculate total KPI score
-  const totalKPIScore = useMemo(() => {
-    return currentNhiemVuList.reduce(
-      (sum, nv) => sum + (nv.DiemNhiemVu || 0),
-      0
-    );
+  // ✅ V2: Build DiemTuDanhGia map
+  const diemTuDanhGiaMap = useMemo(() => {
+    const map = {};
+    currentNhiemVuList.forEach((nv) => {
+      const nvId = nv.NhiemVuThuongQuyID?._id || nv.NhiemVuThuongQuyID;
+      map[nvId?.toString()] = nv.DiemTuDanhGia || 0;
+    });
+    return map;
   }, [currentNhiemVuList]);
+
+  // ✅ V2: Calculate total KPI score with REAL-TIME PREVIEW
+  const totalKPIScore = useMemo(() => {
+    // If approved, use snapshot value
+    if (currentDanhGiaKPI?.TrangThai === "DA_DUYET") {
+      return currentDanhGiaKPI.TongDiemKPI || 0;
+    }
+
+    // Otherwise, calculate preview in real-time
+    const { tongDiem } = calculateTotalScore(
+      currentNhiemVuList,
+      diemTuDanhGiaMap
+    );
+    return tongDiem;
+  }, [currentNhiemVuList, diemTuDanhGiaMap, currentDanhGiaKPI]);
 
   // Check if can approve
   const canApprove = useMemo(() => {
@@ -104,7 +124,9 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
 
   // Get unscored tasks
   const unscoredTasks = useMemo(() => {
-    return currentNhiemVuList.filter((nv) => nv.TongDiemTieuChi === 0);
+    return currentNhiemVuList.filter(
+      (nv) => !nv.ChiTietDiem || !nv.ChiTietDiem.some((tc) => tc.DiemDat > 0)
+    );
   }, [currentNhiemVuList]);
 
   // ========== UNDO APPROVAL STATE ==========
@@ -157,9 +179,16 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
     return { allowed: false, reason: "Không có quyền hủy duyệt KPI này" };
   }, [currentDanhGiaKPI, user]);
 
-  // ✅ FIX: Changed signature from tieuChiId to tieuChiIndex
-  const handleScoreChange = (nhiemVuId, tieuChiIndex, newScore) => {
-    dispatch(updateTieuChiScoreLocal(nhiemVuId, tieuChiIndex, newScore));
+  // ✅ UPDATED: Support fieldName for IsMucDoHoanThanh (DiemQuanLy vs DiemDat)
+  const handleScoreChange = (
+    nhiemVuId,
+    tieuChiIndex,
+    newScore,
+    fieldName = "DiemDat"
+  ) => {
+    dispatch(
+      updateTieuChiScoreLocal(nhiemVuId, tieuChiIndex, newScore, fieldName)
+    );
   };
 
   const handleSaveAll = () => {
@@ -370,24 +399,26 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
                 }}
               />
               {/* Chu kỳ đánh giá */}
-              {currentDanhGiaKPI?.ChuKyID && (
+              {currentDanhGiaKPI?.ChuKyDanhGiaID && (
                 <Chip
                   icon={
                     <CalendarMonthIcon
                       sx={{ color: "white !important", fontSize: "1rem" }}
                     />
                   }
-                  label={`${currentDanhGiaKPI.ChuKyID.TenChuKy || "Chu kỳ"}: ${
-                    currentDanhGiaKPI.ChuKyID.NgayBatDau
-                      ? dayjs(currentDanhGiaKPI.ChuKyID.NgayBatDau).format(
-                          "DD/MM/YYYY"
-                        )
+                  label={`${
+                    currentDanhGiaKPI.ChuKyDanhGiaID.TenChuKy || "Chu kỳ"
+                  }: ${
+                    currentDanhGiaKPI.ChuKyDanhGiaID.NgayBatDau
+                      ? dayjs(
+                          currentDanhGiaKPI.ChuKyDanhGiaID.NgayBatDau
+                        ).format("DD/MM/YYYY")
                       : "N/A"
                   } - ${
-                    currentDanhGiaKPI.ChuKyID.NgayKetThuc
-                      ? dayjs(currentDanhGiaKPI.ChuKyID.NgayKetThuc).format(
-                          "DD/MM/YYYY"
-                        )
+                    currentDanhGiaKPI.ChuKyDanhGiaID.NgayKetThuc
+                      ? dayjs(
+                          currentDanhGiaKPI.ChuKyDanhGiaID.NgayKetThuc
+                        ).format("DD/MM/YYYY")
                       : "N/A"
                   }`}
                   sx={{
@@ -680,6 +711,7 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
           nhiemVuList={currentNhiemVuList}
           onScoreChange={handleScoreChange}
           readOnly={!isEditable}
+          diemTuDanhGiaMap={diemTuDanhGiaMap} // ✅ V2: Pass map for preview calculation
         />
       </DialogContent>
 
@@ -755,43 +787,47 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
               </Box>
             </Box>
 
-            {/* Undo button */}
-            <Button
-              variant="outlined"
-              startIcon={<UndoIcon />}
-              size="large"
-              onClick={handleOpenUndoDialog}
-              disabled={isSaving || !canUndoApproval.allowed}
-              sx={{
-                borderRadius: 2,
-                px: 4,
-                fontWeight: 600,
-                borderWidth: 2,
-                borderColor: canUndoApproval.allowed
-                  ? "warning.main"
-                  : "error.main",
-                color: canUndoApproval.allowed ? "warning.main" : "error.main",
-                "&:hover": {
+            {/* Undo button - ONLY show if NOT readOnly */}
+            {!readOnly && (
+              <Button
+                variant="outlined"
+                startIcon={<UndoIcon />}
+                size="large"
+                onClick={handleOpenUndoDialog}
+                disabled={isSaving || !canUndoApproval.allowed}
+                sx={{
+                  borderRadius: 2,
+                  px: 4,
+                  fontWeight: 600,
                   borderWidth: 2,
                   borderColor: canUndoApproval.allowed
-                    ? "warning.dark"
-                    : "error.dark",
-                  bgcolor: canUndoApproval.allowed
-                    ? "warning.lighter"
-                    : "error.lighter",
-                  transform: "translateY(-2px)",
-                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
-                },
-                "&:disabled": {
-                  borderWidth: 2,
-                  borderColor: "grey.300",
-                  color: "grey.400",
-                },
-                transition: "all 0.2s ease",
-              }}
-            >
-              🔄 Hủy duyệt KPI
-            </Button>
+                    ? "warning.main"
+                    : "error.main",
+                  color: canUndoApproval.allowed
+                    ? "warning.main"
+                    : "error.main",
+                  "&:hover": {
+                    borderWidth: 2,
+                    borderColor: canUndoApproval.allowed
+                      ? "warning.dark"
+                      : "error.dark",
+                    bgcolor: canUndoApproval.allowed
+                      ? "warning.lighter"
+                      : "error.lighter",
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 4px 16px rgba(0, 0, 0, 0.1)",
+                  },
+                  "&:disabled": {
+                    borderWidth: 2,
+                    borderColor: "grey.300",
+                    color: "grey.400",
+                  },
+                  transition: "all 0.2s ease",
+                }}
+              >
+                🔄 Hủy duyệt KPI
+              </Button>
+            )}
           </>
         )}
 

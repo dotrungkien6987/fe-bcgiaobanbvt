@@ -82,14 +82,6 @@ const quanlycongviec = {
         },
 
         {
-          id: "giaonhiemvu",
-          title: "Phân công cho nhân viên của tôi",
-          type: "item",
-          // Placeholder; nếu chưa có user.NhanVienID sẽ bị loại bỏ ở Navigation
-          url: "/quanlycongviec/giao-nhiem-vu/:NhanVienID",
-        },
-
-        {
           id: "giaonhiemvu-theo-chuky",
           title: "📅 Phân công theo chu kỳ",
           type: "item",
@@ -124,30 +116,25 @@ const quanlycongviec = {
           breadcrumbs: true,
         },
         {
+          id: "kpi-tu-danh-gia",
+          title: "Tự đánh giá KPI",
+          type: "item",
+          url: "/quanlycongviec/kpi/tu-danh-gia",
+          icon: icons.status,
+          breadcrumbs: true,
+          chip: {
+            label: "MỚI",
+            color: "primary",
+            size: "small",
+          },
+        },
+        {
           id: "kpi-danhgia-nhanvien",
           title: "Chấm điểm KPI",
           type: "item",
           url: "/quanlycongviec/kpi/danh-gia-nhan-vien",
           icon: icons.medal,
           breadcrumbs: true,
-          chip: {
-            label: "MỚI",
-            color: "success",
-            size: "small",
-          },
-        },
-        {
-          id: "kpi-danhgia-old",
-          title: "Chấm điểm KPI (Cũ)",
-          type: "item",
-          url: "/quanlycongviec/kpi/danh-gia",
-          icon: icons.medal,
-          breadcrumbs: true,
-          chip: {
-            label: "DEPRECATED",
-            color: "error",
-            size: "small",
-          },
         },
 
         {
@@ -156,16 +143,6 @@ const quanlycongviec = {
           type: "item",
           url: "/quanlycongviec/kpi/bao-cao",
           icon: icons.chart,
-          breadcrumbs: true,
-          // Chỉ admin (Role >= 3) mới thấy
-          roles: ["admin"],
-        },
-        {
-          id: "kpi-tieuchi",
-          title: "Quản lý tiêu chí",
-          type: "item",
-          url: "/quanlycongviec/kpi/tieu-chi",
-          icon: icons.setting,
           breadcrumbs: true,
           // Chỉ admin (Role >= 3) mới thấy
           roles: ["admin"],

@@ -35,11 +35,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { activeItem } from "features/Menu/menuSlice";
 import { MenuOrientation, ThemeMode } from "configAble";
 
-// mini-menu - wrapper
+// mini-menu - wrapper with GLASSMORPHISM effect
 const PopperStyled = styled(Popper)(({ theme }) => ({
   overflow: "visible",
   zIndex: 1202,
-  minWidth: 180,
+  minWidth: 200,
   "&:before": {
     content: '""',
     display: "block",
@@ -53,8 +53,36 @@ const PopperStyled = styled(Popper)(({ theme }) => ({
     zIndex: 120,
     borderLeft: `1px solid ${theme.palette.divider}`,
     borderBottom: `1px solid ${theme.palette.divider}`,
+    backdropFilter: "blur(20px)",
+  },
+  "& .MuiPaper-root": {
+    // ✨ GLASSMORPHISM EFFECT
+    backdropFilter: "blur(20px) saturate(180%)",
+    background:
+      theme.palette.mode === ThemeMode.DARK
+        ? "rgba(30, 30, 30, 0.85)"
+        : "rgba(255, 255, 255, 0.85)",
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: 12,
+    boxShadow:
+      theme.palette.mode === ThemeMode.DARK
+        ? "0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1) inset"
+        : "0 8px 32px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.8) inset",
+    overflow: "hidden",
   },
 }));
+
+// ✨ ICON ANIMATIONS KEYFRAMES
+const iconAnimations = {
+  "@keyframes iconBounce": {
+    "0%, 100%": { transform: "translateY(0)" },
+    "50%": { transform: "translateY(-4px)" },
+  },
+  "@keyframes iconPulse": {
+    "0%, 100%": { transform: "scale(1)" },
+    "50%": { transform: "scale(1.1)" },
+  },
+};
 
 // ==============================|| NAVIGATION - COLLAPSE ||============================== //
 
@@ -257,12 +285,13 @@ const NavCollapse = ({
             sx={{
               pl: drawerOpen ? `${level === 1 ? 20 : level * 20 - 10}px` : 1.5,
               py: !drawerOpen && level === 1 ? 1.25 : 1,
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)", // Consistent 300ms
               position: "relative",
               ...(drawerOpen && {
                 mx: 1.25,
                 my: 0.5,
                 borderRadius: 1,
+                overflow: "hidden", // For shimmer effect
                 "&:hover": {
                   bgcolor:
                     theme.palette.mode === ThemeMode.DARK
@@ -276,35 +305,48 @@ const NavCollapse = ({
                 },
                 "&.Mui-selected": {
                   color: iconSelectedColor,
-                  bgcolor:
+                  // ✨ GRADIENT BACKGROUND
+                  background:
                     theme.palette.mode === ThemeMode.DARK
-                      ? "primary.dark"
-                      : "primary.lighter",
+                      ? `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`
+                      : `linear-gradient(135deg, ${theme.palette.primary.lighter} 0%, ${theme.palette.primary.light} 100%)`,
                   "&::before": {
                     content: '""',
                     position: "absolute",
                     left: 0,
                     top: 0,
                     bottom: 0,
-                    width: 3,
-                    bgcolor: "primary.main",
-                    borderRadius: "0 2px 2px 0",
+                    width: 4,
+                    background: `linear-gradient(180deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                    borderRadius: "0 4px 4px 0",
+                    boxShadow: "2px 0 8px rgba(0,0,0,0.3)",
                   },
                 },
               }),
               ...(!drawerOpen && {
-                px: 2.75,
+                mx: 0.5, // Thêm margin khi mini
+                my: 0.5,
+                borderRadius: 1,
                 justifyContent: "center",
                 "&:hover": {
-                  bgcolor: "transparent",
-                  transform: "scale(1.05)",
+                  bgcolor:
+                    theme.palette.mode === ThemeMode.DARK
+                      ? "secondary.dark"
+                      : "secondary.lighter",
+                  transform: "scale(1.08)",
                 },
                 "&.Mui-selected": {
+                  bgcolor:
+                    theme.palette.mode === ThemeMode.DARK
+                      ? "primary.dark"
+                      : "primary.lighter",
                   "&:hover": {
-                    bgcolor: "transparent",
-                    transform: "scale(1.05)",
+                    bgcolor:
+                      theme.palette.mode === ThemeMode.DARK
+                        ? "primary.main"
+                        : "primary.light",
+                    transform: "scale(1.08)",
                   },
-                  bgcolor: "transparent",
                 },
               }),
             }}
@@ -316,44 +358,45 @@ const NavCollapse = ({
                   minWidth: 38,
                   color: isSelected ? "primary.main" : textColor,
                   transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  // ✨ ADD KEYFRAMES
+                  ...iconAnimations,
+                  // ✨ ICON ANIMATION ON HOVER
+                  "& svg": {
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  },
+                  "&:hover svg": {
+                    animation: "iconBounce 0.6s ease-in-out",
+                  },
                   ...(!drawerOpen && {
                     borderRadius: 1,
-                    width: 46,
-                    height: 46,
+                    width: 48,
+                    height: 48,
                     alignItems: "center",
                     justifyContent: "center",
                     position: "relative",
                     "&:hover": {
                       bgcolor:
                         theme.palette.mode === ThemeMode.DARK
-                          ? "secondary.light"
+                          ? "secondary.dark"
                           : "secondary.200",
-                      transform: "rotateY(15deg) scale(1.1)",
-                      "&::after": {
-                        content: '""',
-                        position: "absolute",
-                        inset: -2,
-                        borderRadius: 1,
-                        padding: 2,
-                        background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
-                        mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-                        maskComposite: "xor",
-                        opacity: 0.5,
-                      },
+                      transform: "scale(1.1)",
+                    },
+                    "&:hover svg": {
+                      animation: "iconBounce 0.6s ease-in-out",
                     },
                   }),
                   ...(!drawerOpen &&
                     isSelected && {
                       bgcolor:
                         theme.palette.mode === ThemeMode.DARK
-                          ? "secondary.100"
+                          ? "primary.dark"
                           : "primary.lighter",
                       "&:hover": {
                         bgcolor:
                           theme.palette.mode === ThemeMode.DARK
-                            ? "secondary.200"
-                            : "primary.lighter",
-                        transform: "rotateY(15deg) scale(1.1)",
+                            ? "primary.main"
+                            : "primary.light",
+                        transform: "scale(1.1)",
                       },
                     }),
                   ...(drawerOpen &&

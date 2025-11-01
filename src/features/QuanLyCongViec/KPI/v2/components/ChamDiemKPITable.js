@@ -30,6 +30,9 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
+// ✅ V2: Import calculation utilities
+import { calculateNhiemVuScore } from "../../../../../utils/kpiCalculation";
+
 /**
  * ScoreInput - Isolated input component with local state
  * Prevents re-render focus loss by using controlled local state
@@ -158,11 +161,13 @@ function ScoreInput({
  * - nhiemVuList: Array of DanhGiaNhiemVuThuongQuy objects
  * - onScoreChange: (nhiemVuId, tieuChiIndex, newScore) => void
  * - readOnly: Boolean (for approved KPI)
+ * - diemTuDanhGiaMap: Object { NhiemVuThuongQuyID: DiemTuDanhGia } - V2 for calculation
  */
 function ChamDiemKPITable({
   nhiemVuList = [],
   onScoreChange,
   readOnly = false,
+  diemTuDanhGiaMap = {}, // ✅ V2: Accept map for real-time preview
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   // ✅ Store expanded row id as string to avoid ObjectId reference issues across renders
@@ -231,42 +236,20 @@ function ChamDiemKPITable({
     setExpandedRowId((prev) => (prev === idStr ? null : idStr));
   };
 
-  // Calculate tiêu chí score with correct formula
-  const calculateTieuChiScore = useMemo(() => {
-    return (tieuChi) => {
-      const giaTriThucTe = tieuChi.DiemDat || 0;
+  // ✅ V2: Calculate nhiệm vụ total with CORRECT formula (matches backend)
+  const calculateNhiemVuTotal = useCallback(
+    (nhiemVu) => {
+      const nvId =
+        nhiemVu.NhiemVuThuongQuyID?._id || nhiemVu.NhiemVuThuongQuyID;
+      const diemTuDanhGia = diemTuDanhGiaMap[nvId?.toString()] || 0;
 
-      // Tất cả chia 100
-      const baseScore = giaTriThucTe / 100;
+      const { diemNhiemVu } = calculateNhiemVuScore(nhiemVu, diemTuDanhGia);
+      return diemNhiemVu;
+    },
+    [diemTuDanhGiaMap]
+  );
 
-      // GIAM_DIEM thì dấu âm (-)
-      if (tieuChi.LoaiTieuChi === "GIAM_DIEM") {
-        return -baseScore;
-      }
-
-      // TANG_DIEM thì dấu dương (+)
-      return baseScore;
-    };
-  }, []);
-
-  // Calculate nhiệm vụ total with correct formula
-  const calculateNhiemVuTotal = useMemo(() => {
-    return (nhiemVu) => {
-      if (!nhiemVu?.ChiTietDiem?.length) return 0;
-
-      // Cộng trừ theo dấu +/-
-      const tongDiemTieuChi = nhiemVu.ChiTietDiem.reduce((sum, tc) => {
-        return sum + calculateTieuChiScore(tc);
-      }, 0);
-
-      const mucDoKho = nhiemVu.MucDoKho || 5;
-
-      // Nhân với độ khó
-      return tongDiemTieuChi * mucDoKho;
-    };
-  }, [calculateTieuChiScore]);
-
-  // Calculate grand total
+  // ✅ V2: Calculate grand total (sum of all nhiệm vụ scores)
   const grandTotal = useMemo(() => {
     return nhiemVuList.reduce((sum, nv) => sum + calculateNhiemVuTotal(nv), 0);
   }, [nhiemVuList, calculateNhiemVuTotal]);
@@ -377,6 +360,41 @@ function ChamDiemKPITable({
                 ⚡ Độ khó
               </TableCell>
 
+              {/* 🆕 NEW COLUMN: Điểm tự đánh giá */}
+              <TableCell
+                align="center"
+                sx={{
+                  width: 140,
+                  fontWeight: "700",
+                  fontSize: "0.85rem",
+                  background: "#0ea5e9",
+                  color: "white",
+                  borderLeft: "3px solid #0284c7",
+                }}
+              >
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  alignItems="center"
+                  gap={0.5}
+                >
+                  <Typography
+                    variant="caption"
+                    fontWeight={700}
+                    fontSize="0.85rem"
+                  >
+                    🎯 Điểm tự ĐG
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    fontSize="0.7rem"
+                    sx={{ opacity: 0.9 }}
+                  >
+                    (Mức ĐHT)
+                  </Typography>
+                </Box>
+              </TableCell>
+
               {/* Tiêu chí columns */}
               {tieuChiHeaders.map((tc, idx) => (
                 <TableCell
@@ -457,7 +475,13 @@ function ChamDiemKPITable({
                 nhiemVu?._id || nhiemVu?.NhiemVuThuongQuyID?._id || index;
               const rowId = String(baseId);
               const isExpanded = expandedRowId === rowId;
-              const isScored = nhiemVu.TongDiemTieuChi > 0;
+              // ✅ V2: Check if scored by checking if any ChiTietDiem has DiemDat > 0
+              const isScored =
+                nhiemVu.ChiTietDiem?.some((tc) => tc.DiemDat > 0) || false;
+
+              // ✅ V2: Get nvId for diemTuDanhGiaMap lookup
+              const nvId =
+                nhiemVu.NhiemVuThuongQuyID?._id || nhiemVu.NhiemVuThuongQuyID;
 
               return (
                 <React.Fragment key={rowId}>
@@ -570,6 +594,49 @@ function ChamDiemKPITable({
                       />
                     </TableCell>
 
+                    {/* 🆕 NEW CELL: Điểm tự đánh giá - READ-ONLY */}
+                    <TableCell
+                      align="center"
+                      sx={{
+                        py: 1.2,
+                        px: 1.5,
+                        bgcolor:
+                          diemTuDanhGiaMap[nvId?.toString()] > 0
+                            ? "rgba(14, 165, 233, 0.08)"
+                            : "rgba(0,0,0,0.02)",
+                        borderLeft: "3px solid",
+                        borderLeftColor:
+                          diemTuDanhGiaMap[nvId?.toString()] > 0
+                            ? "#0ea5e9"
+                            : "rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      {diemTuDanhGiaMap[nvId?.toString()] > 0 ? (
+                        <Chip
+                          label={`${diemTuDanhGiaMap[nvId?.toString()]}%`}
+                          size="small"
+                          sx={{
+                            bgcolor: "#0ea5e9",
+                            color: "white",
+                            fontWeight: "700",
+                            fontSize: "0.85rem",
+                            minWidth: 65,
+                            height: 28,
+                            boxShadow: "0 2px 6px rgba(14, 165, 233, 0.3)",
+                          }}
+                        />
+                      ) : (
+                        <Typography
+                          variant="caption"
+                          color="text.disabled"
+                          fontStyle="italic"
+                          fontSize="0.8rem"
+                        >
+                          --
+                        </Typography>
+                      )}
+                    </TableCell>
+
                     {/* Tiêu chí scores */}
                     {nhiemVu.ChiTietDiem?.map((tieuChi, tcIdx) => {
                       const giaTriMin = tieuChi.GiaTriMin;
@@ -637,7 +704,7 @@ function ChamDiemKPITable({
                   {/* Expandable row for description */}
                   <TableRow ref={isExpanded ? expandedRowRef : null}>
                     <TableCell
-                      colSpan={4 + tieuChiHeaders.length + 1}
+                      colSpan={5 + tieuChiHeaders.length + 1}
                       sx={{
                         py: 0,
                         borderBottom: isExpanded ? 1 : 0,
@@ -737,13 +804,78 @@ function ChamDiemKPITable({
                                   </TableRow>
                                 </TableHead>
                                 <TableBody>
+                                  {/* 🆕 NEW ROW: Điểm tự đánh giá (if exists) */}
+                                  {diemTuDanhGiaMap[nvId?.toString()] > 0 && (
+                                    <TableRow sx={{ bgcolor: "info.lighter" }}>
+                                      <TableCell>
+                                        <Stack
+                                          direction="row"
+                                          spacing={1}
+                                          alignItems="center"
+                                        >
+                                          <Typography
+                                            variant="body2"
+                                            fontWeight="600"
+                                          >
+                                            🎯 Điểm tự đánh giá (Mức độ hoàn
+                                            thành)
+                                          </Typography>
+                                          <Chip
+                                            label="READ-ONLY"
+                                            size="small"
+                                            sx={{
+                                              bgcolor: "info.main",
+                                              color: "white",
+                                              fontSize: "0.7rem",
+                                              height: 20,
+                                            }}
+                                          />
+                                        </Stack>
+                                      </TableCell>
+                                      <TableCell align="center">
+                                        <Typography
+                                          variant="body2"
+                                          fontFamily="monospace"
+                                          color="info.main"
+                                        >
+                                          {diemTuDanhGiaMap[nvId?.toString()]}%
+                                          (NV tự chấm)
+                                        </Typography>
+                                      </TableCell>
+                                      <TableCell align="center">
+                                        <Typography
+                                          variant="body2"
+                                          fontWeight="bold"
+                                          color="info.main"
+                                        >
+                                          {(
+                                            diemTuDanhGiaMap[nvId?.toString()] /
+                                            100
+                                          ).toFixed(4)}
+                                        </Typography>
+                                      </TableCell>
+                                    </TableRow>
+                                  )}
+
                                   {nhiemVu.ChiTietDiem.map((tc, idx) => {
-                                    const score = calculateTieuChiScore(tc);
+                                    // ✅ V2: Calculate with formula for IsMucDoHoanThanh
                                     const sign =
                                       tc.LoaiTieuChi === "GIAM_DIEM"
                                         ? "−"
                                         : "+";
                                     const giaTriThucTe = tc.DiemDat || 0;
+                                    const diemTuDanhGia =
+                                      diemTuDanhGiaMap[nvId?.toString()] || 0;
+
+                                    // ✅ V2 FORMULA: Apply weighted average for IsMucDoHoanThanh
+                                    let diemCuoiCung = giaTriThucTe;
+                                    if (
+                                      tc.IsMucDoHoanThanh &&
+                                      diemTuDanhGia > 0
+                                    ) {
+                                      diemCuoiCung =
+                                        (giaTriThucTe * 2 + diemTuDanhGia) / 3;
+                                    }
 
                                     return (
                                       <TableRow
@@ -752,6 +884,9 @@ function ChamDiemKPITable({
                                           bgcolor:
                                             tc.LoaiTieuChi === "GIAM_DIEM"
                                               ? "error.lighter"
+                                              : tc.IsMucDoHoanThanh &&
+                                                diemTuDanhGia > 0
+                                              ? "warning.lighter"
                                               : "success.lighter",
                                         }}
                                       >
@@ -771,16 +906,50 @@ function ChamDiemKPITable({
                                                 color="error"
                                               />
                                             )}
+                                            {tc.IsMucDoHoanThanh &&
+                                              diemTuDanhGia > 0 && (
+                                                <Chip
+                                                  label="V2 FORMULA"
+                                                  size="small"
+                                                  sx={{
+                                                    bgcolor: "warning.main",
+                                                    color: "white",
+                                                    fontSize: "0.7rem",
+                                                    height: 20,
+                                                  }}
+                                                />
+                                              )}
                                           </Stack>
                                         </TableCell>
                                         <TableCell align="center">
-                                          <Typography
-                                            variant="body2"
-                                            fontFamily="monospace"
-                                          >
-                                            {sign}
-                                            {giaTriThucTe} ÷ 100
-                                          </Typography>
+                                          {tc.IsMucDoHoanThanh &&
+                                          diemTuDanhGia > 0 ? (
+                                            <Typography
+                                              variant="body2"
+                                              fontFamily="monospace"
+                                              color="warning.main"
+                                            >
+                                              ({giaTriThucTe} × 2 +{" "}
+                                              {diemTuDanhGia}) ÷ 3 ={" "}
+                                              {diemCuoiCung.toFixed(2)}
+                                              <br />
+                                              <Typography
+                                                variant="caption"
+                                                fontSize="0.7rem"
+                                              >
+                                                → {diemCuoiCung.toFixed(2)} ÷
+                                                100
+                                              </Typography>
+                                            </Typography>
+                                          ) : (
+                                            <Typography
+                                              variant="body2"
+                                              fontFamily="monospace"
+                                            >
+                                              {sign}
+                                              {giaTriThucTe} ÷ 100
+                                            </Typography>
+                                          )}
                                         </TableCell>
                                         <TableCell align="center">
                                           <Typography
@@ -789,18 +958,26 @@ function ChamDiemKPITable({
                                             color={
                                               tc.LoaiTieuChi === "GIAM_DIEM"
                                                 ? "error.main"
+                                                : tc.IsMucDoHoanThanh &&
+                                                  diemTuDanhGia > 0
+                                                ? "warning.main"
                                                 : "success.main"
                                             }
                                           >
                                             {sign}
-                                            {Math.abs(score).toFixed(4)}
+                                            {(
+                                              (diemCuoiCung / 100) *
+                                              (tc.LoaiTieuChi === "GIAM_DIEM"
+                                                ? -1
+                                                : 1)
+                                            ).toFixed(4)}
                                           </Typography>
                                         </TableCell>
                                       </TableRow>
                                     );
                                   })}
 
-                                  {/* Sum row */}
+                                  {/* Sum row - V2 FORMULA */}
                                   <TableRow sx={{ bgcolor: "primary.lighter" }}>
                                     <TableCell colSpan={2}>
                                       <Typography
@@ -816,8 +993,32 @@ function ChamDiemKPITable({
                                         fontWeight="bold"
                                       >
                                         {nhiemVu.ChiTietDiem.reduce(
-                                          (sum, tc) =>
-                                            sum + calculateTieuChiScore(tc),
+                                          (sum, tc) => {
+                                            const diemTuDanhGia =
+                                              diemTuDanhGiaMap[
+                                                nvId?.toString()
+                                              ] || 0;
+                                            let diemCuoiCung = tc.DiemDat || 0;
+
+                                            // ✅ V2 FORMULA
+                                            if (
+                                              tc.IsMucDoHoanThanh &&
+                                              diemTuDanhGia > 0
+                                            ) {
+                                              diemCuoiCung =
+                                                (tc.DiemDat * 2 +
+                                                  diemTuDanhGia) /
+                                                3;
+                                            }
+
+                                            const scaled = diemCuoiCung / 100;
+                                            return (
+                                              sum +
+                                              (tc.LoaiTieuChi === "GIAM_DIEM"
+                                                ? -scaled
+                                                : scaled)
+                                            );
+                                          },
                                           0
                                         ).toFixed(4)}
                                       </Typography>

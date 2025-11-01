@@ -74,10 +74,8 @@ import LoaiChuyenMonTable from "features/Daotao/LoaiChuyenMon/LoaiChuyenMonTable
 import NhomViecUserList from "features/QuanLyCongViec/NhomViecUser/NhomViecUserList";
 import NhiemVuThuongQuyList from "features/QuanLyCongViec/NhiemVuThuongQuy/NhiemVuThuongQuyList";
 import QuanLyNhanVienPage from "features/QuanLyCongViec/QuanLyNhanVien/QuanLyNhanVienPage";
-import GiaoNhiemVuPageNew from "features/QuanLyCongViec/GiaoNhiemVu/GiaoNhiemVuPageNew";
 import CycleAssignmentListPage from "features/QuanLyCongViec/GiaoNhiemVu/CycleAssignmentListPage";
 import CycleAssignmentDetailPage from "features/QuanLyCongViec/GiaoNhiemVu/CycleAssignmentDetailPage";
-import GiaoNhiemVuPage from "features/QuanLyCongViec/GiaoNhiemVu/old-components/GiaoNhiemVuPage";
 import CongViecByNhanVienPage from "features/QuanLyCongViec/CongViec/CongViecByNhanVienPage";
 import CongViecDetailPage from "features/QuanLyCongViec/CongViec/CongViecDetailPage";
 import TaskMindMapTreeEnhancedPage from "../pages/TaskMindMapTreeEnhancedPage";
@@ -94,8 +92,7 @@ import DoanVaoMembersPage from "features/NghienCuuKhoaHoc/Members/DoanVaoMembers
 import TepTinAdminPage from "features/QuanLyFile/pages/TepTinAdminPage";
 import { XemKPIPage, BaoCaoKPIPage } from "features/QuanLyCongViec/KPI/pages";
 import KPIEvaluationPage from "features/QuanLyCongViec/KPI/pages/KPIEvaluationPage";
-import { DanhGiaKPIDashboard } from "features/QuanLyCongViec/KPI/v2/pages";
-import { TieuChiDanhGiaList } from "features/QuanLyCongViec/TieuChiDanhGia";
+import TuDanhGiaKPIPage from "features/QuanLyCongViec/KPI/pages/TuDanhGiaKPIPage";
 import {
   ChuKyDanhGiaList,
   ChuKyDanhGiaView,
@@ -282,12 +279,13 @@ function Router() {
           />
           {/* KPI Management Routes */}
           <Route
-            path="/quanlycongviec/kpi/danh-gia"
-            element={<DanhGiaKPIDashboard />}
-          />
-          <Route
             path="/quanlycongviec/kpi/danh-gia-nhan-vien"
             element={<KPIEvaluationPage />}
+          />
+          {/* ✅ NEW: Employee self-assessment route */}
+          <Route
+            path="/quanlycongviec/kpi/tu-danh-gia"
+            element={<TuDanhGiaKPIPage />}
           />
           <Route path="/quanlycongviec/kpi/xem" element={<XemKPIPage />} />
           <Route
@@ -295,14 +293,6 @@ function Router() {
             element={
               <AdminRequire>
                 <BaoCaoKPIPage />
-              </AdminRequire>
-            }
-          />
-          <Route
-            path="/quanlycongviec/kpi/tieu-chi"
-            element={
-              <AdminRequire>
-                <TieuChiDanhGiaList />
               </AdminRequire>
             }
           />
@@ -327,11 +317,6 @@ function Router() {
             path="/workmanagement/nhanvien/:nhanVienId/quanly"
             element={<QuanLyNhanVienPage />}
           />
-          {/* New version V2.0 - Table-based UI */}
-          <Route
-            path="/quanlycongviec/giao-nhiem-vu/:NhanVienID"
-            element={<GiaoNhiemVuPageNew />}
-          />
           {/* Cycle-based assignment: LIST view (all employees) */}
           <Route
             path="/quanlycongviec/giao-nhiem-vu-chu-ky"
@@ -341,11 +326,6 @@ function Router() {
           <Route
             path="/quanlycongviec/giao-nhiem-vu-chu-ky/:NhanVienID"
             element={<CycleAssignmentDetailPage />}
-          />
-          {/* Old version - backup */}
-          <Route
-            path="/quanlycongviec/giao-nhiem-vu-old/:NhanVienID"
-            element={<GiaoNhiemVuPage />}
           />
           <Route
             path="/quan-ly-cong-viec/nhan-vien/:nhanVienId"
