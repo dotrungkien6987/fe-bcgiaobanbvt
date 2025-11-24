@@ -1,4 +1,4 @@
-import { createContext, useReducer, useEffect } from "react";
+import { createContext, useReducer, useEffect, useContext } from "react";
 import apiService from "../app/apiService";
 import { isValidToken } from "../utils/jwt";
 import { useDispatch as useReduxDispatch } from "react-redux";
@@ -166,4 +166,13 @@ function AuthProvider({ children }) {
   );
 }
 
-export { AuthContext, AuthProvider };
+// Custom hook to use AuthContext
+const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+export { AuthContext, AuthProvider, useAuth };

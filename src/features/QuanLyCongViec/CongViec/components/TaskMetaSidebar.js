@@ -273,51 +273,199 @@ const TaskMetaSidebar = ({ theme, congViec, overdue, cooperators = [] }) => {
           Timeline
         </Typography>
         <Grid container spacing={1}>
+          {/* Kế hoạch section */}
           {[
             {
-              label: "Bắt đầu (kế hoạch)",
+              label: "📅 Bắt đầu (kế hoạch)",
               v: congViec.NgayBatDau,
+              type: "plan",
             },
             {
-              label: "Hết hạn (kế hoạch)",
+              label: "⏰ Hết hạn (kế hoạch)",
               v: congViec.NgayHetHan,
-            },
-            { label: "Giao việc", v: congViec.NgayGiaoViec },
-            {
-              label: "Tiếp nhận thực tế",
-              v: congViec.NgayTiepNhanThucTe,
+              type: "plan",
+              isDeadline: true,
             },
             {
-              label: "Hoàn thành tạm",
-              v: congViec.NgayHoanThanhTam,
+              label: "⚠️ Cảnh báo (kế hoạch)",
+              v: congViec.CanhBaoMode === "FIXED" ? congViec.NgayCanhBao : null,
+              type: "plan",
             },
-            { label: "Hoàn thành", v: congViec.NgayHoanThanh },
-          ].map((t) => (
-            <Grid key={t.label} item xs={12}>
-              <Box
-                sx={{
-                  p: 1.2,
-                  border: `1px solid ${theme.palette.grey[200]}`,
-                  borderRadius: 1.2,
-                  backgroundColor: theme.palette.grey[50],
-                  minHeight: 54,
-                }}
-              >
-                <Typography
-                  variant="caption"
+          ]
+            .filter((t) => t.v)
+            .map((t) => (
+              <Grid key={t.label} item xs={12}>
+                <Box
                   sx={{
-                    fontWeight: 600,
-                    color: "text.secondary",
+                    p: 1.2,
+                    border: `1px solid ${
+                      t.isDeadline
+                        ? theme.palette.error.light
+                        : theme.palette.grey[200]
+                    }`,
+                    borderRadius: 1.2,
+                    backgroundColor: t.isDeadline
+                      ? theme.palette.error.lighter || "rgba(211, 47, 47, 0.04)"
+                      : theme.palette.grey[50],
+                    minHeight: 54,
                   }}
                 >
-                  {t.label}
-                </Typography>
-                <Typography variant="body2" sx={{ mt: 0.5 }}>
-                  {formatRel(t.v)}
-                </Typography>
-              </Box>
-            </Grid>
-          ))}
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 600,
+                      color: t.isDeadline ? "error.main" : "text.secondary",
+                    }}
+                  >
+                    {t.label}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      mt: 0.5,
+                      fontWeight: 500,
+                      color: t.isDeadline ? "error.dark" : "text.primary",
+                    }}
+                  >
+                    {formatRel(t.v)}
+                  </Typography>
+                </Box>
+              </Grid>
+            ))}
+
+          {/* Divider nếu có cả kế hoạch và thực tế */}
+          {(congViec.NgayBatDau || congViec.NgayHetHan) &&
+            (congViec.NgayTao ||
+              congViec.NgayGiaoViec ||
+              congViec.NgayTiepNhanThucTe ||
+              congViec.NgayHoanThanhTam ||
+              congViec.NgayHoanThanh) && (
+              <Grid item xs={12}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    my: 0.5,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      flex: 1,
+                      height: 1,
+                      bgcolor: theme.palette.divider,
+                    }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "text.secondary", fontWeight: 600 }}
+                  >
+                    Thực tế
+                  </Typography>
+                  <Box
+                    sx={{
+                      flex: 1,
+                      height: 1,
+                      bgcolor: theme.palette.divider,
+                    }}
+                  />
+                </Box>
+              </Grid>
+            )}
+
+          {/* Thực tế section - sorted chronologically */}
+          {[
+            {
+              label: "📝 Tạo công việc",
+              v: congViec.NgayTao || congViec.createdAt,
+              type: "actual",
+              key: "tao",
+            },
+            {
+              label: "📋 Giao việc",
+              v: congViec.NgayGiaoViec,
+              type: "actual",
+              key: "giao",
+            },
+            {
+              label: "✅ Tiếp nhận thực tế",
+              v: congViec.NgayTiepNhanThucTe,
+              type: "actual",
+              key: "tiepnhan",
+            },
+            {
+              label: "⏱️ Hoàn thành tạm",
+              v: congViec.NgayHoanThanhTam,
+              type: "actual",
+              key: "tamhoanth",
+              // Chỉ hiển thị nếu có cấu hình duyệt
+              show: congViec.CoDuyetHoanThanh && congViec.NgayHoanThanhTam,
+            },
+            {
+              label: "🎉 Hoàn thành",
+              v: congViec.NgayHoanThanh,
+              type: "actual",
+              key: "hoanthanh",
+              isComplete: true,
+            },
+          ]
+            .filter((t) => t.show !== false && t.v)
+            .sort((a, b) => new Date(a.v) - new Date(b.v))
+            .map((t, idx, arr) => (
+              <Grid key={t.key} item xs={12}>
+                <Box
+                  sx={{
+                    p: 1.2,
+                    border: `1px solid ${
+                      t.isComplete
+                        ? theme.palette.success.light
+                        : theme.palette.primary.light
+                    }`,
+                    borderRadius: 1.2,
+                    backgroundColor: t.isComplete
+                      ? theme.palette.success.lighter ||
+                        "rgba(46, 125, 50, 0.04)"
+                      : theme.palette.primary.lighter ||
+                        "rgba(25, 118, 210, 0.04)",
+                    minHeight: 54,
+                    position: "relative",
+                    "&::before":
+                      idx < arr.length - 1
+                        ? {
+                            content: '""',
+                            position: "absolute",
+                            left: 8,
+                            bottom: -9,
+                            width: 2,
+                            height: 10,
+                            backgroundColor: theme.palette.primary.light,
+                            opacity: 0.3,
+                          }
+                        : {},
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 600,
+                      color: t.isComplete ? "success.main" : "primary.main",
+                    }}
+                  >
+                    {t.label}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      mt: 0.5,
+                      fontWeight: 500,
+                      color: t.isComplete ? "success.dark" : "primary.dark",
+                    }}
+                  >
+                    {formatRel(t.v)}
+                  </Typography>
+                </Box>
+              </Grid>
+            ))}
         </Grid>
       </Box>
 

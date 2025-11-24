@@ -22,16 +22,17 @@ import { useSelector } from "react-redux";
 import {
   getStatusColor,
   getPriorityColor,
+  getDueStatusColor,
   getStatusText,
   getPriorityText,
   EXT_DUE_LABEL_MAP,
-  EXT_DUE_COLOR_MAP,
 } from "../../../../utils/congViecUtils";
 
 const ColorLegendDialog = ({ open, onClose }) => {
   const theme = useTheme();
   const statusOverrides = useSelector((s) => s.colorConfig?.statusColors);
   const priorityOverrides = useSelector((s) => s.colorConfig?.priorityColors);
+  const dueStatusOverrides = useSelector((s) => s.colorConfig?.dueStatusColors);
 
   const statusData = [
     {
@@ -43,16 +44,6 @@ const ColorLegendDialog = ({ open, onClose }) => {
       code: "DA_GIAO",
       label: getStatusText("DA_GIAO"),
       color: getStatusColor("DA_GIAO", statusOverrides),
-    },
-    {
-      code: "CHAP_NHAN",
-      label: getStatusText("CHAP_NHAN"),
-      color: getStatusColor("CHAP_NHAN", statusOverrides),
-    },
-    {
-      code: "TU_CHOI",
-      label: getStatusText("TU_CHOI"),
-      color: getStatusColor("TU_CHOI", statusOverrides),
     },
     {
       code: "DANG_THUC_HIEN",
@@ -68,16 +59,6 @@ const ColorLegendDialog = ({ open, onClose }) => {
       code: "HOAN_THANH",
       label: getStatusText("HOAN_THANH"),
       color: getStatusColor("HOAN_THANH", statusOverrides),
-    },
-    {
-      code: "QUA_HAN",
-      label: getStatusText("QUA_HAN"),
-      color: getStatusColor("QUA_HAN", statusOverrides),
-    },
-    {
-      code: "HUY",
-      label: getStatusText("HUY"),
-      color: getStatusColor("HUY", statusOverrides),
     },
   ];
 
@@ -113,7 +94,7 @@ const ColorLegendDialog = ({ open, onClose }) => {
   ].map((code) => ({
     code,
     label: EXT_DUE_LABEL_MAP[code],
-    color: EXT_DUE_COLOR_MAP[code],
+    color: getDueStatusColor(code, dueStatusOverrides),
   }));
 
   return (

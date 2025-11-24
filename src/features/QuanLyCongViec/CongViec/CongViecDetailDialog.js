@@ -12,13 +12,16 @@ import {
 } from "@mui/material";
 import TaskDialogHeader from "./components/TaskDialogHeader";
 import SubtasksSection from "./components/SubtasksSection";
-import RoutineTaskSelector from "./components/RoutineTaskSelector";
+import CongViecTreeDialog from "../TreeView/CongViecTreeDialog";
+// import RoutineTaskSelector from "./components/RoutineTaskSelector"; // ✅ Not used directly anymore
+import RoutineTaskCompactButton from "./components/RoutineTaskCompactButton";
 import VersionConflictNotice from "./components/VersionConflictNotice";
 import TaskMainContent, { CommentsSection } from "./components/TaskMainContent";
 import TaskSidebarPanel from "./components/TaskSidebarPanel";
 import HistorySection from "./components/HistorySection";
 import ConfirmActionDialog from "./components/ConfirmActionDialog";
 import ProgressConfirmDialog from "./components/ProgressConfirmDialog";
+import ProgressEditDialog from "./components/ProgressEditDialog";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 // Icons now handled inside extracted components
@@ -43,6 +46,8 @@ import {
   getAvailableActions,
   fetchMyRoutineTasks,
   updateProgress,
+  fetchAvailableCycles, // ✅ NEW
+  setSelectedCycle, // ✅ NEW
 } from "./congViecSlice";
 import {
   fetchFilesByTask,
@@ -81,11 +86,17 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
   const dispatch = useDispatch();
   const { user } = useAuth();
   console.log("User:", user);
+  const currentUserRole = user?.PhanQuyen;
+  const currentUserNhanVienId = user?.NhanVienID;
   const { congViecDetail, loading, error } = useSelector(
     (state) => state.congViec
   );
   const { myRoutineTasks, loadingRoutineTasks, myRoutineTasksError } =
     useSelector((s) => s.congViec);
+  // ✅ NEW: Cycle state
+  const { availableCycles, selectedCycleId, loadingCycles } = useSelector(
+    (s) => s.congViec
+  );
   const versionConflict = useSelector((s) => s.congViec.versionConflict);
   const statusOverrides = useSelector((s) => s.colorConfig?.statusColors);
   const priorityOverrides = useSelector((s) => s.colorConfig?.priorityColors);
@@ -114,7 +125,8 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [colorLegendOpen, setColorLegendOpen] = useState(false);
   const [adminColorsOpen, setAdminColorsOpen] = useState(false);
-  const [quickProgress, setQuickProgress] = useState(0);
+  const [progressEditOpen, setProgressEditOpen] = useState(false);
+  const [treeDialog, setTreeDialog] = useState({ open: false, congViec: null });
 
   // Quick edit local state
   // const [quickStatus, setQuickStatus] = useState("");
@@ -138,6 +150,8 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
       dispatch(countFilesByTask(congViecId));
       dispatch(fetchColorConfig());
       dispatch(fetchMyRoutineTasks());
+      // ✅ NEW: Fetch available cycles when dialog opens
+      dispatch(fetchAvailableCycles());
     }
   }, [open, congViecId, dispatch]);
 
@@ -149,16 +163,25 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
     }
   }, [versionConflict, congViecId, dispatch]);
 
+  // ✅ SAFEGUARD: Verify task ID matches before rendering
+  // Prevents showing wrong task when multiple dialogs/tabs are open simultaneously
+  // This handles the case where Redux state gets overwritten by another context
+  useEffect(() => {
+    if (open && congViecId && congViecDetail) {
+      if (congViecDetail._id !== congViecId) {
+        console.warn(
+          `[Task Conflict Detected] Dialog expects task ${congViecId} but Redux has ${congViecDetail._id}. Auto-refetching correct task...`
+        );
+        // Force refetch the correct task to fix the conflict
+        dispatch(getCongViecDetail(congViecId));
+      }
+    }
+  }, [open, congViecId, congViecDetail, dispatch]);
+
   // Sync quick-edit progress when detail loads/changes
   useEffect(() => {
     if (!congViecDetail) return;
-    const p =
-      typeof congViecDetail.PhanTramTienDoTong === "number"
-        ? congViecDetail.PhanTramTienDoTong
-        : typeof congViecDetail.TienDo === "number"
-        ? congViecDetail.TienDo
-        : 0;
-    setQuickProgress(Math.max(0, Math.min(100, Math.round(p))));
+    // Sync progress với detail đã được bỏ vì không còn quickProgress state
   }, [congViecDetail]);
 
   const handleAddComment = async () => {
@@ -189,12 +212,28 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
   // Hidden: chỉnh trực tiếp trạng thái qua Select
   // const handleQuickStatusChange = async (e) => { ... };
 
-  const handleProgressChange = (e, val) =>
-    setQuickProgress(Array.isArray(val) ? val[0] : val);
-  const handleProgressInputChange = (e) => {
-    const v = e.target.value === "" ? 0 : Number(e.target.value);
-    if (!Number.isNaN(v)) setQuickProgress(Math.max(0, Math.min(100, v)));
+  // ✅ Handlers cho ProgressEditDialog
+  const handleOpenProgressEdit = () => {
+    setProgressEditOpen(true);
   };
+
+  const handleCloseProgressEdit = () => {
+    setProgressEditOpen(false);
+  };
+
+  const handleOpenTree = (congViec) => {
+    setTreeDialog({ open: true, congViec });
+  };
+
+  const handleCloseTree = () => {
+    setTreeDialog({ open: false, congViec: null });
+  };
+
+  const handleSaveProgress = async (newValue) => {
+    await commitProgressUpdate(newValue);
+    setProgressEditOpen(false);
+  };
+
   const commitProgressUpdate = async (value) => {
     const v = Math.max(0, Math.min(100, Math.round(value)));
     // Open dialog; store target
@@ -215,18 +254,13 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
       );
       setProgressDialog({ open: false, target: 0 });
     } catch (err) {
-      const current =
-        congViecDetail?.PhanTramTienDoTong ?? congViecDetail?.TienDo ?? 0;
-      setQuickProgress(Math.max(0, Math.min(100, Math.round(current))));
+      // Error đã được xử lý trong slice
     } finally {
       setProgressSaving(false);
     }
   };
   const handleCancelProgress = () => {
     setProgressDialog({ open: false, target: 0 });
-    const current =
-      congViecDetail?.PhanTramTienDoTong ?? congViecDetail?.TienDo ?? 0;
-    setQuickProgress(Math.max(0, Math.min(100, Math.round(current))));
   };
 
   // Routine task selection (single-select) with enhanced feedback
@@ -270,6 +304,12 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
     } catch (e) {
       console.error("Error updating routine task:", e);
     }
+  };
+
+  // ✅ NEW: Handler for cycle change
+  const handleCycleChange = (newCycleId) => {
+    dispatch(setSelectedCycle(newCycleId));
+    dispatch(fetchMyRoutineTasks({ force: true })); // Refetch with new cycle
   };
 
   // Version conflict dialog UI
@@ -376,10 +416,18 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
 
   const congViec = useMemo(() => congViecDetail || {}, [congViecDetail]);
   // Determine permission (BE field names may differ; adjust if needed)
-  const currentUserId = user?._id || user?.id;
-  // Determine roles using multiple possible fields (NhanVienID, NhanVien?._id) rồi fallback user id
+  // Determine roles using multiple possible fields (NhanVienID, NhanVien?._id)
   const nhanVienObjId = user?.NhanVien?._id;
-  const currentNhanVienId = user?.NhanVienID || nhanVienObjId || currentUserId;
+  const currentNhanVienId = user?.NhanVienID || nhanVienObjId;
+
+  // Validation: warn if user doesn't have NhanVienID
+  if (!currentNhanVienId) {
+    console.error(
+      "[CongViecDetailDialog] User chưa liên kết với nhân viên:",
+      user
+    );
+  }
+
   const congViecNguoiChinhId =
     typeof congViec?.NguoiChinhID === "object"
       ? congViec?.NguoiChinhID?._id || congViec?.NguoiChinhID?.id
@@ -540,11 +588,11 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
     >
       <DialogTitle
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          pb: 2,
-          borderBottom: `1px solid ${theme.palette.divider}`,
+          bgcolor: "#1939B7",
+          color: "white",
+          py: 3,
+          px: 4,
+          borderBottom: "none",
         }}
       >
         <TaskDialogHeader
@@ -558,143 +606,146 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
           onEdit={onEdit}
           onClose={onClose}
           theme={theme}
+          availableActions={availableActions}
+          actionLoading={actionLoading}
+          onTriggerAction={triggerAction}
+          canEditProgress={canEditProgress}
+          onOpenProgressEdit={handleOpenProgressEdit}
+          currentUserRole={currentUserRole}
+          currentUserNhanVienId={currentUserNhanVienId}
+          onOpenTree={handleOpenTree}
+          routineTaskSelectorNode={
+            <RoutineTaskCompactButton
+              congViecDetail={congViecDetail}
+              myRoutineTasks={myRoutineTasks}
+              loadingRoutineTasks={loadingRoutineTasks}
+              myRoutineTasksError={myRoutineTasksError}
+              isMain={isMain}
+              handleSelectRoutine={handleSelectRoutine}
+              dispatch={dispatch}
+              fetchMyRoutineTasks={fetchMyRoutineTasks}
+              availableCycles={availableCycles}
+              selectedCycleId={selectedCycleId}
+              onCycleChange={handleCycleChange}
+              loadingCycles={loadingCycles}
+            />
+          }
         />
       </DialogTitle>
 
       <DialogContent
         dividers
-        sx={{ p: 0, height: "calc(100vh - 120px)", overflow: "auto" }}
+        sx={{ p: 3, height: "calc(100vh - 120px)", overflow: "auto" }}
       >
         {showConflict && (
           <VersionConflictNotice onResolve={handleResolveConflict} />
         )}
+
         {loading ? (
-          <Box sx={{ p: 3, textAlign: "center" }}>
+          <Box sx={{ textAlign: "center" }}>
             <Typography>Đang tải...</Typography>
           </Box>
         ) : error ? (
-          <Box sx={{ p: 3, textAlign: "center" }}>
+          <Box sx={{ textAlign: "center" }}>
             <Typography color="error">Có lỗi xảy ra: {error}</Typography>
           </Box>
         ) : (
-          <>
-            <Grid
-              container
-              spacing={3}
-              sx={{ p: 3, minHeight: "calc(100vh - 200px)" }}
-            >
-              <Grid item xs={12} lg={8} xl={9}>
-                <TaskMainContent
-                  congViec={congViec}
-                  theme={theme}
-                  quickProgress={quickProgress}
-                  canEditProgress={canEditProgress}
-                  handleProgressChange={handleProgressChange}
-                  handleProgressInputChange={handleProgressInputChange}
-                  commitProgressUpdate={commitProgressUpdate}
-                  availableActions={availableActions}
-                  actionLoading={actionLoading}
-                  triggerAction={triggerAction}
-                  newComment={newComment}
-                  setNewComment={setNewComment}
-                  pendingFiles={pendingFiles}
-                  setPendingFiles={setPendingFiles}
-                  dragCommentActive={dragCommentActive}
-                  setDragCommentActive={setDragCommentActive}
-                  handleAddComment={handleAddComment}
-                  submittingComment={submittingComment}
-                  user={user}
-                  congViecId={congViecId}
-                  dispatch={dispatch}
-                  recallComment={recallComment}
-                  recallCommentText={recallCommentText}
-                  deleteFileThunk={deleteFileThunk}
-                  markCommentFileDeleted={markCommentFileDeleted}
-                  fetchReplies={fetchReplies}
-                  addReply={addReply}
-                  createCommentWithFiles={createCommentWithFiles}
-                  repliesByParent={repliesByParent}
-                  initialReplyCounts={initialReplyCounts}
-                  handleViewFile={handleViewFile}
-                  handleDownloadFile={handleDownloadFile}
-                  formatDateTime={formatDateTime}
-                  routineTaskSelectorNode={
-                    <RoutineTaskSelector
-                      congViecDetail={congViecDetail}
-                      myRoutineTasks={myRoutineTasks}
-                      loadingRoutineTasks={loadingRoutineTasks}
-                      myRoutineTasksError={myRoutineTasksError}
-                      isMain={isMain}
-                      handleSelectRoutine={handleSelectRoutine}
-                      dispatch={dispatch}
-                      fetchMyRoutineTasks={fetchMyRoutineTasks}
-                      embedded
-                    />
-                  }
-                />
-                <SubtasksSection
-                  parent={congViec}
-                  isMain={isMain}
-                  open={open}
-                />
-                <CommentsSection
-                  congViec={congViec}
-                  theme={theme}
-                  newComment={newComment}
-                  setNewComment={setNewComment}
-                  pendingFiles={pendingFiles}
-                  setPendingFiles={setPendingFiles}
-                  dragCommentActive={dragCommentActive}
-                  setDragCommentActive={setDragCommentActive}
-                  handleAddComment={handleAddComment}
-                  submittingComment={submittingComment}
-                  user={user}
-                  congViecId={congViecId}
-                  dispatch={dispatch}
-                  recallComment={recallComment}
-                  recallCommentText={recallCommentText}
-                  deleteFileThunk={deleteFileThunk}
-                  markCommentFileDeleted={markCommentFileDeleted}
-                  fetchReplies={fetchReplies}
-                  addReply={addReply}
-                  createCommentWithFiles={createCommentWithFiles}
-                  repliesByParent={repliesByParent}
-                  initialReplyCounts={initialReplyCounts}
-                  handleViewFile={handleViewFile}
-                  handleDownloadFile={handleDownloadFile}
-                  formatDateTime={formatDateTime}
-                />
-              </Grid>
-              <Grid item xs={12} lg={4} xl={3}>
-                <TaskSidebarPanel
-                  theme={theme}
-                  dragSidebarActive={dragSidebarActive}
-                  setDragSidebarActive={setDragSidebarActive}
-                  fileCount={fileCount}
-                  filesState={filesState}
-                  uploadFilesForTask={uploadFilesForTask}
-                  congViecId={congViecId}
-                  dispatch={dispatch}
-                  handleViewFile={handleViewFile}
-                  handleDownloadFile={handleDownloadFile}
-                  deleteFileThunk={deleteFileThunk}
-                  congViec={congViec}
-                  extDue={extDue}
-                  cooperators={cooperators}
-                  handleSidebarDragOver={handleSidebarDragOver}
-                  handleSidebarDragEnter={handleSidebarDragEnter}
-                  handleSidebarDragLeave={handleSidebarDragLeave}
-                  handleSidebarDrop={handleSidebarDrop}
-                  handleSidebarPaste={handleSidebarPaste}
-                />
-              </Grid>
+          <Grid container spacing={3} sx={{ minHeight: "calc(100vh - 200px)" }}>
+            <Grid item xs={12} lg={8} xl={9}>
+              <TaskMainContent
+                congViec={congViec}
+                theme={theme}
+                newComment={newComment}
+                setNewComment={setNewComment}
+                pendingFiles={pendingFiles}
+                setPendingFiles={setPendingFiles}
+                dragCommentActive={dragCommentActive}
+                setDragCommentActive={setDragCommentActive}
+                handleAddComment={handleAddComment}
+                submittingComment={submittingComment}
+                user={user}
+                congViecId={congViecId}
+                dispatch={dispatch}
+                recallComment={recallComment}
+                recallCommentText={recallCommentText}
+                deleteFileThunk={deleteFileThunk}
+                markCommentFileDeleted={markCommentFileDeleted}
+                fetchReplies={fetchReplies}
+                addReply={addReply}
+                createCommentWithFiles={createCommentWithFiles}
+                repliesByParent={repliesByParent}
+                initialReplyCounts={initialReplyCounts}
+                handleViewFile={handleViewFile}
+                handleDownloadFile={handleDownloadFile}
+                formatDateTime={formatDateTime}
+              />
+              <CommentsSection
+                congViec={congViec}
+                theme={theme}
+                newComment={newComment}
+                setNewComment={setNewComment}
+                pendingFiles={pendingFiles}
+                setPendingFiles={setPendingFiles}
+                dragCommentActive={dragCommentActive}
+                setDragCommentActive={setDragCommentActive}
+                handleAddComment={handleAddComment}
+                submittingComment={submittingComment}
+                user={user}
+                congViecId={congViecId}
+                dispatch={dispatch}
+                recallComment={recallComment}
+                recallCommentText={recallCommentText}
+                deleteFileThunk={deleteFileThunk}
+                markCommentFileDeleted={markCommentFileDeleted}
+                fetchReplies={fetchReplies}
+                addReply={addReply}
+                createCommentWithFiles={createCommentWithFiles}
+                repliesByParent={repliesByParent}
+                initialReplyCounts={initialReplyCounts}
+                handleViewFile={handleViewFile}
+                handleDownloadFile={handleDownloadFile}
+                formatDateTime={formatDateTime}
+              />
+              <SubtasksSection
+                parent={congViec}
+                isMain={isMain}
+                open={open}
+                currentUserRole={currentUserRole}
+                currentUserNhanVienId={currentUserNhanVienId}
+                onOpenTree={handleOpenTree}
+              />
             </Grid>
-            <HistorySection
-              congViecDetail={congViecDetail}
-              congViecId={congViecId}
-              theme={theme}
-            />
-          </>
+            <Grid item xs={12} lg={4} xl={3}>
+              <TaskSidebarPanel
+                theme={theme}
+                dragSidebarActive={dragSidebarActive}
+                setDragSidebarActive={setDragSidebarActive}
+                fileCount={fileCount}
+                filesState={filesState}
+                uploadFilesForTask={uploadFilesForTask}
+                congViecId={congViecId}
+                dispatch={dispatch}
+                handleViewFile={handleViewFile}
+                handleDownloadFile={handleDownloadFile}
+                deleteFileThunk={deleteFileThunk}
+                congViec={congViec}
+                extDue={extDue}
+                cooperators={cooperators}
+                handleSidebarDragOver={handleSidebarDragOver}
+                handleSidebarDragEnter={handleSidebarDragEnter}
+                handleSidebarDragLeave={handleSidebarDragLeave}
+                handleSidebarDrop={handleSidebarDrop}
+                handleSidebarPaste={handleSidebarPaste}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <HistorySection
+                congViecDetail={congViecDetail}
+                congViecId={congViecId}
+                theme={theme}
+              />
+            </Grid>
+          </Grid>
         )}
       </DialogContent>
 
@@ -739,6 +790,18 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
         executeAction={executeAction}
         onClose={() => setConfirm(null)}
       />
+
+      {/* ✅ Progress Edit Dialog */}
+      <ProgressEditDialog
+        open={progressEditOpen}
+        onClose={handleCloseProgressEdit}
+        currentProgress={
+          congViecDetail?.PhanTramTienDoTong ?? congViecDetail?.TienDo ?? 0
+        }
+        onSave={handleSaveProgress}
+        loading={progressSaving}
+      />
+
       <ProgressConfirmDialog
         open={progressDialog.open}
         oldValue={
@@ -749,6 +812,14 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
         loading={progressSaving}
         onCancel={handleCancelProgress}
         onConfirm={handleConfirmProgress}
+      />
+
+      {/* Tree Dialog */}
+      <CongViecTreeDialog
+        open={treeDialog.open}
+        onClose={handleCloseTree}
+        congViec={treeDialog.congViec}
+        enableViewDetail={true}
       />
     </Dialog>
   );

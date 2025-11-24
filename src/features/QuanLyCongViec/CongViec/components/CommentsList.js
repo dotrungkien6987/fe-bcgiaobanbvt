@@ -222,9 +222,9 @@ const CommentsList = ({
                 <Stack spacing={1} sx={{ mt: 0.5 }}>
                   {comment.TrangThai === "DELETED" ? (
                     <Typography
-                      variant="body2"
+                      variant="body1"
                       color="text.secondary"
-                      sx={{ fontStyle: "italic" }}
+                      sx={{ fontStyle: "italic", fontSize: "1rem" }}
                     >
                       Tin nhắn đã được thu hồi
                     </Typography>
@@ -244,7 +244,10 @@ const CommentsList = ({
                             backgroundColor: theme.palette.grey[50],
                           }}
                         >
-                          <Typography variant="body2">
+                          <Typography
+                            variant="body1"
+                            sx={{ fontSize: "1rem", lineHeight: 1.6 }}
+                          >
                             {comment.NoiDung}
                           </Typography>
                           {onRecallCommentText &&
@@ -393,6 +396,7 @@ const CommentsList = ({
                       >
                         <Button
                           size="small"
+                          sx={{ fontSize: "0.9rem", fontWeight: 600 }}
                           onClick={() =>
                             setOpenReplyFor((cur) =>
                               cur === comment._id ? null : comment._id
@@ -403,6 +407,7 @@ const CommentsList = ({
                         </Button>
                         <Button
                           size="small"
+                          sx={{ fontSize: "0.9rem", fontWeight: 600 }}
                           onClick={() => toggleReplies(comment._id)}
                         >
                           {expanded[comment._id]

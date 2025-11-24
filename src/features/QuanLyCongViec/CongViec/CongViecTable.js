@@ -30,15 +30,20 @@ import dayjs from "dayjs";
 import {
   getStatusColor,
   getPriorityColor,
+  getDueStatusColor,
   getStatusText as getStatusLabel,
   getPriorityText as getPriorityLabel,
   getExtendedDueStatus,
-  EXT_DUE_COLOR_MAP,
   EXT_DUE_LABEL_MAP,
   computeSoGioTre,
 } from "../../../utils/congViecUtils";
 import { useSelector } from "react-redux";
-import { canDeleteCongViec } from "./congViecPermissions";
+import {
+  canDeleteCongViec,
+  canEditCongViec,
+  getEditDisabledReason,
+  getDeleteDisabledReason,
+} from "./congViecPermissions";
 
 const CongViecTable = ({
   congViecs = [],
@@ -59,6 +64,7 @@ const CongViecTable = ({
   const theme = useTheme();
   const statusOverrides = useSelector((s) => s.colorConfig?.statusColors);
   const priorityOverrides = useSelector((s) => s.colorConfig?.priorityColors);
+  const dueStatusOverrides = useSelector((s) => s.colorConfig?.dueStatusColors);
 
   const handleChangePage = (event, newPage) => onPageChange(newPage + 1);
   const handleChangeRowsPerPage = (event) =>
@@ -79,7 +85,14 @@ const CongViecTable = ({
     });
   }, [congViecs]);
 
-  // Use centralized permission helper
+  // Use centralized permission helpers
+  const canEdit = (cv) =>
+    canEditCongViec({
+      congViec: cv,
+      currentUserRole,
+      currentUserNhanVienId,
+    });
+
   const canDelete = (cv) =>
     canDeleteCongViec({
       congViec: cv,
@@ -132,9 +145,8 @@ const CongViecTable = ({
               <TableCell>Tình trạng hạn</TableCell>
               <TableCell align="right">Giờ trễ</TableCell>
               <TableCell>Ưu tiên</TableCell>
-              <TableCell>
-                {activeTab === "received" ? "Người giao" : "Người xử lý chính"}
-              </TableCell>
+              <TableCell sx={{ minWidth: 180 }}>Người giao</TableCell>
+              <TableCell sx={{ minWidth: 180 }}>Người xử lý chính</TableCell>
               <TableCell>Hạn chót</TableCell>
               <TableCell>Tiến độ</TableCell>
               <TableCell>Tương tác</TableCell>
@@ -143,7 +155,22 @@ const CongViecTable = ({
           </TableHead>
           <TableBody>
             {enhancedRows.map((congViec) => {
+              const editDisabled = !canEdit(congViec);
               const deleteDisabled = !canDelete(congViec);
+              const editTooltip = editDisabled
+                ? getEditDisabledReason({
+                    congViec,
+                    currentUserRole,
+                    currentUserNhanVienId,
+                  })
+                : "Chỉnh sửa";
+              const deleteTooltip = deleteDisabled
+                ? getDeleteDisabledReason({
+                    congViec,
+                    currentUserRole,
+                    currentUserNhanVienId,
+                  })
+                : "Xóa";
               const extDue = congViec._extDue;
               return (
                 <TableRow
@@ -217,8 +244,10 @@ const CongViecTable = ({
                           label={EXT_DUE_LABEL_MAP[extDue]}
                           size="small"
                           sx={{
-                            backgroundColor:
-                              EXT_DUE_COLOR_MAP[extDue] || "#757575",
+                            backgroundColor: getDueStatusColor(
+                              extDue,
+                              dueStatusOverrides
+                            ),
                             color: "white",
                             fontWeight: 500,
                           }}
@@ -257,10 +286,37 @@ const CongViecTable = ({
                   </TableCell>
                   <TableCell>
                     {(() => {
-                      const person =
-                        activeTab === "received"
-                          ? congViec.NguoiGiaoProfile
-                          : congViec.NguoiChinhProfile;
+                      const person = congViec.NguoiGiaoProfile;
+                      const initial = person?.Ten?.charAt(0) || "?";
+                      const subText = person?.Email || person?.Khoa?.TenKhoa;
+                      return (
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Avatar
+                            sx={{ width: 32, height: 32, fontSize: "0.875rem" }}
+                          >
+                            {initial}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body2" fontWeight={500} noWrap>
+                              {person?.Ten || "Chưa xác định"}
+                            </Typography>
+                            {subText ? (
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                noWrap
+                              >
+                                {subText}
+                              </Typography>
+                            ) : null}
+                          </Box>
+                        </Box>
+                      );
+                    })()}
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const person = congViec.NguoiChinhProfile;
                       const initial = person?.Ten?.charAt(0) || "?";
                       const subText = person?.Email || person?.Khoa?.TenKhoa;
                       return (
@@ -356,24 +412,29 @@ const CongViecTable = ({
                           <VisibilityIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Chỉnh sửa">
-                        <IconButton
-                          size="small"
-                          onClick={() => onEdit?.(congViec)}
-                          color="primary"
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
+                      <Tooltip title={editTooltip}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            onClick={() => onEdit?.(congViec)}
+                            color="primary"
+                            disabled={editDisabled}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </span>
                       </Tooltip>
-                      <Tooltip title="Xóa">
-                        <IconButton
-                          size="small"
-                          onClick={() => onDelete?.(congViec)}
-                          color="error"
-                          disabled={deleteDisabled}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                      <Tooltip title={deleteTooltip}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            onClick={() => onDelete?.(congViec)}
+                            color="error"
+                            disabled={deleteDisabled}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </span>
                       </Tooltip>
                     </Stack>
                   </TableCell>

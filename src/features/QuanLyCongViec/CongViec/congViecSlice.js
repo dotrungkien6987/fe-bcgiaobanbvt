@@ -57,12 +57,17 @@ const initialState = {
   repliesByParent: {},
   // Optimistic concurrency: store conflict info when 409 detected
   versionConflict: null, // { id, type: 'transition'|'update', action?, payload, timestamp }
-  // Routine task list for current user
+  // ✅ Routine task list for current user (cycle-aware)
   myRoutineTasks: [],
   loadingRoutineTasks: false,
   myRoutineTasksLoaded: false,
   myRoutineTasksLastFetch: null,
   myRoutineTasksError: null,
+  // ✅ NEW: Cycle management
+  availableCycles: [], // Danh sách chu kỳ đánh giá
+  selectedCycleId: null, // null = current cycle (auto)
+  loadingCycles: false,
+  cyclesError: null,
   // Subtasks (Slim Plan) – parentId -> { ids:[], loading, loaded, error, lastFetch }
   subtasksByParent: {},
   // Store minimal subtask entities for quick detail linking
@@ -74,6 +79,11 @@ const initialState = {
   updatingSubtaskId: null,
   deletingSubtaskId: null,
   subtaskOpError: null,
+  // ✅ NEW: Summary data for compact cards in KPI evaluation
+  otherTasksSummary: {}, // Keyed by `${nhanVienId}_${chuKyId}`
+  collabTasksSummary: {}, // Keyed by `${nhanVienId}_${chuKyId}`
+  summaryLoading: false,
+  summaryError: null,
 };
 
 // Create slice
@@ -451,6 +461,8 @@ const slice = createSlice({
       };
     },
     applyCongViecPatch: (state, action) => {
+      state.isLoading = false;
+      state.error = null;
       const patch = action.payload || {};
       const id = patch._id;
       if (!id) return;
@@ -491,6 +503,23 @@ const slice = createSlice({
       state.loadingRoutineTasks = false;
       state.myRoutineTasksError =
         action.payload || "Có lỗi khi tải danh sách nhiệm vụ thường quy";
+    },
+    // ✅ NEW: Cycle management reducers
+    fetchAvailableCyclesStart: (state) => {
+      state.loadingCycles = true;
+      state.cyclesError = null;
+    },
+    fetchAvailableCyclesSuccess: (state, action) => {
+      state.loadingCycles = false;
+      state.availableCycles = action.payload || [];
+      state.cyclesError = null;
+    },
+    fetchAvailableCyclesError: (state, action) => {
+      state.loadingCycles = false;
+      state.cyclesError = action.payload || "Có lỗi khi tải danh sách chu kỳ";
+    },
+    setSelectedCycle: (state, action) => {
+      state.selectedCycleId = action.payload; // null = current cycle
     },
     appendProgressHistory: (state, action) => {
       const { congViecId, entry } = action.payload || {};
@@ -642,6 +671,40 @@ const slice = createSlice({
       state.deletingSubtaskId = null;
       if (action?.payload) state.subtaskOpError = action.payload;
     },
+    // ✅ NEW: Other tasks summary
+    fetchOtherTasksSummaryStart: (state) => {
+      state.summaryLoading = true;
+      state.summaryError = null;
+    },
+    fetchOtherTasksSummarySuccess: (state, action) => {
+      const { key, data } = action.payload;
+      state.otherTasksSummary[key] = {
+        data,
+        timestamp: Date.now(),
+      };
+      state.summaryLoading = false;
+    },
+    fetchOtherTasksSummaryFailure: (state, action) => {
+      state.summaryError = action.payload;
+      state.summaryLoading = false;
+    },
+    // ✅ NEW: Collab tasks summary
+    fetchCollabTasksSummaryStart: (state) => {
+      state.summaryLoading = true;
+      state.summaryError = null;
+    },
+    fetchCollabTasksSummarySuccess: (state, action) => {
+      const { key, data } = action.payload;
+      state.collabTasksSummary[key] = {
+        data,
+        timestamp: Date.now(),
+      };
+      state.summaryLoading = false;
+    },
+    fetchCollabTasksSummaryFailure: (state, action) => {
+      state.summaryError = action.payload;
+      state.summaryLoading = false;
+    },
   },
 });
 
@@ -678,6 +741,11 @@ export const {
   fetchMyRoutineTasksStart,
   fetchMyRoutineTasksSuccess,
   fetchMyRoutineTasksError,
+  // ✅ NEW: Cycle actions
+  fetchAvailableCyclesStart,
+  fetchAvailableCyclesSuccess,
+  fetchAvailableCyclesError,
+  setSelectedCycle,
   appendProgressHistory,
   // Subtasks
   fetchSubtasksStart,
@@ -721,8 +789,12 @@ const congViecAPI = {
     apiService.patch(`/workmanagement/binhluan/${id}/text`),
   listReplies: (parentId) =>
     apiService.get(`/workmanagement/binhluan/${parentId}/replies`),
-  getMyRoutineTasks: () =>
-    apiService.get(`/workmanagement/nhiemvuthuongquy/my`),
+  // ✅ UPDATED: Add chuKyId query param
+  getMyRoutineTasks: (params = {}) =>
+    apiService.get(`/workmanagement/nhiemvuthuongquy/my`, { params }),
+  // ✅ NEW: Fetch available cycles
+  getAvailableCycles: () =>
+    apiService.get(`/workmanagement/chu-ky-danh-gia/list`),
   updateProgress: (id, data, config) =>
     apiService.post(
       `/workmanagement/congviec/${id}/progress?mode=patch`,
@@ -1295,7 +1367,7 @@ export const fetchReplies = (parentId) => async (dispatch, getState) => {
   }
 };
 
-// Fetch routine tasks of current user (for select)
+// ✅ Fetch routine tasks of current user (cycle-aware)
 export const fetchMyRoutineTasks =
   (opts = {}) =>
   async (dispatch, getState) => {
@@ -1305,6 +1377,7 @@ export const fetchMyRoutineTasks =
       loadingRoutineTasks,
       myRoutineTasksLoaded,
       myRoutineTasksLastFetch,
+      selectedCycleId, // ✅ NEW: Use selected cycle
     } = state.congViec || {};
     if (loadingRoutineTasks) return;
     if (
@@ -1317,7 +1390,10 @@ export const fetchMyRoutineTasks =
     }
     dispatch(slice.actions.fetchMyRoutineTasksStart());
     try {
-      const res = await congViecAPI.getMyRoutineTasks();
+      // ✅ NEW: Pass selectedCycleId to backend
+      const res = await congViecAPI.getMyRoutineTasks({
+        chuKyId: selectedCycleId,
+      });
       const items = res?.data?.data || [];
       dispatch(slice.actions.fetchMyRoutineTasksSuccess(items));
       return items;
@@ -1329,6 +1405,25 @@ export const fetchMyRoutineTasks =
       throw error;
     }
   };
+
+// ✅ NEW: Fetch available cycles for dropdown
+export const fetchAvailableCycles = () => async (dispatch, getState) => {
+  const state = getState();
+  if (state.congViec?.loadingCycles) return; // Prevent duplicate calls
+
+  dispatch(slice.actions.fetchAvailableCyclesStart());
+  try {
+    const res = await congViecAPI.getAvailableCycles();
+    const cycles = res?.data?.data || [];
+    dispatch(slice.actions.fetchAvailableCyclesSuccess(cycles));
+    return cycles;
+  } catch (error) {
+    const errorMessage = error?.response?.data?.error?.message || error.message;
+    dispatch(slice.actions.fetchAvailableCyclesError(errorMessage));
+    toast.error(errorMessage);
+    throw error;
+  }
+};
 
 export const recallComment = (congViecId, binhLuanId) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
@@ -1520,3 +1615,90 @@ export const deleteSubtask = (parentId, subtaskId) => async (dispatch) => {
     throw error;
   }
 };
+
+/**
+ * Fetch summary of "other" tasks (FlagNVTQKhac=true)
+ * @param {Object} params - {nhanVienId, chuKyId}
+ */
+export const fetchOtherTasksSummary =
+  ({ nhanVienId, chuKyId }) =>
+  async (dispatch, getState) => {
+    // Check cache (5 minutes TTL)
+    const key = `${nhanVienId}_${chuKyId}`;
+    const cached = getState().congViec.otherTasksSummary[key];
+    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      console.log("[fetchOtherTasksSummary] Using cached data");
+      return cached.data;
+    }
+
+    // Dispatch start action
+    dispatch(slice.actions.fetchOtherTasksSummaryStart());
+
+    try {
+      // API call
+      const response = await apiService.get(
+        "/workmanagement/congviec/summary-other-tasks",
+        {
+          params: { nhanVienID: nhanVienId, chuKyDanhGiaID: chuKyId },
+        }
+      );
+
+      const data = response.data.data;
+
+      // Dispatch success
+      dispatch(slice.actions.fetchOtherTasksSummarySuccess({ key, data }));
+
+      return data;
+    } catch (error) {
+      // Dispatch failure (NO toast, silent error for compact card)
+      const message = error.message || "Không thể tải dữ liệu công việc khác";
+      dispatch(slice.actions.fetchOtherTasksSummaryFailure(message));
+      throw error;
+    }
+  };
+
+/**
+ * Fetch summary of collaboration tasks (VaiTro=PHOI_HOP)
+ * @param {Object} params - {nhanVienId, chuKyId}
+ */
+export const fetchCollabTasksSummary =
+  ({ nhanVienId, chuKyId }) =>
+  async (dispatch, getState) => {
+    // Check cache (5 minutes TTL)
+    const key = `${nhanVienId}_${chuKyId}`;
+    const cached = getState().congViec.collabTasksSummary[key];
+    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      console.log("[fetchCollabTasksSummary] Using cached data");
+      return cached.data;
+    }
+
+    // Dispatch start action
+    dispatch(slice.actions.fetchCollabTasksSummaryStart());
+
+    try {
+      // API call
+      const response = await apiService.get(
+        "/workmanagement/congviec/summary-collab-tasks",
+        {
+          params: { nhanVienID: nhanVienId, chuKyDanhGiaID: chuKyId },
+        }
+      );
+
+      const data = response.data.data;
+
+      // Dispatch success
+      dispatch(slice.actions.fetchCollabTasksSummarySuccess({ key, data }));
+
+      return data;
+    } catch (error) {
+      // Dispatch failure (NO toast, silent error for compact card)
+      const message =
+        error.message || "Không thể tải dữ liệu công việc phối hợp";
+      dispatch(slice.actions.fetchCollabTasksSummaryFailure(message));
+      throw error;
+    }
+  };

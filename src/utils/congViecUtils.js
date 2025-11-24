@@ -134,6 +134,14 @@ export const getPriorityColor = (priority, overrides) => {
   return overrideColor || PRIORITY_COLOR_MAP[normalized] || "#757575"; // default gray
 };
 
+// Get due status color for MUI components - now returns hex color
+export const getDueStatusColor = (dueStatus, overrides) => {
+  if (!dueStatus) return "#757575";
+  const normalized = dueStatus.toString().toUpperCase().replace(/\s+/g, "_");
+  const overrideColor = overrides?.[normalized];
+  return overrideColor || EXT_DUE_COLOR_MAP[normalized] || "#757575"; // default gray
+};
+
 // Get progress color based on percentage and due date
 export const getProgressColor = (progress, dueDate) => {
   const isTaskOverdue = isOverdue(dueDate);

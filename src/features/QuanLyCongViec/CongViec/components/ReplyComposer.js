@@ -48,6 +48,7 @@ const ReplyComposer = React.memo(
           placeholder="Viết phản hồi..."
           value={replyText[parentId] || ""}
           onChange={handleTextChange}
+          sx={{ "& .MuiInputBase-input": { fontSize: "1rem" } }}
         />
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
           <input
@@ -58,7 +59,12 @@ const ReplyComposer = React.memo(
             onChange={handleFileChange}
           />
           <label htmlFor={`reply-file-${parentId}`}>
-            <Button size="small" variant="outlined" component="span">
+            <Button
+              size="small"
+              variant="outlined"
+              component="span"
+              sx={{ fontSize: "0.9rem", fontWeight: 600 }}
+            >
               Đính kèm
             </Button>
           </label>
@@ -67,6 +73,7 @@ const ReplyComposer = React.memo(
             variant="contained"
             onClick={handleSubmit}
             disabled={submitting[parentId]}
+            sx={{ fontSize: "0.9rem", fontWeight: 600 }}
           >
             {submitting[parentId] ? (
               <>
@@ -78,7 +85,11 @@ const ReplyComposer = React.memo(
             )}
           </Button>
           {(pendingFiles[parentId] || []).length > 0 && (
-            <Typography variant="caption" color="text.secondary">
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ fontSize: "0.9rem" }}
+            >
               {(pendingFiles[parentId] || []).length} tệp đã chọn
             </Typography>
           )}

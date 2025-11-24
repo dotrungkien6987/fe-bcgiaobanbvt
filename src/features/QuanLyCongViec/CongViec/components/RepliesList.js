@@ -38,10 +38,14 @@ const RepliesList = React.memo(
                 <Avatar sx={{ width: 28, height: 28 }}>
                   {rep.NguoiBinhLuan?.Ten?.charAt(0) || "U"}
                 </Avatar>
-                <Typography variant="subtitle2">
+                <Typography variant="subtitle2" sx={{ fontSize: "1rem" }}>
                   {rep.NguoiBinhLuan?.Ten || "Người dùng"}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ fontSize: "0.85rem" }}
+                >
                   {formatDateTime(rep.NgayBinhLuan || rep.createdAt)}
                 </Typography>
                 {canRecall(user, rep) && (
@@ -60,9 +64,9 @@ const RepliesList = React.memo(
               </Box>
               {rep.TrangThai === "DELETED" ? (
                 <Typography
-                  variant="body2"
+                  variant="body1"
                   color="text.secondary"
-                  sx={{ fontStyle: "italic" }}
+                  sx={{ fontStyle: "italic", fontSize: "0.95rem" }}
                 >
                   Tin nhắn đã được thu hồi
                 </Typography>
@@ -81,7 +85,9 @@ const RepliesList = React.memo(
                         backgroundColor: theme.palette.grey[50],
                       }}
                     >
-                      <Typography variant="body2">{rep.NoiDung}</Typography>
+                      <Typography variant="body1" sx={{ fontSize: "0.95rem" }}>
+                        {rep.NoiDung}
+                      </Typography>
                       {onRecallCommentText && canRecallText(user, rep) && (
                         <Tooltip title="Thu hồi nội dung (chỉ xóa text, giữ tệp)">
                           <IconButton
@@ -118,6 +124,7 @@ const RepliesList = React.memo(
                                 fontStyle: "italic",
                                 opacity: 0.8,
                                 pointerEvents: "none",
+                                fontSize: "0.9rem",
                               }}
                             />
                           );
@@ -164,7 +171,7 @@ const RepliesList = React.memo(
                                     px: 0.5,
                                     py: 0.25,
                                     borderRadius: 1,
-                                    fontSize: 11,
+                                    fontSize: "0.8rem",
                                     cursor: "pointer",
                                   }}
                                   onClick={(e) => {
@@ -185,7 +192,7 @@ const RepliesList = React.memo(
                               label={f.TenGoc}
                               variant="outlined"
                               onClick={() => onViewFile(f)}
-                              sx={{ maxWidth: 220 }}
+                              sx={{ maxWidth: 220, fontSize: "0.9rem" }}
                               onDelete={
                                 canDeleteFile
                                   ? () => openConfirm("deleteFile", { file: f })
@@ -200,7 +207,7 @@ const RepliesList = React.memo(
                             label={f.TenGoc}
                             variant="outlined"
                             onClick={() => onDownloadFile(f)}
-                            sx={{ maxWidth: 220 }}
+                            sx={{ maxWidth: 220, fontSize: "0.9rem" }}
                             onDelete={
                               canDeleteFile
                                 ? () => openConfirm("deleteFile", { file: f })

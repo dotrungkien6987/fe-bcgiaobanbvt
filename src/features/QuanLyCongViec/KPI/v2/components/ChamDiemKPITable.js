@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Box,
   Table,
@@ -14,6 +15,8 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Card,
+  CardContent,
   Typography,
   Chip,
   Tooltip,
@@ -23,6 +26,10 @@ import {
   Alert,
   Collapse,
   Stack,
+  Tabs,
+  Tab,
+  CircularProgress,
+  Divider,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -32,6 +39,12 @@ import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
 // ✅ V2: Import calculation utilities
 import { calculateNhiemVuScore } from "../../../../../utils/kpiCalculation";
+
+// ✅ NEW: Import dashboard component for viewing tasks
+import CongViecDashboard from "./dashboard/CongViecDashboard";
+
+// ✅ NEW: Import dashboard data action
+import { fetchCongViecDashboard } from "../../kpiSlice";
 
 /**
  * ScoreInput - Isolated input component with local state
@@ -162,18 +175,71 @@ function ScoreInput({
  * - onScoreChange: (nhiemVuId, tieuChiIndex, newScore) => void
  * - readOnly: Boolean (for approved KPI)
  * - diemTuDanhGiaMap: Object { NhiemVuThuongQuyID: DiemTuDanhGia } - V2 for calculation
+ * - nhanVienID: String - Employee ID (for dashboard)
+ * - chuKyDanhGiaID: String - Evaluation cycle ID (for dashboard)
  */
 function ChamDiemKPITable({
   nhiemVuList = [],
   onScoreChange,
   readOnly = false,
-  diemTuDanhGiaMap = {}, // ✅ V2: Accept map for real-time preview
+  diemTuDanhGiaMap = {},
+  nhanVienID, // ✅ NEW: For dashboard
+  chuKyDanhGiaID, // ✅ NEW: For dashboard
 }) {
+  const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState("");
-  // ✅ Store expanded row id as string to avoid ObjectId reference issues across renders
   const [expandedRowId, setExpandedRowId] = useState(null);
+  // ✅ NEW: Track active tab per expanded row
+  const [activeTabByRow, setActiveTabByRow] = useState({});
   const expandedRowRef = useRef(null);
   const tableContainerRef = useRef(null);
+
+  // ✅ NEW: Get dashboard data from Redux for TaskCount
+  const dashboardData = useSelector(
+    (state) => state.kpi.congViecDashboard || {}
+  );
+
+  // ✅ NEW: Prefetch dashboard data for all duties on mount
+  useEffect(() => {
+    if (nhanVienID && chuKyDanhGiaID && nhiemVuList.length > 0) {
+      nhiemVuList.forEach((nv) => {
+        const nvId = nv.NhiemVuThuongQuyID?._id || nv.NhiemVuThuongQuyID;
+        if (nvId) {
+          const key = `${nvId}_${chuKyDanhGiaID}`;
+          // Only fetch if not already loaded/loading
+          if (!dashboardData[key]) {
+            dispatch(
+              fetchCongViecDashboard({
+                nhiemVuThuongQuyID: nvId,
+                nhanVienID,
+                chuKyDanhGiaID,
+              })
+            );
+          }
+        }
+      });
+    }
+  }, [nhanVienID, chuKyDanhGiaID, nhiemVuList, dispatch, dashboardData]);
+
+  // ✅ NEW: Create TaskCount map from dashboard data
+  const taskCountMap = useMemo(() => {
+    const map = {};
+    nhiemVuList.forEach((nv) => {
+      const nvId = nv.NhiemVuThuongQuyID?._id || nv.NhiemVuThuongQuyID;
+      if (nvId) {
+        const key = `${nvId}_${chuKyDanhGiaID}`;
+        const dashboard = dashboardData[key];
+        if (dashboard?.data) {
+          map[nvId] = dashboard.data.summary?.total || 0;
+        } else if (dashboard?.isLoading) {
+          map[nvId] = null; // null = đang tải
+        } else {
+          map[nvId] = 0; // default 0 if no data
+        }
+      }
+    });
+    return map;
+  }, [dashboardData, nhiemVuList, chuKyDanhGiaID]);
 
   // Ensure expanded row is fully visible inside the scroll container
   const ensureExpandedRowVisible = () => {
@@ -234,7 +300,16 @@ function ChamDiemKPITable({
   const toggleExpandRow = (nhiemVuId) => {
     const idStr = String(nhiemVuId);
     setExpandedRowId((prev) => (prev === idStr ? null : idStr));
+    // ✅ Initialize tab to 0 (Chấm điểm) when expanding
+    if (!activeTabByRow[idStr]) {
+      setActiveTabByRow((prev) => ({ ...prev, [idStr]: 0 }));
+    }
   };
+
+  // ✅ NEW: Handle tab change
+  const handleTabChange = useCallback((rowId, newValue) => {
+    setActiveTabByRow((prev) => ({ ...prev, [rowId]: newValue }));
+  }, []);
 
   // ✅ V2: Calculate nhiệm vụ total with CORRECT formula (matches backend)
   const calculateNhiemVuTotal = useCallback(
@@ -358,6 +433,41 @@ function ChamDiemKPITable({
                 }}
               >
                 ⚡ Độ khó
+              </TableCell>
+
+              {/* 🆕 NEW COLUMN: Số lượng công việc */}
+              <TableCell
+                align="center"
+                sx={{
+                  width: 120,
+                  fontWeight: "700",
+                  fontSize: "0.85rem",
+                  background: "#6366f1",
+                  color: "white",
+                  borderLeft: "3px solid #4f46e5",
+                }}
+              >
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  alignItems="center"
+                  gap={0.5}
+                >
+                  <Typography
+                    variant="caption"
+                    fontWeight={700}
+                    fontSize="0.85rem"
+                  >
+                    📋 Số CV
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    fontSize="0.7rem"
+                    sx={{ opacity: 0.9 }}
+                  >
+                    (Đã gán)
+                  </Typography>
+                </Box>
               </TableCell>
 
               {/* 🆕 NEW COLUMN: Điểm tự đánh giá */}
@@ -594,6 +704,51 @@ function ChamDiemKPITable({
                       />
                     </TableCell>
 
+                    {/* 🆕 NEW CELL: Số lượng công việc */}
+                    <TableCell
+                      align="center"
+                      sx={{
+                        py: 1.2,
+                        px: 1.5,
+                        bgcolor:
+                          taskCountMap[nvId] > 0
+                            ? "rgba(99, 102, 241, 0.08)"
+                            : "rgba(0,0,0,0.02)",
+                        borderLeft: "3px solid",
+                        borderLeftColor:
+                          taskCountMap[nvId] > 0
+                            ? "#6366f1"
+                            : "rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      {taskCountMap[nvId] === null ? (
+                        <CircularProgress size={20} thickness={4} />
+                      ) : taskCountMap[nvId] > 0 ? (
+                        <Chip
+                          label={taskCountMap[nvId]}
+                          size="small"
+                          sx={{
+                            bgcolor: "#6366f1",
+                            color: "white",
+                            fontWeight: "700",
+                            fontSize: "0.85rem",
+                            minWidth: 50,
+                            height: 28,
+                            boxShadow: "0 2px 6px rgba(99, 102, 241, 0.3)",
+                          }}
+                        />
+                      ) : (
+                        <Typography
+                          variant="caption"
+                          color="text.disabled"
+                          fontStyle="italic"
+                          fontSize="0.8rem"
+                        >
+                          0
+                        </Typography>
+                      )}
+                    </TableCell>
+
                     {/* 🆕 NEW CELL: Điểm tự đánh giá - READ-ONLY */}
                     <TableCell
                       align="center"
@@ -704,11 +859,11 @@ function ChamDiemKPITable({
                   {/* Expandable row for description */}
                   <TableRow ref={isExpanded ? expandedRowRef : null}>
                     <TableCell
-                      colSpan={5 + tieuChiHeaders.length + 1}
+                      colSpan={6 + tieuChiHeaders.length + 1}
                       sx={{
                         py: 0,
                         borderBottom: isExpanded ? 1 : 0,
-                        bgcolor: isExpanded ? "#f8fafc" : "inherit",
+                        bgcolor: isExpanded ? "#f1f5f9" : "inherit",
                       }}
                     >
                       <Collapse
@@ -717,341 +872,531 @@ function ChamDiemKPITable({
                         unmountOnExit
                         onEntered={ensureExpandedRowVisible}
                       >
-                        <Box
-                          sx={{
-                            p: 3,
-                            background:
-                              "linear-gradient(to bottom, #ffffff 0%, #f1f5f9 100%)",
-                            borderRadius: 2,
-                            m: 2,
-                            boxShadow: "inset 0 2px 8px rgba(0,0,0,0.05)",
-                          }}
-                        >
-                          <Typography
-                            variant="subtitle1"
-                            fontWeight="700"
-                            gutterBottom
+                        {/* ✅ REDESIGNED: Card-Based Detail View */}
+                        <Box sx={{ p: 2 }}>
+                          <Card
+                            elevation={3}
                             sx={{
-                              color: "primary.main",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1,
+                              borderRadius: 3,
+                              overflow: "hidden",
+                              background: "white",
                             }}
                           >
-                            📋 Mô tả nhiệm vụ
-                          </Typography>
-                          <Typography
-                            variant="body1"
-                            color="text.secondary"
-                            sx={{
-                              pl: 3,
-                              py: 1,
-                              borderLeft: "3px solid",
-                              borderColor: "primary.main",
-                              bgcolor: "white",
-                              borderRadius: 1,
-                              mb: 3,
-                            }}
-                          >
-                            {nhiemVu.NhiemVuThuongQuyID?.MoTa ||
-                              "Chưa có mô tả"}
-                          </Typography>
-
-                          {/* Show detailed score breakdown with formula */}
-                          <Box sx={{ mt: 2 }}>
-                            <Typography
-                              variant="subtitle1"
-                              fontWeight="700"
-                              gutterBottom
+                            {/* Card Header with Tabs */}
+                            <Box
                               sx={{
-                                color: "primary.main",
                                 display: "flex",
                                 alignItems: "center",
-                                gap: 1,
+                                justifyContent: "space-between",
+                                px: 3,
+                                pt: 2,
+                                pb: 1,
                               }}
                             >
-                              📊 Chi tiết công thức tính điểm
-                            </Typography>
-
-                            <TableContainer
-                              component={Paper}
-                              variant="outlined"
-                              sx={{
-                                mt: 1,
-                                borderRadius: 2,
-                                overflow: "hidden",
-                                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                              }}
-                            >
-                              <Table size="small">
-                                <TableHead>
-                                  <TableRow sx={{ bgcolor: "grey.100" }}>
-                                    <TableCell sx={{ fontWeight: "700" }}>
-                                      Tiêu chí
-                                    </TableCell>
-                                    <TableCell
-                                      align="center"
-                                      sx={{ fontWeight: "700" }}
+                              <Tabs
+                                value={activeTabByRow[rowId] || 0}
+                                onChange={(e, newValue) =>
+                                  handleTabChange(rowId, newValue)
+                                }
+                                sx={{
+                                  "& .MuiTabs-indicator": {
+                                    display: "none",
+                                  },
+                                  "& .MuiTab-root": {
+                                    fontWeight: 600,
+                                    textTransform: "none",
+                                    fontSize: "0.9rem",
+                                    minHeight: 36,
+                                    borderRadius: 2,
+                                    px: 2,
+                                    mr: 1,
+                                    color: "text.secondary",
+                                    bgcolor: "grey.100",
+                                    transition: "all 0.2s",
+                                    "&:hover": {
+                                      bgcolor: "grey.200",
+                                    },
+                                    "&.Mui-selected": {
+                                      color: "primary.main",
+                                      bgcolor: "primary.lighter",
+                                      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                                    },
+                                  },
+                                }}
+                              >
+                                <Tab label="✏️ Chấm điểm" />
+                                <Tab
+                                  label={
+                                    <Stack
+                                      direction="row"
+                                      spacing={1}
+                                      alignItems="center"
                                     >
-                                      Công thức
-                                    </TableCell>
-                                    <TableCell
-                                      align="center"
-                                      sx={{ fontWeight: "700" }}
-                                    >
-                                      Điểm
-                                    </TableCell>
-                                  </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                  {/* 🆕 NEW ROW: Điểm tự đánh giá (if exists) */}
-                                  {diemTuDanhGiaMap[nvId?.toString()] > 0 && (
-                                    <TableRow sx={{ bgcolor: "info.lighter" }}>
-                                      <TableCell>
-                                        <Stack
-                                          direction="row"
-                                          spacing={1}
-                                          alignItems="center"
-                                        >
-                                          <Typography
-                                            variant="body2"
-                                            fontWeight="600"
-                                          >
-                                            🎯 Điểm tự đánh giá (Mức độ hoàn
-                                            thành)
-                                          </Typography>
-                                          <Chip
-                                            label="READ-ONLY"
-                                            size="small"
-                                            sx={{
-                                              bgcolor: "info.main",
-                                              color: "white",
-                                              fontSize: "0.7rem",
-                                              height: 20,
-                                            }}
-                                          />
-                                        </Stack>
-                                      </TableCell>
-                                      <TableCell align="center">
-                                        <Typography
-                                          variant="body2"
-                                          fontFamily="monospace"
-                                          color="info.main"
-                                        >
-                                          {diemTuDanhGiaMap[nvId?.toString()]}%
-                                          (NV tự chấm)
-                                        </Typography>
-                                      </TableCell>
-                                      <TableCell align="center">
-                                        <Typography
-                                          variant="body2"
-                                          fontWeight="bold"
-                                          color="info.main"
-                                        >
-                                          {(
-                                            diemTuDanhGiaMap[nvId?.toString()] /
-                                            100
-                                          ).toFixed(4)}
-                                        </Typography>
-                                      </TableCell>
-                                    </TableRow>
-                                  )}
-
-                                  {nhiemVu.ChiTietDiem.map((tc, idx) => {
-                                    // ✅ V2: Calculate with formula for IsMucDoHoanThanh
-                                    const sign =
-                                      tc.LoaiTieuChi === "GIAM_DIEM"
-                                        ? "−"
-                                        : "+";
-                                    const giaTriThucTe = tc.DiemDat || 0;
-                                    const diemTuDanhGia =
-                                      diemTuDanhGiaMap[nvId?.toString()] || 0;
-
-                                    // ✅ V2 FORMULA: Apply weighted average for IsMucDoHoanThanh
-                                    let diemCuoiCung = giaTriThucTe;
-                                    if (
-                                      tc.IsMucDoHoanThanh &&
-                                      diemTuDanhGia > 0
-                                    ) {
-                                      diemCuoiCung =
-                                        (giaTriThucTe * 2 + diemTuDanhGia) / 3;
-                                    }
-
-                                    return (
-                                      <TableRow
-                                        key={idx}
+                                      <span>📋 Công việc</span>
+                                      <Chip
+                                        label={
+                                          taskCountMap[nvId] === null
+                                            ? "..."
+                                            : taskCountMap[nvId] || 0
+                                        }
+                                        size="small"
+                                        color="primary"
                                         sx={{
-                                          bgcolor:
-                                            tc.LoaiTieuChi === "GIAM_DIEM"
-                                              ? "error.lighter"
-                                              : tc.IsMucDoHoanThanh &&
-                                                diemTuDanhGia > 0
-                                              ? "warning.lighter"
-                                              : "success.lighter",
+                                          height: 20,
+                                          fontSize: "0.7rem",
+                                          fontWeight: 700,
+                                          "& .MuiChip-label": {
+                                            px: 1,
+                                          },
                                         }}
+                                      />
+                                    </Stack>
+                                  }
+                                />
+                              </Tabs>
+                              <Chip
+                                label={`Độ khó: ${nhiemVu.MucDoKho || 5}`}
+                                size="small"
+                                sx={{
+                                  fontWeight: 700,
+                                  bgcolor:
+                                    (nhiemVu.MucDoKho || 5) >= 8
+                                      ? "error.lighter"
+                                      : (nhiemVu.MucDoKho || 5) >= 6
+                                      ? "warning.lighter"
+                                      : "info.lighter",
+                                  color:
+                                    (nhiemVu.MucDoKho || 5) >= 8
+                                      ? "error.dark"
+                                      : (nhiemVu.MucDoKho || 5) >= 6
+                                      ? "warning.dark"
+                                      : "info.dark",
+                                }}
+                              />
+                            </Box>
+                            <Divider />
+
+                            {/* Tab Panel 0: Scoring (redesigned) */}
+                            {(activeTabByRow[rowId] === 0 ||
+                              activeTabByRow[rowId] === undefined) && (
+                              <CardContent sx={{ p: 3 }}>
+                                {/* 2-COLUMN LAYOUT: Description (35%) + Formula (65%) */}
+                                <Stack direction="row" spacing={3}>
+                                  {/* LEFT COLUMN: Description */}
+                                  <Box sx={{ flex: "0 0 35%" }}>
+                                    <Typography
+                                      variant="subtitle2"
+                                      fontWeight="700"
+                                      gutterBottom
+                                      sx={{
+                                        color: "text.secondary",
+                                        textTransform: "uppercase",
+                                        letterSpacing: 0.5,
+                                        fontSize: "0.75rem",
+                                      }}
+                                    >
+                                      📋 Mô tả nhiệm vụ
+                                    </Typography>
+                                    <Paper
+                                      variant="outlined"
+                                      sx={{
+                                        p: 2,
+                                        bgcolor: "grey.50",
+                                        borderLeft: "4px solid",
+                                        borderLeftColor: "primary.main",
+                                        height: "100%",
+                                      }}
+                                    >
+                                      <Typography
+                                        variant="body2"
+                                        color="text.primary"
+                                        sx={{ lineHeight: 1.6 }}
                                       >
-                                        <TableCell>
-                                          <Stack
-                                            direction="row"
-                                            spacing={1}
-                                            alignItems="center"
+                                        {nhiemVu.NhiemVuThuongQuyID?.MoTa ||
+                                          "Chưa có mô tả"}
+                                      </Typography>
+                                    </Paper>
+                                  </Box>
+
+                                  {/* RIGHT COLUMN: Calculation Breakdown */}
+                                  <Box sx={{ flex: "0 0 65%" }}>
+                                    <Typography
+                                      variant="subtitle2"
+                                      fontWeight="700"
+                                      gutterBottom
+                                      sx={{
+                                        color: "text.secondary",
+                                        textTransform: "uppercase",
+                                        letterSpacing: 0.5,
+                                        fontSize: "0.75rem",
+                                        mb: 2,
+                                      }}
+                                    >
+                                      📊 Chi tiết công thức tính điểm
+                                    </Typography>
+
+                                    <Paper
+                                      variant="outlined"
+                                      sx={{
+                                        p: 2,
+                                        borderRadius: 2,
+                                        bgcolor: "grey.50",
+                                      }}
+                                    >
+                                      <Stack spacing={1.5}>
+                                        {/* Tự đánh giá (if exists) */}
+                                        {diemTuDanhGiaMap[nvId?.toString()] >
+                                          0 && (
+                                          <Box
+                                            sx={{
+                                              display: "flex",
+                                              alignItems: "center",
+                                              gap: 1,
+                                              p: 1,
+                                              borderRadius: 1,
+                                              bgcolor:
+                                                "rgba(14, 165, 233, 0.08)",
+                                            }}
                                           >
-                                            <Typography variant="body2">
-                                              {tc.TenTieuChi}
+                                            <Typography
+                                              variant="body2"
+                                              sx={{
+                                                fontWeight: 600,
+                                                color: "#0ea5e9",
+                                                minWidth: 180,
+                                              }}
+                                            >
+                                              🎯 TỰ ĐG:
                                             </Typography>
-                                            {tc.LoaiTieuChi === "GIAM_DIEM" && (
-                                              <Chip
-                                                label="GIẢM ĐIỂM"
-                                                size="small"
-                                                color="error"
-                                              />
-                                            )}
-                                            {tc.IsMucDoHoanThanh &&
-                                              diemTuDanhGia > 0 && (
+                                            <Chip
+                                              label={`${
+                                                diemTuDanhGiaMap[
+                                                  nvId?.toString()
+                                                ]
+                                              }%`}
+                                              size="small"
+                                              sx={{
+                                                bgcolor:
+                                                  "rgba(14, 165, 233, 0.15)",
+                                                color: "#0284c7",
+                                                fontWeight: 700,
+                                                fontSize: "0.9rem",
+                                              }}
+                                            />
+                                            <Typography
+                                              variant="body2"
+                                              sx={{
+                                                color: "text.secondary",
+                                                mx: 1,
+                                              }}
+                                            >
+                                              =
+                                            </Typography>
+                                            <Typography
+                                              variant="body2"
+                                              sx={{
+                                                fontWeight: 700,
+                                                color: "#0ea5e9",
+                                                fontSize: "1rem",
+                                              }}
+                                            >
+                                              {(
+                                                diemTuDanhGiaMap[
+                                                  nvId?.toString()
+                                                ] / 100
+                                              ).toFixed(2)}
+                                            </Typography>
+                                          </Box>
+                                        )}
+
+                                        {/* Các tiêu chí */}
+                                        {nhiemVu.ChiTietDiem.map((tc, idx) => {
+                                          const giaTriThucTe = tc.DiemDat || 0;
+                                          const diemTuDanhGia =
+                                            diemTuDanhGiaMap[
+                                              nvId?.toString()
+                                            ] || 0;
+                                          const isGiamDiem =
+                                            tc.LoaiTieuChi === "GIAM_DIEM";
+
+                                          // V2 FORMULA
+                                          let diemCuoiCung = giaTriThucTe;
+                                          if (
+                                            tc.IsMucDoHoanThanh &&
+                                            diemTuDanhGia > 0
+                                          ) {
+                                            diemCuoiCung =
+                                              (giaTriThucTe * 2 +
+                                                diemTuDanhGia) /
+                                              3;
+                                          }
+
+                                          const resultValue =
+                                            (diemCuoiCung / 100) *
+                                            (isGiamDiem ? -1 : 1);
+
+                                          return (
+                                            <Box
+                                              key={idx}
+                                              sx={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 1,
+                                                p: 1,
+                                                borderRadius: 1,
+                                                bgcolor: isGiamDiem
+                                                  ? "rgba(239, 68, 68, 0.05)"
+                                                  : "rgba(16, 185, 129, 0.05)",
+                                              }}
+                                            >
+                                              {/* Icon + Tên */}
+                                              <Typography
+                                                variant="body2"
+                                                sx={{
+                                                  fontWeight: 600,
+                                                  color: isGiamDiem
+                                                    ? "error.main"
+                                                    : "success.main",
+                                                  minWidth: 180,
+                                                  display: "flex",
+                                                  alignItems: "center",
+                                                  gap: 0.5,
+                                                }}
+                                              >
+                                                {isGiamDiem ? "↓" : "↑"}{" "}
+                                                {tc.TenTieuChi}:
+                                              </Typography>
+
+                                              {/* Công thức */}
+                                              {tc.IsMucDoHoanThanh &&
+                                              diemTuDanhGia > 0 ? (
+                                                <>
+                                                  <Chip
+                                                    label={`${giaTriThucTe}%`}
+                                                    size="small"
+                                                    sx={{
+                                                      bgcolor:
+                                                        "rgba(25, 118, 210, 0.15)",
+                                                      color: "#1565c0",
+                                                      fontWeight: 600,
+                                                      fontSize: "0.85rem",
+                                                    }}
+                                                  />
+                                                  <Typography
+                                                    variant="body2"
+                                                    sx={{
+                                                      color: "text.secondary",
+                                                      fontWeight: 600,
+                                                    }}
+                                                  >
+                                                    ×2 +
+                                                  </Typography>
+                                                  <Chip
+                                                    label={`${diemTuDanhGia}%`}
+                                                    size="small"
+                                                    sx={{
+                                                      bgcolor:
+                                                        "rgba(14, 165, 233, 0.15)",
+                                                      color: "#0284c7",
+                                                      fontWeight: 600,
+                                                      fontSize: "0.85rem",
+                                                    }}
+                                                  />
+                                                  <Typography
+                                                    variant="body2"
+                                                    sx={{
+                                                      color: "text.secondary",
+                                                      fontWeight: 600,
+                                                    }}
+                                                  >
+                                                    ÷ 3 ={" "}
+                                                    {diemCuoiCung.toFixed(1)}%
+                                                  </Typography>
+                                                </>
+                                              ) : (
                                                 <Chip
-                                                  label="V2 FORMULA"
+                                                  label={`${giaTriThucTe}%`}
                                                   size="small"
                                                   sx={{
-                                                    bgcolor: "warning.main",
-                                                    color: "white",
-                                                    fontSize: "0.7rem",
-                                                    height: 20,
+                                                    bgcolor: isGiamDiem
+                                                      ? "rgba(239, 68, 68, 0.15)"
+                                                      : "rgba(16, 185, 129, 0.15)",
+                                                    color: isGiamDiem
+                                                      ? "#c62828"
+                                                      : "#2e7d32",
+                                                    fontWeight: 600,
+                                                    fontSize: "0.85rem",
                                                   }}
                                                 />
                                               )}
-                                          </Stack>
-                                        </TableCell>
-                                        <TableCell align="center">
-                                          {tc.IsMucDoHoanThanh &&
-                                          diemTuDanhGia > 0 ? (
-                                            <Typography
-                                              variant="body2"
-                                              fontFamily="monospace"
-                                              color="warning.main"
-                                            >
-                                              ({giaTriThucTe} × 2 +{" "}
-                                              {diemTuDanhGia}) ÷ 3 ={" "}
-                                              {diemCuoiCung.toFixed(2)}
-                                              <br />
+
+                                              {/* Arrow + Result */}
                                               <Typography
-                                                variant="caption"
-                                                fontSize="0.7rem"
+                                                variant="body2"
+                                                sx={{
+                                                  color: "text.secondary",
+                                                  mx: 0.5,
+                                                }}
                                               >
-                                                → {diemCuoiCung.toFixed(2)} ÷
-                                                100
+                                                →
                                               </Typography>
-                                            </Typography>
-                                          ) : (
-                                            <Typography
-                                              variant="body2"
-                                              fontFamily="monospace"
-                                            >
-                                              {sign}
-                                              {giaTriThucTe} ÷ 100
-                                            </Typography>
-                                          )}
-                                        </TableCell>
-                                        <TableCell align="center">
+                                              <Typography
+                                                variant="body2"
+                                                sx={{
+                                                  fontWeight: 700,
+                                                  color: isGiamDiem
+                                                    ? "error.main"
+                                                    : "success.main",
+                                                  fontSize: "1rem",
+                                                }}
+                                              >
+                                                {isGiamDiem ? "" : "+"}
+                                                {resultValue.toFixed(2)}
+                                              </Typography>
+                                            </Box>
+                                          );
+                                        })}
+
+                                        {/* Divider */}
+                                        <Divider sx={{ my: 1 }} />
+
+                                        {/* Tổng */}
+                                        <Box
+                                          sx={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            alignItems: "center",
+                                            p: 1,
+                                            bgcolor: "rgba(25, 57, 183, 0.08)",
+                                            borderRadius: 1,
+                                          }}
+                                        >
                                           <Typography
                                             variant="body2"
-                                            fontWeight="bold"
-                                            color={
-                                              tc.LoaiTieuChi === "GIAM_DIEM"
-                                                ? "error.main"
-                                                : tc.IsMucDoHoanThanh &&
-                                                  diemTuDanhGia > 0
-                                                ? "warning.main"
-                                                : "success.main"
-                                            }
+                                            fontWeight={700}
+                                            color="primary.main"
                                           >
-                                            {sign}
-                                            {(
-                                              (diemCuoiCung / 100) *
-                                              (tc.LoaiTieuChi === "GIAM_DIEM"
-                                                ? -1
-                                                : 1)
-                                            ).toFixed(4)}
+                                            Tổng điểm tiêu chí:
                                           </Typography>
-                                        </TableCell>
-                                      </TableRow>
-                                    );
-                                  })}
+                                          <Typography
+                                            variant="h6"
+                                            fontWeight={800}
+                                            color="primary.main"
+                                          >
+                                            {nhiemVu.ChiTietDiem.reduce(
+                                              (sum, tc) => {
+                                                const diemTuDanhGia =
+                                                  diemTuDanhGiaMap[
+                                                    nvId?.toString()
+                                                  ] || 0;
+                                                let diemCuoiCung =
+                                                  tc.DiemDat || 0;
 
-                                  {/* Sum row - V2 FORMULA */}
-                                  <TableRow sx={{ bgcolor: "primary.lighter" }}>
-                                    <TableCell colSpan={2}>
-                                      <Typography
-                                        variant="body2"
-                                        fontWeight="bold"
-                                      >
-                                        Tổng điểm tiêu chí
-                                      </Typography>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                      <Typography
-                                        variant="body2"
-                                        fontWeight="bold"
-                                      >
-                                        {nhiemVu.ChiTietDiem.reduce(
-                                          (sum, tc) => {
-                                            const diemTuDanhGia =
-                                              diemTuDanhGiaMap[
-                                                nvId?.toString()
-                                              ] || 0;
-                                            let diemCuoiCung = tc.DiemDat || 0;
+                                                if (
+                                                  tc.IsMucDoHoanThanh &&
+                                                  diemTuDanhGia > 0
+                                                ) {
+                                                  diemCuoiCung =
+                                                    (tc.DiemDat * 2 +
+                                                      diemTuDanhGia) /
+                                                    3;
+                                                }
 
-                                            // ✅ V2 FORMULA
-                                            if (
-                                              tc.IsMucDoHoanThanh &&
-                                              diemTuDanhGia > 0
-                                            ) {
-                                              diemCuoiCung =
-                                                (tc.DiemDat * 2 +
-                                                  diemTuDanhGia) /
-                                                3;
-                                            }
+                                                const scaled =
+                                                  diemCuoiCung / 100;
+                                                return (
+                                                  sum +
+                                                  (tc.LoaiTieuChi ===
+                                                  "GIAM_DIEM"
+                                                    ? -scaled
+                                                    : scaled)
+                                                );
+                                              },
+                                              0
+                                            ).toFixed(2)}
+                                          </Typography>
+                                        </Box>
+                                      </Stack>
+                                    </Paper>
 
-                                            const scaled = diemCuoiCung / 100;
-                                            return (
-                                              sum +
-                                              (tc.LoaiTieuChi === "GIAM_DIEM"
-                                                ? -scaled
-                                                : scaled)
-                                            );
+                                    {/* Summary Footer Bar */}
+                                    <Paper
+                                      elevation={0}
+                                      sx={{
+                                        mt: 3,
+                                        p: 2,
+                                        background:
+                                          "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                                        borderRadius: 2,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "space-between",
+                                      }}
+                                    >
+                                      <Box>
+                                        <Typography
+                                          variant="caption"
+                                          sx={{
+                                            color: "rgba(255,255,255,0.9)",
+                                            fontWeight: 600,
+                                            display: "block",
+                                            mb: 0.5,
+                                          }}
+                                        >
+                                          KẾT QUẢ TỔNG HỢP
+                                        </Typography>
+                                        <Typography
+                                          variant="body2"
+                                          sx={{
+                                            color: "white",
+                                            fontWeight: 500,
+                                          }}
+                                        >
+                                          Tổng điểm tiêu chí (×{" "}
+                                          {nhiemVu.MucDoKho || 5}) = Điểm nhiệm
+                                          vụ
+                                        </Typography>
+                                      </Box>
+                                      <Chip
+                                        label={calculateNhiemVuTotal(
+                                          nhiemVu
+                                        ).toFixed(2)}
+                                        sx={{
+                                          bgcolor: "white",
+                                          color: "#667eea",
+                                          fontWeight: 800,
+                                          fontSize: "1.25rem",
+                                          height: 48,
+                                          px: 2,
+                                          "& .MuiChip-label": {
+                                            px: 2,
                                           },
-                                          0
-                                        ).toFixed(4)}
-                                      </Typography>
-                                    </TableCell>
-                                  </TableRow>
+                                        }}
+                                      />
+                                    </Paper>
+                                  </Box>
+                                </Stack>
+                              </CardContent>
+                            )}
 
-                                  {/* Final calculation row */}
-                                  <TableRow sx={{ bgcolor: "warning.lighter" }}>
-                                    <TableCell colSpan={2}>
-                                      <Typography
-                                        variant="body2"
-                                        fontWeight="bold"
-                                      >
-                                        Điểm nhiệm vụ (× Độ khó{" "}
-                                        {nhiemVu.MucDoKho})
-                                      </Typography>
-                                    </TableCell>
-                                    <TableCell align="center">
-                                      <Typography
-                                        variant="body1"
-                                        fontWeight="bold"
-                                        color="primary.main"
-                                      >
-                                        {calculateNhiemVuTotal(nhiemVu).toFixed(
-                                          2
-                                        )}
-                                      </Typography>
-                                    </TableCell>
-                                  </TableRow>
-                                </TableBody>
-                              </Table>
-                            </TableContainer>
-                          </Box>
+                            {/* Tab Panel 1: CongViec Dashboard */}
+                            {activeTabByRow[rowId] === 1 && (
+                              <CardContent sx={{ p: 2 }}>
+                                <CongViecDashboard
+                                  nhiemVuThuongQuyID={
+                                    nhiemVu.NhiemVuThuongQuyID?._id ||
+                                    nhiemVu.NhiemVuThuongQuyID
+                                  }
+                                  nhanVienID={nhanVienID}
+                                  chuKyDanhGiaID={chuKyDanhGiaID}
+                                  open={activeTabByRow[rowId] === 1}
+                                  onViewTask={(taskId) => {
+                                    console.log("View task:", taskId);
+                                  }}
+                                />
+                              </CardContent>
+                            )}
+                          </Card>
                         </Box>
                       </Collapse>
                     </TableCell>

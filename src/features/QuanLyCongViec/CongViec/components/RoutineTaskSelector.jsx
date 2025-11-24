@@ -37,6 +37,7 @@ import {
   CheckCircle as CheckIcon,
   RadioButtonUnchecked as UncheckedIcon,
   InfoOutlined as InfoIcon,
+  CalendarToday as CalendarIcon, // ✅ NEW: Icon for cycle selector
 } from "@mui/icons-material";
 
 const RoutineTaskSelector = ({
@@ -49,6 +50,11 @@ const RoutineTaskSelector = ({
   dispatch,
   fetchMyRoutineTasks,
   embedded = false, // nếu true: bỏ margin ngoài để hòa vào khối mô tả
+  // ✅ NEW: Cycle props
+  availableCycles = [],
+  selectedCycleId = null,
+  onCycleChange,
+  loadingCycles = false,
 }) => {
   console.log("RoutineTaskSelector - New Card-based UI loaded!");
   const [menuAnchor, setMenuAnchor] = useState(null);
@@ -57,6 +63,7 @@ const RoutineTaskSelector = ({
   const [optimistic, setOptimistic] = useState(null);
   const [showInfo, setShowInfo] = useState(false); // dialog giải thích KPI
   const [confirmClear, setConfirmClear] = useState(false); // xác nhận bỏ liên kết
+  const [cycleDialogOpen, setCycleDialogOpen] = useState(false); // ✅ NEW: Dialog chọn chu kỳ
 
   const khacOption = useMemo(
     () => ({
@@ -241,6 +248,56 @@ const RoutineTaskSelector = ({
       }}
     >
       <CardContent sx={{ py: 2, px: 2.5, "&:last-child": { pb: 2 } }}>
+        {/* ✅ Header gọn - chỉ hiển thị khi hover hoặc click */}
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mb: 1.5 }}
+        >
+          <Typography
+            variant="caption"
+            sx={{
+              color: "text.secondary",
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+            }}
+          >
+            <CalendarIcon sx={{ fontSize: 14 }} />
+            {(() => {
+              if (!selectedCycleId) {
+                const currentCycle =
+                  availableCycles.find((c) => !c.isDong) || availableCycles[0];
+                return currentCycle?.TenChuKy || "Chu kỳ hiện tại";
+              }
+              const cycle = availableCycles.find(
+                (c) => c._id === selectedCycleId
+              );
+              return cycle?.TenChuKy || "Chu kỳ đã chọn";
+            })()}
+          </Typography>
+          {isMain && (
+            <Tooltip title="Chọn chu kỳ khác">
+              <IconButton
+                size="small"
+                onClick={() => setCycleDialogOpen(true)}
+                disabled={loadingCycles}
+                sx={{
+                  color: "action.active",
+                  p: 0.5,
+                  "&:hover": {
+                    color: "primary.main",
+                    bgcolor: "action.hover",
+                  },
+                }}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Stack>
+
         <Stack direction="row" alignItems="center" spacing={2}>
           <Avatar
             sx={{
@@ -419,13 +476,61 @@ const RoutineTaskSelector = ({
         PaperProps={{
           sx: {
             maxHeight: 400,
-            width: 320,
+            width: 360,
             mt: 0.5,
           },
         }}
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
+        {/* ✅ Header hiển thị thông tin chu kỳ */}
+        <Box
+          sx={{
+            px: 2,
+            py: 1.5,
+            bgcolor: "primary.main",
+            color: "primary.contrastText",
+          }}
+        >
+          <Stack direction="row" spacing={1} alignItems="center">
+            <CalendarIcon fontSize="small" />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {(() => {
+                  if (!selectedCycleId) {
+                    const currentCycle =
+                      availableCycles.find((c) => !c.isDong) ||
+                      availableCycles[0];
+                    return currentCycle?.TenChuKy || "Chu kỳ hiện tại";
+                  }
+                  const cycle = availableCycles.find(
+                    (c) => c._id === selectedCycleId
+                  );
+                  return cycle?.TenChuKy || "Chu kỳ đã chọn";
+                })()}
+              </Typography>
+              <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                {(() => {
+                  if (!selectedCycleId) {
+                    const currentCycle =
+                      availableCycles.find((c) => !c.isDong) ||
+                      availableCycles[0];
+                    if (!currentCycle) return "Đang tải...";
+                    return `${currentCycle.NgayBatDau} → ${currentCycle.NgayKetThuc}`;
+                  }
+                  const cycle = availableCycles.find(
+                    (c) => c._id === selectedCycleId
+                  );
+                  if (!cycle) return "";
+                  return `${cycle.NgayBatDau} → ${cycle.NgayKetThuc}`;
+                })()}
+              </Typography>
+            </Box>
+          </Stack>
+        </Box>
+
+        <Divider />
+
         <MenuItem onClick={() => handleSelectOption(null)}>
           <ListItemIcon>
             <ClearIcon fontSize="small" color="error" />
@@ -530,6 +635,57 @@ const RoutineTaskSelector = ({
           >
             Bỏ liên kết
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ✅ NEW: Dialog chọn chu kỳ đánh giá */}
+      <Dialog
+        open={cycleDialogOpen}
+        onClose={() => setCycleDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Chọn chu kỳ đánh giá</DialogTitle>
+        <DialogContent dividers>
+          {loadingCycles ? (
+            <Typography>Đang tải danh sách chu kỳ...</Typography>
+          ) : (
+            <>
+              <MenuItem
+                selected={!selectedCycleId}
+                onClick={() => {
+                  onCycleChange?.(null); // null = current cycle
+                  setCycleDialogOpen(false);
+                }}
+              >
+                <ListItemText
+                  primary="Chu kỳ hiện tại"
+                  secondary="Tự động lấy chu kỳ đang mở"
+                />
+              </MenuItem>
+              <Divider />
+              {availableCycles.map((cycle) => (
+                <MenuItem
+                  key={cycle._id}
+                  selected={selectedCycleId === cycle._id}
+                  onClick={() => {
+                    onCycleChange?.(cycle._id);
+                    setCycleDialogOpen(false);
+                  }}
+                >
+                  <ListItemText
+                    primary={cycle.TenChuKy}
+                    secondary={`${cycle.NgayBatDau} - ${cycle.NgayKetThuc}${
+                      cycle.isDong ? " (Đã đóng)" : ""
+                    }`}
+                  />
+                </MenuItem>
+              ))}
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCycleDialogOpen(false)}>Đóng</Button>
         </DialogActions>
       </Dialog>
     </Card>

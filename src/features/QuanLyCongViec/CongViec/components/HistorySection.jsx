@@ -14,26 +14,20 @@ import {
   IconButton,
   TextField,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Slider,
+  Card,
+  CardContent,
 } from "@mui/material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import CheckIcon from "@mui/icons-material/Check";
+import HistoryIcon from "@mui/icons-material/History";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import HistoryAccordion from "./HistoryAccordion";
 import useAuth from "hooks/useAuth";
 // no redux dispatch needed for now (optimistic local update only)
 import { useDispatch } from "react-redux";
-import {
-  updateProgressHistoryNote,
-  updateProgress,
-  getCongViecDetail,
-} from "../congViecSlice";
+import { updateProgressHistoryNote } from "../congViecSlice";
 import dayjs from "dayjs";
 
 function formatProgressTime(dt) {
@@ -342,218 +336,89 @@ function ProgressAccordion({ items = [], congViecId }) {
 }
 
 const HistorySection = ({ congViecDetail, congViecId, theme }) => {
-  const dispatch = useDispatch();
-  const { user } = useAuth();
-  const currentNhanVienId =
-    user?.NhanVienID?._id ||
-    user?.NhanVienID ||
-    user?.NhanVien?.NhanVienID ||
-    user?.NhanVien?._id ||
-    user?._id;
-  const congViecNguoiChinhId =
-    typeof congViecDetail?.NguoiChinhID === "object"
-      ? congViecDetail?.NguoiChinhID?._id || congViecDetail?.NguoiChinhID?.id
-      : congViecDetail?.NguoiChinhID;
-  const isMain =
-    currentNhanVienId &&
-    congViecNguoiChinhId &&
-    String(congViecNguoiChinhId) === String(currentNhanVienId);
-
-  const currentProgress =
-    congViecDetail?.PhanTramTienDoTong ?? congViecDetail?.TienDo ?? 0;
-  const [progressDialogOpen, setProgressDialogOpen] = useState(false);
-  const [newProgress, setNewProgress] = useState(currentProgress);
-  const [note, setNote] = useState("");
-  const [saving, setSaving] = useState(false);
-  const canSaveProgress = () =>
-    newProgress !== "" &&
-    newProgress >= 0 &&
-    newProgress <= 100 &&
-    newProgress !== currentProgress;
-  const openProgressDialog = () => {
-    setNewProgress(currentProgress);
-    setNote("");
-    setProgressDialogOpen(true);
-  };
-  const handleSaveProgress = async () => {
-    if (saving) return;
-    setSaving(true);
-    try {
-      await dispatch(
-        updateProgress({
-          id: congViecId,
-          value: Math.max(0, Math.min(100, Math.round(newProgress))),
-          ghiChu: note,
-          expectedVersion: congViecDetail?.updatedAt,
-        })
-      );
-      await dispatch(getCongViecDetail(congViecId));
-      setProgressDialogOpen(false);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
-    <Box sx={{ px: 3, pb: 3 }}>
+    <Card
+      elevation={0}
+      sx={{
+        bgcolor: "grey.50",
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: 2,
+      }}
+    >
       <Box
         sx={{
-          mb: 2,
-          display: "flex",
-          alignItems: "center",
-          gap: 1.5,
-          justifyContent: "space-between",
+          background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+          color: "white",
+          p: 2,
+          borderBottom: "none",
         }}
       >
         <Typography
           variant="h6"
           sx={{
             fontWeight: 600,
-            color: theme.palette.text.primary,
             display: "flex",
             alignItems: "center",
             gap: 1,
+            fontSize: { xs: "1.1rem", sm: "1.2rem" },
           }}
         >
-          📋 Lịch sử cập nhật trạng thái
+          <HistoryIcon sx={{ fontSize: 26 }} />
+          Lịch sử cập nhật trạng thái
         </Typography>
-        {isMain && (
-          <Box sx={{ display: "flex", gap: 1 }}>
-            <Chip
-              label={"Cập nhật tiến độ"}
-              color="primary"
-              size="small"
-              onClick={openProgressDialog}
-              sx={{ fontWeight: 600, cursor: "pointer" }}
-            />
+      </Box>
+      <CardContent sx={{ p: 3 }}>
+        {congViecDetail?.LichSuTrangThai?.length ? (
+          <HistoryAccordion
+            history={congViecDetail.LichSuTrangThai}
+            congViecId={congViecId}
+          />
+        ) : (
+          <Box
+            sx={{
+              p: 3,
+              textAlign: "center",
+              backgroundColor: theme.palette.grey[50],
+              border: `1px dashed ${theme.palette.grey[300]}`,
+              borderRadius: 2,
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              Chưa có lịch sử cập nhật trạng thái
+            </Typography>
           </Box>
         )}
-      </Box>
-      {congViecDetail?.LichSuTrangThai?.length ? (
-        <HistoryAccordion
-          history={congViecDetail.LichSuTrangThai}
-          congViecId={congViecId}
-        />
-      ) : (
         <Box
           sx={{
-            p: 3,
-            textAlign: "center",
-            backgroundColor: theme.palette.grey[50],
-            border: `1px dashed ${theme.palette.grey[300]}`,
-            borderRadius: 2,
+            mt: 3,
+            pt: 3,
+            borderTop: "1px dashed",
+            borderColor: "divider",
           }}
         >
-          <Typography variant="body2" color="text.secondary">
-            Chưa có lịch sử cập nhật trạng thái
-          </Typography>
-        </Box>
-      )}
-      <Typography
-        variant="h6"
-        sx={{
-          mt: 4,
-          mb: 2,
-          fontWeight: 600,
-          color: theme.palette.text.primary,
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-        }}
-      >
-        ⏱️ Lịch sử cập nhật tiến độ
-      </Typography>
-      <ProgressAccordion
-        items={congViecDetail?.LichSuTienDo || []}
-        congViecId={congViecId}
-      />
-
-      <Dialog
-        open={progressDialogOpen}
-        onClose={() => !saving && setProgressDialogOpen(false)}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle sx={{ fontWeight: 600 }}>Cập nhật tiến độ</DialogTitle>
-        <DialogContent dividers sx={{ pt: 2 }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Tiến độ hiện tại: <strong>{currentProgress}%</strong>
-          </Typography>
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="caption" color="text.secondary">
-              Chọn phần trăm mới
-            </Typography>
-            <Slider
-              size="small"
-              value={Number(newProgress) || 0}
-              onChange={(e, val) =>
-                setNewProgress(Array.isArray(val) ? val[0] : val)
-              }
-              valueLabelDisplay="auto"
-              step={1}
-              min={0}
-              max={100}
-              sx={{ mt: 1, mx: 1 }}
-            />
-            <TextField
-              type="number"
-              size="small"
-              value={newProgress}
-              onChange={(e) => {
-                const v = e.target.value === "" ? "" : Number(e.target.value);
-                if (v === "" || (!Number.isNaN(v) && v >= 0 && v <= 100))
-                  setNewProgress(v);
-              }}
-              onBlur={() => {
-                if (newProgress === "") setNewProgress(currentProgress);
-              }}
-              inputProps={{ min: 0, max: 100 }}
-              sx={{ mt: 1, width: 120 }}
-              label="% mới"
-            />
-          </Box>
-          <TextField
-            label="Ghi chú (tùy chọn)"
-            multiline
-            minRows={2}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            fullWidth
-            size="small"
-            placeholder="Mô tả thay đổi, lý do..."
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && e.ctrlKey) {
-                e.preventDefault();
-                if (canSaveProgress()) handleSaveProgress();
-              }
-            }}
-          />
           <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: "block", mt: 1 }}
+            variant="h6"
+            sx={{
+              mb: 2,
+              fontWeight: 600,
+              color: "primary.main",
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              fontSize: { xs: "1.05rem", sm: "1.15rem" },
+            }}
           >
-            Ctrl+Enter để lưu nhanh
+            <TrendingUpIcon sx={{ fontSize: 24 }} />
+            Lịch sử cập nhật tiến độ
           </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setProgressDialogOpen(false)}
-            disabled={saving}
-            variant="text"
-          >
-            Hủy
-          </Button>
-          <Button
-            onClick={handleSaveProgress}
-            disabled={!canSaveProgress() || saving}
-            variant="contained"
-          >
-            {saving ? "Đang lưu..." : "Lưu"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          <ProgressAccordion
+            items={congViecDetail?.LichSuTienDo || []}
+            congViecId={congViecId}
+          />
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
 

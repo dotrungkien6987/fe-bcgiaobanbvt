@@ -21,9 +21,17 @@ import {
   Delete as DeleteIcon,
   Comment as CommentIcon,
   Attachment as AttachmentIcon,
+  AccountTree as AccountTreeIcon,
 } from "@mui/icons-material";
 import dayjs from "dayjs";
 import { useSelector } from "react-redux";
+import OpenTaskInNewTabButton from "../../../../components/OpenTaskInNewTabButton";
+import {
+  canEditCongViec,
+  canDeleteCongViec,
+  getEditDisabledReason,
+  getDeleteDisabledReason,
+} from "../congViecPermissions";
 import {
   computeExtendedDueStatus as getExtendedDueStatus,
   getStatusColor,
@@ -77,6 +85,9 @@ const SubtasksTable = ({
   updatingId,
   deletingId,
   emptyMessage = "Chưa có công việc con",
+  currentUserRole,
+  currentUserNhanVienId,
+  onTree,
 }) => {
   const statusOverrides = useSelector((s) => s.colorConfig?.statusColors);
   const priorityOverrides = useSelector((s) => s.colorConfig?.priorityColors);
@@ -149,6 +160,32 @@ const SubtasksTable = ({
               getStatusLabel(rawStatus) ||
               STATUS_LABEL_MAP[rawStatus] ||
               rawStatus;
+
+            // Permission checks
+            const editDisabled = !canEditCongViec({
+              congViec: cv,
+              userRole: currentUserRole,
+              userNhanVienId: currentUserNhanVienId,
+            });
+            const deleteDisabled = !canDeleteCongViec({
+              congViec: cv,
+              userRole: currentUserRole,
+              userNhanVienId: currentUserNhanVienId,
+            });
+            const editTooltip = editDisabled
+              ? getEditDisabledReason({
+                  congViec: cv,
+                  userRole: currentUserRole,
+                  userNhanVienId: currentUserNhanVienId,
+                })
+              : "Chỉnh sửa";
+            const deleteTooltip = deleteDisabled
+              ? getDeleteDisabledReason({
+                  congViec: cv,
+                  userRole: currentUserRole,
+                  userNhanVienId: currentUserNhanVienId,
+                })
+              : "Xóa";
 
             return (
               <TableRow key={cv._id} hover>
@@ -278,6 +315,33 @@ const SubtasksTable = ({
                 </TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={0.5}>
+                    <Tooltip title="Xem chi tiết">
+                      <IconButton
+                        size="small"
+                        onClick={() => onView?.(cv._id)}
+                        disabled={updatingId === cv._id}
+                      >
+                        <VisibilityIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <OpenTaskInNewTabButton taskId={cv._id} size="small" />
+                    {onTree && (
+                      <Tooltip title="Cây công việc">
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onTree(cv);
+                          }}
+                          disabled={
+                            updatingId === cv._id || deletingId === cv._id
+                          }
+                          color="info"
+                        >
+                          <AccountTreeIcon fontSize="inherit" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                     <Tooltip title="Xem">
                       <IconButton
                         size="small"
@@ -292,35 +356,43 @@ const SubtasksTable = ({
                         <VisibilityIcon fontSize="inherit" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Sửa">
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit?.(cv);
-                        }}
-                        disabled={
-                          updatingId === cv._id || deletingId === cv._id
-                        }
-                      >
-                        <EditIcon fontSize="inherit" />
-                      </IconButton>
-                    </Tooltip>
-                    {onDelete && (
-                      <Tooltip title="Xóa">
+                    <Tooltip title={editTooltip}>
+                      <span>
                         <IconButton
                           size="small"
-                          color="error"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onDelete?.(cv);
+                            onEdit?.(cv);
                           }}
                           disabled={
-                            deletingId === cv._id || updatingId === cv._id
+                            editDisabled ||
+                            updatingId === cv._id ||
+                            deletingId === cv._id
                           }
                         >
-                          <DeleteIcon fontSize="inherit" />
+                          <EditIcon fontSize="inherit" />
                         </IconButton>
+                      </span>
+                    </Tooltip>
+                    {onDelete && (
+                      <Tooltip title={deleteTooltip}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDelete?.(cv);
+                            }}
+                            disabled={
+                              deleteDisabled ||
+                              deletingId === cv._id ||
+                              updatingId === cv._id
+                            }
+                          >
+                            <DeleteIcon fontSize="inherit" />
+                          </IconButton>
+                        </span>
                       </Tooltip>
                     )}
                   </Stack>

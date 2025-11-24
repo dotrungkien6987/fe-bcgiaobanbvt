@@ -1,5 +1,6 @@
 import React from "react";
 import { Card, CardContent, Typography, Box } from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
 import FilesSidebar from "./FilesSidebar";
 import TaskMetaSidebar from "./TaskMetaSidebar";
 
@@ -25,23 +26,36 @@ const TaskSidebarPanel = ({
   handleSidebarPaste,
 }) => (
   <Card
-    elevation={2}
-    sx={{ borderRadius: 2, border: (t) => `1px solid ${t.palette.divider}` }}
+    elevation={0}
+    sx={{
+      borderRadius: 2,
+      border: (t) => `1px solid ${t.palette.divider}`,
+      bgcolor: "grey.50",
+    }}
   >
-    <CardContent sx={{ p: 3 }}>
+    <Box
+      sx={{
+        background: "linear-gradient(135deg, #64748b 0%, #475569 100%)",
+        color: "white",
+        p: 2,
+        borderBottom: "none",
+      }}
+    >
       <Typography
         variant="h6"
         sx={{
-          mb: 3,
           fontWeight: 600,
-          color: theme.palette.text.primary,
           display: "flex",
           alignItems: "center",
           gap: 1,
+          fontSize: { xs: "1rem", sm: "1.1rem" },
         }}
       >
-        ℹ️ Thông tin chi tiết
+        <InfoIcon sx={{ fontSize: 24 }} />
+        Thông tin chi tiết
       </Typography>
+    </Box>
+    <CardContent sx={{ p: 3 }}>
       <Box
         onDragOver={handleSidebarDragOver}
         onDragEnter={handleSidebarDragEnter}

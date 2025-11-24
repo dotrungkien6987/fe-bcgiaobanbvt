@@ -11,194 +11,24 @@ import {
   Stack,
   Tooltip,
   CircularProgress,
-  Breadcrumbs,
-  Link,
-  Chip,
-  Paper,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import UnfoldMoreIcon from "@mui/icons-material/UnfoldMore";
 import UnfoldLessIcon from "@mui/icons-material/UnfoldLess";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import HomeIcon from "@mui/icons-material/Home";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import CongViecHierarchyTreeDynamic from "./CongViecHierarchyTreeDynamic";
-import OpenTaskInNewTabButton from "../../../components/OpenTaskInNewTabButton";
 import {
   fetchRootTree,
   selectRootTask,
   selectRootLoading,
   congViecTreeActions,
   selectViewMode,
-  selectTaskById,
 } from "./congViecTreeSlice";
-import { toast } from "react-toastify";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
-
-// Breadcrumb Navigation Component
-function BreadcrumbNav({ currentTaskId }) {
-  const dispatch = useDispatch();
-  const currentTask = useSelector((state) =>
-    selectTaskById(state, currentTaskId)
-  );
-
-  // Build breadcrumb path by traversing up through CongViecChaID
-  const breadcrumbPath = useMemo(() => {
-    if (!currentTask || !currentTaskId) return [];
-
-    const path = [];
-    const visited = new Set();
-    let task = currentTask;
-
-    // Traverse up to root
-    while (task && !visited.has(task._id)) {
-      visited.add(task._id);
-      path.unshift({
-        id: task._id,
-        code: task.MaCongViec,
-        title: task.TenCongViec || task.TieuDe,
-      });
-
-      if (task.CongViecChaID) {
-        // Get parent from Redux state
-        const state = window.__APP_STORE__?.getState?.();
-        if (!state?.congViecTree) break;
-        task = state.congViecTree.entities[task.CongViecChaID];
-      } else {
-        break;
-      }
-    }
-
-    return path;
-  }, [currentTask, currentTaskId]);
-
-  // Truncate if path is too long (> 5 levels)
-  const displayPath = useMemo(() => {
-    if (breadcrumbPath.length <= 5) return breadcrumbPath;
-    // Show first 2, ellipsis, last 2
-    return [
-      ...breadcrumbPath.slice(0, 2),
-      { id: "ellipsis", code: "...", title: "..." },
-      ...breadcrumbPath.slice(-2),
-    ];
-  }, [breadcrumbPath]);
-
-  const handleBreadcrumbClick = (taskId) => {
-    if (taskId === "ellipsis") return;
-    dispatch(fetchRootTree(taskId));
-  };
-
-  const handleCopyPath = () => {
-    const pathText = breadcrumbPath
-      .map((item) => item.code || item.title)
-      .join(" > ");
-    navigator.clipboard
-      .writeText(pathText)
-      .then(() => {
-        toast.success("Đã sao chép đường dẫn");
-      })
-      .catch(() => {
-        toast.error("Không thể sao chép");
-      });
-  };
-
-  if (!currentTask || displayPath.length === 0) return null;
-
-  return (
-    <Paper
-      elevation={0}
-      sx={{
-        px: 2,
-        py: 1,
-        backgroundColor: "rgba(255, 255, 255, 0.95)",
-        borderBottom: "1px solid",
-        borderColor: "divider",
-      }}
-    >
-      <Stack
-        direction="row"
-        alignItems="center"
-        spacing={1}
-        sx={{ flexWrap: "wrap" }}
-      >
-        <HomeIcon sx={{ fontSize: 18, color: "primary.main" }} />
-        <Breadcrumbs
-          separator={<NavigateNextIcon fontSize="small" />}
-          sx={{ flex: 1 }}
-        >
-          {displayPath.map((item, index) => {
-            const isLast = index === displayPath.length - 1;
-            const isEllipsis = item.id === "ellipsis";
-
-            if (isEllipsis) {
-              return (
-                <Typography
-                  key="ellipsis"
-                  variant="body2"
-                  color="text.secondary"
-                >
-                  ...
-                </Typography>
-              );
-            }
-
-            if (isLast) {
-              return (
-                <Chip
-                  key={item.id}
-                  label={item.code || item.title}
-                  size="small"
-                  color="primary"
-                  sx={{
-                    fontWeight: 600,
-                    maxWidth: 300,
-                    "& .MuiChip-label": {
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    },
-                  }}
-                />
-              );
-            }
-
-            return (
-              <Link
-                key={item.id}
-                component="button"
-                variant="body2"
-                onClick={() => handleBreadcrumbClick(item.id)}
-                sx={{
-                  cursor: "pointer",
-                  textDecoration: "none",
-                  color: "text.primary",
-                  maxWidth: 200,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  "&:hover": {
-                    textDecoration: "underline",
-                    color: "primary.main",
-                  },
-                }}
-              >
-                {item.code || item.title}
-              </Link>
-            );
-          })}
-        </Breadcrumbs>
-        <Tooltip title="Sao chép đường dẫn">
-          <IconButton size="small" onClick={handleCopyPath}>
-            <ContentCopyIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Stack>
-    </Paper>
-  );
-}
 
 export default function CongViecTreeDialog({
   open,
@@ -334,20 +164,21 @@ export default function CongViecTreeDialog({
               </IconButton>
             </Tooltip>
             {enableViewDetail && congViecId && (
-              <OpenTaskInNewTabButton
-                taskId={congViecId}
-                size="medium"
-                tooltip="Xem chi tiết (tab mới)"
-                sx={{ color: "inherit" }}
-              />
+              <Tooltip title="Xem chi tiết (tab mới)">
+                <IconButton
+                  color="inherit"
+                  component="a"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={`/congviec/${congViecId}`}
+                >
+                  <OpenInNewIcon />
+                </IconButton>
+              </Tooltip>
             )}
           </Stack>
         </Toolbar>
       </AppBar>
-
-      {/* Breadcrumb Navigation */}
-      {rootTask && <BreadcrumbNav currentTaskId={rootTask._id} />}
-
       <Box
         sx={{
           flex: 1,

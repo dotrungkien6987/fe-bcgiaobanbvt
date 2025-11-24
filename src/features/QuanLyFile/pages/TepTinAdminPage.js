@@ -245,7 +245,7 @@ export default function TepTinAdminPage() {
             }}
           >
             <Typography variant="overline" color="text.secondary">
-              Tổng số tệp
+              Tổng số tệp (ACTIVE)
             </Typography>
             <Typography variant="h4">
               {stats?.sizeStats?.soLuongFile ?? 0}

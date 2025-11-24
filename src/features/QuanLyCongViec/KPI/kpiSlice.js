@@ -50,6 +50,9 @@ const initialState = {
   filterNhanVienID: null, // Lọc theo nhân viên
   filterTrangThai: null, // Lọc theo trạng thái (CHUA_DUYET/DA_DUYET)
   searchTerm: "", // V2: search in dashboard
+
+  // ✅ NEW: Dashboard for reviewing tasks related to routine duties during KPI evaluation
+  congViecDashboard: {}, // Keyed by "${nhiemVuThuongQuyID}_${chuKyDanhGiaID}", value: { data, isLoading, error }
 };
 
 // Create slice
@@ -494,6 +497,46 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.currentNhanVien = action.payload;
+    },
+
+    // ✅ NEW: CongViec Dashboard for reviewing tasks during KPI evaluation
+    /**
+     * Bắt đầu load dashboard công việc cho nhiệm vụ thường quy
+     */
+    fetchCongViecDashboardPending(state, action) {
+      const { nhiemVuThuongQuyID, chuKyDanhGiaID } = action.payload;
+      const key = `${nhiemVuThuongQuyID}_${chuKyDanhGiaID}`;
+      if (!state.congViecDashboard[key]) {
+        state.congViecDashboard[key] = {};
+      }
+      state.congViecDashboard[key].isLoading = true;
+      state.congViecDashboard[key].error = null;
+    },
+
+    /**
+     * Load dashboard công việc thành công
+     */
+    fetchCongViecDashboardSuccess(state, action) {
+      const { nhiemVuThuongQuyID, chuKyDanhGiaID, data } = action.payload;
+      const key = `${nhiemVuThuongQuyID}_${chuKyDanhGiaID}`;
+      state.congViecDashboard[key] = {
+        data,
+        isLoading: false,
+        error: null,
+      };
+    },
+
+    /**
+     * Load dashboard công việc thất bại
+     */
+    fetchCongViecDashboardRejected(state, action) {
+      const { nhiemVuThuongQuyID, chuKyDanhGiaID, error } = action.payload;
+      const key = `${nhiemVuThuongQuyID}_${chuKyDanhGiaID}`;
+      if (!state.congViecDashboard[key]) {
+        state.congViecDashboard[key] = {};
+      }
+      state.congViecDashboard[key].isLoading = false;
+      state.congViecDashboard[key].error = error;
     },
   },
 });
@@ -989,6 +1032,66 @@ export const getNhanVienDuocQuanLy =
       toast.error(error.message);
     }
   };
+
+/**
+ * Lấy danh sách nhân viên có thể giao việc
+ * Merge CẢ HAI loại quan hệ: "KPI" + "Giao_Viec"
+ * Dùng cho module Giao Việc (CongViecFormDialog, CongViecByNhanVienPage)
+ */
+export const getNhanVienCoTheGiaoViec = () => async (dispatch) => {
+  dispatch(slice.actions.startLoading());
+  try {
+    // Gọi song song cả 2 loại quan hệ
+    const [resGiaoViec, resKPI] = await Promise.all([
+      apiService
+        .get("/workmanagement/quan-ly-nhan-vien/nhan-vien-duoc-quan-ly", {
+          params: { LoaiQuanLy: "Giao_Viec" },
+        })
+        .catch((err) => {
+          console.warn(
+            "[getNhanVienCoTheGiaoViec] Giao_Viec failed:",
+            err.message
+          );
+          return { data: { data: { nhanviens: [] } } };
+        }),
+      apiService
+        .get("/workmanagement/quan-ly-nhan-vien/nhan-vien-duoc-quan-ly", {
+          params: { LoaiQuanLy: "KPI" },
+        })
+        .catch((err) => {
+          console.warn("[getNhanVienCoTheGiaoViec] KPI failed:", err.message);
+          return { data: { data: { nhanviens: [] } } };
+        }),
+    ]);
+
+    const nvGiaoViec = resGiaoViec?.data?.data?.nhanviens || [];
+    const nvKPI = resKPI?.data?.data?.nhanviens || [];
+
+    // Merge và loại trùng theo _id
+    const seen = new Set();
+    const merged = [];
+
+    [...nvGiaoViec, ...nvKPI].forEach((nv) => {
+      if (nv?._id && !seen.has(nv._id)) {
+        seen.add(nv._id);
+        merged.push(nv);
+      }
+    });
+
+    console.log("[getNhanVienCoTheGiaoViec] Merged result:", {
+      giaoViec: nvGiaoViec.length,
+      kpi: nvKPI.length,
+      total: merged.length,
+      ids: merged.map((nv) => nv._id),
+    });
+
+    // Lưu vào cùng state với action cũ
+    dispatch(slice.actions.getNhanVienDuocQuanLySuccess(merged));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error("Không thể tải danh sách nhân viên: " + error.message);
+  }
+};
 
 // ====================
 // UI Helper Actions
@@ -1521,5 +1624,53 @@ export const getCurrentNhanVien = (nhanVienId) => async (dispatch) => {
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
+  }
+};
+
+/**
+ * ✅ NEW: Lấy dashboard công việc cho nhiệm vụ thường quy trong chu kỳ
+ * For: ChamDiemKPITable - Dashboard tab for reviewing employee tasks during KPI evaluation
+ * @param {Object} params - { nhiemVuThuongQuyID, nhanVienID, chuKyDanhGiaID }
+ */
+export const fetchCongViecDashboard = (params) => async (dispatch) => {
+  const { nhiemVuThuongQuyID, nhanVienID, chuKyDanhGiaID } = params;
+
+  // Start loading state
+  dispatch(
+    slice.actions.fetchCongViecDashboardPending({
+      nhiemVuThuongQuyID,
+      chuKyDanhGiaID,
+    })
+  );
+
+  try {
+    const response = await apiService.get(
+      `/workmanagement/congviec/dashboard-by-nhiemvu`,
+      {
+        params: {
+          nhiemVuThuongQuyID,
+          nhanVienID,
+          chuKyDanhGiaID,
+        },
+      }
+    );
+
+    dispatch(
+      slice.actions.fetchCongViecDashboardSuccess({
+        nhiemVuThuongQuyID,
+        chuKyDanhGiaID,
+        data: response.data.data,
+      })
+    );
+  } catch (error) {
+    dispatch(
+      slice.actions.fetchCongViecDashboardRejected({
+        nhiemVuThuongQuyID,
+        chuKyDanhGiaID,
+        error: error.message,
+      })
+    );
+    // ✅ Silent error: Don't show toast (user can see error in UI)
+    console.error("Failed to fetch CongViec dashboard:", error.message);
   }
 };

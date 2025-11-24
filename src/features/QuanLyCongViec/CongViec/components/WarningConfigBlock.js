@@ -22,45 +22,68 @@ const WarningConfigBlock = ({ cv }) => {
   return (
     <Box sx={{ mt: 3 }}>
       <Typography
-        variant="subtitle2"
-        sx={{ fontWeight: 600, mb: 1, color: "text.secondary" }}
+        variant="subtitle1"
+        sx={{
+          fontWeight: 700,
+          mb: 1.5,
+          color: "text.primary",
+          fontSize: { xs: "1rem", sm: "1.1rem" },
+        }}
       >
         Cấu hình cảnh báo
       </Typography>
-      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+      <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
         <Chip
-          size="small"
+          size="medium"
           variant="outlined"
           label={
             mode === "PERCENT"
               ? `Theo phần trăm (${percent}%)`
               : "Thời điểm cố định"
           }
+          sx={{ fontSize: "0.9rem", fontWeight: 600 }}
         />
         {cv.NgayCanhBao && (
           <Chip
-            size="small"
+            size="medium"
             variant="outlined"
             label={`Bắt đầu cảnh báo: ${dayjs(cv.NgayCanhBao).format(
               "DD/MM HH:mm"
             )}`}
+            sx={{ fontSize: "0.9rem", fontWeight: 600 }}
           />
         )}
         {mode === "PERCENT" && (
           <Chip
-            size="small"
+            size="medium"
             variant="outlined"
             label={`P = ${(rawPercent * 100).toFixed(0)}%`}
+            sx={{ fontSize: "0.9rem", fontWeight: 600 }}
           />
         )}
         {warnTooLate && (
-          <Chip size="small" color="warning" label="Cảnh báo quá muộn" />
+          <Chip
+            size="medium"
+            color="warning"
+            label="Cảnh báo quá muộn"
+            sx={{ fontSize: "0.9rem", fontWeight: 600 }}
+          />
         )}
         {fixedTooClose && (
-          <Chip size="small" color="error" label="Sát hạn (<2h)" />
+          <Chip
+            size="medium"
+            color="error"
+            label="Sát hạn (<2h)"
+            sx={{ fontSize: "0.9rem", fontWeight: 600 }}
+          />
         )}
         {cv.CoDuyetHoanThanh && (
-          <Chip size="small" color="info" label="Có bước duyệt" />
+          <Chip
+            size="medium"
+            color="info"
+            label="Có bước duyệt"
+            sx={{ fontSize: "0.9rem", fontWeight: 600 }}
+          />
         )}
       </Box>
     </Box>

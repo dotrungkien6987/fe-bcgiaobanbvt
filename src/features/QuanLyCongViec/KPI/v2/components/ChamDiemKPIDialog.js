@@ -29,6 +29,8 @@ import useAuth from "../../../../../hooks/useAuth";
 
 import ChamDiemKPITable from "./ChamDiemKPITable";
 import KPIHistoryDialog from "./KPIHistoryDialog";
+import CongViecCompactCard from "./CongViecCompactCard";
+import CongViecDetailDialog from "../../../CongViec/CongViecDetailDialog";
 import {
   updateTieuChiScoreLocal,
   saveAllNhiemVu,
@@ -38,6 +40,11 @@ import {
   resetCriteria,
   clearSyncWarning, // ✅ FIX: Add clearSyncWarning import
 } from "../../kpiSlice";
+import {
+  fetchOtherTasksSummary,
+  fetchCollabTasksSummary,
+  getCongViecDetail,
+} from "../../../CongViec/congViecSlice";
 
 // ✅ V2: Import calculation utilities
 import { calculateTotalScore } from "../../../../../utils/kpiCalculation";
@@ -69,6 +76,14 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
     isSaving,
     syncWarning, // ← NEW: Criteria change detection
   } = useSelector((state) => state.kpi);
+
+  // ✅ NEW: Get compact card summaries from congViec slice
+  const {
+    otherTasksSummary,
+    collabTasksSummary,
+    summaryLoading,
+    summaryError,
+  } = useSelector((state) => state.congViec);
 
   // Check if editable (not approved AND not in readOnly mode)
   const isEditable = useMemo(() => {
@@ -136,6 +151,10 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
 
   // ========== HISTORY STATE ==========
   const [openHistory, setOpenHistory] = useState(false);
+
+  // ========== TASK DETAIL DIALOG STATE ==========
+  const [openTaskDetail, setOpenTaskDetail] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
 
   // ========== AUTO-CLOSE STATE ==========
   // ✅ NEW: Track if approval just happened in this dialog session
@@ -295,6 +314,20 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
     isLoading,
     isSaving,
   ]);
+
+  // ✅ NEW: Fetch compact card summaries when dialog opens
+  useEffect(() => {
+    const nhanVienId = nhanVien?._id;
+    const chuKyId =
+      currentDanhGiaKPI?.ChuKyDanhGiaID?._id ||
+      currentDanhGiaKPI?.ChuKyDanhGiaID;
+
+    if (open && nhanVienId && chuKyId) {
+      // Fetch both summaries in parallel
+      dispatch(fetchOtherTasksSummary({ nhanVienId, chuKyId }));
+      dispatch(fetchCollabTasksSummary({ nhanVienId, chuKyId }));
+    }
+  }, [open, nhanVien?._id, currentDanhGiaKPI, dispatch]);
 
   if (isLoading && !currentDanhGiaKPI) {
     return (
@@ -712,7 +745,87 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
           onScoreChange={handleScoreChange}
           readOnly={!isEditable}
           diemTuDanhGiaMap={diemTuDanhGiaMap} // ✅ V2: Pass map for preview calculation
+          nhanVienID={nhanVien?._id} // ✅ NEW: For dashboard
+          chuKyDanhGiaID={
+            currentDanhGiaKPI?.ChuKyDanhGiaID?._id ||
+            currentDanhGiaKPI?.ChuKyDanhGiaID
+          } // ✅ NEW: For dashboard
         />
+
+        {/* ✅ NEW: Compact Cards for "Other" and "Collaboration" Tasks */}
+        {(() => {
+          const nhanVienId = nhanVien?._id;
+          const chuKyId =
+            currentDanhGiaKPI?.ChuKyDanhGiaID?._id ||
+            currentDanhGiaKPI?.ChuKyDanhGiaID;
+          const key = `${nhanVienId}_${chuKyId}`;
+
+          const otherTasksData = otherTasksSummary[key]?.data || {
+            total: 0,
+            completed: 0,
+            late: 0,
+            active: 0,
+            tasks: [],
+          };
+
+          const collabTasksData = collabTasksSummary[key]?.data || {
+            total: 0,
+            completed: 0,
+            late: 0,
+            active: 0,
+            tasks: [],
+          };
+
+          const handleViewTask = (taskId) => {
+            if (!taskId) return;
+            setSelectedTaskId(taskId);
+            dispatch(getCongViecDetail(taskId));
+            setOpenTaskDetail(true);
+          };
+
+          const handleOpenNewTab = (taskId) => {
+            if (!taskId) return;
+            window.open(`/congviec/${taskId}`, "_blank", "noopener,noreferrer");
+          };
+
+          return (
+            <>
+              {/* Card 1: Công việc khác */}
+              <CongViecCompactCard
+                title="Công việc khác"
+                icon="📦"
+                color="warning.main"
+                total={otherTasksData.total}
+                completed={otherTasksData.completed}
+                late={otherTasksData.late}
+                active={otherTasksData.active}
+                tasks={otherTasksData.tasks}
+                onViewTask={handleViewTask}
+                onOpenNewTab={handleOpenNewTab}
+                isLoading={summaryLoading}
+                error={summaryError}
+                showNguoiChinh={false}
+              />
+
+              {/* Card 2: Công việc phối hợp */}
+              <CongViecCompactCard
+                title="Công việc phối hợp"
+                icon="🤝"
+                color="info.main"
+                total={collabTasksData.total}
+                completed={collabTasksData.completed}
+                late={collabTasksData.late}
+                active={collabTasksData.active}
+                tasks={collabTasksData.tasks}
+                onViewTask={handleViewTask}
+                onOpenNewTab={handleOpenNewTab}
+                isLoading={summaryLoading}
+                error={summaryError}
+                showNguoiChinh={true}
+              />
+            </>
+          );
+        })()}
       </DialogContent>
 
       {/* Footer Actions - Simple Design */}
@@ -1033,6 +1146,16 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
         onClose={handleCloseHistory}
         currentDanhGiaKPI={currentDanhGiaKPI}
         isApproved={isApproved}
+      />
+
+      {/* ========== TASK DETAIL DIALOG ========== */}
+      <CongViecDetailDialog
+        open={openTaskDetail}
+        onClose={() => {
+          setOpenTaskDetail(false);
+          setSelectedTaskId(null);
+        }}
+        congViecId={selectedTaskId}
       />
     </Dialog>
   );

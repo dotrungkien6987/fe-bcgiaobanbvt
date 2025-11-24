@@ -27,23 +27,37 @@ const MetricsBlock = ({ cv, extDue, soGioTre }) => {
   return (
     <Box sx={{ mt: 3 }}>
       <Typography
-        variant="subtitle2"
-        sx={{ fontWeight: 600, mb: 1, color: "text.secondary" }}
+        variant="subtitle1"
+        sx={{
+          fontWeight: 700,
+          mb: 1.5,
+          color: "text.primary",
+          fontSize: { xs: "1rem", sm: "1.1rem" },
+        }}
       >
         Chỉ số
       </Typography>
-      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+      <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
         {lead !== null && (
-          <Chip size="small" label={`Lead: ${lead.toFixed(1)}h`} />
+          <Chip
+            size="medium"
+            label={`Lead: ${lead.toFixed(1)}h`}
+            sx={{ fontSize: "0.9rem", fontWeight: 600 }}
+          />
         )}
         {response !== null && (
-          <Chip size="small" label={`Response: ${response.toFixed(1)}h`} />
+          <Chip
+            size="medium"
+            label={`Response: ${response.toFixed(1)}h`}
+            sx={{ fontSize: "0.9rem", fontWeight: 600 }}
+          />
         )}
         {hasFinish && typeof soGioTre === "number" && (
           <Chip
-            size="small"
+            size="medium"
             color={slaOk ? "success" : soGioTre > 0 ? "error" : "success"}
             label={soGioTre > 0 ? `Trễ ${soGioTre}h` : "Đúng hạn"}
+            sx={{ fontSize: "0.9rem", fontWeight: 600 }}
           />
         )}
       </Box>

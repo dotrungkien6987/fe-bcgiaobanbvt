@@ -52,6 +52,8 @@ import {
 } from "./congViecSlice";
 import apiService from "app/apiService"; // dùng cho fetch nhẹ khi tránh ghi đè global
 import { getMyNhomViecs } from "../NhomViecUser/nhomViecUserSlice";
+import { getNhanVienCoTheGiaoViec } from "../KPI/kpiSlice";
+import { useAuth } from "contexts/AuthContext";
 
 const priorityMapFE2BE = {
   Thấp: "THAP",
@@ -102,14 +104,33 @@ const CongViecFormDialog = ({
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
   const dispatch = useDispatch();
+  const { user } = useAuth(); // Lấy user hiện tại từ AuthContext
   const { loading, error } = useSelector((s) => s.congViec);
-  const { managedEmployees, currentManager } = useSelector(
-    (s) => s.nhanvienManagement
-  );
+  const {
+    nhanVienDuocQuanLy,
+    isLoading: loadingNhanVien,
+    error: errorNhanVien,
+  } = useSelector((s) => s.kpi);
   const { myNhomViecs } = useSelector((s) => s.nhomViecUser);
+
+  // Extract NhanVienID từ user hiện tại
+  const currentNhanVienId = useMemo(() => {
+    if (!user) return null;
+    // User.NhanVienID là reference đến NhanVien._id
+    return user.NhanVienID;
+  }, [user]);
+
+  // Tìm currentManager từ danh sách nhanVienDuocQuanLy
+  const currentManager = useMemo(() => {
+    if (!currentNhanVienId || !nhanVienDuocQuanLy) return null;
+    return nhanVienDuocQuanLy.find(
+      (nv) => String(nv._id) === String(currentNhanVienId)
+    );
+  }, [currentNhanVienId, nhanVienDuocQuanLy]);
+
   const availableNhanViens = useMemo(
-    () => managedEmployees || [],
-    [managedEmployees]
+    () => nhanVienDuocQuanLy || [],
+    [nhanVienDuocQuanLy]
   );
   // Danh sách lựa chọn Người chính: inject currentManager nếu chưa có trong managedEmployees
   const mainOptions = useMemo(() => {
@@ -261,7 +282,7 @@ const CongViecFormDialog = ({
       NgayHetHan: dayjs().add(7, "day"),
       MucDoUuTien: "Bình thường",
       TrangThai: "Tạo mới", // read-only when editing
-      NguoiChinh: nhanVienId || currentManager?._id || "",
+      NguoiChinh: nhanVienId || currentNhanVienId || "",
       TienDo: 0,
       NhomViecUserID: "",
       CanhBaoMode: "PERCENT",
@@ -297,16 +318,27 @@ const CongViecFormDialog = ({
     },
   });
 
+  // Load danh sách nhóm việc và nhân viên khi mở dialog
   useEffect(() => {
-    if (open) dispatch(getMyNhomViecs());
-  }, [open, dispatch]);
-  // Nếu mở dialog và chưa có NguoiChinh nhưng currentManager tồn tại, set mặc định
-  useEffect(() => {
-    if (open && !isEdit && !formik.values.NguoiChinh && currentManager?._id) {
-      formik.setFieldValue("NguoiChinh", currentManager._id);
+    if (open) {
+      dispatch(getMyNhomViecs());
+
+      // Load danh sách nhân viên có thể giao việc (merge cả KPI + Giao_Viec)
+      // Chỉ load nếu chưa có (tránh vòng lặp vô hạn)
+      if (!nhanVienDuocQuanLy || nhanVienDuocQuanLy.length === 0) {
+        dispatch(getNhanVienCoTheGiaoViec());
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, isEdit, currentManager]);
+  }, [open, dispatch]); // Bỏ nhanVienDuocQuanLy khỏi dependency để tránh vòng lặp
+
+  // Nếu mở dialog và chưa có NguoiChinh nhưng currentManager tồn tại, set mặc định
+  useEffect(() => {
+    if (open && !isEdit && !formik.values.NguoiChinh && currentNhanVienId) {
+      formik.setFieldValue("NguoiChinh", currentNhanVienId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isEdit, currentNhanVienId]);
   useEffect(() => {
     if (!open || !isEdit || !congViec) return;
     formik.setValues((v) => ({
@@ -497,6 +529,11 @@ const CongViecFormDialog = ({
                 {error}
               </Alert>
             )}
+            {errorNhanVien && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                Không thể tải danh sách nhân viên: {errorNhanVien}
+              </Alert>
+            )}
             <Grid container spacing={2}>
               {isEdit ? (
                 <Grid item xs={12} md={6}>
@@ -510,7 +547,7 @@ const CongViecFormDialog = ({
               ) : (
                 <Grid item xs={12}>
                   <Typography variant="caption" color="text.secondary">
-                    Mã công việc sẽ được tạo tự động khi lưu.
+                    Mã công việc sẽ được tạo tự động khi lưu .
                   </Typography>
                 </Grid>
               )}
@@ -554,6 +591,7 @@ const CongViecFormDialog = ({
               <Grid item xs={12} md={6}>
                 <Autocomplete
                   options={mainOptions}
+                  loading={loadingNhanVien}
                   value={
                     mainOptions.find(
                       (nv) => nv._id === formik.values.NguoiChinh
@@ -572,7 +610,7 @@ const CongViecFormDialog = ({
                     if (!o?.Ten) return "";
                     const dept = o.KhoaID?.TenKhoa || "Chưa có khoa";
                     const isCurrent =
-                      currentManager && o._id === currentManager._id;
+                      currentNhanVienId && o._id === currentNhanVienId;
                     return `${o.Ten} - ${dept}${isCurrent ? " (Bạn)" : ""}`;
                   }}
                   renderInput={(params) => (
@@ -591,7 +629,13 @@ const CongViecFormDialog = ({
                   fullWidth
                   disableClearable={false}
                   isOptionEqualToValue={(o, v) => o._id === v._id}
-                  noOptionsText="Không có nhân viên"
+                  noOptionsText={
+                    loadingNhanVien
+                      ? "Đang tải danh sách nhân viên..."
+                      : availableNhanViens.length === 0
+                      ? "Không có nhân viên nào. Vui lòng liên hệ quản trị viên."
+                      : "Không có nhân viên"
+                  }
                 />
               </Grid>
               <Grid item xs={12} md={6}>

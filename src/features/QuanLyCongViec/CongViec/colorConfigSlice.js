@@ -7,6 +7,7 @@ const slice = createSlice({
   initialState: {
     statusColors: null,
     priorityColors: null,
+    dueStatusColors: null,
     loading: false,
     saving: false,
     error: null,
@@ -24,6 +25,7 @@ const slice = createSlice({
       state.loading = false;
       state.statusColors = action.payload?.statusColors || null;
       state.priorityColors = action.payload?.priorityColors || null;
+      state.dueStatusColors = action.payload?.dueStatusColors || null;
     },
     startSaving(state) {
       state.saving = true;
@@ -34,6 +36,8 @@ const slice = createSlice({
       state.statusColors = action.payload?.statusColors || state.statusColors;
       state.priorityColors =
         action.payload?.priorityColors || state.priorityColors;
+      state.dueStatusColors =
+        action.payload?.dueStatusColors || state.dueStatusColors;
     },
     saveError(state, action) {
       state.saving = false;

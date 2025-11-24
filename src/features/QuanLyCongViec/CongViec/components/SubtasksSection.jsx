@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { Box, Typography, IconButton, Button, Tooltip } from "@mui/material";
+import {
+  Box,
+  Typography,
+  IconButton,
+  Button,
+  Tooltip,
+  Card,
+  CardContent,
+} from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import TaskAltIcon from "@mui/icons-material/TaskAlt";
@@ -14,7 +22,15 @@ import ConfirmDialog from "components/ConfirmDialog";
  * SubtasksSection – Slim Plan UI (flat list)
  * Props: parent (congViecDetail), isMain (boolean)
  */
-export default function SubtasksSection({ parent, isMain, open }) {
+export default function SubtasksSection({
+  parent,
+  isMain,
+  open,
+  // NEW props:
+  currentUserRole,
+  currentUserNhanVienId,
+  onOpenTree,
+}) {
   const dispatch = useDispatch();
   const parentId = parent?._id;
   const subtasksState = useSelector(
@@ -90,49 +106,96 @@ export default function SubtasksSection({ parent, isMain, open }) {
   // Note: empty state handled inside SubtasksTable
 
   return (
-    <Box mt={4}>
-      <Box display="flex" alignItems="center" gap={1} mb={1}>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          Công việc con ({parent?.ChildrenCount || 0})
-        </Typography>
-        <IconButton size="small" onClick={handleRefresh} disabled={loading}>
-          <RefreshIcon fontSize="inherit" />
-        </IconButton>
-        {parent?.AllChildrenDone &&
-          parent.ChildrenCount > 0 &&
-          parent.TrangThai === "DANG_THUC_HIEN" && (
-            <Tooltip title="Tất cả công việc con đã hoàn thành">
-              <TaskAltIcon color="success" fontSize="small" />
-            </Tooltip>
-          )}
-        {parent?.ChildrenSummary &&
-          parent.ChildrenSummary.active > 0 &&
-          parent.TrangThai === "HOAN_THANH" && (
-            <Tooltip title="Cha đã hoàn thành nhưng vẫn còn con hoạt động (dữ liệu có thể lệch)">
-              <ErrorOutlineIcon color="warning" fontSize="small" />
-            </Tooltip>
-          )}
-        <Box flexGrow={1} />
+    <Card
+      elevation={0}
+      sx={{
+        bgcolor: "grey.50",
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: 2,
+        mb: 3,
+      }}
+    >
+      <Box
+        sx={{
+          background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+          color: "white",
+          p: 2,
+          borderBottom: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <TaskAltIcon sx={{ fontSize: 26 }} />
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
+              color: "white",
+              fontSize: { xs: "1.1rem", sm: "1.2rem" },
+            }}
+          >
+            Công việc con ({parent?.ChildrenCount || 0})
+          </Typography>
+          <IconButton
+            size="small"
+            onClick={handleRefresh}
+            disabled={loading}
+            sx={{ color: "white" }}
+          >
+            <RefreshIcon fontSize="small" />
+          </IconButton>
+          {parent?.AllChildrenDone &&
+            parent.ChildrenCount > 0 &&
+            parent.TrangThai === "DANG_THUC_HIEN" && (
+              <Tooltip title="Tất cả công việc con đã hoàn thành">
+                <TaskAltIcon
+                  sx={{ fontSize: 18, color: "rgba(255,255,255,0.9)" }}
+                />
+              </Tooltip>
+            )}
+          {parent?.ChildrenSummary &&
+            parent.ChildrenSummary.active > 0 &&
+            parent.TrangThai === "HOAN_THANH" && (
+              <Tooltip title="Cha đã hoàn thành nhưng vẫn còn con hoạt động (dữ liệu có thể lệch)">
+                <ErrorOutlineIcon sx={{ fontSize: 18, color: "#fbbf24" }} />
+              </Tooltip>
+            )}
+        </Box>
         {canAdd && (
           <Button
             size="small"
             variant="contained"
             startIcon={<AddIcon />}
             onClick={handleOpenCreate}
+            sx={{
+              bgcolor: "rgba(255,255,255,0.2)",
+              color: "white",
+              border: "1px solid rgba(255,255,255,0.3)",
+              "&:hover": {
+                bgcolor: "rgba(255,255,255,0.3)",
+              },
+            }}
           >
             Thêm
           </Button>
         )}
       </Box>
-      <SubtasksTable
-        subtasks={items}
-        loading={loading && !loaded}
-        onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        updatingId={updatingId}
-        deletingId={deletingId}
-      />
+      <CardContent sx={{ p: 3 }}>
+        <SubtasksTable
+          subtasks={items}
+          loading={loading && !loaded}
+          onView={handleView}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          updatingId={updatingId}
+          deletingId={deletingId}
+          currentUserRole={currentUserRole}
+          currentUserNhanVienId={currentUserNhanVienId}
+        />
+      </CardContent>
       <CongViecFormDialog
         open={openForm}
         onClose={handleCloseForm}
@@ -159,6 +222,6 @@ export default function SubtasksSection({ parent, isMain, open }) {
         confirmColor="error"
         loading={deletingId === confirmDelete.target?._id}
       />
-    </Box>
+    </Card>
   );
 }

@@ -19,14 +19,17 @@ import { updateColorConfig } from "../colorConfigSlice";
 import {
   STATUS_COLOR_MAP as DEFAULT_STATUS_COLOR_MAP,
   PRIORITY_COLOR_MAP as DEFAULT_PRIORITY_COLOR_MAP,
+  EXT_DUE_COLOR_MAP as DEFAULT_DUE_COLOR_MAP,
   getStatusColor,
   getPriorityColor,
   getStatusText,
   getPriorityText,
+  EXT_DUE_LABEL_MAP,
 } from "../../../../utils/congViecUtils";
 
 const STATUS_OPTIONS = Object.keys(DEFAULT_STATUS_COLOR_MAP);
 const PRIORITY_OPTIONS = Object.keys(DEFAULT_PRIORITY_COLOR_MAP);
+const DUE_STATUS_OPTIONS = Object.keys(DEFAULT_DUE_COLOR_MAP);
 
 const ColorInput = ({ label, value, onChange, previewLabel }) => (
   <Stack direction="row" spacing={2} alignItems="center">
@@ -61,9 +64,11 @@ const AdminColorSettingsDialog = ({ open, onClose, isAdmin }) => {
   const dispatch = useDispatch();
   const statusColors = useSelector((s) => s.colorConfig?.statusColors);
   const priorityColors = useSelector((s) => s.colorConfig?.priorityColors);
+  const dueStatusColors = useSelector((s) => s.colorConfig?.dueStatusColors);
 
   const [draftStatus, setDraftStatus] = React.useState({});
   const [draftPriority, setDraftPriority] = React.useState({});
+  const [draftDueStatus, setDraftDueStatus] = React.useState({});
 
   React.useEffect(() => {
     const mergedStatus = STATUS_OPTIONS.reduce((acc, code) => {
@@ -74,13 +79,19 @@ const AdminColorSettingsDialog = ({ open, onClose, isAdmin }) => {
       acc[code] = priorityColors?.[code] || DEFAULT_PRIORITY_COLOR_MAP[code];
       return acc;
     }, {});
+    const mergedDueStatus = DUE_STATUS_OPTIONS.reduce((acc, code) => {
+      acc[code] = dueStatusColors?.[code] || DEFAULT_DUE_COLOR_MAP[code];
+      return acc;
+    }, {});
     setDraftStatus(mergedStatus);
     setDraftPriority(mergedPriority);
-  }, [statusColors, priorityColors]);
+    setDraftDueStatus(mergedDueStatus);
+  }, [statusColors, priorityColors, dueStatusColors]);
 
   const handleResetDefaults = () => {
     setDraftStatus({ ...DEFAULT_STATUS_COLOR_MAP });
     setDraftPriority({ ...DEFAULT_PRIORITY_COLOR_MAP });
+    setDraftDueStatus({ ...DEFAULT_DUE_COLOR_MAP });
   };
 
   const handleSave = async () => {
@@ -88,13 +99,14 @@ const AdminColorSettingsDialog = ({ open, onClose, isAdmin }) => {
     const payload = {
       statusColors: draftStatus,
       priorityColors: draftPriority,
+      dueStatusColors: draftDueStatus,
     };
     await dispatch(updateColorConfig(payload));
     onClose?.();
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Thiết lập màu trạng thái và ưu tiên</DialogTitle>
       <DialogContent dividers>
         {!isAdmin && (
@@ -153,6 +165,26 @@ const AdminColorSettingsDialog = ({ open, onClose, isAdmin }) => {
                     setDraftPriority((s) => ({ ...s, [code]: hex }))
                   }
                   previewLabel={getPriorityText(code)}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle1" fontWeight={700} sx={{ mb: 1 }}>
+            Tình trạng hạn
+          </Typography>
+          <Grid container spacing={2}>
+            {DUE_STATUS_OPTIONS.map((code) => (
+              <Grid item xs={12} sm={6} key={code}>
+                <ColorInput
+                  label={EXT_DUE_LABEL_MAP[code]}
+                  value={draftDueStatus[code] || DEFAULT_DUE_COLOR_MAP[code]}
+                  onChange={(hex) =>
+                    setDraftDueStatus((s) => ({ ...s, [code]: hex }))
+                  }
+                  previewLabel={EXT_DUE_LABEL_MAP[code]}
                 />
               </Grid>
             ))}
