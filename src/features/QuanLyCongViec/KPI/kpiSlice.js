@@ -350,6 +350,21 @@ const slice = createSlice({
       // - calculateTotalScore(currentNhiemVuList, diemTuDanhGiaMap)
     },
 
+    // ✅ NEW: Quick score all nhiệm vụ with percentage
+    quickScoreAllNhiemVu(state, action) {
+      const percentage = action.payload;
+      state.currentNhiemVuList.forEach((nhiemVu) => {
+        nhiemVu.ChiTietDiem?.forEach((tieuChi) => {
+          if (tieuChi.IsMucDoHoanThanh) {
+            const range = tieuChi.GiaTriMax - tieuChi.GiaTriMin;
+            const calculatedValue =
+              tieuChi.GiaTriMin + (range * percentage) / 100;
+            tieuChi.DiemDat = Math.round(calculatedValue * 10) / 10; // Round to 1 decimal
+          }
+        });
+      });
+    },
+
     // Lưu điểm nhiệm vụ (backend response)
     saveDiemNhiemVuSuccess(state, action) {
       state.isSaving = false;
@@ -1530,6 +1545,18 @@ export const resetCriteria = (danhGiaKPIId) => async (dispatch) => {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
   }
+};
+
+/**
+ * Chấm điểm nhanh hàng loạt cho tất cả nhiệm vụ
+ * Chỉ áp dụng cho các tiêu chí có IsMucDoHoanThanh === true
+ * @param {number} percentage - Phần trăm hoàn thành (1-100)
+ */
+export const quickScoreAllNhiemVu = (percentage) => (dispatch) => {
+  dispatch(slice.actions.quickScoreAllNhiemVu(percentage));
+  toast.success(
+    `Đã chấm ${percentage}% cho đánh giá mức độ hoàn thành của tất cả nhiệm vụ`
+  );
 };
 
 // V2 UI helpers

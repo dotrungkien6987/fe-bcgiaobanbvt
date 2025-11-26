@@ -1,5 +1,13 @@
 # Hướng dẫn triển khai chức năng Quản lý Nhân viên
 
+> ⚠️ **LEGACY DOCUMENT - Planning/Implementation Guide**  
+> **Status:** Archived  
+> **Date:** November 2025  
+> **Note:** Đây là tài liệu planning ban đầu khi xây dựng module. Code thực tế có thể khác với kế hoạch ban đầu.  
+> **Tài liệu chính:** Xem [docs/README.md](./docs/README.md) để biết trạng thái hiện tại của module.
+
+---
+
 ## Mục đích
 
 Triển khai chức năng CRUD cho schema QuanLyNhanVien để cấu hình:

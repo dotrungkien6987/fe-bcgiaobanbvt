@@ -7,14 +7,14 @@
 
 ## 2. Thuộc Tính Bổ Sung (CongViec)
 
-| Field                  | Type                    | Index                 | Mô tả                                      | Ghi chú                       |
-| ---------------------- | ----------------------- | --------------------- | ------------------------------------------ | ----------------------------- |
-| `CongViecChaID`        | ObjectId (ref CongViec) | yes (`CongViecChaID`) | Cha trực tiếp                              | null nếu root                 |
-| `Path`                 | [ObjectId]              | yes (`Path`)          | DS ancestor từ root→cha                    | Materialized path             |
-| `Depth`                | Number                  | yes (`Depth`)         | Số cấp (root=0)                            | Derive từ Path length         |
-| `ChildrenCount`        | Number                  | no                    | Số con trực tiếp                           | Denormalize, tăng/giảm atomic |
-| `ChildrenSummaryCache` | Mixed                   | no                    | (Optional) cache tạm (ttl)                 | Chưa bật giai đoạn đầu        |
-| `AllChildrenDoneAt`    | Date                    | no                    | Thời điểm tất cả con hoàn thành (đánh dấu) | Dùng hiển thị gợi ý           |
+| Field                  | Type                    | Index                 | Mô tả                                      | Ghi chú                                    |
+| ---------------------- | ----------------------- | --------------------- | ------------------------------------------ | ------------------------------------------ |
+| `CongViecChaID`        | ObjectId (ref CongViec) | yes (`CongViecChaID`) | Cha trực tiếp                              | null nếu root                              |
+| `Path`                 | [ObjectId]              | **no**                | DS ancestor từ root→cha                    | Materialized path (chưa index giai đoạn 1) |
+| `Depth`                | Number                  | yes (`Depth`)         | Số cấp (root=0)                            | Derive từ Path length                      |
+| `ChildrenCount`        | Number                  | no                    | Số con trực tiếp                           | Denormalize, tăng/giảm atomic              |
+| `ChildrenSummaryCache` | Mixed                   | no                    | (Optional) cache tạm (ttl)                 | ⚠️ **CHƯA IMPLEMENT** - kế hoạch tương lai |
+| `AllChildrenDoneAt`    | Date                    | no                    | Thời điểm tất cả con hoàn thành (đánh dấu) | ⚠️ **CHƯA IMPLEMENT** - kế hoạch tương lai |
 
 ## 3. Lý Do Chọn Materialized Path
 
@@ -89,7 +89,7 @@ const CongViecSchema = new Schema({
     ref: "CongViec",
     default: null,
   },
-  Path: { type: [Schema.Types.ObjectId], default: [], index: true },
+  Path: { type: [Schema.Types.ObjectId], default: [], index: false }, // Chưa index giai đoạn 1
   Depth: { type: Number, default: 0, index: true },
   ChildrenCount: { type: Number, default: 0 },
 });

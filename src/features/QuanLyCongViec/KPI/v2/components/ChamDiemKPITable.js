@@ -36,6 +36,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+import FlashOnIcon from "@mui/icons-material/FlashOn";
+import { Button } from "@mui/material";
 
 // ✅ V2: Import calculation utilities
 import { calculateNhiemVuScore } from "../../../../../utils/kpiCalculation";
@@ -45,6 +47,9 @@ import CongViecDashboard from "./dashboard/CongViecDashboard";
 
 // ✅ NEW: Import dashboard data action
 import { fetchCongViecDashboard } from "../../kpiSlice";
+
+// ✅ NEW: Import QuickScoreDialog for batch scoring
+import QuickScoreDialog from "./QuickScoreDialog";
 
 /**
  * ScoreInput - Isolated input component with local state
@@ -133,6 +138,15 @@ function ScoreInput({
             "&.Mui-focused": {
               boxShadow: "0 4px 12px rgba(102, 126, 234, 0.3)",
             },
+            // ✅ Improve visibility when disabled
+            "&.Mui-disabled": {
+              bgcolor: "#f5f5f5",
+              "& input": {
+                color: "#2c3e50", // Dark gray instead of default light gray
+                WebkitTextFillColor: "#2c3e50", // Override browser default
+                fontWeight: "700",
+              },
+            },
           },
         }}
         InputProps={{
@@ -140,8 +154,11 @@ function ScoreInput({
             <InputAdornment position="end">
               <Typography
                 variant="caption"
-                color="text.secondary"
+                color={disabled ? "text.primary" : "text.secondary"}
                 fontWeight="600"
+                sx={{
+                  opacity: disabled ? 0.8 : 1, // Slightly transparent when disabled but still visible
+                }}
               >
                 {unit || "%"}
               </Typography>
@@ -177,6 +194,7 @@ function ScoreInput({
  * - diemTuDanhGiaMap: Object { NhiemVuThuongQuyID: DiemTuDanhGia } - V2 for calculation
  * - nhanVienID: String - Employee ID (for dashboard)
  * - chuKyDanhGiaID: String - Evaluation cycle ID (for dashboard)
+ * - onQuickScoreAll: (percentage) => void - ✅ NEW: Quick score batch function
  */
 function ChamDiemKPITable({
   nhiemVuList = [],
@@ -185,12 +203,15 @@ function ChamDiemKPITable({
   diemTuDanhGiaMap = {},
   nhanVienID, // ✅ NEW: For dashboard
   chuKyDanhGiaID, // ✅ NEW: For dashboard
+  onQuickScoreAll, // ✅ NEW: Quick score handler
 }) {
   const dispatch = useDispatch();
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedRowId, setExpandedRowId] = useState(null);
   // ✅ NEW: Track active tab per expanded row
   const [activeTabByRow, setActiveTabByRow] = useState({});
+  // ✅ NEW: Quick Score Dialog state
+  const [openQuickScoreDialog, setOpenQuickScoreDialog] = useState(false);
   const expandedRowRef = useRef(null);
   const tableContainerRef = useRef(null);
 
@@ -342,18 +363,25 @@ function ChamDiemKPITable({
     );
   }
 
+  // ✅ NEW: Handle Quick Score confirm
+  const handleQuickScoreConfirm = (percentage) => {
+    if (onQuickScoreAll) {
+      onQuickScoreAll(percentage);
+    }
+  };
+
   // --- UI ---
   return (
     <Box>
-      {/* Search Bar Only */}
-      <Box sx={{ mb: 2 }}>
+      {/* Search Bar + Quick Score Button */}
+      <Box sx={{ mb: 2, display: "flex", gap: 2, alignItems: "center" }}>
         <TextField
           placeholder="🔍 Tìm kiếm nhiệm vụ..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           size="medium"
-          fullWidth
           sx={{
+            flex: 1,
             maxWidth: 500,
             "& .MuiOutlinedInput-root": {
               borderRadius: 2,
@@ -370,7 +398,30 @@ function ChamDiemKPITable({
             ),
           }}
         />
+        {!readOnly && onQuickScoreAll && (
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<FlashOnIcon />}
+            onClick={() => setOpenQuickScoreDialog(true)}
+            sx={{
+              minWidth: 150,
+              boxShadow: 2,
+              "&:hover": { boxShadow: 4 },
+            }}
+          >
+            Chấm Nhanh
+          </Button>
+        )}
       </Box>
+
+      {/* ✅ Quick Score Dialog */}
+      <QuickScoreDialog
+        open={openQuickScoreDialog}
+        onClose={() => setOpenQuickScoreDialog(false)}
+        onConfirm={handleQuickScoreConfirm}
+        nhiemVuList={filteredList}
+      />
 
       {/* Table Section */}
       <TableContainer
@@ -388,7 +439,7 @@ function ChamDiemKPITable({
           scrollBehavior: "smooth",
         }}
       >
-        <Table stickyHeader size="medium">
+        <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell
@@ -649,7 +700,7 @@ function ChamDiemKPITable({
                     </TableCell>
 
                     {/* Tên nhiệm vụ - COMPACT FONT */}
-                    <TableCell sx={{ py: 1.2 }}>
+                    <TableCell sx={{ py: 0.75 }}>
                       <Box display="flex" alignItems="center" gap={1}>
                         {isScored ? (
                           <CheckCircleIcon
@@ -681,7 +732,7 @@ function ChamDiemKPITable({
                     </TableCell>
 
                     {/* Mức độ khó */}
-                    <TableCell align="center" sx={{ py: 1.2 }}>
+                    <TableCell align="center" sx={{ py: 0.75 }}>
                       <Chip
                         label={nhiemVu.MucDoKho || 5}
                         size="small"
@@ -708,7 +759,7 @@ function ChamDiemKPITable({
                     <TableCell
                       align="center"
                       sx={{
-                        py: 1.2,
+                        py: 0.75,
                         px: 1.5,
                         bgcolor:
                           taskCountMap[nvId] > 0
@@ -753,7 +804,7 @@ function ChamDiemKPITable({
                     <TableCell
                       align="center"
                       sx={{
-                        py: 1.2,
+                        py: 0.75,
                         px: 1.5,
                         bgcolor:
                           diemTuDanhGiaMap[nvId?.toString()] > 0
@@ -803,7 +854,7 @@ function ChamDiemKPITable({
                           key={`${rowId}-tc-${tcIdx}`}
                           align="center"
                           sx={{
-                            py: 1.2,
+                            py: 0.75,
                             px: 1,
                             bgcolor: isGiamDiem
                               ? "rgba(239, 68, 68, 0.08)"
@@ -831,7 +882,7 @@ function ChamDiemKPITable({
                     <TableCell
                       align="center"
                       sx={{
-                        py: 1.2,
+                        py: 0.75,
                         bgcolor: "rgba(245, 158, 11, 0.12)",
                         fontWeight: "bold",
                         borderLeft: "2px solid",

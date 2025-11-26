@@ -21,7 +21,7 @@ import doanraSlice from "../features/NghienCuuKhoaHoc/DoanRa/doanraSlice";
 import nhomViecUserSlice from "../features/QuanLyCongViec/NhomViecUser/nhomViecUserSlice";
 import nhiemvuThuongQuySlice from "../features/QuanLyCongViec/NhiemVuThuongQuy/nhiemvuThuongQuySlice";
 import quanLyNhanVienSlice from "../features/QuanLyCongViec/QuanLyNhanVien/quanLyNhanVienSlice";
-import giaoNhiemVuSlice from "../features/QuanLyCongViec/GiaoNhiemVu/giaoNhiemVuSlice";
+// import giaoNhiemVuSlice from "../features/QuanLyCongViec/GiaoNhiemVu/giaoNhiemVuSlice"; // ❌ ARCHIVED 2025-11-25 (legacy system)
 import cycleAssignmentSlice from "../features/QuanLyCongViec/GiaoNhiemVu/cycleAssignmentSlice";
 import congViecSlice from "../features/QuanLyCongViec/CongViec/congViecSlice";
 import nhanvienManagementSlice from "../features/QuanLyCongViec/NhanVien/nhanvienManagementSlice";
@@ -65,7 +65,7 @@ const rootReducer = {
   nhomViecUser: nhomViecUserSlice,
   nhiemvuThuongQuy: nhiemvuThuongQuySlice,
   quanLyNhanVien: quanLyNhanVienSlice,
-  giaoNhiemVu: giaoNhiemVuSlice,
+  // giaoNhiemVu: giaoNhiemVuSlice, // ❌ ARCHIVED 2025-11-25 (legacy system - not used by active routes)
   cycleAssignment: cycleAssignmentSlice,
   congViec: congViecSlice,
   nhanvienManagement: nhanvienManagementSlice,

@@ -1,5 +1,9 @@
 # Chu Kỳ Đánh Giá - Cycle Management Module
 
+**Version:** 1.1  
+**Last Updated:** 26/11/2025  
+**Status:** ✅ Production Ready
+
 ## Tổng quan
 
 Module quản lý chu kỳ đánh giá KPI theo tháng. Đơn giản hóa từ thiết kế 4-state workflow phức tạp thành chỉ 2 trạng thái: **Đang mở** và **Đã đóng**.
@@ -8,14 +12,15 @@ Module quản lý chu kỳ đánh giá KPI theo tháng. Đơn giản hóa từ t
 
 ```
 ChuKyDanhGia/
+├── index.js                      # Exports
 ├── ChuKyDanhGiaList.js           # Danh sách chu kỳ (Table + filter)
 ├── ChuKyDanhGiaView.js           # Chi tiết chu kỳ + actions
 ├── ThongTinChuKyDanhGia.js       # Form tạo/sửa
+├── TieuChiConfigSection.js       # Component cấu hình tiêu chí đánh giá
 ├── AddChuKyDanhGiaButton.js      # Button thêm mới
 ├── UpdateChuKyDanhGiaButton.js   # Button chỉnh sửa
 ├── DeleteChuKyDanhGiaButton.js   # Button xóa (soft delete)
-├── index.js                      # Exports
-└── README.md                     # Tài liệu
+└── CYCLE_GUIDE.md                # Tài liệu này
 ```
 
 ## Schema
@@ -30,13 +35,39 @@ ChuKyDanhGia/
   isDong: Boolean,           // false = Đang mở, true = Đã đóng
   MoTa: String,              // maxlength 1000
   NguoiTaoID: ObjectId,      // ref NhanVien
+
+  // ✅ Tiêu chí đánh giá được lưu trực tiếp trong chu kỳ
+  TieuChiCauHinh: [{
+    TenTieuChi: String,        // required, trim
+    LoaiTieuChi: String,       // enum: "TANG_DIEM" | "GIAM_DIEM"
+    GiaTriMin: Number,         // default: 0
+    GiaTriMax: Number,         // default: 100
+    DonVi: String,             // default: "%"
+    ThuTu: Number,             // thứ tự hiển thị
+    GhiChu: String,            // maxlength 500
+    IsMucDoHoanThanh: Boolean  // true = FIXED tiêu chí tự đánh giá
+  }],
+
   isDeleted: Boolean,        // Soft delete
   createdAt: Date,
   updatedAt: Date
 }
 
-// Unique index: (Thang, Nam) - Không cho tạo 2 chu kỳ cùng tháng/năm
+// Indexes: (Thang, Nam), (isDong)
+// Note: Unique index (Thang, Nam) - Không cho tạo 2 chu kỳ cùng tháng/năm
 ```
+
+### TieuChiCauHinh - Tiêu chí đánh giá
+
+Mỗi chu kỳ có bộ tiêu chí riêng, được lưu trong array `TieuChiCauHinh`:
+
+- **IsMucDoHoanThanh = true**: Tiêu chí FIXED "Mức độ hoàn thành công việc"
+  - Nhân viên được phép tự đánh giá
+  - Chỉ có 1 tiêu chí FIXED trong mỗi chu kỳ
+  - Hiển thị read-only trong UI (không cho xóa/sửa tên)
+- **IsMucDoHoanThanh = false**: Tiêu chí user-defined
+  - Admin tự tạo theo nhu cầu
+  - Có thể thêm/sửa/xóa
 
 ## Luồng hoạt động
 
@@ -102,14 +133,17 @@ Frontend: Hiển thị success/error message rõ ràng
 ## API Endpoints
 
 ```
-GET    /api/workmanagement/chu-ky-danh-gia          # Danh sách (filter: isDong, thang, nam)
-GET    /api/workmanagement/chu-ky-danh-gia/:id      # Chi tiết
-GET    /api/workmanagement/chu-ky-danh-gia/dang-mo  # Lấy chu kỳ đang mở
-POST   /api/workmanagement/chu-ky-danh-gia          # Tạo mới (adminRequired)
-PUT    /api/workmanagement/chu-ky-danh-gia/:id      # Cập nhật (adminRequired)
-PUT    /api/workmanagement/chu-ky-danh-gia/:id/dong # Đóng chu kỳ (adminRequired)
-PUT    /api/workmanagement/chu-ky-danh-gia/:id/mo   # Mở lại chu kỳ (adminRequired)
-DELETE /api/workmanagement/chu-ky-danh-gia/:id      # Xóa (soft delete, adminRequired)
+GET    /api/workmanagement/chu-ky-danh-gia              # Danh sách (filter: isDong, thang, nam)
+GET    /api/workmanagement/chu-ky-danh-gia/list         # Danh sách đơn giản (cho dropdown)
+GET    /api/workmanagement/chu-ky-danh-gia/auto-select  # Tự động chọn chu kỳ phù hợp (ngày hiện tại + 5 ngày)
+GET    /api/workmanagement/chu-ky-danh-gia/previous-criteria  # Lấy tiêu chí từ chu kỳ trước (adminRequired)
+GET    /api/workmanagement/chu-ky-danh-gia/dang-mo      # Lấy chu kỳ đang mở
+GET    /api/workmanagement/chu-ky-danh-gia/:id          # Chi tiết
+POST   /api/workmanagement/chu-ky-danh-gia              # Tạo mới (adminRequired)
+PUT    /api/workmanagement/chu-ky-danh-gia/:id          # Cập nhật (adminRequired)
+PUT    /api/workmanagement/chu-ky-danh-gia/:id/dong     # Đóng chu kỳ (adminRequired)
+PUT    /api/workmanagement/chu-ky-danh-gia/:id/mo       # Mở lại chu kỳ (adminRequired)
+DELETE /api/workmanagement/chu-ky-danh-gia/:id          # Xóa (soft delete, adminRequired)
 ```
 
 ## Redux Actions
@@ -169,6 +203,21 @@ state.kpi = {
   - NgayBatDau: required, DatePicker
   - NgayKetThuc: required, DatePicker, must > NgayBatDau
   - MoTa: maxlength 1000, multiline
+
+### TieuChiConfigSection
+
+- **Mục đích**: Component cấu hình tiêu chí đánh giá cho chu kỳ
+- **Props**:
+  - `tieuChiList`: Array of criteria objects
+  - `onChange`: (newList) => void
+  - `onCopyFromPrevious`: () => void (optional)
+  - `readOnly`: boolean (default: false)
+- **Features**:
+  - Tự động hiển thị FIXED criterion (IsMucDoHoanThanh) dạng read-only
+  - Phân tách tiêu chí cố định và tiêu chí user-defined
+  - Thêm/sửa/xóa tiêu chí
+  - Copy tiêu chí từ chu kỳ trước (gọi API `/previous-criteria`)
+  - Validate: TenTieuChi, LoaiTieuChi, GiaTriMin/Max, DonVi
 
 ## So sánh với design cũ
 
@@ -235,10 +284,10 @@ Quản lý công việc → KPI → Chu kỳ đánh giá
 - **Unique constraint**: Không cho tạo 2 chu kỳ cùng Tháng/Năm
 - **Single open cycle**: Chỉ cho phép 1 chu kỳ mở tại 1 thời điểm
 - **Auto-generate TenChuKy**: Nếu để trống, tự động tạo từ `Tháng ${Thang}/${Nam}`
-- **Delete validation**: Cascade check trước khi xóa - xem chi tiết tại [DELETE_VALIDATION.md](./DELETE_VALIDATION.md)
+- **Delete validation**: Cascade check trước khi xóa - kiểm tra DanhGiaKPI liên quan
 
 ## Related Documentation
 
-- [DELETE_VALIDATION.md](./DELETE_VALIDATION.md) - Chi tiết quy tắc xóa chu kỳ với cascade validation
-- [DUPLICATE_PREVENTION.md](./DUPLICATE_PREVENTION.md) - Giải thích unique constraint và error handling
-- [KPI_WORKFLOW.md](../KPI/docs/KPI_WORKFLOW.md) - Quy trình nghiệp vụ đầy đủ của hệ thống KPI
+- [../KPI/docs/WORKFLOW.md](../KPI/docs/WORKFLOW.md) - Quy trình nghiệp vụ đầy đủ của hệ thống KPI
+- [../KPI/docs/ARCHITECTURE.md](../KPI/docs/ARCHITECTURE.md) - Kiến trúc tổng quan KPI module
+- [../KPI/docs/FORMULA_CALCULATION.md](../KPI/docs/FORMULA_CALCULATION.md) - Công thức tính điểm KPI

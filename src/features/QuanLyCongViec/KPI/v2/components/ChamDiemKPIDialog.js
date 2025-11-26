@@ -39,6 +39,7 @@ import {
   clearCurrentChamDiem,
   resetCriteria,
   clearSyncWarning, // ✅ FIX: Add clearSyncWarning import
+  quickScoreAllNhiemVu, // ✅ NEW: Quick score action
 } from "../../kpiSlice";
 import {
   fetchOtherTasksSummary,
@@ -208,6 +209,11 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
     dispatch(
       updateTieuChiScoreLocal(nhiemVuId, tieuChiIndex, newScore, fieldName)
     );
+  };
+
+  // ✅ NEW: Handle Quick Score
+  const handleQuickScoreAll = (percentage) => {
+    dispatch(quickScoreAllNhiemVu(percentage));
   };
 
   const handleSaveAll = () => {
@@ -743,6 +749,7 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
         <ChamDiemKPITable
           nhiemVuList={currentNhiemVuList}
           onScoreChange={handleScoreChange}
+          onQuickScoreAll={handleQuickScoreAll} // ✅ NEW: Quick score handler
           readOnly={!isEditable}
           diemTuDanhGiaMap={diemTuDanhGiaMap} // ✅ V2: Pass map for preview calculation
           nhanVienID={nhanVien?._id} // ✅ NEW: For dashboard
