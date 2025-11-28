@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "BC Bệnh viện",
+  "name": "Báo cáo Giaoban - Bệnh viện Đa khoa Tỉnh Phú Thọ",
+  "description": "Hệ thống quản lý công việc và KPI cho cán bộ y tế",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,18 +9,45 @@
       "type": "image/x-icon"
     },
     {
-      "src": "logo192.png",
+      "src": "logo64.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "64x64",
+      "purpose": "any"
     },
     {
-      "src": "logo512.png",
+      "src": "logo128.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "128x128",
+      "purpose": "any"
+    },
+    {
+      "src": "logo256.png",
+      "type": "image/png",
+      "sizes": "256x256",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logoBVTPT.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logoBVTPT.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#1976d2",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "categories": ["health", "productivity", "business"],
+  "lang": "vi-VN",
+  "dir": "ltr",
+  "scope": "/",
+  "prefer_related_applications": false,
+  "gcm_sender_id": "103953800507"
 }

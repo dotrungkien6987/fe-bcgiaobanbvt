@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { SocketProvider } from "./contexts/SocketContext";
 import Router from "./routes";
 import ThemeProvider from "./theme";
 import ThemeCustomization from "theme/index1";
@@ -8,14 +9,16 @@ import ThemeCustomization from "theme/index1";
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        {/* <ThemeProvider> */}
-        {/* <ThemeCustomization> */}
+      <SocketProvider>
+        <BrowserRouter>
+          {/* <ThemeProvider> */}
+          {/* <ThemeCustomization> */}
 
           <Router />
-        {/* </ThemeCustomization> */}
-        {/* </ThemeProvider> */}
-      </BrowserRouter>
+          {/* </ThemeCustomization> */}
+          {/* </ThemeProvider> */}
+        </BrowserRouter>
+      </SocketProvider>
     </AuthProvider>
   );
 }

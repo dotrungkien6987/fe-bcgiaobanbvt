@@ -1,8 +1,14 @@
 // third-party
 
-
 // assets
-import { Setting2, I24Support, Security, MessageProgramming, DollarSquare, Airplane } from 'iconsax-react';
+import {
+  Setting2,
+  I24Support,
+  Security,
+  MessageProgramming,
+  DollarSquare,
+  Airplane,
+} from "iconsax-react";
 
 // icons
 const icons = {
@@ -11,40 +17,45 @@ const icons = {
   maintenance: MessageProgramming,
   pricing: DollarSquare,
   contactus: I24Support,
-  landing: Airplane
+  landing: Airplane,
 };
 
 // ==============================|| MENU ITEMS - PAGES ||============================== //
 
 const admin = {
-  id: 'group-admin',
+  id: "group-admin",
   title: "Admin",
-  type: 'group',
+  type: "group",
   icon: icons.page,
   children: [
-   
     {
-      id: 'danhmucdaotao',
-      title: 'Quản lý người dùng',
-      type: 'collapse',
+      id: "danhmucdaotao",
+      title: "Quản lý người dùng",
+      type: "collapse",
       icon: icons.page,
       children: [
         {
-          id: 'usersable',
-          title: 'Users',
-          type: 'item',
-          url: '/usersable'
+          id: "usersable",
+          title: "Users",
+          type: "item",
+          url: "/usersable",
         },
         {
-          id: 'teptin',
-          title: 'Quản lý file',
-          type: 'item',
-          url: '/admin/teptin'
+          id: "teptin",
+          title: "Quản lý file",
+          type: "item",
+          url: "/admin/teptin",
         },
-       
-      ]
-    }
-  ]
+      ],
+    },
+    {
+      id: "notification-templates",
+      title: "Quản lý mẫu thông báo",
+      type: "item",
+      icon: icons.maintenance,
+      url: "/admin/notification-templates",
+    },
+  ],
 };
 
 export default admin;

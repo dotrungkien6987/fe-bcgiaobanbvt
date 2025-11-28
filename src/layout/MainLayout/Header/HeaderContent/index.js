@@ -27,6 +27,7 @@ import DrawerHeader from "layout/MainLayout/Drawer/DrawerHeader";
 import { MenuOrientation } from "configAble";
 import { useTheme } from "@emotion/react";
 import useAuth from "hooks/useAuth";
+import { NotificationBell } from "features/Notification";
 import PersonIcon from "@mui/icons-material/Person";
 import { useDispatch } from "react-redux";
 import UserResetPassForm from "features/User/UserResetPassForm";
@@ -226,6 +227,7 @@ const HeaderContent = () => {
         handleClose={handleCloseResetPassForm}
         user={user}
       />
+      <NotificationBell />
       <ButtonBase
         sx={{
           p: 0.25,

@@ -783,7 +783,7 @@ const congViecAPI = {
   transition: (id, data) =>
     apiService.post(`/workmanagement/congviec/${id}/transition`, data),
   addComment: (id, data) =>
-    apiService.post(`/workmanageme nt/congviec/${id}/comment`, data),
+    apiService.post(`/workmanagement/congviec/${id}/comment`, data),
   deleteComment: (id) => apiService.delete(`/workmanagement/binhluan/${id}`),
   recallCommentText: (id) =>
     apiService.patch(`/workmanagement/binhluan/${id}/text`),

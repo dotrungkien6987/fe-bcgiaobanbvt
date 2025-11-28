@@ -1,0 +1,9 @@
+{
+  "label": "02 - Notification System",
+  "position": 2,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "description": "Hướng dẫn xây dựng hệ thống thông báo realtime với Socket.IO và Push Notification với Firebase Cloud Messaging"
+  }
+}

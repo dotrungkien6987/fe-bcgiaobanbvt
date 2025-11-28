@@ -82,7 +82,7 @@ import TaskMindMapTreeEnhancedPage from "../pages/TaskMindMapTreeEnhancedPage";
 import TaskMindMapHierarchicalPage from "../pages/TaskMindMapHierarchicalPage";
 import CongViecHierarchyTreeDynamicPage from "../pages/CongViecHierarchyTreeDynamicPage";
 import AdminBackupPage from "../pages/AdminBackupPage";
-import TapSanRoutes from "features/NghienCuuKhoaHoc/TapSan/routes";
+import { TapSanRoutes } from "features/NghienCuuKhoaHoc/TapSan";
 import DashboardLopDaoTaoByYear from "features/DashBoard/LopDaoTaoByYear/DashboardLopDaoTaoByYear";
 
 import DoanVaoTable from "features/NghienCuuKhoaHoc/DoanVao/DoanVaoTable";
@@ -97,6 +97,9 @@ import {
   ChuKyDanhGiaList,
   ChuKyDanhGiaView,
 } from "features/QuanLyCongViec/ChuKyDanhGia";
+import NotificationPage from "pages/NotificationPage";
+import NotificationAdminPage from "pages/NotificationAdminPage";
+import { NotificationSettings } from "features/Notification";
 
 function Router() {
   return (
@@ -152,10 +155,10 @@ function Router() {
           <Route path="/hoatdongbenhvien" element={<HoatDongDashboard />} />
           <Route path="/hoatdongchung" element={<HoatDongDashBoard1 />} />{" "}
           {/* Compatibility with old path */}
-          <Route
+          {/* <Route
             path="/hoatdongbenhvien/schema"
             element={<DataSourceExplanation />}
-          />
+          /> */}
         </Route>
 
         <Route element={<BlankLayout />}>
@@ -352,6 +355,18 @@ function Router() {
           <Route
             path="/cong-viec-hierarchical-dynamic"
             element={<CongViecHierarchyTreeDynamicPage />}
+          />
+          {/* Notification routes */}
+          <Route path="/thong-bao" element={<NotificationPage />} />
+          <Route path="/cai-dat/thong-bao" element={<NotificationSettings />} />
+          {/* Admin Notification Templates */}
+          <Route
+            path="/admin/notification-templates"
+            element={
+              <AdminRequire>
+                <NotificationAdminPage />
+              </AdminRequire>
+            }
           />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>

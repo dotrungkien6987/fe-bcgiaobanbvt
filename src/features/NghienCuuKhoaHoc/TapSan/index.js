@@ -1,5 +1,6 @@
 // TapSan Feature Exports
-export { default as TapSanRoutes } from "./routes";
+// Routes - default export from routes folder
+export { default as TapSanRoutes } from "./routes/index";
 
 // Pages
 export { default as TapSanListPage } from "./pages/TapSanListPage";
