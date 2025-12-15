@@ -42,6 +42,13 @@ import khuyenCaoKhoaBQBAReducer from "../features/DashBoard/BinhQuanBenhAn/khuye
 import baoCaoKPIReducer from "features/QuanLyCongViec/BaoCaoThongKeKPI/baoCaoKPISlice";
 import { notificationReducer } from "features/Notification";
 import { notificationTemplateReducer } from "features/Notification/Admin";
+// YeuCau (Ticket System)
+import {
+  yeuCauReducer,
+  danhMucYeuCauReducer,
+  cauHinhKhoaReducer,
+  lyDoTuChoiAdminReducer,
+} from "features/QuanLyCongViec/Ticket";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -88,6 +95,11 @@ const rootReducer = {
   baoCaoKPI: baoCaoKPIReducer,
   notification: notificationReducer,
   notificationTemplate: notificationTemplateReducer,
+  // YeuCau (Ticket System)
+  yeuCau: yeuCauReducer,
+  danhMucYeuCau: danhMucYeuCauReducer,
+  cauHinhKhoa: cauHinhKhoaReducer,
+  lyDoTuChoiAdmin: lyDoTuChoiAdminReducer,
 };
 
 const store = configureStore({

@@ -94,6 +94,19 @@ function AuthProvider({ children }) {
           const response = await apiService.get("/user/me");
           const user = response.data.data;
           console.log(`user in useEfect initial`, user);
+
+          // Fetch full NhanVien info if user has NhanVienID
+          if (user.NhanVienID) {
+            try {
+              const fullInfoRes = await apiService.get("/user/me/full");
+              const { nhanVien, nhanVienKhoaId } = fullInfoRes.data.data;
+              user.nhanVienInfo = { nhanVien, khoaId: nhanVienKhoaId };
+            } catch (error) {
+              console.warn("Failed to fetch NhanVien info:", error);
+              user.nhanVienInfo = null;
+            }
+          }
+
           dispatch({
             type: INITIALIZE,
             payload: { isAuthenticated: true, user },
@@ -133,6 +146,19 @@ function AuthProvider({ children }) {
 
     console.log(user);
     setSecsion(accessToken);
+
+    // Fetch full NhanVien info if user has NhanVienID
+    if (user.NhanVienID) {
+      try {
+        const fullInfoRes = await apiService.get("/user/me/full");
+        const { nhanVien, nhanVienKhoaId } = fullInfoRes.data.data;
+        user.nhanVienInfo = { nhanVien, khoaId: nhanVienKhoaId };
+      } catch (error) {
+        console.warn("Failed to fetch NhanVien info:", error);
+        user.nhanVienInfo = null;
+      }
+    }
+
     // console.log(`isAuth before dispatch login ${state.isAuthenticated}`);
     dispatch({
       type: LOGIN_SUCSESS,

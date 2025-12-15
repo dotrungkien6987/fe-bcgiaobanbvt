@@ -1,7 +1,8 @@
 # 🗄️ Database Schema - Hệ Thống Yêu Cầu
 
 > **Trạng thái**: ✅ Đã thiết kế  
-> **Cập nhật**: 30/11/2025
+> **Cập nhật**: 30/11/2025  
+> **Sync với**: 01_NGHIEP_VU_CHI_TIET.md (Journey #1-#6)
 
 ---
 
@@ -12,9 +13,10 @@
 3. [LyDoTuChoi](#2-lydotuchoi)
 4. [CauHinhThongBaoKhoa](#3-cauhinhthongbaokhoa)
 5. [YeuCau](#4-yeucau)
-6. [LichSuYeuCau](#5-lichsuyeucau)
-7. [Tái Sử Dụng Components](#6-tái-sử-dụng-components)
-8. [Indexes](#7-indexes)
+6. [YeuCauCounter](#5-yeucaucounter)
+7. [LichSuYeuCau](#6-lichsuyeucau)
+8. [Tái Sử Dụng Components](#7-tái-sử-dụng-components)
+9. [Indexes](#8-indexes)
 
 ---
 
@@ -40,6 +42,10 @@
 │   │Khoa (Per Khoa)  │                 │                          │
 │   └─────────────────┘                 │                          │
 │                                       │                          │
+│   ┌─────────────────┐                                            │
+│   │ YeuCauCounter   │ ◄── Auto-gen MaYeuCau                     │
+│   └─────────────────┘                 │                          │
+│                                       │                          │
 │   ┌─────────────────┐                 │                          │
 │   │ LichSuYeuCau    │◄────────────────┘                          │
 │   │ (History Log)   │                                            │
@@ -47,22 +53,23 @@
 │                                                                  │
 │   ┌─────────────────────────────────────────┐                   │
 │   │ TÁI SỬ DỤNG TỪ CONGVIEC:               │                   │
-│   │ ├── BinhLuan (Comments)                 │                   │
-│   │ └── TepTin (File Attachments)           │                   │
+│   │ ├── BinhLuan (thêm YeuCauID)            │                   │
+│   │ └── TepTin (thêm YeuCauID)              │                   │
 │   └─────────────────────────────────────────┘                   │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-| Model               | Mô tả                             | Status |
-| ------------------- | --------------------------------- | :----: |
-| DanhMucYeuCau       | Loại yêu cầu của từng khoa        |   ✅   |
-| LyDoTuChoi          | Lý do từ chối (chung)             |   ✅   |
-| CauHinhThongBaoKhoa | Ai nhận thông báo                 |   ✅   |
-| YeuCau              | Yêu cầu chính                     |   ✅   |
-| LichSuYeuCau        | Lịch sử thay đổi                  |   ✅   |
-| BinhLuan            | Comment (tái sử dụng từ CongViec) |   🔄   |
-| TepTin              | File đính kèm (tái sử dụng)       |   🔄   |
+| Model               | Mô tả                               | Status |
+| ------------------- | ----------------------------------- | :----: |
+| DanhMucYeuCau       | Loại yêu cầu của từng khoa          |   ✅   |
+| LyDoTuChoi          | Lý do từ chối (chung)               |   ✅   |
+| CauHinhThongBaoKhoa | Ai nhận thông báo                   |   ✅   |
+| YeuCau              | Yêu cầu chính                       |   ✅   |
+| YeuCauCounter       | Counter cho MaYeuCau                |   ✅   |
+| LichSuYeuCau        | Lịch sử thay đổi                    |   ✅   |
+| BinhLuan            | Comment (thêm field YeuCauID)       |   🔄   |
+| TepTin              | File đính kèm (thêm field YeuCauID) |   🔄   |
 
 ---
 
@@ -397,17 +404,16 @@ Schema chính của yêu cầu.
     maxlength: 5000
   },
 
-  // ========== TRẠNG THÁI ==========
+  // ========== TRẠNG THÁI (5 States) ==========
+  // Đã gộp DA_TIEP_NHAN vào DANG_XU_LY, bỏ DA_HUY (dùng hard delete khi MOI)
   TrangThai: {
     type: String,
     enum: [
       "MOI",           // Vừa tạo, chờ tiếp nhận
-      "DA_TIEP_NHAN",  // Đã tiếp nhận, chờ xử lý
-      "DANG_XU_LY",    // Đang trong quá trình xử lý
-      "DA_HOAN_THANH", // Đã hoàn thành, chờ đánh giá
+      "DANG_XU_LY",    // Đã tiếp nhận và đang xử lý
+      "DA_HOAN_THANH", // Đã hoàn thành, chờ đánh giá/đóng
       "DA_DONG",       // Đã đóng (hoàn tất flow)
-      "TU_CHOI",       // Bị từ chối
-      "DA_HUY"         // Người gửi hủy
+      "TU_CHOI"        // Bị từ chối
     ],
     default: "MOI",
     index: true
@@ -456,6 +462,12 @@ Schema chính của yêu cầu.
     default: null
   },
 
+  NgayDong: {
+    type: Date,
+    default: null
+    // Dùng để kiểm tra 7 ngày mở lại từ DA_DONG
+  },
+
   // ========== TỪ CHỐI (nếu có) ==========
   LyDoTuChoiID: {
     type: ObjectId,
@@ -484,6 +496,8 @@ Schema chính của yêu cầu.
   },
 
   // ========== ĐÁNH GIÁ ==========
+  // Đánh giá = tự động đóng yêu cầu
+  // Bắt buộc NhanXet khi SoSao < 3 (validate ở service layer)
   DanhGia: {
     SoSao: {
       type: Number,
@@ -493,6 +507,7 @@ Schema chính của yêu cầu.
     NhanXet: {
       type: String,
       maxlength: 500
+      // ⚠️ Bắt buộc khi SoSao < 3 (1-2 sao)
     },
     NgayDanhGia: Date
   },
@@ -510,11 +525,67 @@ Schema chính của yêu cầu.
 { NguoiDuocDieuPhoiID: 1, TrangThai: 1 } // Query yêu cầu được điều phối
 { MaYeuCau: 1 }                          // Unique index
 { createdAt: -1 }                        // Sort theo thời gian
+{ NgayDong: 1 }                          // Check 7 ngày mở lại
 ```
 
 ---
 
-## 5. LichSuYeuCau
+## 5. YeuCauCounter
+
+Model để auto-generate MaYeuCau theo format `YC{YYYY}{NNNNNN}`.
+
+```javascript
+// Collection: yeucaucounter
+{
+  _id: ObjectId,
+
+  // Năm
+  Nam: {
+    type: Number,
+    required: true,
+    unique: true
+    // VD: 2025
+  },
+
+  // Số thứ tự hiện tại
+  SoThuTu: {
+    type: Number,
+    default: 0
+  }
+}
+
+// Indexes
+{ Nam: 1 }  // Unique đã đảm bảo
+```
+
+### Helper Function - Generate MaYeuCau
+
+```javascript
+/**
+ * Tạo mã yêu cầu mới
+ * Format: YC2025000001, YC2025000002, ...
+ */
+async function generateMaYeuCau() {
+  const nam = new Date().getFullYear();
+
+  // Atomic increment
+  const counter = await YeuCauCounter.findOneAndUpdate(
+    { Nam: nam },
+    { $inc: { SoThuTu: 1 } },
+    { upsert: true, new: true }
+  );
+
+  // Pad to 6 digits
+  const soThuTu = String(counter.SoThuTu).padStart(6, "0");
+
+  return `YC${nam}${soThuTu}`;
+  // Output: YC2025000001
+}
+```
+
+---
+
+## 6. LichSuYeuCau
 
 Ghi lại toàn bộ lịch sử thay đổi của yêu cầu.
 
@@ -530,25 +601,45 @@ Ghi lại toàn bộ lịch sử thay đổi của yêu cầu.
     index: true
   },
 
-  // Hành động
+  // Hành động - enum đầy đủ theo nghiệp vụ
   HanhDong: {
     type: String,
     enum: [
-      "TAO_MOI",           // Tạo yêu cầu mới
-      "TIEP_NHAN",         // Tiếp nhận yêu cầu
-      "TU_CHOI",           // Từ chối yêu cầu
-      "GUI_VE_KHOA",       // Gửi về khoa (từ cá nhân)
-      "DIEU_PHOI",         // Điều phối cho người khác
-      "BAT_DAU_XU_LY",     // Bắt đầu xử lý
-      "CAP_NHAT_TIEN_DO",  // Cập nhật tiến độ
-      "DOI_THOI_GIAN_HEN", // Đổi thời gian hẹn
-      "HOAN_THANH",        // Báo hoàn thành
-      "DANH_GIA",          // Đánh giá
-      "DONG",              // Đóng yêu cầu
-      "HUY",               // Hủy yêu cầu
-      "THEM_BINH_LUAN",    // Thêm bình luận
-      "THEM_FILE",         // Thêm file đính kèm
-      "XOA_FILE"           // Xóa file
+      // === LIFECYCLE ===
+      "TAO_MOI",            // Tạo yêu cầu mới
+      "SUA_YEU_CAU",        // Sửa yêu cầu (khi MOI)
+      "XOA",                // Ghi lại trước hard delete
+
+      // === TIẾP NHẬN / TỪ CHỐI ===
+      "TIEP_NHAN",          // Tiếp nhận yêu cầu
+      "TU_CHOI",            // Từ chối yêu cầu
+      "HUY_TIEP_NHAN",      // Hủy tiếp nhận (DANG_XU_LY → MOI)
+
+      // === ĐIỀU PHỐI ===
+      "DIEU_PHOI",          // Điều phối cho người khác
+      "GUI_VE_KHOA",        // Gửi về khoa (từ cá nhân/điều phối)
+
+      // === XỬ LÝ ===
+      "DOI_THOI_GIAN_HEN",  // Đổi thời gian hẹn
+      "HOAN_THANH",         // Báo hoàn thành
+      "YEU_CAU_XU_LY_TIEP", // DA_HOAN_THANH → DANG_XU_LY
+
+      // === ĐÁNH GIÁ & ĐÓNG ===
+      "DANH_GIA",           // Đánh giá (1-5 sao) + tự động đóng
+      "DONG",               // Đóng thủ công
+      "TU_DONG_DONG",       // Hệ thống tự đóng sau 3 ngày
+      "MO_LAI",             // Mở lại từ DA_DONG (trong 7 ngày)
+
+      // === APPEAL ===
+      "APPEAL",             // Khiếu nại từ TU_CHOI → MOI
+
+      // === ESCALATE ===
+      "NHAC_LAI",           // Người gửi nhắc lại (3/ngày)
+      "BAO_QUAN_LY",        // Người gửi báo quản lý (1/ngày)
+
+      // === COMMENT/FILE ===
+      "THEM_BINH_LUAN",     // Thêm bình luận
+      "THEM_FILE"           // Thêm file đính kèm
     ],
     required: true
   },
@@ -591,62 +682,90 @@ Ghi lại toàn bộ lịch sử thay đổi của yêu cầu.
 
 ---
 
-## 6. Tái Sử Dụng Components
+## 7. Tái Sử Dụng Components
 
-### 6.1. BinhLuan (Comments)
+### 7.1. BinhLuan (Comments)
 
-Tái sử dụng schema BinhLuan từ CongViec với thêm field để phân biệt:
+Tái sử dụng schema BinhLuan từ CongViec với cách đơn giản: **thêm field `YeuCauID`**.
 
 ```javascript
-// Thêm field vào BinhLuan hiện có
+// File: models/BinhLuan.js
+// Chỉ cần thêm field YeuCauID, giữ nguyên CongViecID
+
 {
   // ... các field hiện có ...
 
-  // Loại đối tượng
-  LoaiDoiTuong: {
-    type: String,
-    enum: ["CONG_VIEC", "YEU_CAU"],
-    required: true
+  CongViecID: {
+    type: ObjectId,
+    ref: "CongViec"
+    // Không required - dùng cho CongViec
   },
 
-  // ID đối tượng (CongViecID hoặc YeuCauID)
-  DoiTuongID: {
+  // THÊM MỚI: cho Yêu Cầu
+  YeuCauID: {
     type: ObjectId,
-    required: true,
-    refPath: 'LoaiDoiTuong' === 'CONG_VIEC' ? 'CongViec' : 'YeuCau'
+    ref: "YeuCau"
+    // Không required - dùng cho YeuCau
   }
 }
+
+// Validation: Phải có 1 trong 2 (CongViecID hoặc YeuCauID)
+binhLuanSchema.pre('validate', function(next) {
+  if (!this.CongViecID && !this.YeuCauID) {
+    return next(new Error('Phải có CongViecID hoặc YeuCauID'));
+  }
+  if (this.CongViecID && this.YeuCauID) {
+    return next(new Error('Không thể có cả CongViecID và YeuCauID'));
+  }
+  next();
+});
+
+// Index cho query
+db.binhluan.createIndex({ YeuCauID: 1, createdAt: -1 });
 ```
 
-### 6.2. TepTin (File Attachments)
+### 7.2. TepTin (File Attachments)
 
-Tương tự, tái sử dụng schema TepTin:
+Tương tự BinhLuan, thêm field `YeuCauID`:
 
 ```javascript
-// Thêm field vào TepTin hiện có
+// File: models/TepTin.js
+// Chỉ cần thêm field YeuCauID
+
 {
   // ... các field hiện có ...
 
-  LoaiDoiTuong: {
-    type: String,
-    enum: ["CONG_VIEC", "YEU_CAU"],
-    required: true
+  CongViecID: {
+    type: ObjectId,
+    ref: "CongViec"
+    // Không required
   },
 
-  DoiTuongID: {
+  // THÊM MỚI: cho Yêu Cầu
+  YeuCauID: {
     type: ObjectId,
-    required: true
+    ref: "YeuCau"
+    // Không required
   }
 }
+
+// Validation tương tự BinhLuan
+// Index cho query
+db.teptin.createIndex({ YeuCauID: 1, createdAt: -1 });
 ```
+
+**Lưu ý**: Approach này đơn giản hơn refPath, dễ query và maintain hơn.
 
 ---
 
-## 7. Indexes
+## 8. Indexes
 
 ### Summary Indexes
 
 ```javascript
+// YeuCauCounter
+db.yeucaucounter.createIndex({ year: 1 }, { unique: true });
+
 // DanhMucYeuCau
 db.danhmucyeucau.createIndex({ KhoaID: 1, TrangThai: 1 });
 db.danhmucyeucau.createIndex({ KhoaID: 1, ThuTu: 1 });
@@ -664,9 +783,16 @@ db.yeucau.createIndex({ NguoiYeuCauID: 1, TrangThai: 1 });
 db.yeucau.createIndex({ NguoiXuLyID: 1, TrangThai: 1 });
 db.yeucau.createIndex({ NguoiDuocDieuPhoiID: 1, TrangThai: 1 });
 db.yeucau.createIndex({ createdAt: -1 });
+db.yeucau.createIndex({ NgayDong: 1 }); // Cho check 7-day reopen
 
 // LichSuYeuCau
 db.lichsuyeucau.createIndex({ YeuCauID: 1, ThoiGian: -1 });
+
+// BinhLuan (thêm index cho YeuCau)
+db.binhluan.createIndex({ YeuCauID: 1, createdAt: -1 });
+
+// TepTin (thêm index cho YeuCau)
+db.teptin.createIndex({ YeuCauID: 1, createdAt: -1 });
 ```
 
 ---

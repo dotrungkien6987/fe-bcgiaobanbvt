@@ -21,7 +21,6 @@ import {
   TextField,
   InputAdornment,
   LinearProgress,
-  Avatar,
   alpha,
 } from "@mui/material";
 import {
@@ -37,6 +36,7 @@ import { vi } from "date-fns/locale";
 
 import MainCard from "components/MainCard";
 import ConfirmDialog from "components/ConfirmDialog";
+import EmployeeAvatar from "components/EmployeeAvatar";
 import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 import {
   removeNhanVienFromList,
@@ -463,16 +463,14 @@ function DanhSachGiaoViec({ onOpenDialog }) {
                               spacing={1}
                               alignItems="center"
                             >
-                              <Avatar
-                                sx={{
-                                  width: 32,
-                                  height: 32,
-                                  bgcolor: "primary.main",
-                                  fontSize: 14,
-                                }}
-                              >
-                                {nv.Ten?.charAt(0) || "?"}
-                              </Avatar>
+                              <EmployeeAvatar
+                                size="sm"
+                                nhanVienId={nv._id}
+                                name={nv.HoTen || nv.Ten}
+                                color="primary"
+                                type="filled"
+                                sx={{ fontSize: 14 }}
+                              />
                               <Typography variant="body2" fontWeight={500}>
                                 {nv.Ten || "-"}
                               </Typography>

@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Avatar,
   Box,
   Chip,
   IconButton,
@@ -9,10 +8,13 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { getThumbUrl } from "utils/fileUrl";
 import {
   Undo as UndoIcon,
   FormatClear as FormatClearIcon,
 } from "@mui/icons-material";
+
+import EmployeeAvatar from "components/EmployeeAvatar";
 
 const RepliesList = React.memo(
   ({
@@ -35,9 +37,12 @@ const RepliesList = React.memo(
           <Box key={rep._id} sx={{ mb: 1 }}>
             <Stack spacing={0.5}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Avatar sx={{ width: 28, height: 28 }}>
-                  {rep.NguoiBinhLuan?.Ten?.charAt(0) || "U"}
-                </Avatar>
+                <EmployeeAvatar
+                  size="xs"
+                  sx={{ width: 28, height: 28 }}
+                  nhanVienId={rep.NguoiBinhLuan?._id || rep.NguoiBinhLuan}
+                  name={rep.NguoiBinhLuan?.HoTen || rep.NguoiBinhLuan?.Ten}
+                />
                 <Typography variant="subtitle2" sx={{ fontSize: "1rem" }}>
                   {rep.NguoiBinhLuan?.Ten || "Người dùng"}
                 </Typography>
@@ -152,7 +157,7 @@ const RepliesList = React.memo(
                             >
                               <img
                                 alt={f.TenGoc}
-                                src={f.inlineUrl}
+                                src={getThumbUrl(f.thumbUrl)}
                                 style={{
                                   width: "100%",
                                   height: "100%",

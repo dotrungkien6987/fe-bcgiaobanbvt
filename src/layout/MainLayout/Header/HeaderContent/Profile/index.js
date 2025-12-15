@@ -1,24 +1,36 @@
-import PropTypes from 'prop-types';
-import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router';
+import PropTypes from "prop-types";
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router";
 
 // material-ui
-import { useTheme } from '@mui/material/styles';
-import { Box, ButtonBase, CardContent, ClickAwayListener, Grid, Paper, Popper, Stack, Tab, Tabs, Tooltip, Typography } from '@mui/material';
+import { useTheme } from "@mui/material/styles";
+import {
+  Box,
+  ButtonBase,
+  CardContent,
+  ClickAwayListener,
+  Grid,
+  Paper,
+  Popper,
+  Stack,
+  Tab,
+  Tabs,
+  Tooltip,
+  Typography,
+} from "@mui/material";
 
 // project-imports
-import ProfileTab from './ProfileTab';
-import SettingTab from './SettingTab';
-import Avatar from 'components/@extended/Avatar';
-import MainCard from 'components/MainCard';
-import Transitions from 'components/@extended/Transitions';
-import IconButton from 'components/@extended/IconButton';
-import useAuth from 'hooks/useAuth';
-import { ThemeMode } from 'configAble';
+import ProfileTab from "./ProfileTab";
+import SettingTab from "./SettingTab";
+import EmployeeAvatar from "components/EmployeeAvatar";
+import MainCard from "components/MainCard";
+import Transitions from "components/@extended/Transitions";
+import IconButton from "components/@extended/IconButton";
+import useAuth from "hooks/useAuth";
+import { ThemeMode } from "configAble";
 
 // assets
-import avatar1 from 'assets/images/users/avatar-6.png';
-import { Setting2, Profile, Logout } from 'iconsax-react';
+import { Setting2, Profile, Logout } from "iconsax-react";
 
 // tab panel wrapper
 function TabPanel(props) {
@@ -41,13 +53,13 @@ function TabPanel(props) {
 TabPanel.propTypes = {
   children: PropTypes.node,
   index: PropTypes.any.isRequired,
-  value: PropTypes.any.isRequired
+  value: PropTypes.any.isRequired,
 };
 
 function a11yProps(index) {
   return {
     id: `profile-tab-${index}`,
-    'aria-controls': `profile-tabpanel-${index}`
+    "aria-controls": `profile-tabpanel-${index}`,
   };
 }
 
@@ -63,8 +75,8 @@ const ProfilePage = () => {
       await logout();
       navigate(`/login`, {
         state: {
-          from: ''
-        }
+          from: "",
+        },
       });
     } catch (err) {
       console.error(err);
@@ -90,25 +102,33 @@ const ProfilePage = () => {
     setValue(newValue);
   };
 
+  const displayName = user?.HoTen || user?.UserName || "User";
+  const nhanVienId = user?.NhanVienID;
+
   return (
     <Box sx={{ flexShrink: 0, ml: 0.75 }}>
       <ButtonBase
         sx={{
           p: 0.25,
           borderRadius: 1,
-          '&:hover': { bgcolor: theme.palette.mode === ThemeMode.DARK ? 'secondary.light' : 'secondary.lighter' },
-          '&:focus-visible': {
+          "&:hover": {
+            bgcolor:
+              theme.palette.mode === ThemeMode.DARK
+                ? "secondary.light"
+                : "secondary.lighter",
+          },
+          "&:focus-visible": {
             outline: `2px solid ${theme.palette.secondary.dark}`,
-            outlineOffset: 2
-          }
+            outlineOffset: 2,
+          },
         }}
         aria-label="open profile"
         ref={anchorRef}
-        aria-controls={open ? 'profile-grow' : undefined}
+        aria-controls={open ? "profile-grow" : undefined}
         aria-haspopup="true"
         onClick={handleToggle}
       >
-        <Avatar alt="profile user" src={avatar1} />
+        <EmployeeAvatar nhanVienId={nhanVienId} name={displayName} size="sm" />
       </ButtonBase>
       <Popper
         placement="bottom-end"
@@ -120,46 +140,70 @@ const ProfilePage = () => {
         popperOptions={{
           modifiers: [
             {
-              name: 'offset',
+              name: "offset",
               options: {
-                offset: [0, 9]
-              }
-            }
-          ]
+                offset: [0, 9],
+              },
+            },
+          ],
         }}
       >
         {({ TransitionProps }) => (
-          <Transitions type="grow" position="top-right" in={open} {...TransitionProps}>
+          <Transitions
+            type="grow"
+            position="top-right"
+            in={open}
+            {...TransitionProps}
+          >
             <Paper
               sx={{
                 boxShadow: theme.customShadows.z1,
                 width: 290,
                 minWidth: 240,
                 maxWidth: 290,
-                [theme.breakpoints.down('md')]: {
-                  maxWidth: 250
+                [theme.breakpoints.down("md")]: {
+                  maxWidth: 250,
                 },
-                borderRadius: 1.5
+                borderRadius: 1.5,
               }}
             >
               <ClickAwayListener onClickAway={handleClose}>
                 <MainCard border={false} content={false}>
                   <CardContent sx={{ px: 2.5, pt: 3 }}>
-                    <Grid container justifyContent="space-between" alignItems="center">
+                    <Grid
+                      container
+                      justifyContent="space-between"
+                      alignItems="center"
+                    >
                       <Grid item>
-                        <Stack direction="row" spacing={1.25} alignItems="center">
-                          <Avatar alt="profile user" src={avatar1} />
+                        <Stack
+                          direction="row"
+                          spacing={1.25}
+                          alignItems="center"
+                        >
+                          <EmployeeAvatar
+                            nhanVienId={nhanVienId}
+                            name={displayName}
+                            size="sm"
+                          />
                           <Stack>
-                            <Typography variant="subtitle1">{user?.name}</Typography>
+                            <Typography variant="subtitle1">
+                              {displayName}
+                            </Typography>
                             <Typography variant="body2" color="secondary">
-                              UI/UX Designer
+                              {user?.PhanQuyen || ""}
                             </Typography>
                           </Stack>
                         </Stack>
                       </Grid>
                       <Grid item>
                         <Tooltip title="Logout">
-                          <IconButton size="large" color="error" sx={{ p: 1 }} onClick={handleLogout}>
+                          <IconButton
+                            size="large"
+                            color="error"
+                            sx={{ p: 1 }}
+                            onClick={handleLogout}
+                          >
                             <Logout variant="Bulk" />
                           </IconButton>
                         </Tooltip>
@@ -167,29 +211,44 @@ const ProfilePage = () => {
                     </Grid>
                   </CardContent>
 
-                  <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs variant="fullWidth" value={value} onChange={handleChange} aria-label="profile tabs">
+                  <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+                    <Tabs
+                      variant="fullWidth"
+                      value={value}
+                      onChange={handleChange}
+                      aria-label="profile tabs"
+                    >
                       <Tab
                         sx={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          textTransform: 'capitalize'
+                          display: "flex",
+                          flexDirection: "row",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          textTransform: "capitalize",
                         }}
-                        icon={<Profile size={18} style={{ marginBottom: 0, marginRight: '10px' }} />}
+                        icon={
+                          <Profile
+                            size={18}
+                            style={{ marginBottom: 0, marginRight: "10px" }}
+                          />
+                        }
                         label="Profile"
                         {...a11yProps(0)}
                       />
                       <Tab
                         sx={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          textTransform: 'capitalize'
+                          display: "flex",
+                          flexDirection: "row",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          textTransform: "capitalize",
                         }}
-                        icon={<Setting2 size={18} style={{ marginBottom: 0, marginRight: '10px' }} />}
+                        icon={
+                          <Setting2
+                            size={18}
+                            style={{ marginBottom: 0, marginRight: "10px" }}
+                          />
+                        }
                         label="Setting"
                         {...a11yProps(1)}
                       />

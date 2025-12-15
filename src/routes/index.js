@@ -20,6 +20,7 @@ import DanhSachSuCoPage from "../pages/DanhSachSuCoPage";
 import BaoCaoSuCoYKhoaPage from "../pages/BaoCaoSuCoYKhoaPage";
 import DanhSachSuCoDataGridPage from "../pages/DanhSachSuCoDataGridPage";
 import AdminRequire from "./AdminRequire";
+import QuanLyKhoaOrAdminRequire from "./QuanLyKhoaOrAdminRequire";
 import DashBoardPage from "../pages/DashBoardPage";
 
 import KhuyenCaoKhoaPage from "../pages/KhuyenCaoKhoaPage";
@@ -65,7 +66,6 @@ import LichTrucPage from "features/LichTruc/LichTrucPage";
 import NhomKhoaSoThuTuTable from "features/Daotao/NhomKhoaSoThuTu/NhomKhoaSoThuTuTable";
 import SoThuTuDashboard from "features/SoThuTuPhongKham/SoThuTuDashboard";
 import HoatDongDashboard from "features/HoatDongBenhVien/HoatDongDashboard";
-import DataSourceExplanation from "features/HoatDongBenhVien/DataSourceExplanation";
 import HoatDongDashBoard1 from "features/HoatDongBenhVien1/HoatDongDashBoard1";
 import DoanRaTable from "features/NghienCuuKhoaHoc/DoanRa/DoanRaTable";
 import DoanRaDetailPage from "features/NghienCuuKhoaHoc/DoanRa/DoanRaDetailPage";
@@ -100,6 +100,18 @@ import {
 import NotificationPage from "pages/NotificationPage";
 import NotificationAdminPage from "pages/NotificationAdminPage";
 import { NotificationSettings } from "features/Notification";
+// Ticket System (YeuCau)
+import {
+  YeuCauPage,
+  YeuCauDetailPage,
+  CauHinhKhoaAdminPage,
+  DanhMucYeuCauAdminPage,
+  LyDoTuChoiAdminPage,
+  YeuCauToiGuiPage,
+  YeuCauXuLyPage,
+  YeuCauDieuPhoiPage,
+  YeuCauQuanLyKhoaPage,
+} from "features/QuanLyCongViec/Ticket";
 
 function Router() {
   return (
@@ -359,6 +371,41 @@ function Router() {
           {/* Notification routes */}
           <Route path="/thong-bao" element={<NotificationPage />} />
           <Route path="/cai-dat/thong-bao" element={<NotificationSettings />} />
+          {/* Ticket System (YeuCau) Routes */}
+          <Route path="/yeu-cau" element={<YeuCauPage />} />
+          <Route path="/yeu-cau/:id" element={<YeuCauDetailPage />} />
+          {/* Role-Based Ticket Views */}
+          <Route path="/yeu-cau/toi-gui" element={<YeuCauToiGuiPage />} />
+          <Route path="/yeu-cau/xu-ly" element={<YeuCauXuLyPage />} />
+          <Route path="/yeu-cau/dieu-phoi" element={<YeuCauDieuPhoiPage />} />
+          <Route
+            path="/yeu-cau/quan-ly-khoa"
+            element={<YeuCauQuanLyKhoaPage />}
+          />
+          <Route
+            path="/yeu-cau/admin/cau-hinh-khoa"
+            element={
+              <QuanLyKhoaOrAdminRequire>
+                <CauHinhKhoaAdminPage />
+              </QuanLyKhoaOrAdminRequire>
+            }
+          />
+          <Route
+            path="/yeu-cau/admin/danh-muc"
+            element={
+              <QuanLyKhoaOrAdminRequire>
+                <DanhMucYeuCauAdminPage />
+              </QuanLyKhoaOrAdminRequire>
+            }
+          />
+          <Route
+            path="/yeu-cau/admin/ly-do-tu-choi"
+            element={
+              <AdminRequire>
+                <LyDoTuChoiAdminPage />
+              </AdminRequire>
+            }
+          />
           {/* Admin Notification Templates */}
           <Route
             path="/admin/notification-templates"

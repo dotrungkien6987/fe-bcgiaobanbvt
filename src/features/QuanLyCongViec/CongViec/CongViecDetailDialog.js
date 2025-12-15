@@ -39,7 +39,7 @@ import {
   recallCommentText,
   addReply,
   fetchReplies,
-  updateCongViec,
+  assignRoutineTask,
   markCommentFileDeleted,
   transitionCongViec,
   ACTION_META,
@@ -271,22 +271,31 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
   ) => {
     if (!isMain) return;
     try {
-      let payload;
+      // ✅ Dùng API riêng assignRoutineTask thay vì updateCongViec
+      let nhiemVuThuongQuyID = null;
+      let flagKhac = false;
+
       if (nvId) {
-        payload = { NhiemVuThuongQuyID: nvId, FlagNVTQKhac: false };
+        nhiemVuThuongQuyID = nvId;
+        flagKhac = false;
       } else if (isKhac) {
-        payload = { NhiemVuThuongQuyID: null, FlagNVTQKhac: true };
+        nhiemVuThuongQuyID = null;
+        flagKhac = true;
       } else if (isClear) {
-        payload = { NhiemVuThuongQuyID: null, FlagNVTQKhac: false };
+        nhiemVuThuongQuyID = null;
+        flagKhac = false;
       } else {
         // default fallback (clear)
-        payload = { NhiemVuThuongQuyID: null, FlagNVTQKhac: false };
+        nhiemVuThuongQuyID = null;
+        flagKhac = false;
       }
 
       await dispatch(
-        updateCongViec({
-          id: congViecId,
-          data: { ...payload, expectedVersion: congViecDetail?.updatedAt },
+        assignRoutineTask({
+          congViecId,
+          nhiemVuThuongQuyID,
+          isKhac: flagKhac,
+          expectedVersion: congViecDetail?.updatedAt,
         })
       );
 

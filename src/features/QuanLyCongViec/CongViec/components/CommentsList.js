@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Avatar,
   Box,
   Chip,
   IconButton,
@@ -10,21 +9,26 @@ import {
   ListItemText,
   Paper,
   Stack,
-  Tooltip,
   Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
   Button,
   TextField,
   CircularProgress,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  Snackbar,
+  Alert,
 } from "@mui/material";
+import { getThumbUrl } from "utils/fileUrl";
 import {
-  Undo as UndoIcon,
-  FormatClear as FormatClearIcon,
+  MoreVert as MoreVertIcon,
+  ContentCopy as ContentCopyIcon,
+  Delete as DeleteIcon,
+  Visibility as VisibilityIcon,
+  GetApp as GetAppIcon,
 } from "@mui/icons-material";
+
+import EmployeeAvatar from "components/EmployeeAvatar";
 
 const CommentsList = ({
   theme,
@@ -44,45 +48,115 @@ const CommentsList = ({
   onReplyWithFiles,
   formatDateTime,
 }) => {
-  // So khớp một-điểm: dùng user._id (UserID) và comment.NguoiBinhLuanID (lưu UserID)
+  // State cho menu dropdown và snackbar
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [activeComment, setActiveComment] = React.useState(null);
+  const [snackbar, setSnackbar] = React.useState({
+    open: false,
+    message: "",
+    action: null,
+    commentData: null,
+  });
+  const [, setHoveredFile] = React.useState(null); // eslint-disable-line no-unused-vars
+
+  // So khớp NhanVienID với time limit (5 phút)
   const canRecall = (u, c) => {
     if (c?.TrangThai === "DELETED") return false;
-    return String(u?._id || "") === String(c?.NguoiBinhLuanID || "");
+
+    // Extract author NhanVien ID from both possible shapes
+    const authorNhanVienId =
+      c?.NguoiBinhLuan?._id || c?.NguoiBinhLuanID?._id || c?.NguoiBinhLuanID;
+    const isOwner =
+      String(u?.NhanVienID || "") === String(authorNhanVienId || "");
+
+    if (!isOwner) return false;
+
+    // Check time limit (5 phút)
+    const createdAt = new Date(c?.NgayBinhLuan || c?.createdAt);
+    const now = new Date();
+    const diffMinutes = (now - createdAt) / 1000 / 60;
+
+    return diffMinutes <= 5;
   };
 
-  const canRecallText = canRecall; // cùng điều kiện với thu hồi toàn bộ
+  // Handlers cho menu actions
+  const handleMenuOpen = (event, comment) => {
+    setAnchorEl(event.currentTarget);
+    setActiveComment(comment);
+  };
 
-  // Xác nhận hành động để tránh click nhầm
-  const [confirm, setConfirm] = React.useState({
-    open: false,
-    type: null,
-    data: null,
-  });
-  const openConfirm = (type, data) => setConfirm({ open: true, type, data });
-  const closeConfirm = () =>
-    setConfirm({ open: false, type: null, data: null });
-  const handleConfirm = () => {
-    try {
-      if (confirm.type === "recallAll") {
-        onRecallComment &&
-          onRecallComment(congViecId, confirm?.data?.commentId);
-      } else if (confirm.type === "recallText") {
-        onRecallCommentText &&
-          onRecallCommentText(congViecId, confirm?.data?.commentId);
-      } else if (confirm.type === "deleteFile") {
-        onDeleteFile && onDeleteFile(confirm?.data?.file);
-      }
-    } finally {
-      closeConfirm();
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setActiveComment(null);
+  };
+
+  const handleRecallClick = () => {
+    handleMenuClose();
+    if (!activeComment) return;
+
+    const commentId = activeComment._id;
+    const commentData = { ...activeComment };
+
+    // Show snackbar immediately
+    setSnackbar({
+      open: true,
+      message: "Đã thu hồi tin nhắn",
+      action: () => handleUndoRecall(commentData),
+      commentData: commentData,
+    });
+
+    // Call API after short delay for better UX
+    setTimeout(() => {
+      onRecallComment && onRecallComment(congViecId, commentId);
+    }, 300);
+  };
+
+  const handleUndoRecall = (commentData) => {
+    // TODO: Implement undo API call if backend supports it
+    console.log("Undo recall for:", commentData._id);
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const handleCopyText = () => {
+    if (!activeComment?.NoiDung) {
+      handleMenuClose();
+      return;
     }
+
+    navigator.clipboard
+      .writeText(activeComment.NoiDung)
+      .then(() => {
+        setSnackbar({
+          open: true,
+          message: "Đã sao chép nội dung",
+          action: null,
+          commentData: null,
+        });
+      })
+      .catch(() => {
+        setSnackbar({
+          open: true,
+          message: "Không thể sao chép",
+          action: null,
+          commentData: null,
+        });
+      });
+
+    handleMenuClose();
   };
-  const confirmTexts = {
-    recallAll:
-      "Bạn có chắc muốn thu hồi bình luận này? Cả nội dung và tệp đính kèm sẽ bị thu hồi.",
-    recallText:
-      "Bạn có chắc muốn xóa nội dung của bình luận này? Các tệp đính kèm sẽ được giữ nguyên.",
-    deleteFile: (fileName) =>
-      `Bạn có chắc muốn thu hồi tệp "${fileName || ""}"?`,
+
+  const handleDeleteFileAction = (file) => {
+    setSnackbar({
+      open: true,
+      message: `Đã xóa ${file.TenGoc || "tệp"}`,
+      action: null,
+      commentData: null,
+    });
+    onDeleteFile && onDeleteFile(file);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbar({ ...snackbar, open: false });
   };
 
   // Replies local UI state
@@ -164,9 +238,18 @@ const CommentsList = ({
             sx={{ px: 0 }}
           >
             <ListItemAvatar>
-              <Avatar sx={{ width: 40, height: 40 }}>
-                {comment.NguoiBinhLuan?.Ten?.charAt(0) || "U"}
-              </Avatar>
+              <EmployeeAvatar
+                size="md"
+                nhanVienId={
+                  comment.NguoiBinhLuan?._id ||
+                  comment.NguoiBinhLuanID?._id ||
+                  comment.NguoiBinhLuanID
+                }
+                name={
+                  (comment.NguoiBinhLuan || comment.NguoiBinhLuanID)?.HoTen ||
+                  (comment.NguoiBinhLuan || comment.NguoiBinhLuanID)?.Ten
+                }
+              />
             </ListItemAvatar>
             <ListItemText
               primary={
@@ -188,7 +271,8 @@ const CommentsList = ({
                     }}
                   >
                     <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                      {comment.NguoiBinhLuan?.Ten || "Người dùng"}
+                      {(comment.NguoiBinhLuan || comment.NguoiBinhLuanID)
+                        ?.Ten || "Người dùng"}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {formatDateTime(
@@ -199,21 +283,17 @@ const CommentsList = ({
 
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                     {canRecall(user, comment) && (
-                      <Tooltip title="Thu hồi bình luận (cả nội dung và tệp)">
-                        <span>
-                          <IconButton
-                            size="small"
-                            color="warning"
-                            onClick={() =>
-                              openConfirm("recallAll", {
-                                commentId: comment._id,
-                              })
-                            }
-                          >
-                            <UndoIcon fontSize="small" />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
+                      <IconButton
+                        size="small"
+                        onClick={(e) => handleMenuOpen(e, comment)}
+                        sx={{
+                          opacity: 0,
+                          transition: "opacity 0.2s",
+                          ".MuiListItem-root:hover &": { opacity: 1 },
+                        }}
+                      >
+                        <MoreVertIcon fontSize="small" />
+                      </IconButton>
                     )}
                   </Box>
                 </Box>
@@ -221,13 +301,35 @@ const CommentsList = ({
               secondary={
                 <Stack spacing={1} sx={{ mt: 0.5 }}>
                   {comment.TrangThai === "DELETED" ? (
-                    <Typography
-                      variant="body1"
-                      color="text.secondary"
-                      sx={{ fontStyle: "italic", fontSize: "1rem" }}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        p: 2,
+                        backgroundColor: theme.palette.grey[100],
+                        borderRadius: 2,
+                        border: `1px dashed ${theme.palette.grey[300]}`,
+                      }}
                     >
-                      Tin nhắn đã được thu hồi
-                    </Typography>
+                      <Box
+                        component="span"
+                        sx={{
+                          fontSize: "1.2rem",
+                          filter: "grayscale(1)",
+                          opacity: 0.5,
+                        }}
+                      >
+                        🚫
+                      </Box>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontStyle: "italic" }}
+                      >
+                        Tin nhắn đã được thu hồi
+                      </Typography>
+                    </Box>
                   ) : (
                     <>
                       {!!comment.NoiDung && (
@@ -238,7 +340,6 @@ const CommentsList = ({
                             position: "relative",
                             px: 1.5,
                             py: 1,
-                            pr: 4,
                             borderRadius: 2,
                             maxWidth: "85%",
                             backgroundColor: theme.palette.grey[50],
@@ -250,29 +351,6 @@ const CommentsList = ({
                           >
                             {comment.NoiDung}
                           </Typography>
-                          {onRecallCommentText &&
-                            canRecallText(user, comment) && (
-                              <Tooltip title="Thu hồi nội dung (chỉ xóa text, giữ tệp)">
-                                <IconButton
-                                  size="small"
-                                  color="warning"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openConfirm("recallText", {
-                                      commentId: comment._id,
-                                    });
-                                  }}
-                                  sx={{
-                                    position: "absolute",
-                                    top: 4,
-                                    right: 4,
-                                    p: 0.25,
-                                  }}
-                                >
-                                  <FormatClearIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            )}
                         </Paper>
                       )}
 
@@ -302,6 +380,17 @@ const CommentsList = ({
                               /pdf/i.test(f.LoaiFile || "");
                             const canDeleteFile = Boolean(onDeleteFile);
                             if (isImage) {
+                              // DEBUG: Log thumbnail URL
+                              const resolvedThumbUrl = getThumbUrl(f.thumbUrl);
+                              console.log(
+                                "[FE THUMB] File:",
+                                f.TenGoc,
+                                "| thumbUrl:",
+                                f.thumbUrl,
+                                "| resolved:",
+                                resolvedThumbUrl
+                              );
+
                               return (
                                 <Box
                                   key={f._id}
@@ -313,12 +402,25 @@ const CommentsList = ({
                                     overflow: "hidden",
                                     cursor: "pointer",
                                     border: `1px solid ${theme.palette.divider}`,
+                                    "&:hover .file-actions": { opacity: 1 },
                                   }}
+                                  onMouseEnter={() => setHoveredFile(f._id)}
+                                  onMouseLeave={() => setHoveredFile(null)}
                                   onClick={() => onViewFile(f)}
                                 >
                                   <img
                                     alt={f.TenGoc}
-                                    src={f.inlineUrl}
+                                    src={resolvedThumbUrl}
+                                    onError={(e) => {
+                                      console.error(
+                                        "[FE THUMB] ❌ Image load FAILED:",
+                                        resolvedThumbUrl
+                                      );
+                                      console.error(
+                                        "[FE THUMB] Error event:",
+                                        e
+                                      );
+                                    }}
                                     style={{
                                       width: "100%",
                                       height: "100%",
@@ -326,28 +428,56 @@ const CommentsList = ({
                                       display: "block",
                                     }}
                                   />
-                                  {canDeleteFile && (
-                                    <Box
-                                      sx={{
-                                        position: "absolute",
-                                        top: 4,
-                                        right: 4,
-                                        backgroundColor: "rgba(0,0,0,0.5)",
-                                        color: "#fff",
-                                        px: 0.5,
-                                        py: 0.25,
-                                        borderRadius: 1,
-                                        fontSize: 11,
-                                        cursor: "pointer",
-                                      }}
+                                  <Box
+                                    className="file-actions"
+                                    sx={{
+                                      position: "absolute",
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      bottom: 0,
+                                      backgroundColor: "rgba(0,0,0,0.5)",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      gap: 1,
+                                      opacity: 0,
+                                      transition: "opacity 0.2s",
+                                    }}
+                                  >
+                                    <IconButton
+                                      size="small"
+                                      sx={{ color: "#fff" }}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        openConfirm("deleteFile", { file: f });
+                                        onViewFile(f);
                                       }}
                                     >
-                                      Xóa
-                                    </Box>
-                                  )}
+                                      <VisibilityIcon fontSize="small" />
+                                    </IconButton>
+                                    <IconButton
+                                      size="small"
+                                      sx={{ color: "#fff" }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDownloadFile(f);
+                                      }}
+                                    >
+                                      <GetAppIcon fontSize="small" />
+                                    </IconButton>
+                                    {canDeleteFile && (
+                                      <IconButton
+                                        size="small"
+                                        sx={{ color: "#fff" }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteFileAction(f);
+                                        }}
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    )}
+                                  </Box>
                                 </Box>
                               );
                             }
@@ -361,8 +491,7 @@ const CommentsList = ({
                                   sx={{ maxWidth: 220 }}
                                   onDelete={
                                     canDeleteFile
-                                      ? () =>
-                                          openConfirm("deleteFile", { file: f })
+                                      ? () => handleDeleteFileAction(f)
                                       : undefined
                                   }
                                 />
@@ -377,8 +506,7 @@ const CommentsList = ({
                                 sx={{ maxWidth: 220 }}
                                 onDelete={
                                   canDeleteFile
-                                    ? () =>
-                                        openConfirm("deleteFile", { file: f })
+                                    ? () => handleDeleteFileAction(f)
                                     : undefined
                                 }
                               />
@@ -488,11 +616,24 @@ const CommentsList = ({
                                     gap: 1,
                                   }}
                                 >
-                                  <Avatar sx={{ width: 28, height: 28 }}>
-                                    {rep.NguoiBinhLuan?.Ten?.charAt(0) || "U"}
-                                  </Avatar>
+                                  <EmployeeAvatar
+                                    size="xs"
+                                    sx={{ width: 28, height: 28 }}
+                                    nhanVienId={
+                                      rep.NguoiBinhLuan?._id ||
+                                      rep.NguoiBinhLuanID?._id ||
+                                      rep.NguoiBinhLuanID
+                                    }
+                                    name={
+                                      (rep.NguoiBinhLuan || rep.NguoiBinhLuanID)
+                                        ?.HoTen ||
+                                      (rep.NguoiBinhLuan || rep.NguoiBinhLuanID)
+                                        ?.Ten
+                                    }
+                                  />
                                   <Typography variant="subtitle2">
-                                    {rep.NguoiBinhLuan?.Ten || "Người dùng"}
+                                    {(rep.NguoiBinhLuan || rep.NguoiBinhLuanID)
+                                      ?.Ten || "Người dùng"}
                                   </Typography>
                                   <Typography
                                     variant="caption"
@@ -503,29 +644,39 @@ const CommentsList = ({
                                     )}
                                   </Typography>
                                   {canRecall(user, rep) && (
-                                    <Tooltip title="Thu hồi bình luận">
-                                      <IconButton
-                                        size="small"
-                                        color="warning"
-                                        onClick={() =>
-                                          openConfirm("recallAll", {
-                                            commentId: rep._id,
-                                          })
-                                        }
-                                      >
-                                        <UndoIcon fontSize="small" />
-                                      </IconButton>
-                                    </Tooltip>
+                                    <IconButton
+                                      size="small"
+                                      onClick={(e) => handleMenuOpen(e, rep)}
+                                      sx={{
+                                        opacity: 0,
+                                        transition: "opacity 0.2s",
+                                        "&:hover": { opacity: 1 },
+                                      }}
+                                    >
+                                      <MoreVertIcon fontSize="small" />
+                                    </IconButton>
                                   )}
                                 </Box>
                                 {rep.TrangThai === "DELETED" ? (
-                                  <Typography
-                                    variant="body2"
-                                    color="text.secondary"
-                                    sx={{ fontStyle: "italic" }}
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 0.5,
+                                      p: 1,
+                                      backgroundColor: theme.palette.grey[50],
+                                      borderRadius: 1,
+                                      border: `1px dashed ${theme.palette.grey[300]}`,
+                                    }}
                                   >
-                                    Tin nhắn đã được thu hồi
-                                  </Typography>
+                                    <Typography
+                                      variant="caption"
+                                      color="text.secondary"
+                                      sx={{ fontStyle: "italic" }}
+                                    >
+                                      🚫 Tin nhắn đã được thu hồi
+                                    </Typography>
+                                  </Box>
                                 ) : (
                                   <>
                                     {!!rep.NoiDung && (
@@ -536,7 +687,6 @@ const CommentsList = ({
                                           position: "relative",
                                           px: 1.5,
                                           py: 1,
-                                          pr: 4,
                                           borderRadius: 2,
                                           backgroundColor:
                                             theme.palette.grey[50],
@@ -545,29 +695,6 @@ const CommentsList = ({
                                         <Typography variant="body2">
                                           {rep.NoiDung}
                                         </Typography>
-                                        {onRecallCommentText &&
-                                          canRecallText(user, rep) && (
-                                            <Tooltip title="Thu hồi nội dung (chỉ xóa text, giữ tệp)">
-                                              <IconButton
-                                                size="small"
-                                                color="warning"
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  openConfirm("recallText", {
-                                                    commentId: rep._id,
-                                                  });
-                                                }}
-                                                sx={{
-                                                  position: "absolute",
-                                                  top: 4,
-                                                  right: 4,
-                                                  p: 0.25,
-                                                }}
-                                              >
-                                                <FormatClearIcon fontSize="small" />
-                                              </IconButton>
-                                            </Tooltip>
-                                          )}
                                       </Paper>
                                     )}
                                     {!!(rep.Files && rep.Files.length) && (
@@ -614,12 +741,15 @@ const CommentsList = ({
                                                   overflow: "hidden",
                                                   cursor: "pointer",
                                                   border: `1px solid ${theme.palette.divider}`,
+                                                  "&:hover .file-actions": {
+                                                    opacity: 1,
+                                                  },
                                                 }}
                                                 onClick={() => onViewFile(f)}
                                               >
                                                 <img
                                                   alt={f.TenGoc}
-                                                  src={f.inlineUrl}
+                                                  src={getThumbUrl(f.thumbUrl)}
                                                   style={{
                                                     width: "100%",
                                                     height: "100%",
@@ -627,32 +757,59 @@ const CommentsList = ({
                                                     display: "block",
                                                   }}
                                                 />
-                                                {canDeleteFile && (
-                                                  <Box
-                                                    sx={{
-                                                      position: "absolute",
-                                                      top: 4,
-                                                      right: 4,
-                                                      backgroundColor:
-                                                        "rgba(0,0,0,0.5)",
-                                                      color: "#fff",
-                                                      px: 0.5,
-                                                      py: 0.25,
-                                                      borderRadius: 1,
-                                                      fontSize: 11,
-                                                      cursor: "pointer",
-                                                    }}
+                                                <Box
+                                                  className="file-actions"
+                                                  sx={{
+                                                    position: "absolute",
+                                                    top: 0,
+                                                    left: 0,
+                                                    right: 0,
+                                                    bottom: 0,
+                                                    backgroundColor:
+                                                      "rgba(0,0,0,0.5)",
+                                                    display: "flex",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                    gap: 1,
+                                                    opacity: 0,
+                                                    transition: "opacity 0.2s",
+                                                  }}
+                                                >
+                                                  <IconButton
+                                                    size="small"
+                                                    sx={{ color: "#fff" }}
                                                     onClick={(e) => {
                                                       e.stopPropagation();
-                                                      openConfirm(
-                                                        "deleteFile",
-                                                        { file: f }
-                                                      );
+                                                      onViewFile(f);
                                                     }}
                                                   >
-                                                    Xóa
-                                                  </Box>
-                                                )}
+                                                    <VisibilityIcon fontSize="small" />
+                                                  </IconButton>
+                                                  <IconButton
+                                                    size="small"
+                                                    sx={{ color: "#fff" }}
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      onDownloadFile(f);
+                                                    }}
+                                                  >
+                                                    <GetAppIcon fontSize="small" />
+                                                  </IconButton>
+                                                  {canDeleteFile && (
+                                                    <IconButton
+                                                      size="small"
+                                                      sx={{ color: "#fff" }}
+                                                      onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteFileAction(
+                                                          f
+                                                        );
+                                                      }}
+                                                    >
+                                                      <DeleteIcon fontSize="small" />
+                                                    </IconButton>
+                                                  )}
+                                                </Box>
                                               </Box>
                                             );
                                           }
@@ -667,9 +824,8 @@ const CommentsList = ({
                                                 onDelete={
                                                   canDeleteFile
                                                     ? () =>
-                                                        openConfirm(
-                                                          "deleteFile",
-                                                          { file: f }
+                                                        handleDeleteFileAction(
+                                                          f
                                                         )
                                                     : undefined
                                                 }
@@ -686,10 +842,7 @@ const CommentsList = ({
                                               onDelete={
                                                 canDeleteFile
                                                   ? () =>
-                                                      openConfirm(
-                                                        "deleteFile",
-                                                        { file: f }
-                                                      )
+                                                      handleDeleteFileAction(f)
                                                   : undefined
                                               }
                                             />
@@ -712,37 +865,60 @@ const CommentsList = ({
           </ListItem>
         ))}
       </List>
-      {/* Dialog xác nhận */}
-      <Dialog
-        open={confirm.open}
-        onClose={closeConfirm}
-        maxWidth="xs"
-        fullWidth
+
+      {/* Menu dropdown cho comment actions */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
       >
-        <DialogTitle>Xác nhận</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {confirm.type === "deleteFile"
-              ? confirmTexts.deleteFile(confirm?.data?.file?.TenGoc)
-              : confirm.type === "recallAll"
-              ? confirmTexts.recallAll
-              : confirm.type === "recallText"
-              ? confirmTexts.recallText
-              : ""}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeConfirm}>Hủy</Button>
-          <Button
-            color="warning"
-            variant="contained"
-            onClick={handleConfirm}
-            autoFocus
-          >
-            Xác nhận
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <MenuItem onClick={handleRecallClick}>
+          <ListItemIcon>
+            <DeleteIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Thu hồi</ListItemText>
+        </MenuItem>
+        {activeComment?.NoiDung && (
+          <MenuItem onClick={handleCopyText}>
+            <ListItemIcon>
+              <ContentCopyIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Sao chép</ListItemText>
+          </MenuItem>
+        )}
+      </Menu>
+
+      {/* Snackbar với Undo action */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          severity="success"
+          variant="filled"
+          onClose={handleSnackbarClose}
+          action={
+            snackbar.action && (
+              <Button color="inherit" size="small" onClick={snackbar.action}>
+                Hoàn tác
+              </Button>
+            )
+          }
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

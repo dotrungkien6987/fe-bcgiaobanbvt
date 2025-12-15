@@ -1,11 +1,3 @@
-import React from "react";
+import NhanVienMePage from "./NhanVienMePage";
 
-function AccountPage() {
-  return (
-    <div>
-      <h1>AccountPage</h1>
-    </div>
-  );
-}
-
-export default AccountPage;
+export default NhanVienMePage;

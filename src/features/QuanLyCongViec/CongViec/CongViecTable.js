@@ -14,7 +14,6 @@ import {
   Typography,
   IconButton,
   Tooltip,
-  Avatar,
   Stack,
 } from "@mui/material";
 import {
@@ -27,6 +26,7 @@ import {
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
+import EmployeeAvatar from "components/EmployeeAvatar";
 import {
   getStatusColor,
   getPriorityColor,
@@ -287,15 +287,14 @@ const CongViecTable = ({
                   <TableCell>
                     {(() => {
                       const person = congViec.NguoiGiaoProfile;
-                      const initial = person?.Ten?.charAt(0) || "?";
                       const subText = person?.Email || person?.Khoa?.TenKhoa;
                       return (
                         <Box display="flex" alignItems="center" gap={1}>
-                          <Avatar
-                            sx={{ width: 32, height: 32, fontSize: "0.875rem" }}
-                          >
-                            {initial}
-                          </Avatar>
+                          <EmployeeAvatar
+                            size="sm"
+                            nhanVienId={person?._id}
+                            name={person?.HoTen || person?.Ten}
+                          />
                           <Box>
                             <Typography variant="body2" fontWeight={500} noWrap>
                               {person?.Ten || "Chưa xác định"}
@@ -317,15 +316,14 @@ const CongViecTable = ({
                   <TableCell>
                     {(() => {
                       const person = congViec.NguoiChinhProfile;
-                      const initial = person?.Ten?.charAt(0) || "?";
                       const subText = person?.Email || person?.Khoa?.TenKhoa;
                       return (
                         <Box display="flex" alignItems="center" gap={1}>
-                          <Avatar
-                            sx={{ width: 32, height: 32, fontSize: "0.875rem" }}
-                          >
-                            {initial}
-                          </Avatar>
+                          <EmployeeAvatar
+                            size="sm"
+                            nhanVienId={person?._id}
+                            name={person?.HoTen || person?.Ten}
+                          />
                           <Box>
                             <Typography variant="body2" fontWeight={500} noWrap>
                               {person?.Ten || "Chưa xác định"}

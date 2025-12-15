@@ -198,6 +198,16 @@ const HeaderContent = () => {
       </MenuItem>
 
       <MenuItem
+        key="account"
+        onClick={handleMenuClose}
+        to="/account"
+        component={RouterLink}
+        sx={{ mx: 1 }}
+      >
+       Thay đổi thông tin cá nhân 
+      </MenuItem>
+
+      <MenuItem
         onClick={handleLogout}
         //  component={RouterLink}
         sx={{ mx: 1 }}

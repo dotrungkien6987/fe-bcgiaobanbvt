@@ -801,6 +801,13 @@ const congViecAPI = {
       data,
       config
     ),
+  // Assign routine task
+  assignRoutineTask: (id, data, config) =>
+    apiService.post(
+      `/workmanagement/congviec/${id}/assign-routine-task`,
+      data,
+      config
+    ),
   // Subtasks APIs
   createSubtask: (parentId, data) =>
     apiService.post(`/workmanagement/congviec/${parentId}/subtasks`, data),
@@ -1056,6 +1063,59 @@ export const updateCongViec =
         );
         toast.warning(
           "Công việc đã được cập nhật bởi người khác. Vui lòng tải lại trước khi sửa đổi."
+        );
+      } else {
+        dispatch(slice.actions.hasError(error.message));
+        toast.error(error.message);
+      }
+      throw error;
+    }
+  };
+
+export const assignRoutineTask =
+  ({ congViecId, nhiemVuThuongQuyID, isKhac, expectedVersion }) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const payload = {
+        nhiemVuThuongQuyID: nhiemVuThuongQuyID || null,
+        isKhac: !!isKhac,
+      };
+
+      // Add version guard if provided
+      if (expectedVersion) {
+        payload.expectedVersion = expectedVersion;
+      }
+
+      const headers = expectedVersion
+        ? { "If-Unmodified-Since": expectedVersion }
+        : undefined;
+
+      const response = await congViecAPI.assignRoutineTask(
+        congViecId,
+        payload,
+        headers ? { headers } : undefined
+      );
+
+      const cv = response.data.data;
+      if (cv?.updatedAt) cv.__version = cv.updatedAt;
+
+      dispatch(slice.actions.updateCongViecSuccess(cv));
+      toast.success("Gán nhiệm vụ thường quy thành công");
+      return cv;
+    } catch (error) {
+      // Detect optimistic concurrency version conflict
+      if (error?.message === "VERSION_CONFLICT") {
+        dispatch(
+          slice.actions.setVersionConflict({
+            id: congViecId,
+            type: "assignRoutineTask",
+            payload: { congViecId, nhiemVuThuongQuyID, isKhac },
+            timestamp: Date.now(),
+          })
+        );
+        toast.warning(
+          "Công việc đã được cập nhật bởi người khác. Vui lòng tải lại trước khi gán nhiệm vụ."
         );
       } else {
         dispatch(slice.actions.hasError(error.message));

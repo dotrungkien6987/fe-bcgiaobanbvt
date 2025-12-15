@@ -15,6 +15,8 @@ import {
   StatusUp,
   Setting2,
   Calendar2,
+  MessageQuestion,
+  Category2,
 } from "iconsax-react";
 
 // icons
@@ -31,6 +33,9 @@ const icons = {
   status: StatusUp,
   setting: Setting2,
   calendar: Calendar2,
+  ticket: MessageQuestion,
+  settings: Setting2,
+  category: Category2,
 };
 
 // ==============================|| MENU ITEMS - PAGES ||============================== //
@@ -94,6 +99,76 @@ const quanlycongviec = {
           title: "Nhiệm vụ thường quy",
           type: "item",
           url: "/quanlycongviec/nhiemvu-thuongquy",
+        },
+      ],
+    },
+
+    // ==============================
+    // Ticket/Support Request Menu
+    // ==============================
+    {
+      id: "quanlyyeucau",
+      title: "Quản lý yêu cầu",
+      type: "collapse",
+      icon: icons.ticket,
+      children: [
+        {
+          id: "yeucau-toi-gui",
+          title: "Yêu cầu tôi gửi",
+          type: "item",
+          url: "/yeu-cau/toi-gui",
+          // Badge will be added dynamically via useYeuCauBadgeCounts hook
+        },
+        {
+          id: "yeucau-xu-ly",
+          title: "Yêu cầu tôi xử lý",
+          type: "item",
+          url: "/yeu-cau/xu-ly",
+          // Badge will be added dynamically
+        },
+        {
+          id: "yeucau-dieu-phoi",
+          title: "Điều phối",
+          type: "item",
+          url: "/yeu-cau/dieu-phoi",
+          // Badge will be added dynamically, hidden if not điều phối
+        },
+        {
+          id: "yeucau-quan-ly-khoa",
+          title: "Quản lý khoa",
+          type: "item",
+          url: "/yeu-cau/quan-ly-khoa",
+          // Hidden if not quản lý khoa
+        },
+        {
+          id: "yeucau-hotro-legacy",
+          title: "Tất cả yêu cầu (Cũ)",
+          type: "item",
+          url: "/yeu-cau",
+        },
+        {
+          id: "yeucau-admin-cauhinh",
+          title: "Cấu hình Khoa",
+          type: "item",
+          url: "/yeu-cau/admin/cau-hinh-khoa",
+          icon: icons.settings,
+          requiredRole: ["admin", "superadmin", "QuanLyKhoa"],
+        },
+        {
+          id: "yeucau-admin-danhmuc",
+          title: "Danh mục Yêu cầu",
+          type: "item",
+          url: "/yeu-cau/admin/danh-muc",
+          icon: icons.category,
+          requiredRole: ["admin", "superadmin", "QuanLyKhoa"],
+        },
+        {
+          id: "yeucau-admin-lydotuchoi",
+          title: "Lý do từ chối",
+          type: "item",
+          url: "/yeu-cau/admin/ly-do-tu-choi",
+          icon: icons.category,
+          requiredRole: ["admin", "superadmin"],
         },
       ],
     },

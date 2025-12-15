@@ -1,7 +1,7 @@
 # 📋 Hệ Thống Yêu Cầu - Tổng Quan
 
-> **Trạng thái**: ✅ Nghiệp vụ hoàn thành - Sẵn sàng implement  
-> **Cập nhật**: 28/11/2025
+> **Trạng thái**: ✅ Nghiệp vụ hoàn thành - Đang implement UI/UX  
+> **Cập nhật**: 08/12/2025
 
 ---
 
@@ -69,14 +69,15 @@ Hệ thống **Yêu Cầu** (Internal Service Desk) cho phép:
 
 ## 📁 Cấu Trúc Tài Liệu
 
-| File                                                     | Mô tả                        | Trạng thái |
-| -------------------------------------------------------- | ---------------------------- | :--------: |
-| [00_TONG_QUAN.md](./00_TONG_QUAN.md)                     | Tổng quan hệ thống           |     ✅     |
-| [01_NGHIEP_VU_CHI_TIET.md](./01_NGHIEP_VU_CHI_TIET.md)   | Chi tiết nghiệp vụ từng phần |     ✅     |
-| [02_DATABASE_SCHEMA.md](./02_DATABASE_SCHEMA.md)         | Thiết kế database            |     ✅     |
-| [03_STATE_MACHINE.md](./03_STATE_MACHINE.md)             | Quản lý trạng thái           |     ✅     |
-| [04_BACKEND_API.md](./04_BACKEND_API.md)                 | API endpoints                |     📝     |
-| [05_FRONTEND_COMPONENTS.md](./05_FRONTEND_COMPONENTS.md) | React components             |     📝     |
+| File                                                        | Mô tả                        | Trạng thái |
+| ----------------------------------------------------------- | ---------------------------- | :--------: |
+| [00_TONG_QUAN.md](./00_TONG_QUAN.md)                        | Tổng quan hệ thống           |     ✅     |
+| [01_NGHIEP_VU_CHI_TIET.md](./01_NGHIEP_VU_CHI_TIET.md)      | Chi tiết nghiệp vụ từng phần |     ✅     |
+| [02_DATABASE_SCHEMA.md](./02_DATABASE_SCHEMA.md)            | Thiết kế database            |     ✅     |
+| [03_STATE_MACHINE.md](./03_STATE_MACHINE.md)                | Quản lý trạng thái           |     ✅     |
+| [04_BACKEND_API.md](./04_BACKEND_API.md)                    | API endpoints                |     📝     |
+| [05_FRONTEND_COMPONENTS.md](./05_FRONTEND_COMPONENTS.md)    | React components & UI/UX     |     🚧     |
+| [**ROLE_BASED_VIEWS.md**](../../Ticket/ROLE_BASED_VIEWS.md) | **Role-based UI refactor**   |     🚧     |
 
 **Chú thích**: ✅ Hoàn thành | 🚧 Đang làm | 📝 Chưa bắt đầu
 
@@ -159,13 +160,13 @@ Hệ thống **Yêu Cầu** (Internal Service Desk) cho phép:
 
 ## 📅 Kế Hoạch Triển Khai
 
-| Giai đoạn | Nội dung                    |   Trạng thái    |
-| --------- | --------------------------- | :-------------: |
-| 1         | Nghiệp vụ chi tiết (5 phần) |       ✅        |
-| 2         | Database Schema             |  🚧 Cần review  |
-| 3         | State Machine               |  🚧 Cần review  |
-| 4         | Backend API                 | 📝 Chưa bắt đầu |
-| 5         | Frontend Components         | 📝 Chưa bắt đầu |
+| Giai đoạn | Nội dung                    |     Trạng thái     |
+| --------- | --------------------------- | :----------------: |
+| 1         | Nghiệp vụ chi tiết (5 phần) |         ✅         |
+| 2         | Database Schema             |         ✅         |
+| 3         | State Machine               |         ✅         |
+| 4         | Backend API                 |         ✅         |
+| 5         | Frontend Components         | 🚧 Đang triển khai |
 
 ---
 

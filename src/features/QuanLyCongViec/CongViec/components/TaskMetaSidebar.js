@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Avatar,
   AvatarGroup,
   Box,
   Chip,
@@ -20,6 +19,8 @@ import {
 } from "@mui/icons-material";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+
+import EmployeeAvatar from "components/EmployeeAvatar";
 
 // Extend dayjs with relativeTime plugin
 dayjs.extend(relativeTime);
@@ -50,19 +51,16 @@ const TaskMetaSidebar = ({ theme, congViec, overdue, cooperators = [] }) => {
             border: `1px solid ${theme.palette.grey[200]}`,
           }}
         >
-          <Avatar
-            src={congViec.NguoiGiaoProfile?.AnhDaiDien}
-            sx={{
-              width: 40,
-              height: 40,
-              mr: 1.5,
-              backgroundColor: theme.palette.secondary.main,
-              fontSize: "1.1rem",
-              fontWeight: 600,
-            }}
-          >
-            {congViec.NguoiGiaoProfile?.Ten?.charAt(0) || <PersonIcon />}
-          </Avatar>
+          <EmployeeAvatar
+            size="md"
+            nhanVienId={congViec.NguoiGiaoProfile?._id}
+            name={
+              congViec.NguoiGiaoProfile?.HoTen || congViec.NguoiGiaoProfile?.Ten
+            }
+            color="secondary"
+            type="filled"
+            sx={{ mr: 1.5, fontSize: "1.1rem", fontWeight: 600 }}
+          />
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
               {congViec.NguoiGiaoProfile?.Ten || "Chưa xác định"}
@@ -95,19 +93,17 @@ const TaskMetaSidebar = ({ theme, congViec, overdue, cooperators = [] }) => {
             border: `1px solid ${theme.palette.grey[200]}`,
           }}
         >
-          <Avatar
-            src={congViec.NguoiChinhProfile?.AnhDaiDien}
-            sx={{
-              width: 40,
-              height: 40,
-              mr: 1.5,
-              backgroundColor: theme.palette.primary.main,
-              fontSize: "1.1rem",
-              fontWeight: 600,
-            }}
-          >
-            {congViec.NguoiChinhProfile?.Ten?.charAt(0) || <PersonIcon />}
-          </Avatar>
+          <EmployeeAvatar
+            size="md"
+            nhanVienId={congViec.NguoiChinhProfile?._id}
+            name={
+              congViec.NguoiChinhProfile?.HoTen ||
+              congViec.NguoiChinhProfile?.Ten
+            }
+            color="primary"
+            type="filled"
+            sx={{ mr: 1.5, fontSize: "1.1rem", fontWeight: 600 }}
+          />
           <Box>
             <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
               {congViec.NguoiChinhProfile?.Ten || "Chưa xác định"}
@@ -179,9 +175,11 @@ const TaskMetaSidebar = ({ theme, congViec, overdue, cooperators = [] }) => {
             >
               {cooperators.map((u) => (
                 <Tooltip title={u.name} key={u.id}>
-                  <Avatar src={u.avatarUrl || undefined} alt={u.name}>
-                    {u.name?.charAt(0) || "U"}
-                  </Avatar>
+                  <EmployeeAvatar
+                    size="sm"
+                    nhanVienId={u.nhanVienId || u.id}
+                    name={u.name}
+                  />
                 </Tooltip>
               ))}
             </AvatarGroup>
@@ -202,13 +200,12 @@ const TaskMetaSidebar = ({ theme, congViec, overdue, cooperators = [] }) => {
                   }}
                 >
                   <ListItemAvatar sx={{ minWidth: 36 }}>
-                    <Avatar
-                      src={u.avatarUrl || undefined}
-                      alt={u.name}
+                    <EmployeeAvatar
+                      size="xs"
                       sx={{ width: 28, height: 28, fontSize: "0.8rem" }}
-                    >
-                      {u.name?.charAt(0) || "U"}
-                    </Avatar>
+                      nhanVienId={u.nhanVienId || u.id}
+                      name={u.name}
+                    />
                   </ListItemAvatar>
                   <ListItemText
                     primary={u.name}

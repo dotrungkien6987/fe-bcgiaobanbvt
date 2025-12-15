@@ -5,12 +5,11 @@ import {
   CardActionArea,
   Typography,
   Box,
-  Avatar,
   Chip,
   Stack,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import PersonIcon from "@mui/icons-material/Person";
+import EmployeeAvatar from "components/EmployeeAvatar";
 
 /**
  * NhanVienCard - Card hiển thị thông tin nhân viên
@@ -59,21 +58,14 @@ function NhanVienCard({ nhanVien, isSelected, onSelect }) {
 
           {/* Avatar */}
           <Box display="flex" justifyContent="center" mb={2}>
-            <Avatar
-              sx={{
-                width: 64,
-                height: 64,
-                bgcolor: isSelected ? "primary.main" : "grey.400",
-                fontSize: 28,
-                fontWeight: 600,
-              }}
-            >
-              {nhanVien.Ten ? (
-                nhanVien.Ten.charAt(0).toUpperCase()
-              ) : (
-                <PersonIcon />
-              )}
-            </Avatar>
+            <EmployeeAvatar
+              size="xl"
+              nhanVienId={nhanVien._id}
+              name={nhanVien.HoTen || nhanVien.Ten}
+              color={isSelected ? "primary" : "secondary"}
+              type={isSelected ? "filled" : "combined"}
+              sx={{ fontSize: 28, fontWeight: 600 }}
+            />
           </Box>
 
           {/* Thông tin nhân viên */}

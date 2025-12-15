@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import {
-  Avatar,
   Box,
   Chip,
   InputAdornment,
@@ -12,6 +11,7 @@ import {
 import { EmojiEvents, Search } from "@mui/icons-material";
 import dayjs from "dayjs";
 import CommonTable from "pages/tables/MyTable/CommonTable";
+import EmployeeAvatar from "components/EmployeeAvatar";
 
 /**
  * ThongKeKPITable - Bảng xếp hạng thống kê KPI
@@ -96,9 +96,13 @@ const ThongKeKPITable = ({ data = [], isLoading, nhanviens = [] }) => {
           const nv = getNhanVienInfo(row.original.NhanVienID);
           return (
             <Stack direction="row" spacing={1.5} alignItems="center">
-              <Avatar sx={{ width: 32, height: 32, bgcolor: "primary.main" }}>
-                {(nv.Ten || "?").charAt(0).toUpperCase()}
-              </Avatar>
+              <EmployeeAvatar
+                size="sm"
+                nhanVienId={row.original.NhanVienID}
+                name={nv.HoTen || nv.Ten}
+                color="primary"
+                type="filled"
+              />
               <Stack>
                 <Typography variant="body2" fontWeight={500}>
                   {nv.Ten}

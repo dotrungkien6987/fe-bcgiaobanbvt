@@ -13,10 +13,10 @@ import {
   Chip,
   Container,
   Autocomplete,
-  Avatar,
   Paper,
   Grid,
 } from "@mui/material";
+import EmployeeAvatar from "components/EmployeeAvatar";
 import { LoadingButton } from "@mui/lab";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import EmailIcon from "@mui/icons-material/Email";
@@ -179,18 +179,18 @@ function TuDanhGiaKPIPage() {
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={9}>
             <Stack direction="row" spacing={2} alignItems="center" mb={1.5}>
-              <Avatar
+              <EmployeeAvatar
+                nhanVienId={user?.NhanVienID}
+                name={currentNhanVien?.Ten || user?.HoTen}
+                size="md"
                 sx={{
                   width: 48,
                   height: 48,
                   bgcolor: "rgba(255, 255, 255, 0.2)",
+                  color: "white",
                   fontSize: "1.2rem",
                 }}
-              >
-                {currentNhanVien?.Ten?.charAt(0) ||
-                  user?.HoTen?.charAt(0) ||
-                  "U"}
-              </Avatar>
+              />
               <Box>
                 <Typography variant="h5" fontWeight="bold">
                   Tự Đánh Giá KPI

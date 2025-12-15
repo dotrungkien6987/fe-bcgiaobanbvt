@@ -6,8 +6,9 @@ import {
   InputAdornment,
   TextField,
   Typography,
+  IconButton,
 } from "@mui/material";
-import { Send as SendIcon } from "@mui/icons-material";
+import { Send as SendIcon, Close as CloseIcon } from "@mui/icons-material";
 
 const CommentComposer = ({
   theme,
@@ -20,6 +21,25 @@ const CommentComposer = ({
   onSubmit,
   submittingComment,
 }) => {
+  // Tạo và quản lý blob URLs cho preview ảnh
+  const [filePreviews, setFilePreviews] = React.useState({});
+
+  React.useEffect(() => {
+    // Tạo blob URL cho mỗi file ảnh
+    const newPreviews = {};
+    pendingFiles.forEach((file, idx) => {
+      if (file.type?.startsWith("image/")) {
+        newPreviews[idx] = URL.createObjectURL(file);
+      }
+    });
+    setFilePreviews(newPreviews);
+
+    // Cleanup blob URLs khi component unmount hoặc files thay đổi
+    return () => {
+      Object.values(newPreviews).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [pendingFiles]);
+
   const addPendingFiles = (list) => {
     setPendingFiles((arr) => {
       const key = (f) => `${f.name}__${f.size}`;
@@ -146,14 +166,82 @@ const CommentComposer = ({
       </Box>
       {pendingFiles.length > 0 && (
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-          {pendingFiles.map((f, idx) => (
-            <Chip
-              key={idx}
-              label={f.name}
-              onDelete={() => removePendingFile(idx)}
-              size="small"
-            />
-          ))}
+          {pendingFiles.map((f, idx) => {
+            const isImage = f.type?.startsWith("image/");
+            const previewUrl = filePreviews[idx];
+
+            if (isImage && previewUrl) {
+              // Preview ảnh với thumbnail
+              return (
+                <Box
+                  key={idx}
+                  sx={{
+                    position: "relative",
+                    width: 100,
+                    height: 100,
+                    borderRadius: 1,
+                    overflow: "hidden",
+                    border: `1px solid ${theme.palette.divider}`,
+                  }}
+                >
+                  <img
+                    src={previewUrl}
+                    alt={f.name}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                  <IconButton
+                    size="small"
+                    onClick={() => removePendingFile(idx)}
+                    sx={{
+                      position: "absolute",
+                      top: 2,
+                      right: 2,
+                      backgroundColor: "rgba(0,0,0,0.6)",
+                      color: "#fff",
+                      "&:hover": {
+                        backgroundColor: "rgba(0,0,0,0.8)",
+                      },
+                      padding: "4px",
+                    }}
+                  >
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      backgroundColor: "rgba(0,0,0,0.6)",
+                      color: "#fff",
+                      px: 0.5,
+                      py: 0.25,
+                      fontSize: "0.7rem",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {f.name}
+                  </Box>
+                </Box>
+              );
+            }
+
+            // File không phải ảnh - hiển thị Chip
+            return (
+              <Chip
+                key={idx}
+                label={f.name}
+                onDelete={() => removePendingFile(idx)}
+                size="small"
+              />
+            );
+          })}
         </Box>
       )}
     </Box>
