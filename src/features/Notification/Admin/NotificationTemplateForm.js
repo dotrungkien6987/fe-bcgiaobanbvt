@@ -24,11 +24,23 @@ import {
   Typography,
   Box,
   Divider,
+  InputAdornment,
 } from "@mui/material";
-import { useForm } from "react-hook-form";
+import {
+  NotificationsOutlined as NotificationIcon,
+  CheckCircleOutlined as CheckIcon,
+  WarningAmberOutlined as WarningIcon,
+  InfoOutlined as InfoIcon,
+  ErrorOutlineOutlined as ErrorIcon,
+  AssignmentOutlined as TaskIcon,
+  AssessmentOutlined as KPIIcon,
+  DescriptionOutlined as TicketIcon,
+  SystemUpdateAltOutlined as SystemIcon,
+} from "@mui/icons-material";
+import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
-import { FormProvider, FTextField, FSelect } from "../../../components/form";
+import { FormProvider, FTextField } from "../../../components/form";
 import { createTemplate, updateTemplate } from "./notificationTemplateSlice";
 
 // Validation schema
@@ -71,7 +83,7 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
     defaultValues,
   });
 
-  const { handleSubmit, reset, watch, setValue } = methods;
+  const { handleSubmit, reset, watch, setValue, control } = methods;
   const bodyTemplate = watch("bodyTemplate");
   const titleTemplate = watch("titleTemplate");
   const actionUrlTemplate = watch("actionUrlTemplate");
@@ -165,22 +177,120 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
             </Grid>
 
             <Grid item xs={12} md={4}>
-              <FSelect name="category" label="Category">
-                <MenuItem value="task">Công việc (task)</MenuItem>
-                <MenuItem value="kpi">KPI</MenuItem>
-                <MenuItem value="ticket">Yêu cầu (ticket)</MenuItem>
-                <MenuItem value="system">Hệ thống</MenuItem>
-                <MenuItem value="other">Khác</MenuItem>
-              </FSelect>
+              <Controller
+                name="category"
+                control={control}
+                render={({ field, fieldState: { error } }) => (
+                  <FTextField
+                    {...field}
+                    select
+                    label="Category"
+                    error={!!error}
+                    helperText={error?.message}
+                  >
+                    <MenuItem value="task">📋 Công việc (task)</MenuItem>
+                    <MenuItem value="kpi">📊 KPI</MenuItem>
+                    <MenuItem value="ticket">🎫 Yêu cầu (ticket)</MenuItem>
+                    <MenuItem value="system">⚙️ Hệ thống</MenuItem>
+                    <MenuItem value="other">📦 Khác</MenuItem>
+                  </FTextField>
+                )}
+              />
             </Grid>
             <Grid item xs={12} md={4}>
-              <FTextField name="icon" label="Icon" placeholder="notification" />
+              <Controller
+                name="icon"
+                control={control}
+                render={({ field, fieldState: { error } }) => (
+                  <FTextField
+                    {...field}
+                    select
+                    label="Icon"
+                    error={!!error}
+                    helperText={error?.message}
+                    InputProps={{
+                      startAdornment: field.value && (
+                        <InputAdornment position="start">
+                          {getIconComponent(field.value)}
+                        </InputAdornment>
+                      ),
+                    }}
+                  >
+                    <MenuItem value="notification">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <NotificationIcon fontSize="small" />
+                        <Typography>Notification</Typography>
+                      </Stack>
+                    </MenuItem>
+                    <MenuItem value="check">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <CheckIcon fontSize="small" />
+                        <Typography>Check</Typography>
+                      </Stack>
+                    </MenuItem>
+                    <MenuItem value="warning">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <WarningIcon fontSize="small" />
+                        <Typography>Warning</Typography>
+                      </Stack>
+                    </MenuItem>
+                    <MenuItem value="info">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <InfoIcon fontSize="small" />
+                        <Typography>Info</Typography>
+                      </Stack>
+                    </MenuItem>
+                    <MenuItem value="error">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <ErrorIcon fontSize="small" />
+                        <Typography>Error</Typography>
+                      </Stack>
+                    </MenuItem>
+                    <MenuItem value="task">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <TaskIcon fontSize="small" />
+                        <Typography>Task</Typography>
+                      </Stack>
+                    </MenuItem>
+                    <MenuItem value="kpi">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <KPIIcon fontSize="small" />
+                        <Typography>KPI</Typography>
+                      </Stack>
+                    </MenuItem>
+                    <MenuItem value="ticket">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <TicketIcon fontSize="small" />
+                        <Typography>Ticket</Typography>
+                      </Stack>
+                    </MenuItem>
+                    <MenuItem value="system">
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <SystemIcon fontSize="small" />
+                        <Typography>System</Typography>
+                      </Stack>
+                    </MenuItem>
+                  </FTextField>
+                )}
+              />
             </Grid>
             <Grid item xs={12} md={4}>
-              <FSelect name="defaultPriority" label="Priority mặc định">
-                <MenuItem value="normal">Normal</MenuItem>
-                <MenuItem value="urgent">Urgent</MenuItem>
-              </FSelect>
+              <Controller
+                name="defaultPriority"
+                control={control}
+                render={({ field, fieldState: { error } }) => (
+                  <FTextField
+                    {...field}
+                    select
+                    label="Priority mặc định"
+                    error={!!error}
+                    helperText={error?.message}
+                  >
+                    <MenuItem value="normal">🟢 Normal</MenuItem>
+                    <MenuItem value="urgent">🔴 Urgent</MenuItem>
+                  </FTextField>
+                )}
+              />
             </Grid>
 
             <Grid item xs={12}>
@@ -241,6 +351,22 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
       </FormProvider>
     </Dialog>
   );
+}
+
+// Helper function to get icon component by name
+function getIconComponent(iconName) {
+  const iconMap = {
+    notification: <NotificationIcon fontSize="small" />,
+    check: <CheckIcon fontSize="small" />,
+    warning: <WarningIcon fontSize="small" />,
+    info: <InfoIcon fontSize="small" />,
+    error: <ErrorIcon fontSize="small" />,
+    task: <TaskIcon fontSize="small" />,
+    kpi: <KPIIcon fontSize="small" />,
+    ticket: <TicketIcon fontSize="small" />,
+    system: <SystemIcon fontSize="small" />,
+  };
+  return iconMap[iconName] || <NotificationIcon fontSize="small" />;
 }
 
 export default NotificationTemplateForm;

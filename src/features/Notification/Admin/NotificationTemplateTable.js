@@ -38,6 +38,15 @@ import {
   Delete as DeleteIcon,
   Warning as WarningIcon,
   Refresh as RefreshIcon,
+  NotificationsOutlined as NotificationIcon,
+  CheckCircleOutlined as CheckIcon,
+  WarningAmberOutlined as WarningAmberIcon,
+  InfoOutlined as InfoIcon,
+  ErrorOutlineOutlined as ErrorIcon,
+  AssignmentOutlined as TaskIcon,
+  AssessmentOutlined as KPIIcon,
+  DescriptionOutlined as TicketIcon,
+  SystemUpdateAltOutlined as SystemIcon,
 } from "@mui/icons-material";
 import {
   getTemplates,
@@ -170,7 +179,7 @@ function NotificationTemplateTable({ onEdit, onTest }) {
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f5f5f5" }}>
               <TableCell>Type</TableCell>
-              <TableCell>Tên</TableCell>
+              <TableCell>Tên</TableCell> <TableCell>Icon</TableCell>{" "}
               <TableCell>Category</TableCell>
               <TableCell>Priority</TableCell>
               <TableCell>Sử dụng</TableCell>
@@ -202,6 +211,13 @@ function NotificationTemplateTable({ onEdit, onTest }) {
                   </Stack>
                 </TableCell>
                 <TableCell>{template.name}</TableCell>
+                <TableCell>
+                  <Tooltip title={template.icon || "notification"}>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      {getIconComponent(template.icon)}
+                    </Box>
+                  </Tooltip>
+                </TableCell>
                 <TableCell>
                   <Chip
                     label={template.category || "other"}
@@ -265,7 +281,7 @@ function NotificationTemplateTable({ onEdit, onTest }) {
             ))}
             {templates.length === 0 && !isLoading && (
               <TableRow>
-                <TableCell colSpan={7} align="center">
+                <TableCell colSpan={8} align="center">
                   <Typography color="text.secondary" py={3}>
                     Không có template nào
                   </Typography>
@@ -288,6 +304,24 @@ function NotificationTemplateTable({ onEdit, onTest }) {
         labelRowsPerPage="Số hàng:"
       />
     </Card>
+  );
+}
+
+// Helper function to get icon component by name
+function getIconComponent(iconName) {
+  const iconMap = {
+    notification: <NotificationIcon fontSize="small" color="action" />,
+    check: <CheckIcon fontSize="small" color="success" />,
+    warning: <WarningAmberIcon fontSize="small" color="warning" />,
+    info: <InfoIcon fontSize="small" color="info" />,
+    error: <ErrorIcon fontSize="small" color="error" />,
+    task: <TaskIcon fontSize="small" color="primary" />,
+    kpi: <KPIIcon fontSize="small" color="secondary" />,
+    ticket: <TicketIcon fontSize="small" color="primary" />,
+    system: <SystemIcon fontSize="small" color="action" />,
+  };
+  return (
+    iconMap[iconName] || <NotificationIcon fontSize="small" color="action" />
   );
 }
 

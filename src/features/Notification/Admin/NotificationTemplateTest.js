@@ -22,8 +22,17 @@ import {
   Box,
   Divider,
   Alert,
+  FormControlLabel,
+  Switch,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
-import { Send as SendIcon } from "@mui/icons-material";
+import {
+  Send as SendIcon,
+  Visibility as PreviewIcon,
+} from "@mui/icons-material";
 import { testTemplate } from "./notificationTemplateSlice";
 
 /**
@@ -37,6 +46,8 @@ function NotificationTemplateTest({ open, onClose, template }) {
   const [testData, setTestData] = useState({});
   const [preview, setPreview] = useState({ title: "", body: "" });
   const [sending, setSending] = useState(false);
+  const [dryRun, setDryRun] = useState(true);
+  const [recipientId, setRecipientId] = useState("self");
 
   // Initialize test data from requiredVariables
   useEffect(() => {
@@ -71,8 +82,17 @@ function NotificationTemplateTest({ open, onClose, template }) {
   const handleSendTest = async () => {
     setSending(true);
     try {
-      await dispatch(testTemplate(template._id, testData));
-      onClose();
+      await dispatch(
+        testTemplate({
+          id: template._id,
+          data: testData,
+          dryRun,
+          recipientId: recipientId === "self" ? null : recipientId,
+        })
+      );
+      if (!dryRun) {
+        onClose();
+      }
     } finally {
       setSending(false);
     }
@@ -86,9 +106,45 @@ function NotificationTemplateTest({ open, onClose, template }) {
 
       <DialogContent dividers>
         <Stack spacing={2}>
-          <Alert severity="info">
-            Notification test sẽ được gửi đến tài khoản của bạn.
+          <Alert severity={dryRun ? "info" : "warning"}>
+            {dryRun
+              ? "🔍 Dry Run mode: Chỉ xem preview, không gửi thật"
+              : "⚠️ Live mode: Sẽ gửi notification thật vào hệ thống"}
           </Alert>
+
+          {/* Test Mode Controls */}
+          <Stack spacing={1.5}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={dryRun}
+                  onChange={(e) => setDryRun(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  Dry Run (chỉ xem preview, không lưu DB)
+                </Typography>
+              }
+            />
+
+            {!dryRun && (
+              <FormControl size="small" fullWidth>
+                <InputLabel>Gửi đến</InputLabel>
+                <Select
+                  value={recipientId}
+                  onChange={(e) => setRecipientId(e.target.value)}
+                  label="Gửi đến"
+                >
+                  <MenuItem value="self">👤 Chính tôi</MenuItem>
+                  {/* TODO: Load users from API if needed */}
+                </Select>
+              </FormControl>
+            )}
+          </Stack>
+
+          <Divider />
 
           {/* Test Variables */}
           {template.requiredVariables?.length > 0 && (
@@ -128,14 +184,15 @@ function NotificationTemplateTest({ open, onClose, template }) {
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>Hủy</Button>
+        <Button onClick={onClose}>Đóng</Button>
         <Button
           variant="contained"
-          startIcon={<SendIcon />}
+          color={dryRun ? "info" : "primary"}
+          startIcon={dryRun ? <PreviewIcon /> : <SendIcon />}
           onClick={handleSendTest}
           disabled={sending}
         >
-          {sending ? "Đang gửi..." : "Gửi Test"}
+          {sending ? "Đang xử lý..." : dryRun ? "Preview" : "Gửi Test"}
         </Button>
       </DialogActions>
     </Dialog>

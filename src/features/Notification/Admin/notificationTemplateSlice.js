@@ -214,12 +214,31 @@ export const deleteTemplate = (id) => async (dispatch) => {
  */
 export const testTemplate = (id, testData) => async () => {
   try {
+    // Accept either old signature (id, testData) or new signature ({ id, data, dryRun, recipientId })
+    let requestId, requestBody;
+    if (typeof id === "object") {
+      // New signature
+      const { id: templateId, data, dryRun = true, recipientId } = id;
+      requestId = templateId;
+      requestBody = { data, dryRun, recipientId };
+    } else {
+      // Old signature (backward compatible)
+      requestId = id;
+      requestBody = { data: testData, dryRun: true };
+    }
+
     const response = await apiService.post(
-      `/notification-templates/${id}/test`,
-      { data: testData }
+      `/notification-templates/${requestId}/test`,
+      requestBody
     );
-    toast.success("Đã gửi notification test!");
-    return response.data.data;
+
+    const result = response.data.data;
+    if (result.sent) {
+      toast.success("Đã gửi notification test!");
+    } else {
+      toast.info("Preview thành công (chưa gửi thật)");
+    }
+    return result;
   } catch (error) {
     toast.error(error.message || "Lỗi test template");
     throw error;
