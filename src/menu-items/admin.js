@@ -49,6 +49,13 @@ const admin = {
       ],
     },
     {
+      id: "notification-types",
+      title: "Quản lý loại thông báo",
+      type: "item",
+      icon: icons.maintenance,
+      url: "/admin/notification-types",
+    },
+    {
       id: "notification-templates",
       title: "Quản lý mẫu thông báo",
       type: "item",

@@ -9,7 +9,7 @@
  * - Per-type notification settings (in-app and push)
  */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   Box,
   Card,
@@ -23,7 +23,12 @@ import {
   Skeleton,
   Alert,
   Container,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Chip,
 } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useSelector, useDispatch } from "react-redux";
 import {
   getNotificationSettings,
@@ -39,6 +44,25 @@ function NotificationSettings() {
   const { settings, availableTypes, isLoading, error } = useSelector(
     (state) => state.notification
   );
+
+  // Group types by Nhom
+  const typesByNhom = useMemo(() => {
+    if (!availableTypes) return {};
+    return availableTypes.reduce((acc, type) => {
+      const nhom = type.Nhom || "Khác";
+      if (!acc[nhom]) acc[nhom] = [];
+      acc[nhom].push(type);
+      return acc;
+    }, {});
+  }, [availableTypes]);
+
+  const nhomOrder = ["Công việc", "Yêu cầu", "KPI", "Hệ thống", "Khác"];
+  const nhomColors = {
+    "Công việc": "primary",
+    "Yêu cầu": "secondary",
+    KPI: "success",
+    "Hệ thống": "info",
+  };
 
   // Fetch settings on mount
   useEffect(() => {
@@ -212,7 +236,7 @@ function NotificationSettings() {
         </CardContent>
       </Card>
 
-      {/* Per-Type Settings */}
+      {/* Per-Type Settings - Grouped by Nhom */}
       {availableTypes && availableTypes.length > 0 && (
         <Card>
           <CardContent>
@@ -220,51 +244,92 @@ function NotificationSettings() {
               Cài đặt theo loại thông báo
             </Typography>
 
-            {availableTypes.map((type, index) => {
-              const prefs = settings.typePreferences?.[type.type] || {
-                inapp: true,
-                push: true,
-              };
+            {nhomOrder.map((nhom) => {
+              const types = typesByNhom[nhom];
+              if (!types || types.length === 0) return null;
 
               return (
-                <React.Fragment key={type.type}>
-                  {index > 0 && <Divider sx={{ my: 2 }} />}
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight="medium">
-                      {type.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {type.description}
-                    </Typography>
-                    <Box sx={{ display: "flex", gap: 3, mt: 1 }}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            size="small"
-                            checked={prefs.inapp}
-                            onChange={handleTypeToggle(type.type, "inapp")}
-                            disabled={!settings.enableNotifications}
-                          />
-                        }
-                        label="In-app"
+                <Accordion key={nhom} defaultExpanded={nhom === "Công việc"}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        width: "100%",
+                      }}
+                    >
+                      <Chip
+                        label={nhom}
+                        size="small"
+                        color={nhomColors[nhom] || "default"}
                       />
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            size="small"
-                            checked={prefs.push}
-                            onChange={handleTypeToggle(type.type, "push")}
-                            disabled={
-                              !settings.enableNotifications ||
-                              !settings.enablePush
-                            }
-                          />
-                        }
-                        label="Push"
-                      />
+                      <Typography variant="subtitle2">
+                        ({types.length} loại)
+                      </Typography>
                     </Box>
-                  </Box>
-                </React.Fragment>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    {types.map((type, index) => {
+                      const prefs = settings.typePreferences?.[type.type] || {
+                        inapp: true,
+                        push: true,
+                      };
+
+                      return (
+                        <React.Fragment key={type.type}>
+                          {index > 0 && <Divider sx={{ my: 2 }} />}
+                          <Box>
+                            <Typography variant="subtitle2" fontWeight="medium">
+                              {type.name}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              display="block"
+                              gutterBottom
+                            >
+                              {type.description || type.type}
+                            </Typography>
+                            <Box sx={{ display: "flex", gap: 3, mt: 1 }}>
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    size="small"
+                                    checked={prefs.inapp}
+                                    onChange={handleTypeToggle(
+                                      type.type,
+                                      "inapp"
+                                    )}
+                                    disabled={!settings.enableNotifications}
+                                  />
+                                }
+                                label="In-app"
+                              />
+                              <FormControlLabel
+                                control={
+                                  <Switch
+                                    size="small"
+                                    checked={prefs.push}
+                                    onChange={handleTypeToggle(
+                                      type.type,
+                                      "push"
+                                    )}
+                                    disabled={
+                                      !settings.enableNotifications ||
+                                      !settings.enablePush
+                                    }
+                                  />
+                                }
+                                label="Push"
+                              />
+                            </Box>
+                          </Box>
+                        </React.Fragment>
+                      );
+                    })}
+                  </AccordionDetails>
+                </Accordion>
               );
             })}
           </CardContent>

@@ -109,16 +109,16 @@
 
 ### NotificationTemplate APIs (Admin)
 
-|  Method  | Endpoint                                   | Description                  | Auth  |
-| :------: | ------------------------------------------ | ---------------------------- | :---: |
-|  `GET`   | `/api/notification-templates`              | Lấy danh sách templates      | Admin |
-|  `GET`   | `/api/notification-templates/:id`          | Chi tiết 1 template          | Admin |
-|  `POST`  | `/api/notification-templates`              | Tạo template mới             | Admin |
-|  `PUT`   | `/api/notification-templates/:id`          | Cập nhật template            | Admin |
-| `DELETE` | `/api/notification-templates/:id`          | Xóa template (soft delete)   | Admin |
-|  `PUT`   | `/api/notification-templates/:id/toggle`   | Bật/tắt template             | Admin |
-|  `POST`  | `/api/notification-templates/:id/test`     | Gửi test notification        | Admin |
-|  `GET`   | `/api/notification-templates/auto-created` | Lấy templates cần config lại | Admin |
+|  Method  | Endpoint                                                  | Description                                              | Auth  |
+| :------: | --------------------------------------------------------- | -------------------------------------------------------- | :---: |
+|  `GET`   | `/api/workmanagement/notifications/templates`             | Lấy danh sách templates (filter `typeCode`, `isEnabled`) | Admin |
+|  `GET`   | `/api/workmanagement/notifications/templates/:id`         | Chi tiết 1 template                                      | Admin |
+|  `POST`  | `/api/workmanagement/notifications/templates`             | Tạo template mới                                         | Admin |
+|  `PUT`   | `/api/workmanagement/notifications/templates/:id`         | Cập nhật template                                        | Admin |
+| `DELETE` | `/api/workmanagement/notifications/templates/:id`         | Xóa template (soft delete: `isEnabled=false`)            | Admin |
+|  `POST`  | `/api/workmanagement/notifications/templates/:id/preview` | Preview render template                                  | Admin |
+|  `POST`  | `/api/workmanagement/notifications/test-send`             | Gửi test notification (thực gửi)                         | Admin |
+|  `POST`  | `/api/workmanagement/notifications/clear-cache`           | Xóa cache types/templates                                | Admin |
 
 ---
 

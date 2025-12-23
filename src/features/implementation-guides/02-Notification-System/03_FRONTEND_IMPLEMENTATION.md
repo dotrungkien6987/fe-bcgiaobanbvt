@@ -1881,7 +1881,7 @@ const slice = createSlice({
     },
     deleteTemplateSuccess(state, action) {
       state.isLoading = false;
-      // Soft delete just updates isActive
+      // Soft delete just updates isEnabled
       const index = state.templates.findIndex(
         (t) => t._id === action.payload._id
       );
@@ -1891,10 +1891,6 @@ const slice = createSlice({
     },
     setFilters(state, action) {
       state.filters = { ...state.filters, ...action.payload };
-    },
-    getStatsSuccess(state, action) {
-      state.isLoading = false;
-      state.stats = action.payload;
     },
     clearSelectedTemplate(state) {
       state.selectedTemplate = null;
@@ -1925,9 +1921,12 @@ export const getTemplates =
         }
       });
 
-      const response = await apiService.get("/notification-templates", {
-        params: queryParams,
-      });
+      const response = await apiService.get(
+        "/workmanagement/notifications/templates",
+        {
+          params: queryParams,
+        }
+      );
       dispatch(slice.actions.getTemplatesSuccess(response.data.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
@@ -1938,7 +1937,9 @@ export const getTemplates =
 export const getTemplate = (id) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    const response = await apiService.get(`/notification-templates/${id}`);
+    const response = await apiService.get(
+      `/workmanagement/notifications/templates/${id}`
+    );
     dispatch(slice.actions.getTemplateSuccess(response.data.data));
     return response.data.data;
   } catch (error) {
@@ -1950,7 +1951,10 @@ export const getTemplate = (id) => async (dispatch) => {
 export const createTemplate = (data) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    const response = await apiService.post("/notification-templates", data);
+    const response = await apiService.post(
+      "/workmanagement/notifications/templates",
+      data
+    );
     dispatch(slice.actions.createTemplateSuccess(response.data.data));
     toast.success("Tạo template thành công");
     return response.data.data;
@@ -1965,7 +1969,7 @@ export const updateTemplate = (id, data) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
     const response = await apiService.put(
-      `/notification-templates/${id}`,
+      `/workmanagement/notifications/templates/${id}`,
       data
     );
     dispatch(slice.actions.updateTemplateSuccess(response.data.data));
@@ -1981,7 +1985,9 @@ export const updateTemplate = (id, data) => async (dispatch) => {
 export const deleteTemplate = (id) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    const response = await apiService.delete(`/notification-templates/${id}`);
+    const response = await apiService.delete(
+      `/workmanagement/notifications/templates/${id}`
+    );
     dispatch(slice.actions.deleteTemplateSuccess(response.data.data));
     toast.success("Đã vô hiệu hóa template");
   } catch (error) {
@@ -1994,24 +2000,14 @@ export const deleteTemplate = (id) => async (dispatch) => {
 export const testTemplate = (id, testData) => async (dispatch) => {
   try {
     const response = await apiService.post(
-      `/notification-templates/${id}/test`,
+      `/workmanagement/notifications/templates/${id}/preview`,
       { data: testData }
     );
-    toast.success("Đã gửi notification test!");
+    toast.success("Preview template thành công!");
     return response.data.data;
   } catch (error) {
     toast.error(error.message || "Lỗi test template");
     throw error;
-  }
-};
-
-export const getStats = () => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
-  try {
-    const response = await apiService.get("/notification-templates/stats");
-    dispatch(slice.actions.getStatsSuccess(response.data.data));
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
   }
 };
 

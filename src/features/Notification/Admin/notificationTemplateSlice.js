@@ -1,12 +1,6 @@
 /**
  * Notification Template Redux Slice (Admin)
- * Manages notification templates for admin CRUD operations
- *
- * Features:
- * - List/search/filter templates
- * - Create/update/delete templates
- * - Test template notifications
- * - Statistics overview
+ * CRUD for notification templates via unified workmanagement endpoints
  */
 
 import { createSlice } from "@reduxjs/toolkit";
@@ -17,24 +11,12 @@ const initialState = {
   isLoading: false,
   error: null,
   templates: [],
-  selectedTemplate: null,
-  pagination: {
-    page: 1,
-    limit: 20,
-    total: 0,
-    totalPages: 0,
-  },
-  stats: {
-    total: 0,
-    autoCreated: 0,
-    inactive: 0,
-    byCategory: {},
-    mostUsed: [],
-  },
+  total: 0,
   filters: {
-    category: "",
-    isAutoCreated: "",
+    typeCode: "",
+    isEnabled: "",
     search: "",
+    Nhom: "",
   },
 };
 
@@ -52,22 +34,17 @@ const slice = createSlice({
     getTemplatesSuccess(state, action) {
       state.isLoading = false;
       state.templates = action.payload.templates;
-      state.pagination = action.payload.pagination;
-      if (action.payload.stats) {
-        state.stats = {
-          ...state.stats,
-          ...action.payload.stats,
-        };
-      }
-    },
-    getTemplateSuccess(state, action) {
-      state.isLoading = false;
-      state.selectedTemplate = action.payload;
+      state.total =
+        action.payload.total || action.payload.templates?.length || 0;
     },
     createTemplateSuccess(state, action) {
       state.isLoading = false;
-      state.templates.unshift(action.payload);
-      state.stats.total += 1;
+      state.templates = [action.payload, ...state.templates].sort((a, b) => {
+        const aKey = `${a.typeCode || ""}::${a.name || ""}`;
+        const bKey = `${b.typeCode || ""}::${b.name || ""}`;
+        return aKey.localeCompare(bKey);
+      });
+      state.total += 1;
     },
     updateTemplateSuccess(state, action) {
       state.isLoading = false;
@@ -77,13 +54,15 @@ const slice = createSlice({
       if (index !== -1) {
         state.templates[index] = action.payload;
       }
-      if (state.selectedTemplate?._id === action.payload._id) {
-        state.selectedTemplate = action.payload;
-      }
+      state.templates = [...state.templates].sort((a, b) => {
+        const aKey = `${a.typeCode || ""}::${a.name || ""}`;
+        const bKey = `${b.typeCode || ""}::${b.name || ""}`;
+        return aKey.localeCompare(bKey);
+      });
     },
     deleteTemplateSuccess(state, action) {
       state.isLoading = false;
-      // Soft delete just updates isActive
+      // Soft delete just updates isEnabled
       const index = state.templates.findIndex(
         (t) => t._id === action.payload._id
       );
@@ -94,13 +73,6 @@ const slice = createSlice({
     setFilters(state, action) {
       state.filters = { ...state.filters, ...action.payload };
     },
-    getStatsSuccess(state, action) {
-      state.isLoading = false;
-      state.stats = action.payload;
-    },
-    clearSelectedTemplate(state) {
-      state.selectedTemplate = null;
-    },
   },
 });
 
@@ -109,17 +81,15 @@ export default slice.reducer;
 // ============ THUNKS ============
 
 /**
- * Get templates with pagination and filters
+ * Get templates with filters
  */
 export const getTemplates =
   (params = {}) =>
   async (dispatch, getState) => {
     dispatch(slice.actions.startLoading());
     try {
-      const { filters, pagination } = getState().notificationTemplate;
+      const { filters } = getState().notificationTemplate;
       const queryParams = {
-        page: params.page || pagination.page,
-        limit: params.limit || pagination.limit,
         ...filters,
         ...params,
       };
@@ -131,10 +101,30 @@ export const getTemplates =
         }
       });
 
-      const response = await apiService.get("/notification-templates", {
-        params: queryParams,
-      });
-      dispatch(slice.actions.getTemplatesSuccess(response.data.data));
+      const response = await apiService.get(
+        "/workmanagement/notifications/templates",
+        {
+          params: queryParams,
+        }
+      );
+
+      const data = response.data.data;
+      const templatesRaw = data.templates || [];
+      const search = (queryParams.search || "").trim().toLowerCase();
+      const templates = search
+        ? templatesRaw.filter((t) => {
+            const typeCode = (t.typeCode || "").toLowerCase();
+            const name = (t.name || "").toLowerCase();
+            return typeCode.includes(search) || name.includes(search);
+          })
+        : templatesRaw;
+
+      dispatch(
+        slice.actions.getTemplatesSuccess({
+          templates,
+          total: templates.length,
+        })
+      );
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message || "Lỗi tải danh sách templates");
@@ -142,30 +132,18 @@ export const getTemplates =
   };
 
 /**
- * Get single template by ID
- */
-export const getTemplate = (id) => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
-  try {
-    const response = await apiService.get(`/notification-templates/${id}`);
-    dispatch(slice.actions.getTemplateSuccess(response.data.data));
-    return response.data.data;
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message || "Lỗi tải template");
-  }
-};
-
-/**
  * Create new template
  */
 export const createTemplate = (data) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    const response = await apiService.post("/notification-templates", data);
-    dispatch(slice.actions.createTemplateSuccess(response.data.data));
+    const response = await apiService.post(
+      "/workmanagement/notifications/templates",
+      data
+    );
+    dispatch(slice.actions.createTemplateSuccess(response.data.data.template));
     toast.success("Tạo template thành công");
-    return response.data.data;
+    return response.data.data.template;
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message || "Lỗi tạo template");
@@ -180,12 +158,12 @@ export const updateTemplate = (id, data) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
     const response = await apiService.put(
-      `/notification-templates/${id}`,
+      `/workmanagement/notifications/templates/${id}`,
       data
     );
-    dispatch(slice.actions.updateTemplateSuccess(response.data.data));
+    dispatch(slice.actions.updateTemplateSuccess(response.data.data.template));
     toast.success("Cập nhật template thành công");
-    return response.data.data;
+    return response.data.data.template;
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message || "Lỗi cập nhật template");
@@ -199,8 +177,10 @@ export const updateTemplate = (id, data) => async (dispatch) => {
 export const deleteTemplate = (id) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    const response = await apiService.delete(`/notification-templates/${id}`);
-    dispatch(slice.actions.deleteTemplateSuccess(response.data.data));
+    const response = await apiService.delete(
+      `/workmanagement/notifications/templates/${id}`
+    );
+    dispatch(slice.actions.deleteTemplateSuccess(response.data.data.template));
     toast.success("Đã vô hiệu hóa template");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
@@ -210,51 +190,38 @@ export const deleteTemplate = (id) => async (dispatch) => {
 };
 
 /**
- * Send test notification using template
+ * Preview template with sample data
  */
-export const testTemplate = (id, testData) => async () => {
+export const previewTemplate = (id, data) => async () => {
   try {
-    // Accept either old signature (id, testData) or new signature ({ id, data, dryRun, recipientId })
-    let requestId, requestBody;
-    if (typeof id === "object") {
-      // New signature
-      const { id: templateId, data, dryRun = true, recipientId } = id;
-      requestId = templateId;
-      requestBody = { data, dryRun, recipientId };
-    } else {
-      // Old signature (backward compatible)
-      requestId = id;
-      requestBody = { data: testData, dryRun: true };
-    }
-
     const response = await apiService.post(
-      `/notification-templates/${requestId}/test`,
-      requestBody
+      `/workmanagement/notifications/templates/${id}/preview`,
+      { data: data || {} }
     );
-
-    const result = response.data.data;
-    if (result.sent) {
-      toast.success("Đã gửi notification test!");
-    } else {
-      toast.info("Preview thành công (chưa gửi thật)");
-    }
-    return result;
+    return response.data.data;
   } catch (error) {
-    toast.error(error.message || "Lỗi test template");
+    toast.error(error.message || "Lỗi preview template");
     throw error;
   }
 };
 
 /**
- * Get template statistics
+ * Test-send notification (real send) using type + data
  */
-export const getStats = () => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
+export const testSendNotification = (typeCode, data) => async () => {
   try {
-    const response = await apiService.get("/notification-templates/stats");
-    dispatch(slice.actions.getStatsSuccess(response.data.data));
+    const response = await apiService.post(
+      "/workmanagement/notifications/test-send",
+      {
+        type: typeCode,
+        data: data || {},
+      }
+    );
+    toast.success("Đã gửi notification test!");
+    return response.data.data;
   } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message || "Lỗi gửi notification test");
+    throw error;
   }
 };
 
@@ -263,12 +230,5 @@ export const getStats = () => async (dispatch) => {
  */
 export const setFilters = (filters) => (dispatch) => {
   dispatch(slice.actions.setFilters(filters));
-  dispatch(getTemplates({ page: 1 }));
-};
-
-/**
- * Clear selected template
- */
-export const clearSelectedTemplate = () => (dispatch) => {
-  dispatch(slice.actions.clearSelectedTemplate());
+  dispatch(getTemplates());
 };

@@ -1058,23 +1058,27 @@ module.exports = mongoose.model(
 
 ### 🔧 Admin API Endpoints (NotificationTemplate Management)
 
-**Base URL:** `/api/notification-templates`
+**Base URL:** `/api/workmanagement/notifications/templates`
 
 **⚠️ Required Permission:** Admin role (`PhanQuyen >= 3`)
 
-| Method | Endpoint    | Description                          |
-| ------ | ----------- | ------------------------------------ |
-| GET    | `/`         | Lấy danh sách templates (có filter)  |
-| GET    | `/:id`      | Lấy chi tiết 1 template              |
-| POST   | `/`         | Tạo template mới                     |
-| PUT    | `/:id`      | Cập nhật template                    |
-| DELETE | `/:id`      | Soft delete (isActive = false)       |
-| POST   | `/:id/test` | Gửi notification test đến chính mình |
-| GET    | `/stats`    | Thống kê templates                   |
+| Method | Endpoint       | Description                                                   |
+| ------ | -------------- | ------------------------------------------------------------- |
+| GET    | `/`            | Lấy danh sách templates (filter theo `typeCode`, `isEnabled`) |
+| GET    | `/:id`         | Lấy chi tiết 1 template                                       |
+| POST   | `/`            | Tạo template mới                                              |
+| PUT    | `/:id`         | Cập nhật template                                             |
+| DELETE | `/:id`         | Soft delete (isEnabled = false)                               |
+| POST   | `/:id/preview` | Preview render template với sample data                       |
+
+**Admin Tools:**
+
+- `POST /api/workmanagement/notifications/test-send` (thực gửi)
+- `POST /api/workmanagement/notifications/clear-cache`
 
 #### Admin API Details
 
-##### 1. GET `/api/notification-templates`
+##### 1. GET `/api/workmanagement/notifications/templates`
 
 **Query params:**
 
@@ -1118,7 +1122,7 @@ module.exports = mongoose.model(
 }
 ```
 
-##### 2. POST `/api/notification-templates`
+##### 2. POST `/api/workmanagement/notifications/templates`
 
 **Request body:**
 
@@ -1138,7 +1142,7 @@ module.exports = mongoose.model(
 }
 ```
 
-##### 3. PUT `/api/notification-templates/:id`
+##### 3. PUT `/api/workmanagement/notifications/templates/:id`
 
 **Request body:** (Partial update - only fields to change)
 
@@ -1152,9 +1156,9 @@ module.exports = mongoose.model(
 
 **Note:** Khi update một template `isAutoCreated: true`, Admin nên set `isAutoCreated: false` để đánh dấu đã được cấu hình.
 
-##### 4. POST `/api/notification-templates/:id/test`
+##### 4. POST `/api/workmanagement/notifications/templates/:id/preview`
 
-**Request body:** (Optional test data)
+**Request body:** (Optional sample data)
 
 ```json
 {
@@ -1171,16 +1175,17 @@ module.exports = mongoose.model(
 ```json
 {
   "success": true,
-  "message": "Đã gửi notification test",
+  "message": "Preview template thành công",
   "data": {
-    "renderedTitle": "Công việc mới",
-    "renderedBody": "Nguyễn Văn Test đã giao cho bạn: Công việc test",
-    "sentTo": "current_user_id"
+    "preview": {
+      "title": "Công việc mới",
+      "body": "Nguyễn Văn Test đã giao cho bạn: Công việc test"
+    }
   }
 }
 ```
 
-##### 5. GET `/api/notification-templates/stats`
+##### 5. POST `/api/workmanagement/notifications/test-send`
 
 **Response:**
 
@@ -1188,20 +1193,11 @@ module.exports = mongoose.model(
 {
   "success": true,
   "data": {
-    "total": 15,
-    "byCategory": {
-      "task": 5,
-      "kpi": 3,
-      "ticket": 3,
-      "system": 2,
-      "other": 2
-    },
-    "autoCreated": 3,
-    "inactive": 1,
-    "mostUsed": [
-      { "type": "TASK_ASSIGNED", "usageCount": 1500 },
-      { "type": "COMMENT_ADDED", "usageCount": 800 }
-    ]
+    "result": {
+      "success": true,
+      "sent": 1,
+      "failed": 0
+    }
   }
 }
 ```

@@ -4,8 +4,8 @@
  *
  * Features:
  * - Input test values for variables
- * - Live preview of rendered notification
- * - Send test notification to self
+ * - Preview rendered notification via backend
+ * - Test-send notification via backend (real send)
  */
 
 import React, { useState, useEffect } from "react";
@@ -22,18 +22,15 @@ import {
   Box,
   Divider,
   Alert,
-  FormControlLabel,
-  Switch,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from "@mui/material";
 import {
   Send as SendIcon,
   Visibility as PreviewIcon,
 } from "@mui/icons-material";
-import { testTemplate } from "./notificationTemplateSlice";
+import {
+  previewTemplate,
+  testSendNotification,
+} from "./notificationTemplateSlice";
 
 /**
  * NotificationTemplateTest - Test notification dialog
@@ -45,56 +42,51 @@ function NotificationTemplateTest({ open, onClose, template }) {
   const dispatch = useDispatch();
   const [testData, setTestData] = useState({});
   const [preview, setPreview] = useState({ title: "", body: "" });
-  const [sending, setSending] = useState(false);
-  const [dryRun, setDryRun] = useState(true);
-  const [recipientId, setRecipientId] = useState("self");
+  const [loading, setLoading] = useState(false);
+  const [extractedVars, setExtractedVars] = useState([]);
 
-  // Initialize test data from requiredVariables
+  // Initialize test data from extracted variables (best-effort)
   useEffect(() => {
-    if (template?.requiredVariables) {
-      const initial = {};
-      template.requiredVariables.forEach((varName) => {
-        initial[varName] = `[Test ${varName}]`;
-      });
-      setTestData(initial);
-    }
+    if (!template) return;
+    const matches =
+      `${template.titleTemplate || ""} ${template.bodyTemplate || ""} ${
+        template.actionUrl || ""
+      }`.match(/\{\{(\w+)\}\}/g) || [];
+    const vars = [...new Set(matches.map((m) => m.replace(/[{}]/g, "")))];
+    const initial = {};
+    vars.forEach((varName) => {
+      initial[varName] = `[Test ${varName}]`;
+    });
+    setExtractedVars(vars);
+    setTestData(initial);
   }, [template]);
 
-  // Update preview when test data changes
-  useEffect(() => {
-    if (template) {
-      let title = template.titleTemplate || "";
-      let body = template.bodyTemplate || "";
-
-      Object.entries(testData).forEach(([key, value]) => {
-        const regex = new RegExp(`\\{\\{${key}\\}\\}`, "g");
-        title = title.replace(regex, value);
-        body = body.replace(regex, value);
-      });
-
-      setPreview({ title, body });
-    }
-  }, [template, testData]);
-
-  /**
-   * Handle sending test notification
-   */
-  const handleSendTest = async () => {
-    setSending(true);
+  const handlePreview = async () => {
+    setLoading(true);
     try {
-      await dispatch(
-        testTemplate({
-          id: template._id,
-          data: testData,
-          dryRun,
-          recipientId: recipientId === "self" ? null : recipientId,
-        })
-      );
-      if (!dryRun) {
-        onClose();
+      const result = await dispatch(previewTemplate(template._id, testData));
+      const apiPreview = result?.preview || result?.data?.preview;
+      const apiExtracted = result?.extractedVars || result?.data?.extractedVars;
+      if (apiPreview) {
+        setPreview({
+          title: apiPreview.title || "",
+          body: apiPreview.body || "",
+          actionUrl: apiPreview.actionUrl || "",
+        });
       }
+      if (Array.isArray(apiExtracted)) setExtractedVars(apiExtracted);
     } finally {
-      setSending(false);
+      setLoading(false);
+    }
+  };
+
+  const handleSendTest = async () => {
+    setLoading(true);
+    try {
+      await dispatch(testSendNotification(template.typeCode, testData));
+      onClose();
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,51 +98,18 @@ function NotificationTemplateTest({ open, onClose, template }) {
 
       <DialogContent dividers>
         <Stack spacing={2}>
-          <Alert severity={dryRun ? "info" : "warning"}>
-            {dryRun
-              ? "🔍 Dry Run mode: Chỉ xem preview, không gửi thật"
-              : "⚠️ Live mode: Sẽ gửi notification thật vào hệ thống"}
+          <Alert severity="info">
+            Preview dùng API preview theo template hiện tại. “Gửi test” sẽ gửi
+            thật theo recipient config của template.
           </Alert>
-
-          {/* Test Mode Controls */}
-          <Stack spacing={1.5}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={dryRun}
-                  onChange={(e) => setDryRun(e.target.checked)}
-                  color="primary"
-                />
-              }
-              label={
-                <Typography variant="body2">
-                  Dry Run (chỉ xem preview, không lưu DB)
-                </Typography>
-              }
-            />
-
-            {!dryRun && (
-              <FormControl size="small" fullWidth>
-                <InputLabel>Gửi đến</InputLabel>
-                <Select
-                  value={recipientId}
-                  onChange={(e) => setRecipientId(e.target.value)}
-                  label="Gửi đến"
-                >
-                  <MenuItem value="self">👤 Chính tôi</MenuItem>
-                  {/* TODO: Load users from API if needed */}
-                </Select>
-              </FormControl>
-            )}
-          </Stack>
 
           <Divider />
 
           {/* Test Variables */}
-          {template.requiredVariables?.length > 0 && (
+          {extractedVars.length > 0 && (
             <>
               <Typography variant="subtitle2">Nhập giá trị test:</Typography>
-              {template.requiredVariables.map((varName) => (
+              {extractedVars.map((varName) => (
                 <TextField
                   key={varName}
                   label={varName}
@@ -179,6 +138,11 @@ function NotificationTemplateTest({ open, onClose, template }) {
             <Typography variant="body2" color="textSecondary">
               {preview.body || "(Body trống)"}
             </Typography>
+            {preview.actionUrl && (
+              <Typography variant="caption" color="text.secondary">
+                URL: {preview.actionUrl}
+              </Typography>
+            )}
           </Box>
         </Stack>
       </DialogContent>
@@ -186,13 +150,20 @@ function NotificationTemplateTest({ open, onClose, template }) {
       <DialogActions>
         <Button onClick={onClose}>Đóng</Button>
         <Button
-          variant="contained"
-          color={dryRun ? "info" : "primary"}
-          startIcon={dryRun ? <PreviewIcon /> : <SendIcon />}
-          onClick={handleSendTest}
-          disabled={sending}
+          variant="outlined"
+          startIcon={<PreviewIcon />}
+          onClick={handlePreview}
+          disabled={loading}
         >
-          {sending ? "Đang xử lý..." : dryRun ? "Preview" : "Gửi Test"}
+          {loading ? "Đang xử lý..." : "Preview"}
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={<SendIcon />}
+          onClick={handleSendTest}
+          disabled={loading}
+        >
+          {loading ? "Đang xử lý..." : "Gửi Test"}
         </Button>
       </DialogActions>
     </Dialog>

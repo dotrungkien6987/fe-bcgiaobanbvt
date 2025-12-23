@@ -5,12 +5,11 @@
  * Features:
  * - Form validation with Yup
  * - Variable detection from templates
- * - Category and priority selection
- * - Preview of detected variables
+ * - typeCode selection + recipientConfig.variables
  */
 
 import React, { useEffect, useMemo } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
   DialogTitle,
@@ -25,6 +24,8 @@ import {
   Box,
   Divider,
   InputAdornment,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 import {
   NotificationsOutlined as NotificationIcon,
@@ -42,30 +43,36 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { FormProvider, FTextField } from "../../../components/form";
 import { createTemplate, updateTemplate } from "./notificationTemplateSlice";
+import { getTypes } from "./notificationTypeSlice";
 
 // Validation schema
 const schema = Yup.object().shape({
-  type: Yup.string()
-    .required("Type là bắt buộc")
-    .matches(/^[A-Z_]+$/, "Type phải viết hoa và dùng _ thay khoảng trắng"),
   name: Yup.string().required("Tên là bắt buộc"),
+  typeCode: Yup.string()
+    .required("Type là bắt buộc")
+    .matches(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      "TypeCode nên dạng kebab-case, vd: yeucau-tao-moi"
+    ),
   titleTemplate: Yup.string().required("Title template là bắt buộc"),
   bodyTemplate: Yup.string().required("Body template là bắt buộc"),
-  category: Yup.string().oneOf(["task", "kpi", "ticket", "system", "other"]),
-  defaultPriority: Yup.string().oneOf(["normal", "urgent"]),
+  priority: Yup.string().oneOf(["normal", "urgent"]),
+  isEnabled: Yup.boolean(),
+  recipientConfig: Yup.object().shape({
+    variables: Yup.array().of(Yup.string()),
+  }),
 });
 
 const defaultValues = {
-  type: "",
   name: "",
-  description: "",
-  category: "other",
+  typeCode: "",
   titleTemplate: "",
   bodyTemplate: "",
   icon: "notification",
-  defaultPriority: "normal",
-  actionUrlTemplate: "",
-  requiredVariables: [],
+  priority: "normal",
+  actionUrl: "",
+  isEnabled: true,
+  recipientConfig: { variables: [] },
 };
 
 /**
@@ -77,16 +84,18 @@ const defaultValues = {
 function NotificationTemplateForm({ open, onClose, template = null }) {
   const dispatch = useDispatch();
   const isEdit = Boolean(template?._id);
+  const { types } = useSelector((state) => state.notificationType);
 
   const methods = useForm({
     resolver: yupResolver(schema),
     defaultValues,
   });
 
-  const { handleSubmit, reset, watch, setValue, control } = methods;
+  const { handleSubmit, reset, watch, control } = methods;
   const bodyTemplate = watch("bodyTemplate");
   const titleTemplate = watch("titleTemplate");
-  const actionUrlTemplate = watch("actionUrlTemplate");
+  const actionUrl = watch("actionUrl");
+  const typeCode = watch("typeCode");
 
   // Extract variables from template strings
   const extractVariables = (text) => {
@@ -99,41 +108,61 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
     const allVars = [
       ...extractVariables(titleTemplate),
       ...extractVariables(bodyTemplate),
-      ...extractVariables(actionUrlTemplate),
+      ...extractVariables(actionUrl),
     ];
     return [...new Set(allVars)];
-  }, [titleTemplate, bodyTemplate, actionUrlTemplate]);
+  }, [titleTemplate, bodyTemplate, actionUrl]);
+
+  const selectedType = useMemo(() => {
+    return types.find((t) => t.code === typeCode) || null;
+  }, [types, typeCode]);
+
+  const recipientCandidates = useMemo(() => {
+    const vars = selectedType?.variables || [];
+    return vars.filter((v) => v.isRecipientCandidate).map((v) => v.name);
+  }, [selectedType]);
 
   // Reset form when template changes
   useEffect(() => {
+    dispatch(getTypes({ isActive: true }));
     if (template) {
       reset({
         ...defaultValues,
         ...template,
-        requiredVariables: template.requiredVariables || [],
+        recipientConfig: template.recipientConfig || { variables: [] },
       });
     } else {
       reset(defaultValues);
     }
-  }, [template, reset]);
-
-  // Auto-update requiredVariables when templates change
-  useEffect(() => {
-    if (detectedVariables.length > 0) {
-      setValue("requiredVariables", detectedVariables);
-    }
-  }, [detectedVariables, setValue]);
+  }, [dispatch, template, reset]);
 
   const onSubmit = async (data) => {
     try {
       if (isEdit) {
-        // When editing auto-created template, mark as configured
-        if (template?.isAutoCreated) {
-          data.isAutoCreated = false;
-        }
-        await dispatch(updateTemplate(template._id, data));
+        const payload = {
+          name: data.name,
+          recipientConfig: data.recipientConfig || { variables: [] },
+          titleTemplate: data.titleTemplate,
+          bodyTemplate: data.bodyTemplate,
+          actionUrl: data.actionUrl || "",
+          icon: data.icon || "notification",
+          priority: data.priority || "normal",
+          isEnabled: data.isEnabled !== undefined ? data.isEnabled : true,
+        };
+        await dispatch(updateTemplate(template._id, payload));
       } else {
-        await dispatch(createTemplate(data));
+        const payload = {
+          name: data.name,
+          typeCode: data.typeCode,
+          recipientConfig: data.recipientConfig || { variables: [] },
+          titleTemplate: data.titleTemplate,
+          bodyTemplate: data.bodyTemplate,
+          actionUrl: data.actionUrl || "",
+          icon: data.icon || "notification",
+          priority: data.priority || "normal",
+          isEnabled: data.isEnabled !== undefined ? data.isEnabled : true,
+        };
+        await dispatch(createTemplate(payload));
       }
       onClose();
     } catch (error) {
@@ -145,14 +174,6 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         {isEdit ? "Chỉnh sửa Template" : "Tạo Template mới"}
-        {template?.isAutoCreated && (
-          <Chip
-            label="⚠️ Auto-created"
-            color="warning"
-            size="small"
-            sx={{ ml: 2 }}
-          />
-        )}
       </DialogTitle>
 
       <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
@@ -160,43 +181,65 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
           <Grid container spacing={2}>
             {/* Basic Info */}
             <Grid item xs={12} md={6}>
-              <FTextField
-                name="type"
-                label="Type *"
-                placeholder="VD: TASK_ASSIGNED"
-                disabled={isEdit}
-                helperText="Viết hoa, dùng _ thay khoảng trắng"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
               <FTextField name="name" label="Tên hiển thị *" />
             </Grid>
 
-            <Grid item xs={12}>
-              <FTextField name="description" label="Mô tả" multiline rows={2} />
-            </Grid>
-
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={6}>
               <Controller
-                name="category"
+                name="typeCode"
                 control={control}
                 render={({ field, fieldState: { error } }) => (
                   <FTextField
                     {...field}
                     select
-                    label="Category"
+                    label="Type *"
+                    disabled={isEdit}
                     error={!!error}
-                    helperText={error?.message}
+                    helperText={
+                      error?.message ||
+                      "Chọn type đã khai báo trong Notification Types"
+                    }
+                    SelectProps={{
+                      renderValue: (selected) => {
+                        const type = types.find((t) => t.code === selected);
+                        return type ? `${type.code} - ${type.name}` : selected;
+                      },
+                    }}
                   >
-                    <MenuItem value="task">📋 Công việc (task)</MenuItem>
-                    <MenuItem value="kpi">📊 KPI</MenuItem>
-                    <MenuItem value="ticket">🎫 Yêu cầu (ticket)</MenuItem>
-                    <MenuItem value="system">⚙️ Hệ thống</MenuItem>
-                    <MenuItem value="other">📦 Khác</MenuItem>
+                    <MenuItem value="">
+                      <em>Chọn type</em>
+                    </MenuItem>
+                    {/* Group by Nhom */}
+                    {["Công việc", "Yêu cầu", "KPI", "Hệ thống"].map((nhom) => {
+                      const nhomTypes = types.filter(
+                        (t) => t.isActive && t.Nhom === nhom
+                      );
+                      if (nhomTypes.length === 0) return null;
+                      return [
+                        <MenuItem
+                          key={`header-${nhom}`}
+                          disabled
+                          sx={{
+                            fontWeight: "bold",
+                            fontSize: "0.875rem",
+                            color: "primary.main",
+                            pointerEvents: "none",
+                          }}
+                        >
+                          {nhom}
+                        </MenuItem>,
+                        ...nhomTypes.map((t) => (
+                          <MenuItem key={t._id} value={t.code} sx={{ pl: 4 }}>
+                            {t.code} - {t.name}
+                          </MenuItem>
+                        )),
+                      ];
+                    })}
                   </FTextField>
                 )}
               />
             </Grid>
+
             <Grid item xs={12} md={4}>
               <Controller
                 name="icon"
@@ -276,7 +319,7 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
             </Grid>
             <Grid item xs={12} md={4}>
               <Controller
-                name="defaultPriority"
+                name="priority"
                 control={control}
                 render={({ field, fieldState: { error } }) => (
                   <FTextField
@@ -288,6 +331,52 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
                   >
                     <MenuItem value="normal">🟢 Normal</MenuItem>
                     <MenuItem value="urgent">🔴 Urgent</MenuItem>
+                  </FTextField>
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Controller
+                name="isEnabled"
+                control={control}
+                render={({ field }) => (
+                  <FormControlLabel
+                    control={<Checkbox checked={!!field.value} {...field} />}
+                    label="Enabled"
+                  />
+                )}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Controller
+                name="recipientConfig.variables"
+                control={control}
+                render={({ field }) => (
+                  <FTextField
+                    {...field}
+                    select
+                    SelectProps={{
+                      multiple: true,
+                      renderValue: (selected) =>
+                        (selected || []).length
+                          ? (selected || []).join(", ")
+                          : "(Mặc định)",
+                    }}
+                    label="Recipients (variables)"
+                    helperText={
+                      recipientCandidates.length
+                        ? "Chọn các biến recipient candidate"
+                        : "Type này chưa có recipient candidate"
+                    }
+                  >
+                    {recipientCandidates.map((v) => (
+                      <MenuItem key={v} value={v}>
+                        <Checkbox checked={(field.value || []).includes(v)} />
+                        <Typography variant="body2">{v}</Typography>
+                      </MenuItem>
+                    ))}
                   </FTextField>
                 )}
               />
@@ -318,7 +407,7 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
             </Grid>
             <Grid item xs={12}>
               <FTextField
-                name="actionUrlTemplate"
+                name="actionUrl"
                 label="Action URL Template"
                 placeholder="VD: /congviec/{{taskId}}"
               />

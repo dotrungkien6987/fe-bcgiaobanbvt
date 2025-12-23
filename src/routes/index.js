@@ -99,6 +99,7 @@ import {
 } from "features/QuanLyCongViec/ChuKyDanhGia";
 import NotificationPage from "pages/NotificationPage";
 import NotificationAdminPage from "pages/NotificationAdminPage";
+import NotificationTypeAdminPage from "pages/NotificationTypeAdminPage";
 import { NotificationSettings } from "features/Notification";
 // Ticket System (YeuCau)
 import {
@@ -412,6 +413,15 @@ function Router() {
             element={
               <AdminRequire>
                 <NotificationAdminPage />
+              </AdminRequire>
+            }
+          />
+          {/* Admin Notification Types */}
+          <Route
+            path="/admin/notification-types"
+            element={
+              <AdminRequire>
+                <NotificationTypeAdminPage />
               </AdminRequire>
             }
           />

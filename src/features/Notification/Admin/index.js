@@ -7,17 +7,27 @@
 export { default as notificationTemplateReducer } from "./notificationTemplateSlice";
 export {
   getTemplates,
-  getTemplate,
   createTemplate,
   updateTemplate,
   deleteTemplate,
-  testTemplate,
-  getStats,
+  previewTemplate,
+  testSendNotification,
   setFilters,
-  clearSelectedTemplate,
 } from "./notificationTemplateSlice";
+
+export { default as notificationTypeReducer } from "./notificationTypeSlice";
+export {
+  getTypes,
+  createType,
+  updateType,
+  deleteType,
+  setFilters as setTypeFilters,
+} from "./notificationTypeSlice";
 
 // Components
 export { default as NotificationTemplateTable } from "./NotificationTemplateTable";
 export { default as NotificationTemplateForm } from "./NotificationTemplateForm";
 export { default as NotificationTemplateTest } from "./NotificationTemplateTest";
+
+export { default as NotificationTypeTable } from "./NotificationTypeTable";
+export { default as NotificationTypeForm } from "./NotificationTypeForm";

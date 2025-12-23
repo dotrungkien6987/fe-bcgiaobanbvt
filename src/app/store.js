@@ -41,7 +41,10 @@ import kpiEvaluationSlice from "features/QuanLyCongViec/KPI/kpiEvaluationSlice";
 import khuyenCaoKhoaBQBAReducer from "../features/DashBoard/BinhQuanBenhAn/khuyenCaoKhoaBQBASlice";
 import baoCaoKPIReducer from "features/QuanLyCongViec/BaoCaoThongKeKPI/baoCaoKPISlice";
 import { notificationReducer } from "features/Notification";
-import { notificationTemplateReducer } from "features/Notification/Admin";
+import {
+  notificationTemplateReducer,
+  notificationTypeReducer,
+} from "features/Notification/Admin";
 // YeuCau (Ticket System)
 import {
   yeuCauReducer,
@@ -95,6 +98,7 @@ const rootReducer = {
   baoCaoKPI: baoCaoKPIReducer,
   notification: notificationReducer,
   notificationTemplate: notificationTemplateReducer,
+  notificationType: notificationTypeReducer,
   // YeuCau (Ticket System)
   yeuCau: yeuCauReducer,
   danhMucYeuCau: danhMucYeuCauReducer,

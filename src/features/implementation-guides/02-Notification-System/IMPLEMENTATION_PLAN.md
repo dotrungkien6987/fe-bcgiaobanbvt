@@ -179,15 +179,19 @@ giaobanbv-be/
 - `DELETE /:id` - Xóa thông báo
 - `POST /test` - Test notification (DEV)
 
-**Admin Routes (`/api/notification-templates`):**
+**Admin Routes (`/api/workmanagement/notifications/templates`):**
 
-- `GET /stats` - Thống kê templates
 - `GET /` - Danh sách templates
 - `GET /:id` - Chi tiết template
 - `POST /` - Tạo template
 - `PUT /:id` - Cập nhật template
-- `DELETE /:id` - Vô hiệu hóa template
-- `POST /:id/test` - Test gửi notification
+- `DELETE /:id` - Vô hiệu hóa template (soft disable)
+- `POST /:id/preview` - Preview render template
+
+**Admin Tools (`/api/workmanagement/notifications`):**
+
+- `POST /test-send` - Thực gửi notification
+- `POST /clear-cache` - Clear cache types/templates
 
 ---
 
