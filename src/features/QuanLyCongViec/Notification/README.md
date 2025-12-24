@@ -24,7 +24,34 @@ Thư mục này chứa tài liệu tham khảo cho hệ thống Notification Ref
 
 ---
 
-## � Reference & Status Tracking
+## 🔍 AI-Powered Audit Toolkit (TichHop/)
+
+**Thư mục [TichHop/](TichHop/)** chứa bộ công cụ để AI audit notifications một cách tự động.
+
+### Cách sử dụng:
+
+```
+1. Copy prompt từ 00_AUDIT_PROMPT.md
+2. Điền type code (VD: "kpi-duyet-danh-gia")
+3. Paste vào AI chat
+4. AI tự động audit và trả về report
+5. Update status trong 04_TEMPLATE_CHECKLIST.md
+```
+
+### Files trong TichHop/:
+
+| File                                                         | Mô tả                                 |
+| ------------------------------------------------------------ | ------------------------------------- |
+| [00_AUDIT_PROMPT.md](TichHop/00_AUDIT_PROMPT.md)             | ⭐ Prompt chính - copy & paste        |
+| [01_MODULE_KPI.md](TichHop/01_MODULE_KPI.md)                 | Context cho 7 KPI notifications       |
+| [02_MODULE_CONGVIEC.md](TichHop/02_MODULE_CONGVIEC.md)       | Context cho 19 CongViec notifications |
+| [03_MODULE_YEUCAU.md](TichHop/03_MODULE_YEUCAU.md)           | Context cho 17 YeuCau notifications   |
+| [04_TEMPLATE_CHECKLIST.md](TichHop/04_TEMPLATE_CHECKLIST.md) | 📊 Master checklist (45 types)        |
+| [05_COMMON_PATTERNS.md](TichHop/05_COMMON_PATTERNS.md)       | Code patterns reference               |
+
+---
+
+## 📊 Reference & Status Tracking
 
 ### 2. [KIEM_TRA_COVERAGE_TEMPLATE_THONG_BAO.md](KIEM_TRA_COVERAGE_TEMPLATE_THONG_BAO.md)
 
@@ -68,6 +95,7 @@ Thư mục này chứa tài liệu tham khảo cho hệ thống Notification Ref
 1. **Start:** [NOTIFICATION_REFACTOR_IMPLEMENTATION_PLAN.md](NOTIFICATION_REFACTOR_IMPLEMENTATION_PLAN.md) - Hiểu big picture
 2. **Reference:** [SCHEMA_QUICK_REFERENCE.md](SCHEMA_QUICK_REFERENCE.md) - Verify field names khi code
 3. **Track:** [KIEM_TRA_COVERAGE_TEMPLATE_THONG_BAO.md](KIEM_TRA_COVERAGE_TEMPLATE_THONG_BAO.md) - Check implementation status
+4. **Audit:** [TichHop/00_AUDIT_PROMPT.md](TichHop/00_AUDIT_PROMPT.md) - Audit từng template
 
 ---
 
