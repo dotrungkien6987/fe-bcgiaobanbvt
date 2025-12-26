@@ -200,10 +200,6 @@ const slice = createSlice({
       state.binhLuanLoading = false;
       state.binhLuanList = action.payload;
     },
-    addBinhLuanSuccess: (state, action) => {
-      state.binhLuanLoading = false;
-      state.binhLuanList = [...state.binhLuanList, action.payload];
-    },
 
     // Tệp tin
     startTepTinLoading: (state) => {
@@ -303,7 +299,6 @@ export const {
   actionError,
   startBinhLuanLoading,
   getBinhLuanSuccess,
-  addBinhLuanSuccess,
   startTepTinLoading,
   getTepTinSuccess,
   startLichSuLoading,
@@ -651,7 +646,7 @@ export const addYeuCauCommentWithFiles =
       if (parentId) formData.append("parentId", parentId);
       files.forEach((f) => formData.append("files", f));
 
-      const response = await apiService.post(
+      await apiService.post(
         `/workmanagement/yeucau/${yeuCauId}/comments`,
         formData,
         {
@@ -659,9 +654,9 @@ export const addYeuCauCommentWithFiles =
         }
       );
 
-      dispatch(addBinhLuanSuccess(response.data.data));
+      // Refetch danh sách bình luận sau khi thêm thành công
+      await dispatch(getBinhLuan(yeuCauId));
       toast.success("Gửi bình luận thành công");
-      return response.data.data;
     } catch (error) {
       dispatch(hasError(error.message));
       toast.error(error.message);
@@ -766,25 +761,6 @@ export const getBinhLuan = (yeuCauId) => async (dispatch) => {
     dispatch(getBinhLuanSuccess(response.data.data));
   } catch (error) {
     dispatch(hasError(error.message));
-  }
-};
-
-/**
- * Thêm bình luận
- */
-export const addBinhLuan = (yeuCauId, data, callback) => async (dispatch) => {
-  dispatch(startBinhLuanLoading());
-  try {
-    const response = await apiService.post(
-      `${BASE_URL}/${yeuCauId}/binh-luan`,
-      data
-    );
-    dispatch(addBinhLuanSuccess(response.data.data));
-    toast.success("Thêm bình luận thành công");
-    if (callback) callback(response.data.data);
-  } catch (error) {
-    dispatch(hasError(error.message));
-    toast.error(error.message || "Lỗi khi thêm bình luận");
   }
 };
 

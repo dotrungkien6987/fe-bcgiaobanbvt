@@ -21,7 +21,6 @@ export {
   hoanThanhYeuCau,
   dongYeuCau,
   moLaiYeuCau,
-  addBinhLuan,
   // Selectors
   selectYeuCauState,
   selectYeuCauList,

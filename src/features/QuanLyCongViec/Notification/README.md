@@ -1,103 +1,233 @@
 # 📁 Notification System Documentation
 
-**Last Updated:** December 23, 2025
+**Last Updated:** December 25, 2025  
+**Architecture:** Centralized Builders + Admin-Configurable Templates
 
-Thư mục này chứa tài liệu tham khảo cho hệ thống Notification Refactor (Admin-Configurable System).
-
----
-
-## 📋 Tài Liệu Chính
-
-### 1. ⭐ [NOTIFICATION_REFACTOR_IMPLEMENTATION_PLAN.md](NOTIFICATION_REFACTOR_IMPLEMENTATION_PLAN.md)
-
-**Mục đích:** Kế hoạch triển khai chi tiết cho notification refactor  
-**Nội dung:**
-
-- Kiến trúc hệ thống mới (Admin-Configurable)
-- Phase 0 Error Fix Session (✅ Completed Dec 19, 2025)
-- Trigger mapping table (43 triggers → NotificationType)
-- Variable definitions per type
-- Timeline triển khai 5-6 ngày (Day 1-7)
-- Migration examples (before/after code)
-
-**Khi nào dùng:** Tài liệu chính cho toàn bộ dự án refactor
+Thư mục này chứa tài liệu tham khảo cho hệ thống notification với **Centralized Builders Architecture**.
 
 ---
 
-## 🔍 AI-Powered Audit Toolkit (TichHop/)
+## 🏗️ KIẾN TRÚC HIỆN TẠI
 
-**Thư mục [TichHop/](TichHop/)** chứa bộ công cụ để AI audit notifications một cách tự động.
-
-### Cách sử dụng:
+### Centralized Builders Pattern
 
 ```
-1. Copy prompt từ 00_AUDIT_PROMPT.md
-2. Điền type code (VD: "kpi-duyet-danh-gia")
-3. Paste vào AI chat
-4. AI tự động audit và trả về report
-5. Update status trong 04_TEMPLATE_CHECKLIST.md
+Service Logic
+    ↓
+buildXxxNotificationData(entity, context)  ← Single Source of Truth
+    ↓ Returns complete data (29/16 fields)
+notificationService.send({ type, data })
+    ↓
+DB lookup (Types + Templates)
+    ↓
+Render & Send to recipients
 ```
 
-### Files trong TichHop/:
+**3 Builder Functions:**
 
-| File                                                         | Mô tả                                 |
-| ------------------------------------------------------------ | ------------------------------------- |
-| [00_AUDIT_PROMPT.md](TichHop/00_AUDIT_PROMPT.md)             | ⭐ Prompt chính - copy & paste        |
-| [01_MODULE_KPI.md](TichHop/01_MODULE_KPI.md)                 | Context cho 7 KPI notifications       |
-| [02_MODULE_CONGVIEC.md](TichHop/02_MODULE_CONGVIEC.md)       | Context cho 19 CongViec notifications |
-| [03_MODULE_YEUCAU.md](TichHop/03_MODULE_YEUCAU.md)           | Context cho 17 YeuCau notifications   |
-| [04_TEMPLATE_CHECKLIST.md](TichHop/04_TEMPLATE_CHECKLIST.md) | 📊 Master checklist (45 types)        |
-| [05_COMMON_PATTERNS.md](TichHop/05_COMMON_PATTERNS.md)       | Code patterns reference               |
+- `buildYeuCauNotificationData()` - 29 fields
+- `buildCongViecNotificationData()` - 29 fields
+- `buildKPINotificationData()` - 16 fields
+
+**Location:** `giaobanbv-be/modules/workmanagement/helpers/notificationDataBuilders.js`
 
 ---
 
-## 📊 Reference & Status Tracking
+## 📋 TÀI LIỆU CHÍNH
 
-### 2. [KIEM_TRA_COVERAGE_TEMPLATE_THONG_BAO.md](KIEM_TRA_COVERAGE_TEMPLATE_THONG_BAO.md)
+### 1. ⭐ [CENTRALIZED_BUILDERS_GUIDE.md](CENTRALIZED_BUILDERS_GUIDE.md)
 
-**Mục đích:** Living status document - template implementation progress  
+**Mục đích:** Implementation guide cho Centralized Builders pattern  
+**Cập nhật:** Dec 25, 2025
+
 **Nội dung:**
 
-- Implementation status tables (53 templates across 4 domains)
-- Type code mismatch findings (5 issues documented)
-- Coverage summary per feature
+- Architecture overview (3 builder functions)
+- Usage patterns (4 common patterns)
+- Context parameters reference
+- Builder features (auto-populate, null safety, formatting)
+- Migration status (19/19 locations)
+- Best practices & debugging
 
-**Khi nào dùng:** Check implementation status, identify gaps/mismatches
+**Khi nào dùng:**
+
+- Implement notification cho feature mới
+- Understand builder architecture
+- Debug notification data issues
+- Migrate old manual code to builders
+
+---
+
+### 2. [AUDIT_PROMPT.md](AUDIT_PROMPT.md)
+
+**Mục đích:** Audit prompt cho AI để kiểm tra notification types  
+**Phiên bản:** 3.0 (Centralized Builders)  
+**Cập nhật:** Dec 25, 2025
+
+**Nội dung:**
+
+- Hướng dẫn audit notification types với centralized builders
+- Validate builder integration
+- Check context parameters
+- Verify recipients logic và action URLs
+- Test plan và report template
+
+**Khi nào dùng:**
+
+- Audit lại một notification type cụ thể
+- Verify sau khi thêm type/template mới
+- Debug notification không hoạt động
+
+**Cách dùng:**
+
+```
+1. Mở AUDIT_PROMPT.md
+2. Copy prompt từ section "---BẮT ĐẦU PROMPT---"
+3. Thay [TYPE_CODE] bằng type cần audit (VD: "yeucau-tao-moi")
+4. Paste vào AI chat
+5. AI sẽ tự động audit và trả về report
+```
+
+---
 
 ### 3. [SCHEMA_QUICK_REFERENCE.md](SCHEMA_QUICK_REFERENCE.md)
 
 **Mục đích:** Schema field catalog cho WorkManagement entities  
+**Cập nhật:** Dec 18, 2025
+
 **Nội dung:**
 
-- Exact field names, types, relationships
-- Standard populate patterns
+- YeuCau schema (fields, refs, populate patterns)
+- CongViec schema
+- DanhGiaKPI schema
 - Common pitfalls (LoaiYeuCauID vs DanhMucYeuCauID)
 - User vs NhanVien distinction
 
-**Khi nào dùng:** Verify schema field names khi build notification data
+**Khi nào dùng:**
+
+- Verify schema field names khi build notification data
+- Check populate patterns
+- Understand entity relationships
 
 ---
 
-## 🗑️ Deleted Files (Dec 23, 2025)
+## 🔑 KEY FILES TRONG CODEBASE
 
-**Removed obsolete/duplicate documentation:**
+### Backend
 
-- `NOTIFICATION_SPEC.md` - Planning doc từ Nov 2025 (superseded by implementation plan)
-- `NOTIFICATION_SYSTEM_IMPLEMENTATION_PLAN.md` - Old version (Dec 17, 2024 → Dec 19, 2025 main plan)
-- `REFACTOR_CONTEXT_SUMMARY.md` - Overlapping content with main plan
-- `AI_AUDIT_TEMPLATE_PROMPT.md` - Audit guide cho hệ thống cũ (obsolete sau refactor)
-- `QUICK_AUDIT_CHECKLIST.md` - Fast checklist cho hệ thống cũ (obsolete sau refactor)
+| File                                  | Purpose                                   |
+| ------------------------------------- | ----------------------------------------- |
+| `helpers/notificationDataBuilders.js` | 🆕 **Centralized builders** (3 functions) |
+| `services/notificationService.js`     | Core notification engine                  |
+| `services/yeuCau.service.js`          | YeuCau triggers (4 calls)                 |
+| `services/yeuCauStateMachine.js`      | State machine (15 transitions)            |
+| `services/congViec.service.js`        | CongViec triggers (9 calls)               |
+| `controllers/kpi.controller.js`       | KPI triggers (6 calls)                    |
+| `seeds/notificationTypes.seed.js`     | Type definitions (44 types)               |
+| `seeds/notificationTemplates.seed.js` | Template definitions (54 templates)       |
+
+### Frontend
+
+| File                               | Purpose                     |
+| ---------------------------------- | --------------------------- |
+| `Notification/NotificationList.js` | Bell dropdown UI            |
+| `Notification/NotificationItem.js` | Single notification display |
+| `Ticket/yeuCauSlice.js`            | YeuCau Redux thunks         |
+| `CongViec/congViecSlice.js`        | CongViec Redux thunks       |
+| `KPI/*Slice.js`                    | KPI Redux thunks            |
 
 ---
 
-## 📖 Reading Order (For New Team Members)
+## 🎯 COMMON WORKFLOWS
 
-1. **Start:** [NOTIFICATION_REFACTOR_IMPLEMENTATION_PLAN.md](NOTIFICATION_REFACTOR_IMPLEMENTATION_PLAN.md) - Hiểu big picture
-2. **Reference:** [SCHEMA_QUICK_REFERENCE.md](SCHEMA_QUICK_REFERENCE.md) - Verify field names khi code
-3. **Track:** [KIEM_TRA_COVERAGE_TEMPLATE_THONG_BAO.md](KIEM_TRA_COVERAGE_TEMPLATE_THONG_BAO.md) - Check implementation status
-4. **Audit:** [TichHop/00_AUDIT_PROMPT.md](TichHop/00_AUDIT_PROMPT.md) - Audit từng template
+### Add New Notification Type
+
+1. **Add type definition** in `seeds/notificationTypes.seed.js`
+2. **Add template(s)** in `seeds/notificationTemplates.seed.js`
+3. **Update builder** (if new field needed) in `notificationDataBuilders.js`
+4. **Add service call**:
+   ```javascript
+   const data = await buildYeuCauNotificationData(yeuCau, context);
+   await notificationService.send({ type: "new-type", data });
+   ```
+5. **Run seed**: `node seeds/index.js`
+6. **Audit**: Use AUDIT_PROMPT.md
+7. **Test**: User flow → Bell notification → Click URL
+
+### Debug Notification Not Sent
+
+1. Check logs: `[NotificationService]` và `[YeuCauStateMachine]`
+2. Verify type exists: `db.notificationtypes.findOne({ code: "type-code" })`
+3. Check builder call: Search `buildXxxNotificationData` in service
+4. Verify recipients: Check `recipientUserIds` array in notification doc
+5. Run audit prompt for the type
+
+### Update Existing Template
+
+1. Edit in `seeds/notificationTemplates.seed.js`
+2. Run seed: `node seeds/index.js`
+3. Test in dev environment
+4. No code changes needed (admin-configurable)
 
 ---
+
+## 📊 SYSTEM STATISTICS
+
+| Metric                         | Count                              |
+| ------------------------------ | ---------------------------------- |
+| **Notification Types**         | 44                                 |
+| **Templates**                  | 54                                 |
+| **Builder Functions**          | 3                                  |
+| **Service Integration Points** | 19 (4 YeuCau + 9 CongViec + 6 KPI) |
+| **Total Variables**            | ~74 unique                         |
+| **Modules**                    | 3 (YeuCau, CongViec, KPI)          |
+
+---
+
+## 🚀 RECENT CHANGES
+
+### December 25, 2025
+
+- ✅ Refactored `yeuCauStateMachine.js` to use centralized builder
+- ✅ Removed 240 lines of manual data building code
+- ✅ All 19 service locations now use builders
+- ✅ Cleaned up documentation (removed audit files)
+- ✅ Updated AUDIT_PROMPT to v3.0
+
+### December 24, 2025
+
+- ✅ Completed 100% notification audit (44 types)
+- ✅ Fixed 78+ template/service issues
+- ✅ Database templates synchronized
+
+### December 19, 2025
+
+- ✅ Created centralized builders (`notificationDataBuilders.js`)
+- ✅ Migrated 18 service locations to use builders
+- ✅ Updated seed files with 74 variables
+
+---
+
+## 📖 Reading Order (For New Developers)
+
+1. **Architecture**: Read this README first
+2. **Builders Guide**: [CENTRALIZED_BUILDERS_GUIDE.md](CENTRALIZED_BUILDERS_GUIDE.md) - **START HERE** for implementation
+3. **Schema**: [SCHEMA_QUICK_REFERENCE.md](SCHEMA_QUICK_REFERENCE.md) - Understand entities
+4. **Source Code**: Read `notificationDataBuilders.js` - See actual implementation
+5. **Audit**: [AUDIT_PROMPT.md](AUDIT_PROMPT.md) - How to verify notifications
+6. **Seed Files**: Browse types/templates to see examples
+
+---
+
+## 🔗 External Resources
+
+- MongoDB Docs: Notification, NotificationType, NotificationTemplate models
+- Socket.IO: Real-time notification delivery
+- React Hook: `useNotifications()` - Frontend notification state
+
+---
+
+_Documentation maintained by the development team. Last audit: December 25, 2025._
 
 ## 🎯 Quick Links
 

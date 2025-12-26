@@ -8,7 +8,7 @@
  * - typeCode selection + recipientConfig.variables
  */
 
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Dialog,
@@ -26,6 +26,16 @@ import {
   InputAdornment,
   Checkbox,
   FormControlLabel,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableCell,
+  Tooltip,
+  IconButton,
 } from "@mui/material";
 import {
   NotificationsOutlined as NotificationIcon,
@@ -37,10 +47,14 @@ import {
   AssessmentOutlined as KPIIcon,
   DescriptionOutlined as TicketIcon,
   SystemUpdateAltOutlined as SystemIcon,
+  ExpandMore as ExpandMoreIcon,
+  ContentCopy as CopyIcon,
+  LockOutlined as LockIcon,
 } from "@mui/icons-material";
 import { useForm, Controller } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
+import { toast } from "react-toastify";
 import { FormProvider, FTextField } from "../../../components/form";
 import { createTemplate, updateTemplate } from "./notificationTemplateSlice";
 import { getTypes } from "./notificationTypeSlice";
@@ -85,6 +99,7 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
   const dispatch = useDispatch();
   const isEdit = Boolean(template?._id);
   const { types } = useSelector((state) => state.notificationType);
+  const [expandedVariables, setExpandedVariables] = useState(false);
 
   const methods = useForm({
     resolver: yupResolver(schema),
@@ -120,6 +135,23 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
   const recipientCandidates = useMemo(() => {
     const vars = selectedType?.variables || [];
     return vars.filter((v) => v.isRecipientCandidate).map((v) => v.name);
+  }, [selectedType]);
+
+  // Helper: Copy variable syntax to clipboard
+  const handleCopyVariable = (varName) => {
+    const syntax = `{{${varName}}}`;
+    navigator.clipboard.writeText(syntax).then(() => {
+      toast.success(`Đã copy: ${syntax}`);
+    });
+  };
+
+  // Split variables into recipient and display groups
+  const variableGroups = useMemo(() => {
+    if (!selectedType?.variables) return { recipient: [], display: [] };
+    return {
+      recipient: selectedType.variables.filter((v) => v.isRecipientCandidate),
+      display: selectedType.variables.filter((v) => !v.isRecipientCandidate),
+    };
   }, [selectedType]);
 
   // Reset form when template changes
@@ -197,8 +229,19 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
                     error={!!error}
                     helperText={
                       error?.message ||
-                      "Chọn type đã khai báo trong Notification Types"
+                      (isEdit
+                        ? "⚠️ Không thể đổi Type sau khi tạo (đã có recipient config và variable references)"
+                        : "Chọn type đã khai báo trong Notification Types")
                     }
+                    InputProps={{
+                      endAdornment: isEdit && (
+                        <InputAdornment position="end">
+                          <Tooltip title="Type đã khóa để bảo toàn tính toàn vẹn dữ liệu">
+                            <LockIcon fontSize="small" color="action" />
+                          </Tooltip>
+                        </InputAdornment>
+                      ),
+                    }}
                     SelectProps={{
                       renderValue: (selected) => {
                         const type = types.find((t) => t.code === selected);
@@ -239,6 +282,253 @@ function NotificationTemplateForm({ open, onClose, template = null }) {
                 )}
               />
             </Grid>
+
+            {/* Available Variables Section */}
+            {selectedType && (
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Accordion
+                  expanded={expandedVariables}
+                  onChange={() => setExpandedVariables(!expandedVariables)}
+                  sx={{
+                    bgcolor: "primary.50",
+                    "&:before": { display: "none" },
+                  }}
+                >
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <InfoIcon color="primary" fontSize="small" />
+                      <Typography variant="body2" fontWeight="medium">
+                        📚 Danh sách biến có thể sử dụng cho type:{" "}
+                        <Box component="span" color="primary.main">
+                          {selectedType.code}
+                        </Box>
+                      </Typography>
+                      <Chip
+                        label={`${selectedType.variables?.length || 0} biến`}
+                        size="small"
+                        color="primary"
+                      />
+                    </Stack>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ mb: 2 }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        display="block"
+                        mb={1}
+                      >
+                        💡 Sử dụng cú pháp <code>{"{{variableName}}"}</code>{" "}
+                        trong Title/Body/ActionUrl template. Click vào biến để
+                        copy.
+                      </Typography>
+                    </Box>
+
+                    {/* Recipient Variables */}
+                    {variableGroups.recipient.length > 0 && (
+                      <Box sx={{ mb: 3 }}>
+                        <Typography
+                          variant="subtitle2"
+                          color="primary.main"
+                          gutterBottom
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          👥 Biến recipient ({variableGroups.recipient.length})
+                          <Typography variant="caption" color="text.secondary">
+                            - Dùng để chọn người nhận thông báo
+                          </Typography>
+                        </Typography>
+                        <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                          {variableGroups.recipient.map((v) => (
+                            <Tooltip
+                              key={v.name}
+                              title={
+                                <Box>
+                                  <Typography variant="caption" display="block">
+                                    <strong>Mô tả:</strong> {v.description}
+                                  </Typography>
+                                  <Typography variant="caption" display="block">
+                                    <strong>Kiểu:</strong> {v.type}
+                                    {v.itemType && ` (Array<${v.itemType}>)`}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    display="block"
+                                    sx={{ mt: 0.5, color: "success.light" }}
+                                  >
+                                    Click để copy
+                                  </Typography>
+                                </Box>
+                              }
+                            >
+                              <Chip
+                                label={v.name}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                                onClick={() => handleCopyVariable(v.name)}
+                                onDelete={() => handleCopyVariable(v.name)}
+                                deleteIcon={<CopyIcon />}
+                                sx={{ mb: 0.5, cursor: "pointer" }}
+                              />
+                            </Tooltip>
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
+
+                    {/* Display Variables */}
+                    {variableGroups.display.length > 0 && (
+                      <Box>
+                        <Typography
+                          variant="subtitle2"
+                          color="success.main"
+                          gutterBottom
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          📝 Biến hiển thị ({variableGroups.display.length})
+                          <Typography variant="caption" color="text.secondary">
+                            - Dùng trong template để hiển thị thông tin
+                          </Typography>
+                        </Typography>
+                        <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                          {variableGroups.display.map((v) => (
+                            <Tooltip
+                              key={v.name}
+                              title={
+                                <Box>
+                                  <Typography variant="caption" display="block">
+                                    <strong>Mô tả:</strong>{" "}
+                                    {v.description || v.name}
+                                  </Typography>
+                                  <Typography variant="caption" display="block">
+                                    <strong>Kiểu:</strong> {v.type}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    display="block"
+                                    sx={{ mt: 0.5, color: "success.light" }}
+                                  >
+                                    Click để copy
+                                  </Typography>
+                                </Box>
+                              }
+                            >
+                              <Chip
+                                label={v.name}
+                                size="small"
+                                color="success"
+                                variant="outlined"
+                                onClick={() => handleCopyVariable(v.name)}
+                                onDelete={() => handleCopyVariable(v.name)}
+                                deleteIcon={<CopyIcon />}
+                                sx={{ mb: 0.5, cursor: "pointer" }}
+                              />
+                            </Tooltip>
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
+
+                    {/* Detailed Table View */}
+                    <Divider sx={{ my: 2 }} />
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      gutterBottom
+                    >
+                      Chi tiết đầy đủ:
+                    </Typography>
+                    <Box sx={{ maxHeight: 300, overflow: "auto", mt: 1 }}>
+                      <Table size="small" sx={{ minWidth: 600 }}>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: "bold" }}>
+                              Tên biến
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: "bold" }}>
+                              Kiểu
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: "bold" }}>
+                              Mô tả
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: "bold", width: 100 }}>
+                              Recipient?
+                            </TableCell>
+                            <TableCell sx={{ fontWeight: "bold", width: 60 }}>
+                              Copy
+                            </TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {selectedType.variables.map((v) => (
+                            <TableRow
+                              key={v.name}
+                              hover
+                              sx={{
+                                bgcolor: v.isRecipientCandidate
+                                  ? "primary.50"
+                                  : "inherit",
+                              }}
+                            >
+                              <TableCell>
+                                <code>{v.name}</code>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="caption">
+                                  {v.type}
+                                  {v.itemType && (
+                                    <Box
+                                      component="span"
+                                      color="text.secondary"
+                                    >
+                                      {" "}
+                                      &lt;{v.itemType}&gt;
+                                    </Box>
+                                  )}
+                                  {v.ref && (
+                                    <Box component="span" color="primary.main">
+                                      {" "}
+                                      → {v.ref}
+                                    </Box>
+                                  )}
+                                </Typography>
+                              </TableCell>
+                              <TableCell>
+                                <Typography variant="caption">
+                                  {v.description || "-"}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                {v.isRecipientCandidate && (
+                                  <Chip
+                                    label="Yes"
+                                    size="small"
+                                    color="primary"
+                                    sx={{ height: 20 }}
+                                  />
+                                )}
+                              </TableCell>
+                              <TableCell align="center">
+                                <IconButton
+                                  size="small"
+                                  onClick={() => handleCopyVariable(v.name)}
+                                  title="Copy cú pháp"
+                                >
+                                  <CopyIcon fontSize="small" />
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
+                <Divider sx={{ my: 2 }} />
+              </Grid>
+            )}
 
             <Grid item xs={12} md={4}>
               <Controller

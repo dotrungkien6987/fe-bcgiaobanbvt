@@ -130,15 +130,19 @@ function NotificationDrawer({ open, onClose }) {
           </Box>
         ) : (
           <List disablePadding>
-            {notifications.map((notification, index) => (
-              <React.Fragment key={notification._id}>
-                <NotificationItem
-                  notification={notification}
-                  onClose={onClose}
-                />
-                {index < notifications.length - 1 && <Divider component="li" />}
-              </React.Fragment>
-            ))}
+            {notifications
+              .filter((n) => n?._id)
+              .map((notification, index) => (
+                <React.Fragment key={notification._id}>
+                  <NotificationItem
+                    notification={notification}
+                    onClose={onClose}
+                  />
+                  {index < notifications.length - 1 && (
+                    <Divider component="li" />
+                  )}
+                </React.Fragment>
+              ))}
           </List>
         )}
 

@@ -129,12 +129,18 @@ function NotificationDropdown({ anchorEl, open, onClose }) {
         </Box>
       ) : (
         <List disablePadding sx={{ maxHeight: 320, overflow: "auto" }}>
-          {notifications.slice(0, 5).map((notification) => (
-            <React.Fragment key={notification._id}>
-              <NotificationItem notification={notification} onClose={onClose} />
-              <Divider component="li" />
-            </React.Fragment>
-          ))}
+          {notifications
+            .filter((n) => n?._id)
+            .slice(0, 5)
+            .map((notification) => (
+              <React.Fragment key={notification._id}>
+                <NotificationItem
+                  notification={notification}
+                  onClose={onClose}
+                />
+                <Divider component="li" />
+              </React.Fragment>
+            ))}
         </List>
       )}
 
