@@ -45,8 +45,12 @@ import { calculateNhiemVuScore } from "../../../../../utils/kpiCalculation";
 // ✅ NEW: Import dashboard component for viewing tasks
 import CongViecDashboard from "./dashboard/CongViecDashboard";
 
+// ✅ NEW: Import YeuCau dashboard component
+import YeuCauDashboard from "./dashboard/YeuCauDashboard";
+
 // ✅ NEW: Import dashboard data action
 import { fetchCongViecDashboard } from "../../kpiSlice";
+import { fetchYeuCauCounts } from "../../../Ticket/yeuCauSlice";
 
 // ✅ NEW: Import QuickScoreDialog for batch scoring
 import QuickScoreDialog from "./QuickScoreDialog";
@@ -262,6 +266,41 @@ function ChamDiemKPITable({
     return map;
   }, [dashboardData, nhiemVuList, chuKyDanhGiaID]);
 
+  // ✅ NEW: Fetch YeuCau counts on mount for badge display
+  const yeuCauCountsState = useSelector(
+    (state) => state.yeuCau.yeuCauCounts?.[`${chuKyDanhGiaID}_${nhanVienID}`]
+  );
+
+  useEffect(() => {
+    if (nhiemVuList.length > 0 && nhanVienID && chuKyDanhGiaID) {
+      const nhiemVuThuongQuyIDs = nhiemVuList.map(
+        (nv) => nv.NhiemVuThuongQuyID?._id || nv.NhiemVuThuongQuyID
+      );
+      if (
+        !yeuCauCountsState?.data &&
+        !yeuCauCountsState?.isLoading &&
+        nhiemVuThuongQuyIDs.length > 0
+      ) {
+        dispatch(
+          fetchYeuCauCounts({
+            nhiemVuThuongQuyIDs,
+            nhanVienID,
+            chuKyDanhGiaID,
+          })
+        );
+      }
+    }
+  }, [nhiemVuList, nhanVienID, chuKyDanhGiaID, dispatch, yeuCauCountsState]);
+
+  // ✅ NEW: Create YeuCauCount map from fetched counts
+  // Backend returns Object { nvtqID: count } directly, not Array
+  const yeuCauCountMap = useMemo(() => {
+    if (yeuCauCountsState?.data && typeof yeuCauCountsState.data === "object") {
+      return yeuCauCountsState.data; // Already in { nvtqID: count } format
+    }
+    return {};
+  }, [yeuCauCountsState]);
+
   // Ensure expanded row is fully visible inside the scroll container
   const ensureExpandedRowVisible = () => {
     if (!expandedRowId || !expandedRowRef.current || !tableContainerRef.current)
@@ -428,11 +467,10 @@ function ChamDiemKPITable({
         ref={tableContainerRef}
         component={Paper}
         sx={{
-          maxHeight: "calc(100vh - 380px)",
           borderRadius: 2,
-          /* Allow vertical scrolling so expanded content is not cut off */
-          overflowY: "auto",
-          overflowX: "hidden",
+          /* ✅ FIXED: Enable horizontal scroll for small screens, remove vertical scroll limit */
+          overflowX: "auto",
+          overflowY: "visible",
           boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
           border: "1px solid",
           borderColor: "divider",
@@ -517,6 +555,41 @@ function ChamDiemKPITable({
                     sx={{ opacity: 0.9 }}
                   >
                     (Đã gán)
+                  </Typography>
+                </Box>
+              </TableCell>
+
+              {/* 🆕 NEW COLUMN: Số lượng yêu cầu */}
+              <TableCell
+                align="center"
+                sx={{
+                  width: 120,
+                  fontWeight: "700",
+                  fontSize: "0.85rem",
+                  background: "#8b5cf6",
+                  color: "white",
+                  borderLeft: "3px solid #7c3aed",
+                }}
+              >
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  alignItems="center"
+                  gap={0.5}
+                >
+                  <Typography
+                    variant="caption"
+                    fontWeight={700}
+                    fontSize="0.85rem"
+                  >
+                    🎫 Yêu cầu
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    fontSize="0.7rem"
+                    sx={{ opacity: 0.9 }}
+                  >
+                    (Đã xử lý)
                   </Typography>
                 </Box>
               </TableCell>
@@ -800,6 +873,51 @@ function ChamDiemKPITable({
                       )}
                     </TableCell>
 
+                    {/* 🆕 NEW CELL: Số lượng yêu cầu */}
+                    <TableCell
+                      align="center"
+                      sx={{
+                        py: 0.75,
+                        px: 1.5,
+                        bgcolor:
+                          yeuCauCountMap[nvId] > 0
+                            ? "rgba(139, 92, 246, 0.08)"
+                            : "rgba(0,0,0,0.02)",
+                        borderLeft: "3px solid",
+                        borderLeftColor:
+                          yeuCauCountMap[nvId] > 0
+                            ? "#8b5cf6"
+                            : "rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      {yeuCauCountsState?.isLoading ? (
+                        <CircularProgress size={20} thickness={4} />
+                      ) : yeuCauCountMap[nvId] > 0 ? (
+                        <Chip
+                          label={yeuCauCountMap[nvId]}
+                          size="small"
+                          sx={{
+                            bgcolor: "#8b5cf6",
+                            color: "white",
+                            fontWeight: "700",
+                            fontSize: "0.85rem",
+                            minWidth: 50,
+                            height: 28,
+                            boxShadow: "0 2px 6px rgba(139, 92, 246, 0.3)",
+                          }}
+                        />
+                      ) : (
+                        <Typography
+                          variant="caption"
+                          color="text.disabled"
+                          fontStyle="italic"
+                          fontSize="0.8rem"
+                        >
+                          0
+                        </Typography>
+                      )}
+                    </TableCell>
+
                     {/* 🆕 NEW CELL: Điểm tự đánh giá - READ-ONLY */}
                     <TableCell
                       align="center"
@@ -910,7 +1028,7 @@ function ChamDiemKPITable({
                   {/* Expandable row for description */}
                   <TableRow ref={isExpanded ? expandedRowRef : null}>
                     <TableCell
-                      colSpan={6 + tieuChiHeaders.length + 1}
+                      colSpan={7 + tieuChiHeaders.length + 1}
                       sx={{
                         py: 0,
                         borderBottom: isExpanded ? 1 : 0,
@@ -996,6 +1114,35 @@ function ChamDiemKPITable({
                                           height: 20,
                                           fontSize: "0.7rem",
                                           fontWeight: 700,
+                                          "& .MuiChip-label": {
+                                            px: 1,
+                                          },
+                                        }}
+                                      />
+                                    </Stack>
+                                  }
+                                />
+                                <Tab
+                                  label={
+                                    <Stack
+                                      direction="row"
+                                      spacing={1}
+                                      alignItems="center"
+                                    >
+                                      <span>🎫 Yêu cầu</span>
+                                      <Chip
+                                        label={
+                                          yeuCauCountsState?.isLoading
+                                            ? "..."
+                                            : yeuCauCountMap[nvId] || 0
+                                        }
+                                        size="small"
+                                        sx={{
+                                          height: 20,
+                                          fontSize: "0.7rem",
+                                          fontWeight: 700,
+                                          bgcolor: "#8b5cf6",
+                                          color: "white",
                                           "& .MuiChip-label": {
                                             px: 1,
                                           },
@@ -1443,6 +1590,24 @@ function ChamDiemKPITable({
                                   open={activeTabByRow[rowId] === 1}
                                   onViewTask={(taskId) => {
                                     console.log("View task:", taskId);
+                                  }}
+                                />
+                              </CardContent>
+                            )}
+
+                            {/* Tab Panel 2: YeuCau Dashboard */}
+                            {activeTabByRow[rowId] === 2 && (
+                              <CardContent sx={{ p: 2 }}>
+                                <YeuCauDashboard
+                                  nhiemVuThuongQuyID={
+                                    nhiemVu.NhiemVuThuongQuyID?._id ||
+                                    nhiemVu.NhiemVuThuongQuyID
+                                  }
+                                  nhanVienID={nhanVienID}
+                                  chuKyDanhGiaID={chuKyDanhGiaID}
+                                  open={activeTabByRow[rowId] === 2}
+                                  onViewYeuCau={(yeuCauId) => {
+                                    console.log("View yêu cầu:", yeuCauId);
                                   }}
                                 />
                               </CardContent>

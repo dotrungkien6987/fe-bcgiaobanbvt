@@ -7,7 +7,6 @@
  */
 import React, { useEffect, useMemo } from "react";
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -26,6 +25,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import dayjs from "dayjs";
 import { FormProvider } from "components/form";
+import BottomSheetDialog from "./BottomSheetDialog";
 
 // Validation schema
 const tiepNhanSchema = Yup.object().shape({
@@ -106,13 +106,28 @@ function TiepNhanDialog({
   }, [yeuCau]);
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <FormProvider methods={methods} onSubmit={handleSubmit(handleFormSubmit)}>
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <CheckIcon color="success" />
-            <span>Tiếp nhận yêu cầu</span>
-          </Stack>
+    <BottomSheetDialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+    >
+      <FormProvider
+        methods={methods}
+        onSubmit={handleSubmit(handleFormSubmit)}
+        id="tiep-nhan-form"
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            bgcolor: "success.lighter",
+            color: "success.darker",
+          }}
+        >
+          <CheckIcon />
+          <Typography variant="h6">Tiếp nhận yêu cầu</Typography>
         </DialogTitle>
         <DialogContent>
           <Stack spacing={3} sx={{ pt: 2 }}>
@@ -171,8 +186,15 @@ function TiepNhanDialog({
             </Alert>
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} disabled={loading}>
+        <DialogActions
+          sx={{ p: 2, gap: 1, flexDirection: { xs: "column", sm: "row" } }}
+        >
+          <Button
+            onClick={handleClose}
+            disabled={loading}
+            size="large"
+            fullWidth
+          >
             Hủy
           </Button>
           <Button
@@ -180,12 +202,14 @@ function TiepNhanDialog({
             variant="contained"
             color="success"
             disabled={loading}
+            size="large"
+            fullWidth
           >
             {loading ? "Đang xử lý..." : "Xác nhận tiếp nhận"}
           </Button>
         </DialogActions>
       </FormProvider>
-    </Dialog>
+    </BottomSheetDialog>
   );
 }
 

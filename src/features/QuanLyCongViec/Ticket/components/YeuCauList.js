@@ -39,6 +39,7 @@ import useAuth from "hooks/useAuth";
 import EmployeeAvatar from "components/EmployeeAvatar";
 
 import { YeuCauStatusChip, YeuCauCard, YeuCauFilterPanel } from "./index";
+import SwipeableYeuCauCard from "./SwipeableYeuCauCard";
 import {
   getYeuCauList,
   setFilters,
@@ -66,6 +67,8 @@ function YeuCauList({
   khoaOptions = [],
   danhMucOptions = [],
   showRatingColumn = false,
+  disableAutoFetch = false,
+  swipeActions = null, // { onSwipeAction, leftAction, rightAction }
 }) {
   const dispatch = useDispatch();
   const theme = useTheme();
@@ -124,8 +127,9 @@ function YeuCauList({
   }, [dispatch, currentPage, filters, activeTab]);
 
   useEffect(() => {
+    if (disableAutoFetch) return;
     loadData();
-  }, [loadData]);
+  }, [loadData, disableAutoFetch]);
 
   const handleFilterChange = (newFilters) => {
     dispatch(setFilters(newFilters));
@@ -173,14 +177,35 @@ function YeuCauList({
       {/* Mobile: Card view */}
       {isMobile ? (
         <Stack spacing={2}>
-          {yeuCauList.map((yeuCau) => (
-            <YeuCauCard
-              key={yeuCau._id}
-              yeuCau={yeuCau}
-              showRating={displayRatingColumn}
-              onClick={() => onViewDetail?.(yeuCau)}
-            />
-          ))}
+          {yeuCauList.map((yeuCau) => {
+            const cardElement = (
+              <YeuCauCard
+                key={yeuCau._id}
+                yeuCau={yeuCau}
+                showRating={displayRatingColumn}
+                onClick={() => onViewDetail?.(yeuCau)}
+              />
+            );
+
+            // Wrap with swipeable if swipeActions provided
+            if (swipeActions) {
+              return (
+                <SwipeableYeuCauCard
+                  key={yeuCau._id}
+                  onSwipeAction={(action) =>
+                    swipeActions.onSwipeAction(yeuCau, action)
+                  }
+                  leftAction={swipeActions.leftAction}
+                  rightAction={swipeActions.rightAction}
+                  disabled={false}
+                >
+                  {cardElement}
+                </SwipeableYeuCauCard>
+              );
+            }
+
+            return cardElement;
+          })}
         </Stack>
       ) : (
         /* Desktop: Table view */

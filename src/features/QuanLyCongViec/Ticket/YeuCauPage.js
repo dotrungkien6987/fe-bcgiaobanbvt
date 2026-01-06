@@ -26,6 +26,7 @@ import { useNavigate } from "react-router-dom";
 import apiService from "app/apiService";
 import YeuCauList from "./components/YeuCauList";
 import YeuCauFormDialog from "./components/YeuCauFormDialog";
+import { PullToRefreshWrapper } from "./components";
 import { setActiveTab, resetFilters, selectActiveTab } from "./yeuCauSlice";
 
 function YeuCauPage() {
@@ -34,6 +35,7 @@ function YeuCauPage() {
 
   const activeTab = useSelector(selectActiveTab);
   const [openForm, setOpenForm] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Lấy danh sách Khoa có danh mục yêu cầu
   const [khoaOptions, setKhoaOptions] = useState([]);
@@ -70,6 +72,12 @@ function YeuCauPage() {
 
   const handleCloseForm = () => {
     setOpenForm(false);
+  };
+
+  const handleRefresh = async () => {
+    // Change key để trigger re-render và reload data
+    // YeuCauList sẽ tự động gọi getYeuCauList trong useEffect của nó
+    setRefreshKey((prev) => prev + 1);
   };
 
   return (
@@ -133,14 +141,20 @@ function YeuCauPage() {
           <Tab
             icon={<InboxIcon />}
             iconPosition="start"
-            label="Gửi đến khoa tôi"
+            label="Tôi nhận được"
             value="received"
           />
         </Tabs>
       </Paper>
 
-      {/* Content */}
-      <YeuCauList onViewDetail={handleViewDetail} khoaOptions={khoaOptions} />
+      {/* Content with Pull-to-Refresh */}
+      <PullToRefreshWrapper onRefresh={handleRefresh}>
+        <YeuCauList
+          key={refreshKey}
+          onViewDetail={handleViewDetail}
+          khoaOptions={khoaOptions}
+        />
+      </PullToRefreshWrapper>
 
       {/* Form Dialog */}
       <YeuCauFormDialog

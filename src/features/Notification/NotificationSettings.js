@@ -280,9 +280,29 @@ function NotificationSettings() {
                         <React.Fragment key={type.type}>
                           {index > 0 && <Divider sx={{ my: 2 }} />}
                           <Box>
-                            <Typography variant="subtitle2" fontWeight="medium">
-                              {type.name}
-                            </Typography>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                                mb: 0.5,
+                              }}
+                            >
+                              <Typography
+                                variant="subtitle2"
+                                fontWeight="medium"
+                              >
+                                {type.name}
+                              </Typography>
+                              {type.templateCount > 0 && (
+                                <Chip
+                                  label={`${type.templateCount} mẫu`}
+                                  size="small"
+                                  variant="outlined"
+                                  sx={{ fontSize: "0.7rem", height: 20 }}
+                                />
+                              )}
+                            </Box>
                             <Typography
                               variant="caption"
                               color="text.secondary"

@@ -14,7 +14,9 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
   Check as CheckIcon,
   Close as CloseIcon,
@@ -152,9 +154,19 @@ function YeuCauActionButtons({
   loading = false,
   loadingAction = null,
   size = "medium",
-  variant = "buttons", // 'buttons' | 'menu' | 'compact' | 'scroll'
+  variant = "buttons", // 'buttons' | 'menu' | 'compact' | 'scroll' | 'vertical'
+  orientation, // 'horizontal' | 'vertical' (auto-detect if not provided)
 }) {
   const [menuAnchor, setMenuAnchor] = React.useState(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  // Auto-detect orientation based on device
+  const effectiveOrientation =
+    orientation || (isMobile ? "vertical" : "horizontal");
+
+  // Auto-size for touch targets on mobile
+  const effectiveSize = isMobile && size === "medium" ? "large" : size;
 
   if (availableActions.length === 0) return null;
 
@@ -294,7 +306,7 @@ function YeuCauActionButtons({
               key={action}
               variant={config.variant}
               color={config.color}
-              size={size}
+              size={effectiveSize}
               startIcon={config.icon}
               onClick={() => handleAction(action)}
               disabled={loading}
@@ -310,7 +322,7 @@ function YeuCauActionButtons({
           <>
             <Button
               variant="outlined"
-              size={size}
+              size={effectiveSize}
               endIcon={<MoreIcon />}
               onClick={(e) => setMenuAnchor(e.currentTarget)}
               disabled={loading}
@@ -350,7 +362,84 @@ function YeuCauActionButtons({
     );
   }
 
-  // Default: buttons variant
+  // Vertical variant for mobile - full width touch targets
+  if (variant === "vertical" || effectiveOrientation === "vertical") {
+    return (
+      <Stack spacing={1.5}>
+        {/* Primary actions as full-width buttons */}
+        {primaryActions.map((action) => {
+          const config = ACTION_CONFIG[action];
+          if (!config) return null;
+          return (
+            <Button
+              key={action}
+              variant={config.variant}
+              color={config.color}
+              size={effectiveSize}
+              fullWidth
+              startIcon={config.icon}
+              onClick={() => handleAction(action)}
+              disabled={loading}
+              loading={loadingAction === action}
+              sx={{
+                minHeight: 48, // WCAG 2.1 Level AAA compliance
+                justifyContent: "flex-start",
+                px: 3,
+                fontSize: isMobile ? "1rem" : "0.875rem",
+              }}
+            >
+              {config.label}
+            </Button>
+          );
+        })}
+
+        {/* Secondary actions in expandable menu */}
+        {secondaryActions.length > 0 && (
+          <>
+            <Button
+              variant="outlined"
+              size={effectiveSize}
+              fullWidth
+              endIcon={<MoreIcon />}
+              onClick={(e) => setMenuAnchor(e.currentTarget)}
+              disabled={loading}
+              sx={{ minHeight: 48 }}
+            >
+              Thêm thao tác ({secondaryActions.length})
+            </Button>
+            <Menu
+              anchorEl={menuAnchor}
+              open={Boolean(menuAnchor)}
+              onClose={() => setMenuAnchor(null)}
+            >
+              {secondaryActions.map((action, index) => {
+                const config = ACTION_CONFIG[action];
+                if (!config) return null;
+                return (
+                  <React.Fragment key={action}>
+                    {index > 0 &&
+                      (action === HANH_DONG.XOA ||
+                        action === HANH_DONG.BAO_QUAN_LY) && <Divider />}
+                    <MenuItem
+                      onClick={() => handleAction(action)}
+                      disabled={loading && loadingAction === action}
+                    >
+                      <ListItemIcon sx={{ color: `${config.color}.main` }}>
+                        {config.icon}
+                      </ListItemIcon>
+                      <ListItemText>{config.label}</ListItemText>
+                    </MenuItem>
+                  </React.Fragment>
+                );
+              })}
+            </Menu>
+          </>
+        )}
+      </Stack>
+    );
+  }
+
+  // Default: horizontal buttons variant (desktop)
   return (
     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
       {/* Primary actions as buttons */}
@@ -362,7 +451,7 @@ function YeuCauActionButtons({
             key={action}
             variant={config.variant}
             color={config.color}
-            size={size}
+            size={effectiveSize}
             startIcon={config.icon}
             onClick={() => handleAction(action)}
             disabled={loading}

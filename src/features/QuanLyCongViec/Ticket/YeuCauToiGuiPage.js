@@ -30,6 +30,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import YeuCauList from "./components/YeuCauList";
+import { PullToRefreshWrapper } from "./components";
 import YeuCauFormDialog from "./components/YeuCauFormDialog";
 import {
   getYeuCauList,
@@ -51,6 +52,7 @@ const ICON_MAP = {
 function YeuCauToiGuiPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [refreshKey, setRefreshKey] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get("tab");
 
@@ -121,6 +123,15 @@ function YeuCauToiGuiPage() {
 
   const handleViewDetail = (yeuCau) => {
     navigate(`/yeu-cau/${yeuCau._id}`);
+  };
+
+  const handleRefresh = async () => {
+    // Reload data từ API với filters hiện tại
+    if (apiParams) {
+      await dispatch(getYeuCauList(apiParams));
+    }
+    // Change key để force re-render YeuCauList
+    setRefreshKey((prev) => prev + 1);
   };
 
   return (
@@ -201,13 +212,17 @@ function YeuCauToiGuiPage() {
       </Paper>
 
       {/* Content */}
-      <YeuCauList
-        yeuCauList={yeuCauList}
-        loading={isLoading}
-        onViewDetail={handleViewDetail}
-        emptyMessage={activeTabInfo?.emptyMessage || "Không có yêu cầu nào"}
-        showRatingColumn={isClosedTab}
-      />
+      <PullToRefreshWrapper onRefresh={handleRefresh}>
+        <YeuCauList
+          key={refreshKey}
+          disableAutoFetch
+          yeuCauList={yeuCauList}
+          loading={isLoading}
+          onViewDetail={handleViewDetail}
+          emptyMessage={activeTabInfo?.emptyMessage || "Không có yêu cầu nào"}
+          showRatingColumn={isClosedTab}
+        />
+      </PullToRefreshWrapper>
 
       {/* Form Dialog */}
       <YeuCauFormDialog

@@ -29,6 +29,7 @@ import DuocVatTu from "features/DashBoard/DuocVatTu/DuocVatTu";
 import BenhNhanNgoaiTinh from "features/His/BenhNhanNgoaiTinh/BenhNhanNgoaiTinh";
 import SoThuTuDashboard from "features/SoThuTuPhongKham/SoThuTuDashboard";
 import BinhQuanBenhAn from "../features/DashBoard/BinhQuanBenhAn";
+import DichVuTrungDashboard from "../features/DashBoard/DichVuTrung/DichVuTrungDashboard";
 
 const TabsWrapperStyled = styled("div")(({ theme }) => ({
   zIndex: 9,
@@ -54,6 +55,7 @@ const DASHBOARD_PERMISSION_MAP = {
   ĐH: "ĐIỀU HÀNH",
   TC: "TÀI CHÍNH",
   BQBA: "Bình quân bệnh án",
+  DICHVUTRUNG: "DỊCH VỤ TRÙNG",
   TCKHOA: "THEO DÕI THEO KHOA",
   DVT: "DƯỢC VẬT TƯ",
   ĐT: "ĐÀO TẠO TOÀN VIỆN",
@@ -91,6 +93,11 @@ function DashBoardPage() {
         value: "Bình quân bệnh án",
         component: <BinhQuanBenhAn />,
         permission: "BQBA",
+      },
+      {
+        value: "DỊCH VỤ TRÙNG",
+        component: <DichVuTrungDashboard />,
+        permission: "DICHVUTRUNG",
       },
       {
         value: "THEO DÕI THEO KHOA",

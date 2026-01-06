@@ -5,7 +5,6 @@
  */
 import React, { useEffect } from "react";
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -24,6 +23,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { FormProvider, FAutocomplete, FTextField } from "components/form";
+import BottomSheetDialog from "./BottomSheetDialog";
 
 // Validation
 const dieuPhoiSchema = Yup.object().shape({
@@ -85,13 +85,28 @@ function DieuPhoiDialog({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <FormProvider methods={methods} onSubmit={handleSubmit(handleFormSubmit)}>
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <AssignIcon color="primary" />
-            <span>Điều phối yêu cầu</span>
-          </Stack>
+    <BottomSheetDialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+    >
+      <FormProvider
+        methods={methods}
+        onSubmit={handleSubmit(handleFormSubmit)}
+        id="dieu-phoi-form"
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            bgcolor: "primary.lighter",
+            color: "primary.darker",
+          }}
+        >
+          <AssignIcon />
+          <Typography variant="h6">Điều phối yêu cầu</Typography>
         </DialogTitle>
         <DialogContent>
           <Stack spacing={3} sx={{ pt: 2 }}>
@@ -179,20 +194,30 @@ function DieuPhoiDialog({
             />
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} disabled={loading}>
+        <DialogActions
+          sx={{ p: 2, gap: 1, flexDirection: { xs: "column", sm: "row" } }}
+        >
+          <Button
+            onClick={handleClose}
+            disabled={loading}
+            size="large"
+            fullWidth
+          >
             Hủy
           </Button>
           <Button
             type="submit"
             variant="contained"
+            color="info"
             disabled={loading || !selectedNhanVien}
+            size="large"
+            fullWidth
           >
             {loading ? "Đang xử lý..." : "Xác nhận điều phối"}
           </Button>
         </DialogActions>
       </FormProvider>
-    </Dialog>
+    </BottomSheetDialog>
   );
 }
 

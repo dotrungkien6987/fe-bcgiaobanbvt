@@ -35,6 +35,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import YeuCauList from "./components/YeuCauList";
+import { PullToRefreshWrapper } from "./components";
 import {
   getYeuCauList,
   getBadgeCounts,
@@ -58,6 +59,7 @@ function YeuCauQuanLyKhoaPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const roles = useYeuCauRoles();
   const urlTab = searchParams.get("tab");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Sử dụng config từ Single Source of Truth
   const {
@@ -130,6 +132,15 @@ function YeuCauQuanLyKhoaPage() {
 
   const handleViewDetail = (yeuCau) => {
     navigate(`/yeu-cau/${yeuCau._id}`);
+  };
+
+  const handleRefresh = async () => {
+    // Reload data từ API với filters hiện tại
+    if (apiParams) {
+      await dispatch(getYeuCauList(apiParams));
+    }
+    // Change key để force re-render YeuCauList
+    setRefreshKey((prev) => prev + 1);
   };
 
   const handleExportReport = () => {
@@ -309,13 +320,17 @@ function YeuCauQuanLyKhoaPage() {
           {/* TODO: Add charts and detailed reports */}
         </Paper>
       ) : (
-        <YeuCauList
-          yeuCauList={yeuCauList}
-          loading={isLoading}
-          onViewDetail={handleViewDetail}
-          emptyMessage={`Không có yêu cầu nào trong "${activeTabInfo?.label}"`}
-          showRatingColumn={isClosedTab}
-        />
+        <PullToRefreshWrapper onRefresh={handleRefresh}>
+          <YeuCauList
+            key={refreshKey}
+            disableAutoFetch
+            yeuCauList={yeuCauList}
+            loading={isLoading}
+            onViewDetail={handleViewDetail}
+            emptyMessage={`Không có yêu cầu nào trong "${activeTabInfo?.label}"`}
+            showRatingColumn={isClosedTab}
+          />
+        </PullToRefreshWrapper>
       )}
     </Box>
   );

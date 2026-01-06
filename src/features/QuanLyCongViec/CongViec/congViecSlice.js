@@ -82,6 +82,7 @@ const initialState = {
   // ✅ NEW: Summary data for compact cards in KPI evaluation
   otherTasksSummary: {}, // Keyed by `${nhanVienId}_${chuKyId}`
   collabTasksSummary: {}, // Keyed by `${nhanVienId}_${chuKyId}`
+  crossCycleTasksSummary: {}, // ✅ NEW: Keyed by `${nhanVienId}_${chuKyId}`
   summaryLoading: false,
   summaryError: null,
 };
@@ -702,6 +703,23 @@ const slice = createSlice({
       state.summaryLoading = false;
     },
     fetchCollabTasksSummaryFailure: (state, action) => {
+      state.summaryError = action.payload;
+      state.summaryLoading = false;
+    },
+    // ✅ NEW: Cross-cycle tasks summary
+    fetchCrossCycleTasksSummaryStart: (state) => {
+      state.summaryLoading = true;
+      state.summaryError = null;
+    },
+    fetchCrossCycleTasksSummarySuccess: (state, action) => {
+      const { key, data } = action.payload;
+      state.crossCycleTasksSummary[key] = {
+        data,
+        timestamp: Date.now(),
+      };
+      state.summaryLoading = false;
+    },
+    fetchCrossCycleTasksSummaryFailure: (state, action) => {
       state.summaryError = action.payload;
       state.summaryLoading = false;
     },
@@ -1431,7 +1449,7 @@ export const fetchReplies = (parentId) => async (dispatch, getState) => {
 export const fetchMyRoutineTasks =
   (opts = {}) =>
   async (dispatch, getState) => {
-    const { force = false, maxAgeMs = 5 * 60 * 1000 } = opts; // default cache 5 phút
+    const { force = false, maxAgeMs = 5 * 60 * 1000, chuKyId } = opts; // ✅ Accept chuKyId param
     const state = getState();
     const {
       loadingRoutineTasks,
@@ -1439,6 +1457,10 @@ export const fetchMyRoutineTasks =
       myRoutineTasksLastFetch,
       selectedCycleId, // ✅ NEW: Use selected cycle
     } = state.congViec || {};
+
+    // ✅ FIX: Prioritize explicit chuKyId param over state (prevents race condition)
+    const cycleIdToUse = chuKyId !== undefined ? chuKyId : selectedCycleId;
+
     if (loadingRoutineTasks) return;
     if (
       !force &&
@@ -1450,9 +1472,9 @@ export const fetchMyRoutineTasks =
     }
     dispatch(slice.actions.fetchMyRoutineTasksStart());
     try {
-      // ✅ NEW: Pass selectedCycleId to backend
+      // ✅ FIX: Use explicit cycleId to avoid stale state
       const res = await congViecAPI.getMyRoutineTasks({
-        chuKyId: selectedCycleId,
+        chuKyId: cycleIdToUse,
       });
       const items = res?.data?.data || [];
       dispatch(slice.actions.fetchMyRoutineTasksSuccess(items));
@@ -1677,7 +1699,8 @@ export const deleteSubtask = (parentId, subtaskId) => async (dispatch) => {
 };
 
 /**
- * Fetch summary of "other" tasks (FlagNVTQKhac=true)
+ * Fetch summary of "other" tasks (ALL non-NVTQ tasks)
+ * Includes: FlagNVTQKhac=true AND unassigned tasks
  * @param {Object} params - {nhanVienId, chuKyId}
  */
 export const fetchOtherTasksSummary =
@@ -1759,6 +1782,50 @@ export const fetchCollabTasksSummary =
       const message =
         error.message || "Không thể tải dữ liệu công việc phối hợp";
       dispatch(slice.actions.fetchCollabTasksSummaryFailure(message));
+      throw error;
+    }
+  };
+
+/**
+ * Fetch summary of cross-cycle tasks (assigned to NVTQ from previous cycles)
+ * @param {Object} params - {nhanVienId, chuKyId}
+ */
+export const fetchCrossCycleTasksSummary =
+  ({ nhanVienId, chuKyId }) =>
+  async (dispatch, getState) => {
+    // Check cache (5 minutes TTL)
+    const key = `${nhanVienId}_${chuKyId}`;
+    const cached = getState().congViec.crossCycleTasksSummary[key];
+    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      console.log("[fetchCrossCycleTasksSummary] Using cached data");
+      return cached.data;
+    }
+
+    // Dispatch start action
+    dispatch(slice.actions.fetchCrossCycleTasksSummaryStart());
+
+    try {
+      // API call
+      const response = await apiService.get(
+        "/workmanagement/congviec/summary-cross-cycle-tasks",
+        {
+          params: { nhanVienID: nhanVienId, chuKyDanhGiaID: chuKyId },
+        }
+      );
+
+      const data = response.data.data;
+
+      // Dispatch success
+      dispatch(slice.actions.fetchCrossCycleTasksSummarySuccess({ key, data }));
+
+      return data;
+    } catch (error) {
+      // Dispatch failure (NO toast, silent error for compact card)
+      const message =
+        error.message || "Không thể tải dữ liệu công việc chu kỳ cũ";
+      dispatch(slice.actions.fetchCrossCycleTasksSummaryFailure(message));
       throw error;
     }
   };

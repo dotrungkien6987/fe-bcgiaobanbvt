@@ -23,7 +23,6 @@ import {
 } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as Yup from "yup";
 import { useDispatch, useSelector } from "react-redux";
 import { LoadingButton } from "@mui/lab";
 
@@ -34,16 +33,7 @@ import {
   getDanhMucByKhoa,
   selectDanhMucList,
 } from "../yeuCauSlice";
-
-// Validation schema
-const yeuCauSchema = Yup.object().shape({
-  TieuDe: Yup.string()
-    .required("Tiêu đề không được để trống")
-    .max(200, "Tiêu đề không được vượt quá 200 ký tự"),
-  MoTa: Yup.string().max(2000, "Mô tả không được vượt quá 2000 ký tự"), // Optional
-  KhoaDichID: Yup.string().required("Vui lòng chọn khoa xử lý"),
-  DanhMucYeuCauID: Yup.string().required("Vui lòng chọn loại yêu cầu"),
-});
+import { yeuCauValidationSchema } from "../yeuCau.validation";
 
 function YeuCauFormDialog({
   open,
@@ -74,7 +64,7 @@ function YeuCauFormDialog({
   );
 
   const methods = useForm({
-    resolver: yupResolver(yeuCauSchema),
+    resolver: yupResolver(yeuCauValidationSchema),
     defaultValues,
   });
 

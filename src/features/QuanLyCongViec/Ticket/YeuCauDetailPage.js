@@ -99,6 +99,7 @@ import {
   MoLaiDialog,
   AppealDialog,
   GuiVeKhoaDialog,
+  YeuCauProgressIndicator,
 } from "./components";
 import {
   formatDateTime,
@@ -211,7 +212,8 @@ function YeuCauDetailPage() {
 
   const handleCycleChange = (newCycleId) => {
     dispatch(setSelectedCycle(newCycleId));
-    dispatch(fetchMyRoutineTasks({ force: true }));
+    // ✅ FIX: Pass chuKyId directly to avoid race condition
+    dispatch(fetchMyRoutineTasks({ force: true, chuKyId: newCycleId }));
   };
 
   // Handler gán nhiệm vụ
@@ -561,10 +563,20 @@ function YeuCauDetailPage() {
         </Stack>
       </Box>
 
-      {/* Card thao tác - hiển thị ngay sau toolbar */}
+      {/* Progress Indicator with SLA tracking */}
+      <Box sx={{ mb: 2, mx: { xs: 2, md: 0 } }}>
+        <YeuCauProgressIndicator yeuCau={yeuCau} />
+      </Box>
+
+      {/* Card thao tác - hiển thị ngay sau toolbar (Desktop only) */}
       {availableActions.length > 0 && (
         <Card
-          sx={{ mb: 2, mx: { xs: 0, md: 0 }, borderRadius: { xs: 0, md: 1 } }}
+          sx={{
+            mb: 2,
+            mx: { xs: 0, md: 0 },
+            borderRadius: { xs: 0, md: 1 },
+            display: { xs: "none", md: "block" }, // Hidden on mobile (use sticky bar instead)
+          }}
         >
           <CardHeader
             title="Thao tác"
@@ -979,6 +991,38 @@ function YeuCauDetailPage() {
         onSubmit={handleGuiVeKhoa}
         isLoading={actionLoading && currentAction === HANH_DONG.GUI_VE_KHOA}
       />
+
+      {/* Sticky Action Bar - Mobile Only */}
+      {availableActions.length > 0 && (
+        <Box
+          sx={{
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            bgcolor: "background.paper",
+            borderTop: 1,
+            borderColor: "divider",
+            p: 2,
+            zIndex: 1000,
+            display: { xs: "block", md: "none" }, // Only on mobile
+            boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
+          }}
+        >
+          <YeuCauActionButtons
+            availableActions={availableActions}
+            onAction={handleAction}
+            loading={actionLoading}
+            loadingAction={currentAction}
+            orientation="vertical"
+          />
+        </Box>
+      )}
+
+      {/* Spacer for sticky action bar on mobile */}
+      {availableActions.length > 0 && (
+        <Box sx={{ display: { xs: "block", md: "none" }, height: 200 }} />
+      )}
     </Container>
   );
 }

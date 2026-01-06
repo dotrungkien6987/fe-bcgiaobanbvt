@@ -318,7 +318,8 @@ const CongViecDetailDialog = ({ open, onClose, congViecId, onEdit }) => {
   // ✅ NEW: Handler for cycle change
   const handleCycleChange = (newCycleId) => {
     dispatch(setSelectedCycle(newCycleId));
-    dispatch(fetchMyRoutineTasks({ force: true })); // Refetch with new cycle
+    // ✅ FIX: Pass chuKyId directly to avoid race condition
+    dispatch(fetchMyRoutineTasks({ force: true, chuKyId: newCycleId }));
   };
 
   // Version conflict dialog UI

@@ -98,6 +98,11 @@ const initialState = {
   // Badge counts
   badgeCounts: {}, // { pageKey: { tabKey: count } }
   badgeCountsLoading: false,
+
+  // NEW: KPI Evaluation Dashboard
+  yeuCauCounts: {}, // { "chukyID_nhanvienID": { "nvtqID1": 12, "nvtqID2": 8, ... } }
+  yeuCauDashboard: {}, // { "nvtqID_chukyID": { data, isLoading, error, timestamp } }
+  otherYeuCauSummary: {}, // { "nhanvienID_chukyID": { data, isLoading, error, timestamp } }
 };
 
 // ============== SLICE ==============
@@ -280,6 +285,91 @@ const slice = createSlice({
     badgeCountsError: (state) => {
       state.badgeCountsLoading = false;
     },
+
+    // NEW: KPI Evaluation - YeuCau Counts
+    fetchYeuCauCountsPending: (state, action) => {
+      const { chuKyDanhGiaID, nhanVienID } = action.payload;
+      const key = `${chuKyDanhGiaID}_${nhanVienID}`;
+      if (!state.yeuCauCounts[key]) {
+        state.yeuCauCounts[key] = {};
+      }
+      state.yeuCauCounts[key].isLoading = true;
+      state.yeuCauCounts[key].error = null;
+    },
+    fetchYeuCauCountsSuccess: (state, action) => {
+      const { chuKyDanhGiaID, nhanVienID, counts } = action.payload;
+      const key = `${chuKyDanhGiaID}_${nhanVienID}`;
+      state.yeuCauCounts[key] = {
+        data: counts, // ✅ FIX: Store counts in .data property to match useEffect check
+        isLoading: false,
+        error: null,
+        timestamp: Date.now(),
+      };
+    },
+    fetchYeuCauCountsRejected: (state, action) => {
+      const { chuKyDanhGiaID, nhanVienID, error } = action.payload;
+      const key = `${chuKyDanhGiaID}_${nhanVienID}`;
+      state.yeuCauCounts[key] = {
+        isLoading: false,
+        error,
+      };
+    },
+
+    // NEW: KPI Evaluation - YeuCau Dashboard
+    fetchYeuCauDashboardPending: (state, action) => {
+      const { nhiemVuThuongQuyID, chuKyDanhGiaID } = action.payload;
+      const key = `${nhiemVuThuongQuyID}_${chuKyDanhGiaID}`;
+      state.yeuCauDashboard[key] = {
+        isLoading: true,
+        error: null,
+      };
+    },
+    fetchYeuCauDashboardSuccess: (state, action) => {
+      const { nhiemVuThuongQuyID, chuKyDanhGiaID, data } = action.payload;
+      const key = `${nhiemVuThuongQuyID}_${chuKyDanhGiaID}`;
+      state.yeuCauDashboard[key] = {
+        data,
+        isLoading: false,
+        error: null,
+        timestamp: Date.now(),
+      };
+    },
+    fetchYeuCauDashboardRejected: (state, action) => {
+      const { nhiemVuThuongQuyID, chuKyDanhGiaID, error } = action.payload;
+      const key = `${nhiemVuThuongQuyID}_${chuKyDanhGiaID}`;
+      state.yeuCauDashboard[key] = {
+        isLoading: false,
+        error,
+      };
+    },
+
+    // NEW: KPI Evaluation - Other YeuCau Summary
+    fetchOtherYeuCauSummaryPending: (state, action) => {
+      const { nhanVienID, chuKyDanhGiaID } = action.payload;
+      const key = `${nhanVienID}_${chuKyDanhGiaID}`;
+      state.otherYeuCauSummary[key] = {
+        isLoading: true,
+        error: null,
+      };
+    },
+    fetchOtherYeuCauSummarySuccess: (state, action) => {
+      const { nhanVienID, chuKyDanhGiaID, data } = action.payload;
+      const key = `${nhanVienID}_${chuKyDanhGiaID}`;
+      state.otherYeuCauSummary[key] = {
+        data,
+        isLoading: false,
+        error: null,
+        timestamp: Date.now(),
+      };
+    },
+    fetchOtherYeuCauSummaryRejected: (state, action) => {
+      const { nhanVienID, chuKyDanhGiaID, error } = action.payload;
+      const key = `${nhanVienID}_${chuKyDanhGiaID}`;
+      state.otherYeuCauSummary[key] = {
+        isLoading: false,
+        error,
+      };
+    },
   },
 });
 
@@ -318,6 +408,16 @@ export const {
   startBadgeCountsLoading,
   getBadgeCountsSuccess,
   badgeCountsError,
+  // NEW: KPI Evaluation actions
+  fetchYeuCauCountsPending,
+  fetchYeuCauCountsSuccess,
+  fetchYeuCauCountsRejected,
+  fetchYeuCauDashboardPending,
+  fetchYeuCauDashboardSuccess,
+  fetchYeuCauDashboardRejected,
+  fetchOtherYeuCauSummaryPending,
+  fetchOtherYeuCauSummarySuccess,
+  fetchOtherYeuCauSummaryRejected,
 } = slice.actions;
 
 // ============== THUNKS ==============
@@ -457,19 +557,40 @@ export const deleteYeuCau = (id, callback) => async (dispatch) => {
 const executeAction =
   (actionName, endpoint, successMessage) =>
   (id, data = {}, callback) =>
-  async (dispatch) => {
+  async (dispatch, getState) => {
     dispatch(startActionLoading(actionName));
     try {
+      // Get current yeuCau from state for version control
+      const { yeuCauDetail } = getState().yeuCau;
+      const currentYeuCau = yeuCauDetail?.data;
+
+      // Add version header for optimistic locking
+      const headers = {};
+      if (currentYeuCau?.updatedAt) {
+        headers["If-Unmodified-Since"] = new Date(
+          currentYeuCau.updatedAt
+        ).toUTCString();
+      }
+
       const response = await apiService.post(
         `${BASE_URL}/${id}/${endpoint}`,
-        data
+        data,
+        { headers }
       );
       dispatch(actionSuccess(response.data.data));
       toast.success(successMessage);
       if (callback) callback(response.data.data);
     } catch (error) {
-      dispatch(actionError(error.message));
-      toast.error(error.message || `Lỗi khi ${successMessage.toLowerCase()}`);
+      // Handle version conflict specifically
+      if (error.response?.data?.errors?.message === "VERSION_CONFLICT") {
+        toast.warning(
+          "Dữ liệu đã được cập nhật bởi người khác. Đang tải lại..."
+        );
+        dispatch(getYeuCauDetail(id)); // Auto-refresh
+      } else {
+        dispatch(actionError(error.message));
+        toast.error(error.message || `Lỗi khi ${successMessage.toLowerCase()}`);
+      }
     }
   };
 
@@ -877,6 +998,119 @@ export const getBadgeCounts = (pageKey) => async (dispatch) => {
     dispatch(badgeCountsError());
     // Không toast error - badge counts không critical
     console.error("Failed to load badge counts:", error);
+  }
+};
+
+// ============== KPI EVALUATION THUNKS ==============
+
+/**
+ * Fetch YeuCau counts grouped by NhiemVuThuongQuy for KPI badge display
+ * @param {Object} params
+ * @param {Array<String>} params.nhiemVuThuongQuyIDs - Array of NVTQ IDs
+ * @param {String} params.nhanVienID - Employee ID
+ * @param {String} params.chuKyDanhGiaID - Evaluation cycle ID
+ */
+export const fetchYeuCauCounts = (params) => async (dispatch) => {
+  const { nhiemVuThuongQuyIDs, nhanVienID, chuKyDanhGiaID } = params;
+
+  dispatch(fetchYeuCauCountsPending({ chuKyDanhGiaID, nhanVienID }));
+
+  try {
+    const response = await apiService.get(`${BASE_URL}/counts-by-nhiemvu`, {
+      params: {
+        nhiemVuThuongQuyIDs: nhiemVuThuongQuyIDs.join(","),
+        nhanVienID,
+        chuKyDanhGiaID,
+      },
+    });
+
+    dispatch(
+      fetchYeuCauCountsSuccess({
+        chuKyDanhGiaID,
+        nhanVienID,
+        counts: response.data.data,
+      })
+    );
+  } catch (error) {
+    dispatch(
+      fetchYeuCauCountsRejected({
+        chuKyDanhGiaID,
+        nhanVienID,
+        error: error.message,
+      })
+    );
+    console.error("Failed to fetch YeuCau counts:", error.message);
+  }
+};
+
+/**
+ * Fetch YeuCau dashboard for one NhiemVuThuongQuy (KPI Tab 3 content)
+ * @param {Object} params
+ * @param {String} params.nhiemVuThuongQuyID - NVTQ ID
+ * @param {String} params.nhanVienID - Employee ID
+ * @param {String} params.chuKyDanhGiaID - Evaluation cycle ID
+ */
+export const fetchYeuCauDashboard = (params) => async (dispatch) => {
+  const { nhiemVuThuongQuyID, nhanVienID, chuKyDanhGiaID } = params;
+
+  dispatch(fetchYeuCauDashboardPending({ nhiemVuThuongQuyID, chuKyDanhGiaID }));
+
+  try {
+    const response = await apiService.get(`${BASE_URL}/dashboard-by-nhiemvu`, {
+      params: { nhiemVuThuongQuyID, nhanVienID, chuKyDanhGiaID },
+    });
+
+    dispatch(
+      fetchYeuCauDashboardSuccess({
+        nhiemVuThuongQuyID,
+        chuKyDanhGiaID,
+        data: response.data.data,
+      })
+    );
+  } catch (error) {
+    dispatch(
+      fetchYeuCauDashboardRejected({
+        nhiemVuThuongQuyID,
+        chuKyDanhGiaID,
+        error: error.message,
+      })
+    );
+    console.error("Failed to fetch YeuCau dashboard:", error.message);
+  }
+};
+
+/**
+ * Fetch "other" YeuCau summary (not linked to any NVTQ)
+ * @param {Object} params
+ * @param {String} params.nhanVienID - Employee ID
+ * @param {String} params.chuKyDanhGiaID - Evaluation cycle ID
+ */
+export const fetchOtherYeuCauSummary = (params) => async (dispatch) => {
+  const { nhanVienID, chuKyDanhGiaID } = params;
+
+  dispatch(fetchOtherYeuCauSummaryPending({ nhanVienID, chuKyDanhGiaID }));
+
+  try {
+    const response = await apiService.get(`${BASE_URL}/other-summary`, {
+      params: { nhanVienID, chuKyDanhGiaID },
+    });
+
+    dispatch(
+      fetchOtherYeuCauSummarySuccess({
+        nhanVienID,
+        chuKyDanhGiaID,
+        data: response.data.data,
+      })
+    );
+  } catch (error) {
+    dispatch(
+      fetchOtherYeuCauSummaryRejected({
+        nhanVienID,
+        chuKyDanhGiaID,
+        error: error.message,
+      })
+    );
+    console.error("Failed to fetch other YeuCau summary:", error.message);
   }
 };
 

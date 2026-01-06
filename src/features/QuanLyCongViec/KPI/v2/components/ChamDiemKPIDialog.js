@@ -30,6 +30,8 @@ import useAuth from "../../../../../hooks/useAuth";
 import ChamDiemKPITable from "./ChamDiemKPITable";
 import KPIHistoryDialog from "./KPIHistoryDialog";
 import CongViecCompactCard from "./CongViecCompactCard";
+import CrossCycleTasksCompactCard from "./CrossCycleTasksCompactCard";
+import YeuCauCompactCard from "./YeuCauCompactCard";
 import CongViecDetailDialog from "../../../CongViec/CongViecDetailDialog";
 import {
   updateTieuChiScoreLocal,
@@ -44,8 +46,10 @@ import {
 import {
   fetchOtherTasksSummary,
   fetchCollabTasksSummary,
+  fetchCrossCycleTasksSummary,
   getCongViecDetail,
 } from "../../../CongViec/congViecSlice";
+import { fetchOtherYeuCauSummary } from "../../../Ticket/yeuCauSlice";
 
 // ✅ V2: Import calculation utilities
 import { calculateTotalScore } from "../../../../../utils/kpiCalculation";
@@ -80,11 +84,29 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
 
   // ✅ NEW: Get compact card summaries from congViec slice
   const {
-    otherTasksSummary,
-    collabTasksSummary,
-    summaryLoading,
-    summaryError,
-  } = useSelector((state) => state.congViec);
+    otherTasksSummary = {},
+    collabTasksSummary = {},
+    crossCycleTasksSummary = {},
+    summaryLoading: congViecSummaryLoading = {},
+    summaryError: congViecSummaryError = {},
+  } = useSelector((state) => state.congViec || {});
+
+  // ✅ NEW: Get yeuCau summary from yeuCau slice
+  const {
+    otherYeuCauSummary = {},
+    summaryLoading: yeuCauSummaryLoading = false,
+    summaryError: yeuCauSummaryError = null,
+  } = useSelector((state) => state.yeuCau || {});
+
+  // Combine loading/error states
+  const summaryLoading =
+    congViecSummaryLoading?.other ||
+    congViecSummaryLoading?.collab ||
+    yeuCauSummaryLoading;
+  const summaryError =
+    congViecSummaryError?.other ||
+    congViecSummaryError?.collab ||
+    yeuCauSummaryError;
 
   // Check if editable (not approved AND not in readOnly mode)
   const isEditable = useMemo(() => {
@@ -329,9 +351,11 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
       currentDanhGiaKPI?.ChuKyDanhGiaID;
 
     if (open && nhanVienId && chuKyId) {
-      // Fetch both summaries in parallel
+      // Fetch all 4 summaries in parallel
       dispatch(fetchOtherTasksSummary({ nhanVienId, chuKyId }));
+      dispatch(fetchCrossCycleTasksSummary({ nhanVienId, chuKyId }));
       dispatch(fetchCollabTasksSummary({ nhanVienId, chuKyId }));
+      dispatch(fetchOtherYeuCauSummary({ nhanVienId, chuKyId }));
     }
   }, [open, nhanVien?._id, currentDanhGiaKPI, dispatch]);
 
@@ -814,7 +838,26 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
                 showNguoiChinh={false}
               />
 
-              {/* Card 2: Công việc phối hợp */}
+              {/* Card 2: Công việc gán NVTQ chu kỳ cũ */}
+              {(() => {
+                const crossCycleData = crossCycleTasksSummary[key]?.data || {};
+
+                return (
+                  <CrossCycleTasksCompactCard
+                    total={crossCycleData.total || 0}
+                    completed={crossCycleData.completed || 0}
+                    late={crossCycleData.late || 0}
+                    active={crossCycleData.active || 0}
+                    tasks={crossCycleData.tasks || []}
+                    onViewTask={handleViewTask}
+                    onOpenNewTab={handleOpenNewTab}
+                    isLoading={summaryLoading}
+                    error={summaryError}
+                  />
+                );
+              })()}
+
+              {/* Card 3: Công việc phối hợp */}
               <CongViecCompactCard
                 title="Công việc phối hợp"
                 icon="🤝"
@@ -830,6 +873,45 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
                 error={summaryError}
                 showNguoiChinh={true}
               />
+
+              {/* Card 4: Yêu cầu khác */}
+              {(() => {
+                const rawData = otherYeuCauSummary[key]?.data || {};
+
+                // Transform backend data structure to component props
+                const otherYeuCauData = {
+                  total: rawData.summary?.total || 0,
+                  completed: rawData.summary?.completed || 0,
+                  avgRating: rawData.rating?.avgScore
+                    ? parseFloat(rawData.rating.avgScore)
+                    : 0,
+                  yeuCau: rawData.yeuCauList || [],
+                };
+
+                const handleViewYeuCau = (yeuCauId) => {
+                  if (!yeuCauId) return;
+                  window.open(
+                    `/ticket/${yeuCauId}`,
+                    "_blank",
+                    "noopener,noreferrer"
+                  );
+                };
+
+                return (
+                  <YeuCauCompactCard
+                    title="Yêu cầu khác"
+                    icon="🎫"
+                    color="info.main"
+                    total={otherYeuCauData.total}
+                    completed={otherYeuCauData.completed}
+                    avgRating={otherYeuCauData.avgRating}
+                    yeuCau={otherYeuCauData.yeuCau}
+                    onViewYeuCau={handleViewYeuCau}
+                    isLoading={summaryLoading}
+                    error={summaryError}
+                  />
+                );
+              })()}
             </>
           );
         })()}

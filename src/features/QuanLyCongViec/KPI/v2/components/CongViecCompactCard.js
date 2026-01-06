@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Card,
   CardActionArea,
@@ -21,6 +21,10 @@ import {
   Alert,
   Button,
   Skeleton,
+  ButtonGroup,
+  TablePagination,
+  Tooltip,
+  LinearProgress,
 } from "@mui/material";
 import {
   ExpandMore as ExpandMoreIcon,
@@ -68,8 +72,60 @@ const CongViecCompactCard = ({
   showNguoiChinh = false,
 }) => {
   const [expanded, setExpanded] = useState(false);
+  // ✨ NEW: Filter state
+  const [filterStatus, setFilterStatus] = useState("all");
+  // ✨ NEW: Pagination state
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const formatDate = (date) => (date ? dayjs(date).format("DD/MM") : "—");
+  // Format date with tooltip showing full date
+  const formatDateWithTooltip = (date) => {
+    if (!date) return "—";
+    const shortDate = dayjs(date).format("DD/MM");
+    const fullDate = dayjs(date).format("DD/MM/YYYY HH:mm");
+    return (
+      <Tooltip title={fullDate} arrow>
+        <span>{shortDate}</span>
+      </Tooltip>
+    );
+  };
+
+  // ✨ NEW: Filter tasks by status
+  const filteredTasks = useMemo(() => {
+    if (filterStatus === "all") return tasks;
+    if (filterStatus === "late")
+      return tasks.filter(
+        (t) => t.SoGioTre > 0 && t.TrangThai !== "HOAN_THANH"
+      );
+    if (filterStatus === "active")
+      return tasks.filter((t) => t.TrangThai === "DANG_THUC_HIEN");
+    if (filterStatus === "completed")
+      return tasks.filter((t) => t.TrangThai === "HOAN_THANH");
+    return tasks;
+  }, [tasks, filterStatus]);
+
+  // ✨ NEW: Paginated tasks
+  const paginatedTasks = useMemo(() => {
+    const start = page * rowsPerPage;
+    return filteredTasks.slice(start, start + rowsPerPage);
+  }, [filteredTasks, page, rowsPerPage]);
+
+  // ✨ NEW: Filter counts
+  const filterCounts = useMemo(
+    () => ({
+      all: tasks.length,
+      late: tasks.filter((t) => t.SoGioTre > 0 && t.TrangThai !== "HOAN_THANH")
+        .length,
+      active: tasks.filter((t) => t.TrangThai === "DANG_THUC_HIEN").length,
+      completed: tasks.filter((t) => t.TrangThai === "HOAN_THANH").length,
+    }),
+    [tasks]
+  );
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setPage(0);
+  }, [filterStatus]);
 
   // Auto-collapse when no data
   useEffect(() => {
@@ -244,7 +300,9 @@ const CongViecCompactCard = ({
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {title === "Công việc khác"
-                  ? "Bạn không có công việc nào ngoài nhiệm vụ thường quy"
+                  ? "Bạn không có công việc nào ngoài các nhiệm vụ thường quy đã gán"
+                  : title === "Công việc gán NVTQ chu kỳ cũ"
+                  ? "Không có công việc nào gán NVTQ từ chu kỳ trước"
                   : "Bạn không phối hợp công việc nào trong chu kỳ này"}
               </Typography>
             </Box>
@@ -253,18 +311,55 @@ const CongViecCompactCard = ({
           {/* Has Data - NEW MINIMAL TABLE */}
           {!isLoading && !error && total > 0 && (
             <>
-              {/* Minimal Task Table - 4 Columns */}
-              <TableContainer sx={{ maxHeight: 350 }}>
+              {/* ✨ NEW: Filter ButtonGroup */}
+              <Box sx={{ mb: 2 }}>
+                <ButtonGroup size="small" fullWidth>
+                  <Button
+                    variant={filterStatus === "all" ? "contained" : "outlined"}
+                    onClick={() => setFilterStatus("all")}
+                  >
+                    Tất cả ({filterCounts.all})
+                  </Button>
+                  <Button
+                    variant={filterStatus === "late" ? "contained" : "outlined"}
+                    onClick={() => setFilterStatus("late")}
+                    color={filterStatus === "late" ? "error" : "inherit"}
+                  >
+                    Trễ ({filterCounts.late})
+                  </Button>
+                  <Button
+                    variant={
+                      filterStatus === "active" ? "contained" : "outlined"
+                    }
+                    onClick={() => setFilterStatus("active")}
+                    color={filterStatus === "active" ? "info" : "inherit"}
+                  >
+                    Đang làm ({filterCounts.active})
+                  </Button>
+                  <Button
+                    variant={
+                      filterStatus === "completed" ? "contained" : "outlined"
+                    }
+                    onClick={() => setFilterStatus("completed")}
+                    color={filterStatus === "completed" ? "success" : "inherit"}
+                  >
+                    Hoàn ({filterCounts.completed})
+                  </Button>
+                </ButtonGroup>
+              </Box>
+
+              {/* Detailed Task Table - 7-8 Columns */}
+              <TableContainer sx={{ maxHeight: 350, overflowX: "auto" }}>
                 <Table size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <TableCell width="55%" sx={{ py: 1 }}>
+                      <TableCell width="10%" sx={{ py: 1 }}>
                         <Typography
                           variant="caption"
                           fontWeight={600}
                           color="text.secondary"
                         >
-                          Công việc
+                          Mã
                         </Typography>
                       </TableCell>
                       <TableCell width="20%" sx={{ py: 1 }}>
@@ -273,10 +368,37 @@ const CongViecCompactCard = ({
                           fontWeight={600}
                           color="text.secondary"
                         >
+                          Tiêu đề
+                        </Typography>
+                      </TableCell>
+                      <TableCell width="20%" sx={{ py: 1 }}>
+                        <Typography
+                          variant="caption"
+                          fontWeight={600}
+                          color="text.secondary"
+                        >
+                          Mô tả
+                        </Typography>
+                      </TableCell>
+                      <TableCell width="13%" sx={{ py: 1 }}>
+                        <Typography
+                          variant="caption"
+                          fontWeight={600}
+                          color="text.secondary"
+                        >
                           Trạng thái
                         </Typography>
                       </TableCell>
-                      <TableCell width="15%" sx={{ py: 1 }}>
+                      <TableCell width="13%" sx={{ py: 1 }}>
+                        <Typography
+                          variant="caption"
+                          fontWeight={600}
+                          color="text.secondary"
+                        >
+                          Tiến độ
+                        </Typography>
+                      </TableCell>
+                      <TableCell width="9%" sx={{ py: 1 }}>
                         <Typography
                           variant="caption"
                           fontWeight={600}
@@ -285,7 +407,18 @@ const CongViecCompactCard = ({
                           Hạn
                         </Typography>
                       </TableCell>
-                      <TableCell width="10%" align="center" sx={{ py: 1 }}>
+                      {title === "Công việc khác" && (
+                        <TableCell width="10%" sx={{ py: 1 }}>
+                          <Typography
+                            variant="caption"
+                            fontWeight={600}
+                            color="text.secondary"
+                          >
+                            Phân loại
+                          </Typography>
+                        </TableCell>
+                      )}
+                      <TableCell width="5%" align="center" sx={{ py: 1 }}>
                         <Typography
                           variant="caption"
                           fontWeight={600}
@@ -297,7 +430,7 @@ const CongViecCompactCard = ({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {tasks.slice(0, 10).map((task) => {
+                    {paginatedTasks.map((task) => {
                       const statusInfo = getStatusIcon(task);
                       const isOverdue =
                         dayjs(task.NgayHetHan).isBefore(dayjs(), "day") &&
@@ -315,12 +448,12 @@ const CongViecCompactCard = ({
                           }}
                           onClick={() => onViewTask?.(task._id)}
                         >
-                          {/* Column 1: Tiêu đề & Info */}
+                          {/* Column 1: Mã CV */}
                           <TableCell sx={{ py: 1.5 }}>
                             <Stack
                               direction="row"
                               spacing={1}
-                              alignItems="flex-start"
+                              alignItems="center"
                             >
                               {/* Status Icon */}
                               <Box
@@ -336,91 +469,101 @@ const CongViecCompactCard = ({
                                   color: "white",
                                   fontSize: 11,
                                   fontWeight: 700,
-                                  mt: 0.3,
                                 }}
                               >
                                 {statusInfo.icon}
                               </Box>
-
-                              {/* Tiêu đề + Meta */}
-                              <Box flex={1} minWidth={0}>
-                                <Typography
-                                  variant="body2"
-                                  fontWeight={600}
-                                  sx={{
-                                    color:
-                                      task.TrangThai === "HOAN_THANH"
-                                        ? "text.secondary"
-                                        : "text.primary",
-                                    textDecoration:
-                                      task.TrangThai === "HOAN_THANH"
-                                        ? "line-through"
-                                        : "none",
-                                    display: "-webkit-box",
-                                    WebkitLineClamp: 2,
-                                    WebkitBoxOrient: "vertical",
-                                    overflow: "hidden",
-                                    lineHeight: 1.4,
-                                  }}
-                                >
-                                  {task.TieuDe}
-                                </Typography>
-                                <Stack
-                                  direction="row"
-                                  spacing={0.5}
-                                  alignItems="center"
-                                  flexWrap="wrap"
-                                  mt={0.5}
-                                >
-                                  <Typography
-                                    variant="caption"
-                                    color="text.secondary"
-                                  >
-                                    {task.MaCongViec}
-                                  </Typography>
-                                  {task.SoGioTre > 0 && (
-                                    <>
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                      >
-                                        •
-                                      </Typography>
-                                      <Typography
-                                        variant="caption"
-                                        color="error.main"
-                                        fontWeight={600}
-                                      >
-                                        Trễ {task.SoGioTre}h
-                                      </Typography>
-                                    </>
-                                  )}
-                                  {showNguoiChinh && task.NguoiChinhProfile && (
-                                    <>
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                      >
-                                        •
-                                      </Typography>
-                                      <Chip
-                                        label={task.NguoiChinhProfile.Ten}
-                                        size="small"
-                                        variant="outlined"
-                                        sx={{
-                                          height: 18,
-                                          fontSize: 10,
-                                          "& .MuiChip-label": { px: 1 },
-                                        }}
-                                      />
-                                    </>
-                                  )}
-                                </Stack>
-                              </Box>
+                              <Typography variant="caption" fontWeight={600}>
+                                {task.MaCongViec}
+                              </Typography>
                             </Stack>
                           </TableCell>
 
-                          {/* Column 2: Trạng thái - Compact Chip */}
+                          {/* Column 2: Tiêu đề */}
+                          <TableCell sx={{ py: 1.5 }}>
+                            <Typography
+                              variant="body2"
+                              fontWeight={600}
+                              sx={{
+                                color:
+                                  task.TrangThai === "HOAN_THANH"
+                                    ? "text.secondary"
+                                    : "text.primary",
+                                textDecoration:
+                                  task.TrangThai === "HOAN_THANH"
+                                    ? "line-through"
+                                    : "none",
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                                overflow: "hidden",
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              {task.TieuDe}
+                            </Typography>
+                            {/* Show metadata */}
+                            <Stack
+                              direction="row"
+                              spacing={0.5}
+                              alignItems="center"
+                              flexWrap="wrap"
+                              mt={0.5}
+                            >
+                              {task.SoGioTre > 0 && (
+                                <Typography
+                                  variant="caption"
+                                  color="error.main"
+                                  fontWeight={600}
+                                >
+                                  Trễ {task.SoGioTre}h
+                                </Typography>
+                              )}
+                              {showNguoiChinh && task.NguoiChinhProfile && (
+                                <>
+                                  {task.SoGioTre > 0 && (
+                                    <Typography
+                                      variant="caption"
+                                      color="text.secondary"
+                                    >
+                                      •
+                                    </Typography>
+                                  )}
+                                  <Chip
+                                    label={task.NguoiChinhProfile.Ten}
+                                    size="small"
+                                    variant="outlined"
+                                    sx={{
+                                      height: 18,
+                                      fontSize: 10,
+                                      "& .MuiChip-label": { px: 1 },
+                                    }}
+                                  />
+                                </>
+                              )}
+                            </Stack>
+                          </TableCell>
+
+                          {/* Column 3: Mô tả */}
+                          <TableCell sx={{ py: 1.5 }}>
+                            <Tooltip title={task.MoTa || "Không có mô tả"}>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: "vertical",
+                                  overflow: "hidden",
+                                  lineHeight: 1.4,
+                                }}
+                              >
+                                {task.MoTa || "—"}
+                              </Typography>
+                            </Tooltip>
+                          </TableCell>
+
+                          {/* Column 4: Trạng thái */}
                           <TableCell sx={{ py: 1.5 }}>
                             <Chip
                               label={getStatusText(task.TrangThai)}
@@ -434,20 +577,89 @@ const CongViecCompactCard = ({
                             />
                           </TableCell>
 
-                          {/* Column 3: Hạn chót - Compact Date */}
+                          {/* Column 5: Tiến độ */}
+                          <TableCell sx={{ py: 1.5 }}>
+                            <Box>
+                              <Typography
+                                variant="caption"
+                                fontWeight={600}
+                                color="text.secondary"
+                              >
+                                {task.PhanTramTienDoTong || 0}%
+                              </Typography>
+                              <LinearProgress
+                                variant="determinate"
+                                value={task.PhanTramTienDoTong || 0}
+                                sx={{
+                                  height: 4,
+                                  borderRadius: 2,
+                                  bgcolor: "grey.200",
+                                  mt: 0.5,
+                                  "& .MuiLinearProgress-bar": {
+                                    bgcolor:
+                                      (task.PhanTramTienDoTong || 0) >= 80
+                                        ? "success.main"
+                                        : (task.PhanTramTienDoTong || 0) >= 50
+                                        ? "warning.main"
+                                        : "error.main",
+                                  },
+                                }}
+                              />
+                            </Box>
+                          </TableCell>
+
+                          {/* Column 6: Hạn chót */}
                           <TableCell sx={{ py: 1.5 }}>
                             <Typography
                               variant="caption"
+                              component="div"
                               color={
                                 isOverdue ? "error.main" : "text.secondary"
                               }
                               fontWeight={isOverdue ? 600 : 400}
                             >
-                              {formatDate(task.NgayHetHan)}
+                              {formatDateWithTooltip(task.NgayHetHan)}
                             </Typography>
                           </TableCell>
 
-                          {/* Column 4: Actions - Icon Buttons */}
+                          {/* Column 7: Phân loại (conditional for "Công việc khác") */}
+                          {title === "Công việc khác" && (
+                            <TableCell align="center" sx={{ py: 1.5 }}>
+                              {task.FlagNVTQKhac ? (
+                                <Chip
+                                  label="Đã xác nhận"
+                                  size="small"
+                                  sx={{
+                                    height: 20,
+                                    fontSize: "0.65rem",
+                                    fontWeight: 600,
+                                    bgcolor: "warning.lighter",
+                                    color: "warning.dark",
+                                    border: "1px solid",
+                                    borderColor: "warning.main",
+                                    "& .MuiChip-label": { px: 1 },
+                                  }}
+                                />
+                              ) : (
+                                <Chip
+                                  label="Chưa phân loại"
+                                  size="small"
+                                  sx={{
+                                    height: 20,
+                                    fontSize: "0.65rem",
+                                    fontWeight: 600,
+                                    bgcolor: "grey.100",
+                                    color: "text.secondary",
+                                    border: "1px solid",
+                                    borderColor: "grey.300",
+                                    "& .MuiChip-label": { px: 1 },
+                                  }}
+                                />
+                              )}
+                            </TableCell>
+                          )}
+
+                          {/* Column 8: Actions */}
                           <TableCell align="center" sx={{ py: 1.5 }}>
                             <OpenTaskInNewTabButton
                               taskId={task._id}
@@ -468,38 +680,94 @@ const CongViecCompactCard = ({
                 </Table>
               </TableContainer>
 
-              {/* Footer - View All Button */}
-              {tasks.length > 10 && (
-                <Box
-                  sx={{
-                    mt: 2,
-                    pt: 2,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    borderTop: 1,
-                    borderColor: "divider",
-                  }}
+              {/* ✨ NEW: TablePagination */}
+              <TablePagination
+                component="div"
+                count={filteredTasks.length}
+                page={page}
+                onPageChange={(e, newPage) => setPage(newPage)}
+                rowsPerPage={rowsPerPage}
+                onRowsPerPageChange={(e) => {
+                  setRowsPerPage(parseInt(e.target.value, 10));
+                  setPage(0);
+                }}
+                rowsPerPageOptions={[5, 10, 25]}
+                labelRowsPerPage="Hiển thị:"
+                labelDisplayedRows={({ from, to, count }) =>
+                  `${from}–${to} trong ${count !== -1 ? count : `hơn ${to}`}`
+                }
+                sx={{
+                  borderTop: 1,
+                  borderColor: "divider",
+                  ".MuiTablePagination-displayedRows": {
+                    fontSize: "0.85rem",
+                  },
+                }}
+              />
+
+              {/* ✨ NEW: Summary Statistics Footer */}
+              <Box
+                sx={{
+                  mt: 1,
+                  p: 2,
+                  bgcolor: "grey.50",
+                  borderRadius: 1,
+                  border: 1,
+                  borderColor: "divider",
+                }}
+              >
+                <Stack
+                  direction="row"
+                  spacing={3}
+                  justifyContent="space-around"
+                  alignItems="center"
                 >
-                  <Typography variant="body2" color="text.secondary">
-                    Hiển thị 10 trong {tasks.length} công việc
-                  </Typography>
-                  <Button
-                    size="small"
-                    endIcon={<ArrowForwardIcon />}
-                    onClick={() => {
-                      console.log("View all tasks");
-                      // TODO: Navigate to full work list page with filters
-                    }}
-                    sx={{
-                      textTransform: "none",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Xem tất cả
-                  </Button>
-                </Box>
-              )}
+                  <Box textAlign="center">
+                    <Typography variant="h6" fontWeight={700} color="primary">
+                      {total}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Tổng công việc
+                    </Typography>
+                  </Box>
+                  <Divider orientation="vertical" flexItem />
+                  <Box textAlign="center">
+                    <Typography
+                      variant="h6"
+                      fontWeight={700}
+                      color="success.main"
+                    >
+                      {completed}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Hoàn thành (
+                      {total > 0 ? Math.round((completed / total) * 100) : 0}%)
+                    </Typography>
+                  </Box>
+                  <Divider orientation="vertical" flexItem />
+                  <Box textAlign="center">
+                    <Typography
+                      variant="h6"
+                      fontWeight={700}
+                      color="error.main"
+                    >
+                      {late}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Trễ hạn
+                    </Typography>
+                  </Box>
+                  <Divider orientation="vertical" flexItem />
+                  <Box textAlign="center">
+                    <Typography variant="h6" fontWeight={700} color="info.main">
+                      {active}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Đang làm
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Box>
             </>
           )}
         </CardContent>

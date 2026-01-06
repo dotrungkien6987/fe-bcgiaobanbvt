@@ -7,7 +7,6 @@
  */
 import React, { useEffect, useMemo } from "react";
 import {
-  Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
@@ -21,6 +20,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { FormProvider, FAutocomplete, FTextField } from "components/form";
+import BottomSheetDialog from "./BottomSheetDialog";
 
 // Danh sách lý do từ chối mặc định (sẽ fetch từ API sau)
 const DEFAULT_LY_DO_TU_CHOI = [
@@ -119,13 +119,28 @@ function TuChoiDialog({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <FormProvider methods={methods} onSubmit={handleSubmit(handleFormSubmit)}>
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <CancelIcon color="error" />
-            <span>Từ chối yêu cầu</span>
-          </Stack>
+    <BottomSheetDialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+    >
+      <FormProvider
+        methods={methods}
+        onSubmit={handleSubmit(handleFormSubmit)}
+        id="tu-choi-form"
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            bgcolor: "error.lighter",
+            color: "error.darker",
+          }}
+        >
+          <CancelIcon />
+          <Typography variant="h6">Từ chối yêu cầu</Typography>
         </DialogTitle>
         <DialogContent>
           <Stack spacing={3} sx={{ pt: 2 }}>
@@ -174,8 +189,15 @@ function TuChoiDialog({
             )}
           </Stack>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} disabled={loading}>
+        <DialogActions
+          sx={{ p: 2, gap: 1, flexDirection: { xs: "column", sm: "row" } }}
+        >
+          <Button
+            onClick={handleClose}
+            disabled={loading}
+            size="large"
+            fullWidth
+          >
             Hủy
           </Button>
           <Button
@@ -183,12 +205,14 @@ function TuChoiDialog({
             variant="contained"
             color="error"
             disabled={loading}
+            size="large"
+            fullWidth
           >
             {loading ? "Đang xử lý..." : "Xác nhận từ chối"}
           </Button>
         </DialogActions>
       </FormProvider>
-    </Dialog>
+    </BottomSheetDialog>
   );
 }
 

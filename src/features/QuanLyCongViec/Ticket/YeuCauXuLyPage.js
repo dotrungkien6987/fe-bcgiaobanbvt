@@ -4,7 +4,7 @@
  * View cho người XỬ LÝ / Người được điều phối
  * Config: YEU_CAU_TOI_XU_LY_CONFIG
  */
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -33,6 +33,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import YeuCauList from "./components/YeuCauList";
+import { PullToRefreshWrapper } from "./components";
+import TiepNhanDialog from "./components/TiepNhanDialog";
+import TuChoiDialog from "./components/TuChoiDialog";
+import { Check as AcceptIcon, Close as RejectIcon } from "@mui/icons-material";
 import {
   getYeuCauList,
   getBadgeCounts,
@@ -52,8 +56,14 @@ const ICON_MAP = {
 function YeuCauXuLyPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [refreshKey, setRefreshKey] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get("tab");
+
+  // Dialog states
+  const [openTiepNhanDialog, setOpenTiepNhanDialog] = useState(false);
+  const [openTuChoiDialog, setOpenTuChoiDialog] = useState(false);
+  const [selectedYeuCau, setSelectedYeuCau] = useState(null);
 
   // Sử dụng config từ Single Source of Truth
   const {
@@ -110,6 +120,39 @@ function YeuCauXuLyPage() {
 
   const handleViewDetail = (yeuCau) => {
     navigate(`/yeu-cau/${yeuCau._id}`);
+  };
+
+  const handleRefresh = async () => {
+    // Reload data từ API với filters hiện tại
+    if (apiParams) {
+      await dispatch(getYeuCauList(apiParams));
+    }
+    // Change key để force re-render YeuCauList
+    setRefreshKey((prev) => prev + 1);
+  };
+
+  // Swipe action handler
+  const handleSwipeAction = (yeuCau, action) => {
+    setSelectedYeuCau(yeuCau);
+    if (action === "TIEP_NHAN") {
+      setOpenTiepNhanDialog(true);
+    } else if (action === "TU_CHOI") {
+      setOpenTuChoiDialog(true);
+    }
+  };
+
+  const handleTiepNhanSubmit = async (data) => {
+    // TODO: Implement tiếp nhận API call
+    console.log("Tiếp nhận:", selectedYeuCau, data);
+    setOpenTiepNhanDialog(false);
+    handleRefresh();
+  };
+
+  const handleTuChoiSubmit = async (data) => {
+    // TODO: Implement từ chối API call
+    console.log("Từ chối:", selectedYeuCau, data);
+    setOpenTuChoiDialog(false);
+    handleRefresh();
   };
 
   return (
@@ -230,12 +273,43 @@ function YeuCauXuLyPage() {
       </Paper>
 
       {/* Content */}
-      <YeuCauList
-        yeuCauList={yeuCauList}
-        loading={isLoading}
-        onViewDetail={handleViewDetail}
-        emptyMessage={activeTabInfo?.emptyMessage || "Không có yêu cầu nào"}
-        showRatingColumn={isClosedTab}
+      <PullToRefreshWrapper onRefresh={handleRefresh}>
+        <YeuCauList
+          key={refreshKey}
+          disableAutoFetch
+          yeuCauList={yeuCauList}
+          loading={isLoading}
+          onViewDetail={handleViewDetail}
+          emptyMessage={activeTabInfo?.emptyMessage || "Không có yêu cầu nào"}
+          showRatingColumn={isClosedTab}
+          swipeActions={{
+            onSwipeAction: handleSwipeAction,
+            leftAction: {
+              icon: <AcceptIcon />,
+              color: "success",
+              action: "TIEP_NHAN",
+            },
+            rightAction: {
+              icon: <RejectIcon />,
+              color: "error",
+              action: "TU_CHOI",
+            },
+          }}
+        />
+      </PullToRefreshWrapper>
+
+      {/* Dialogs */}
+      <TiepNhanDialog
+        open={openTiepNhanDialog}
+        onClose={() => setOpenTiepNhanDialog(false)}
+        yeuCau={selectedYeuCau}
+        onSubmit={handleTiepNhanSubmit}
+      />
+      <TuChoiDialog
+        open={openTuChoiDialog}
+        onClose={() => setOpenTuChoiDialog(false)}
+        yeuCau={selectedYeuCau}
+        onSubmit={handleTuChoiSubmit}
       />
     </Box>
   );
