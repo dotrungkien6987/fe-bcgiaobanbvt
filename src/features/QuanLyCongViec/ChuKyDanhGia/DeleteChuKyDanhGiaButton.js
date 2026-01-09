@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { Trash } from "iconsax-react";
 import { useNavigate } from "react-router-dom";
+import { WorkRoutes } from "utils/navigationHelper";
 
 import { deleteChuKyDanhGia, getChuKyDanhGias } from "../KPI/kpiSlice";
 
@@ -52,7 +53,7 @@ function DeleteChuKyDanhGiaButton({ chuKy, itemId, ...otherProps }) {
 
       // Nếu đang ở trang detail thì navigate về list
       if (window.location.pathname.includes(id)) {
-        navigate("/quanlycongviec/kpi/chu-ky");
+        navigate(WorkRoutes.chuKyList());
       }
     } catch (error) {
       // Thunk đã toast.error() rồi, chỉ log để debug

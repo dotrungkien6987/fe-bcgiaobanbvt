@@ -122,7 +122,7 @@ function YeuCauToiGuiPage() {
   };
 
   const handleViewDetail = (yeuCau) => {
-    navigate(`/yeu-cau/${yeuCau._id}`);
+    navigate(`/quanlycongviec/yeucau/${yeuCau._id}`);
   };
 
   const handleRefresh = async () => {

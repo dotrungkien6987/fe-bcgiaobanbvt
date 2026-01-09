@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { WorkRoutes } from "utils/navigationHelper";
 import {
   Card,
   Stack,
@@ -85,7 +86,7 @@ function ChuKyDanhGiaView() {
             <Button
               variant="outlined"
               startIcon={<ArrowLeft size={18} />}
-              onClick={() => navigate("/quanlycongviec/kpi/chu-ky")}
+              onClick={() => navigate(WorkRoutes.chuKyList())}
             >
               Quay lại
             </Button>

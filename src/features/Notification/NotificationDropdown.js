@@ -21,6 +21,7 @@ import {
 } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { WorkRoutes } from "utils/navigationHelper";
 import NotificationItem from "./NotificationItem";
 import { getNotifications, markAllAsRead } from "./notificationSlice";
 
@@ -49,7 +50,7 @@ function NotificationDropdown({ anchorEl, open, onClose }) {
   };
 
   const handleViewAll = () => {
-    navigate("/thong-bao");
+    navigate(WorkRoutes.thongBaoList());
     onClose();
   };
 

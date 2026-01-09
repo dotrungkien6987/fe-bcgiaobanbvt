@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { WorkRoutes } from "utils/navigationHelper";
 import {
   Accordion,
   AccordionDetails,
@@ -382,7 +383,7 @@ function YeuCauDetailPage() {
         break;
       case HANH_DONG.XOA:
         await dispatch(deleteYeuCau(id));
-        navigate("/yeu-cau");
+        navigate(WorkRoutes.yeuCauList());
         return;
       default:
         break;
@@ -475,7 +476,7 @@ function YeuCauDetailPage() {
           </Typography>
           <Button
             startIcon={<ArrowBackIcon />}
-            onClick={() => navigate("/yeu-cau")}
+            onClick={() => navigate(WorkRoutes.yeuCauList())}
             sx={{ mt: 2 }}
           >
             Quay lại danh sách
@@ -524,7 +525,7 @@ function YeuCauDetailPage() {
       >
         <Stack direction="row" alignItems="center" spacing={1}>
           <IconButton
-            onClick={() => navigate("/yeu-cau")}
+            onClick={() => navigate(WorkRoutes.yeuCauList())}
             size="small"
             sx={{ color: "inherit" }}
           >

@@ -4,6 +4,7 @@ import { Stack, Typography, Chip, IconButton, Tooltip } from "@mui/material";
 import { Eye, Calendar, CloseCircle, TickCircle } from "iconsax-react";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
+import { WorkRoutes } from "utils/navigationHelper";
 
 import CommonTable from "../../../pages/tables/MyTable/CommonTable";
 import AddChuKyDanhGiaButton from "./AddChuKyDanhGiaButton";
@@ -140,7 +141,7 @@ function ChuKyDanhGiaList() {
               <IconButton
                 size="small"
                 onClick={() =>
-                  navigate(`/quanlycongviec/kpi/chu-ky/${row.original._id}`)
+                  navigate(WorkRoutes.chuKyDetail(row.original._id))
                 }
               >
                 <Eye size={18} />

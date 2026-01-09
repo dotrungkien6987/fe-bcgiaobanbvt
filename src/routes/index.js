@@ -291,16 +291,34 @@ function Router() {
           {/* ========================================== */}
           <Route path="/quanlycongviec">
             {/* Root redirect - TODO: Create UnifiedDashboardPage in Phase 2 */}
-            <Route index element={<Navigate to="congviec/nhanvien/me" replace />} />
+            <Route
+              index
+              element={<Navigate to="congviec/nhanvien/me" replace />}
+            />
 
             {/* Công Việc */}
             <Route path="congviec">
-              <Route path="nhanvien/:nhanVienId" element={<CongViecByNhanVienPage />} />
+              <Route
+                path="nhanvien/:nhanVienId"
+                element={<CongViecByNhanVienPage />}
+              />
               <Route path=":id" element={<CongViecDetailPage />} />
-              <Route path="mind-map" element={<TaskMindMapHierarchicalPage />} />
-              <Route path="tree-view" element={<TaskMindMapHierarchicalPage />} />
-              <Route path="tree-enhanced" element={<TaskMindMapTreeEnhancedPage />} />
-              <Route path="hierarchical" element={<TaskMindMapHierarchicalPage />} />
+              <Route
+                path="mind-map"
+                element={<TaskMindMapHierarchicalPage />}
+              />
+              <Route
+                path="tree-view"
+                element={<TaskMindMapHierarchicalPage />}
+              />
+              <Route
+                path="tree-enhanced"
+                element={<TaskMindMapTreeEnhancedPage />}
+              />
+              <Route
+                path="hierarchical"
+                element={<TaskMindMapHierarchicalPage />}
+              />
               <Route
                 path="hierarchical-dynamic"
                 element={<CongViecHierarchyTreeDynamicPage />}
@@ -312,7 +330,10 @@ function Router() {
               <Route index element={<Navigate to="xem" replace />} />
               <Route path="xem" element={<XemKPIPage />} />
               <Route path="tu-danh-gia" element={<TuDanhGiaKPIPage />} />
-              <Route path="danh-gia-nhan-vien" element={<KPIEvaluationPage />} />
+              <Route
+                path="danh-gia-nhan-vien"
+                element={<KPIEvaluationPage />}
+              />
               <Route
                 path="bao-cao"
                 element={
@@ -347,7 +368,10 @@ function Router() {
             {/* Giao nhiệm vụ */}
             <Route path="giao-nhiemvu">
               <Route index element={<CycleAssignmentListPage />} />
-              <Route path=":NhanVienID" element={<CycleAssignmentDetailPage />} />
+              <Route
+                path=":NhanVienID"
+                element={<CycleAssignmentDetailPage />}
+              />
             </Route>
 
             {/* Yêu cầu/Tickets */}

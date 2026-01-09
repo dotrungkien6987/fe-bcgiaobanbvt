@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { WorkRoutes } from "utils/navigationHelper";
 import {
   Stack,
   Button,
@@ -114,7 +115,7 @@ function QuanLyNhanVienPage() {
   };
 
   const handleBack = () => {
-    navigate("/workmanagement/nhanvien");
+    navigate(WorkRoutes.nhanVienList());
   };
 
   const handleOpenDialog = (loaiQuanLy) => {
@@ -184,7 +185,7 @@ function QuanLyNhanVienPage() {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              navigate("/workmanagement");
+              navigate(WorkRoutes.root());
             }}
             sx={{
               textDecoration: "none",
@@ -198,7 +199,7 @@ function QuanLyNhanVienPage() {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              navigate("/workmanagement/nhanvien");
+              navigate(WorkRoutes.nhanVienList());
             }}
             sx={{
               textDecoration: "none",
