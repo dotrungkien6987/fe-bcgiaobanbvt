@@ -64,34 +64,33 @@ const quanlycongviec = {
           title: "Công việc của tôi",
           type: "item",
           // Giữ placeholder, sẽ được thay trong Navigation
-          url: "/quan-ly-cong-viec/nhan-vien/:NhanVienID",
+          url: "/quanlycongviec/congviec/nhanvien/:NhanVienID",
         },
         {
           id: "congviecmindmap",
           title: "Sơ đồ Cây Công việc",
           type: "item",
-          url: "/cong-viec-mind-map",
+          url: "/quanlycongviec/congviec/mind-map",
         },
         {
           id: "congviecmindmap1",
           title: "Sơ đồ Cây Công việc enhance",
           type: "item",
-          url: "/cong-viec-hierarchical",
+          url: "/quanlycongviec/congviec/hierarchical",
         },
         {
           id: "canbotoiquanly",
           title: "Cán bộ tôi quản lý",
           type: "item",
           // Placeholder; nếu chưa có user.NhanVienID sẽ bị loại bỏ ở Navigation
-          url: "/workmanagement/nhanvien/:NhanVienID/quanly",
+          url: "/quanlycongviec/quan-ly-nhan-vien/:NhanVienID",
         },
 
         {
           id: "giaonhiemvu-theo-chuky",
           title: "📅 Phân công theo chu kỳ",
           type: "item",
-          // ✅ FIX: Point to LIST view (no :NhanVienID param needed)
-          url: "/quanlycongviec/giao-nhiem-vu-chu-ky",
+          url: "/quanlycongviec/giao-nhiemvu",
         },
 
         {
@@ -116,41 +115,41 @@ const quanlycongviec = {
           id: "yeucau-toi-gui",
           title: "Yêu cầu tôi gửi",
           type: "item",
-          url: "/yeu-cau/toi-gui",
+          url: "/quanlycongviec/yeucau/toi-gui",
           // Badge will be added dynamically via useYeuCauBadgeCounts hook
         },
         {
           id: "yeucau-xu-ly",
           title: "Yêu cầu tôi xử lý",
           type: "item",
-          url: "/yeu-cau/xu-ly",
+          url: "/quanlycongviec/yeucau/xu-ly",
           // Badge will be added dynamically
         },
         {
           id: "yeucau-dieu-phoi",
           title: "Điều phối",
           type: "item",
-          url: "/yeu-cau/dieu-phoi",
+          url: "/quanlycongviec/yeucau/dieu-phoi",
           // Badge will be added dynamically, hidden if not điều phối
         },
         {
           id: "yeucau-quan-ly-khoa",
           title: "Quản lý khoa",
           type: "item",
-          url: "/yeu-cau/quan-ly-khoa",
+          url: "/quanlycongviec/yeucau/quan-ly-khoa",
           // Hidden if not quản lý khoa
         },
         {
           id: "yeucau-hotro-legacy",
           title: "Tất cả yêu cầu (Cũ)",
           type: "item",
-          url: "/yeu-cau",
+          url: "/quanlycongviec/yeucau",
         },
         {
           id: "yeucau-admin-cauhinh",
           title: "Cấu hình Khoa",
           type: "item",
-          url: "/yeu-cau/admin/cau-hinh-khoa",
+          url: "/quanlycongviec/yeucau/admin/cau-hinh-khoa",
           icon: icons.settings,
           requiredRole: ["admin", "superadmin", "QuanLyKhoa"],
         },
@@ -158,7 +157,7 @@ const quanlycongviec = {
           id: "yeucau-admin-danhmuc",
           title: "Danh mục Yêu cầu",
           type: "item",
-          url: "/yeu-cau/admin/danh-muc",
+          url: "/quanlycongviec/yeucau/admin/danh-muc",
           icon: icons.category,
           requiredRole: ["admin", "superadmin", "QuanLyKhoa"],
         },
@@ -166,7 +165,7 @@ const quanlycongviec = {
           id: "yeucau-admin-lydotuchoi",
           title: "Lý do từ chối",
           type: "item",
-          url: "/yeu-cau/admin/ly-do-tu-choi",
+          url: "/quanlycongviec/yeucau/admin/ly-do-tu-choi",
           icon: icons.category,
           requiredRole: ["admin", "superadmin"],
         },
