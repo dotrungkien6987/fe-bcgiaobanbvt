@@ -16,6 +16,7 @@ const initialState = {
     fromDate: null, // dayjs object, set in component
     toDate: null, // dayjs object
     serviceTypes: ["04CDHA", "03XN", "05TDCN"], // Default all types
+    searchText: "", // Server-side search text
   },
 
   // Duplicate records với pagination
@@ -134,6 +135,7 @@ export const getDuplicateServices =
     limit = 50,
     filterByService,
     filterByDepartment,
+    searchText,
   }) =>
   async (dispatch) => {
     dispatch(startLoadingDuplicates());
@@ -146,6 +148,7 @@ export const getDuplicateServices =
         limit,
         filterByService,
         filterByDepartment,
+        searchText,
       });
 
       dispatch(getDuplicatesSuccess(response.data.data));
@@ -189,6 +192,8 @@ export const getStatistics =
 /**
  * Fetch both duplicates and statistics in parallel
  * (Thường được gọi khi user click "Xem Dữ Liệu")
+ *
+ * @param {boolean} showToast - Hiện toast khi không có kết quả (default: false, chỉ true cho manual search)
  */
 export const fetchAllData =
   ({
@@ -199,6 +204,8 @@ export const fetchAllData =
     limit = 50,
     filterByService,
     filterByDepartment,
+    searchText,
+    showToast = false, // Default false - không hiện toast cho auto-search
   }) =>
   async (dispatch) => {
     dispatch(startLoading());
@@ -212,6 +219,7 @@ export const fetchAllData =
           limit,
           filterByService,
           filterByDepartment,
+          searchText,
         }),
         apiService.post("/his/dichvutrung/statistics", {
           fromDate,
@@ -223,7 +231,9 @@ export const fetchAllData =
       dispatch(getDuplicatesSuccess(duplicatesRes.data.data));
       dispatch(getStatisticsSuccess(statsRes.data.data));
 
-      if (duplicatesRes.data.data.pagination.total === 0) {
+      // Chỉ hiện toast khi showToast=true (manual search)
+      // Không hiện cho auto-search (khi user đang gõ filter)
+      if (showToast && duplicatesRes.data.data.pagination.total === 0) {
         toast.success("✅ Không phát hiện dịch vụ trùng lặp");
       }
     } catch (error) {

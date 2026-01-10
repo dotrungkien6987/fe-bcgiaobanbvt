@@ -19,6 +19,7 @@ import {
   Grid,
   Chip,
 } from "@mui/material";
+import { WorkRoutes } from "utils/navigationHelper";
 import {
   Home as HomeIcon,
   Inbox,
@@ -119,7 +120,7 @@ function YeuCauXuLyPage() {
   };
 
   const handleViewDetail = (yeuCau) => {
-    navigate(`/quanlycongviec/yeucau/${yeuCau._id}`);
+    navigate(WorkRoutes.yeuCauDetail(yeuCau._id));
   };
 
   const handleRefresh = async () => {

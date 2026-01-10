@@ -174,30 +174,36 @@ function DichVuTrungStatistics({
                             }
                             size="small"
                             onClick={() => {
-                              if (isTopKhoa && onDepartmentClick) {
-                                onDepartmentClick(item.departmentgroupname);
-                              } else if (isTopDichVu && onServiceClick) {
-                                onServiceClick(item.servicepricename);
+                              if (!loading) {
+                                if (isTopKhoa && onDepartmentClick) {
+                                  onDepartmentClick(item.departmentgroupname);
+                                } else if (isTopDichVu && onServiceClick) {
+                                  onServiceClick(item.servicepricename);
+                                }
                               }
                             }}
+                            disabled={loading}
+                            clickable={!loading && (isTopKhoa || isTopDichVu)}
                             sx={{
                               justifyContent: "flex-start",
                               bgcolor: "grey.100",
                               fontWeight: 500,
                               fontSize: "0.75rem",
                               height: "auto",
-                              cursor:
-                                isTopKhoa || isTopDichVu
-                                  ? "pointer"
-                                  : "default",
+                              cursor: loading
+                                ? "not-allowed"
+                                : isTopKhoa || isTopDichVu
+                                ? "pointer"
+                                : "default",
+                              opacity: loading ? 0.5 : 1,
                               transition: "all 0.2s",
                               "&:hover": {
                                 bgcolor:
-                                  isTopKhoa || isTopDichVu
+                                  !loading && (isTopKhoa || isTopDichVu)
                                     ? "primary.light"
                                     : "grey.100",
                                 transform:
-                                  isTopKhoa || isTopDichVu
+                                  !loading && (isTopKhoa || isTopDichVu)
                                     ? "scale(1.02)"
                                     : "none",
                               },

@@ -336,7 +336,7 @@ export function buildUrlWithParams(basePath, params = {}) {
   return queryString ? `${basePath}?${queryString}` : basePath;
 }
 
-export default {
+const navigationHelpers = {
   WorkRoutes,
   BreadcrumbConfig,
   getBreadcrumbs,
@@ -345,3 +345,5 @@ export default {
   getQueryParams,
   buildUrlWithParams,
 };
+
+export default navigationHelpers;

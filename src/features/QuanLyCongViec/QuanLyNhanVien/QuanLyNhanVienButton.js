@@ -1,6 +1,7 @@
 import { IconButton, Tooltip } from "@mui/material";
 import { ManageAccounts } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { WorkRoutes } from "utils/navigationHelper";
 
 export default function QuanLyNhanVienButton({ nhanvienID }) {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function QuanLyNhanVienButton({ nhanvienID }) {
       console.error("nhanvienID is undefined or null");
       return;
     }
-    navigate(`/workmanagement/nhanvien/${nhanvienID}/quanly`);
+    navigate(WorkRoutes.nhanVienDetail(nhanvienID));
   };
 
   return (

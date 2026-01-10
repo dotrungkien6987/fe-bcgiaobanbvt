@@ -78,6 +78,7 @@ function DichVuTrungFilters({
               value={fromDate}
               onChange={onFromDateChange}
               format="DD/MM/YYYY"
+              disabled={loading}
               slotProps={{
                 textField: {
                   size: "small",
@@ -91,6 +92,7 @@ function DichVuTrungFilters({
               onChange={onToDateChange}
               format="DD/MM/YYYY"
               minDate={fromDate}
+              disabled={loading}
               slotProps={{
                 textField: {
                   size: "small",
@@ -120,6 +122,7 @@ function DichVuTrungFilters({
                       : serviceTypes.filter((t) => t !== "04CDHA");
                     if (newTypes.length > 0) onServiceTypesChange(newTypes);
                   }}
+                  disabled={loading}
                   sx={{
                     color: "#1976d2",
                     "&.Mui-checked": { color: "#1976d2" },
@@ -152,6 +155,7 @@ function DichVuTrungFilters({
                       : serviceTypes.filter((t) => t !== "03XN");
                     if (newTypes.length > 0) onServiceTypesChange(newTypes);
                   }}
+                  disabled={loading}
                   sx={{
                     color: "#d32f2f",
                     "&.Mui-checked": { color: "#d32f2f" },
@@ -184,6 +188,7 @@ function DichVuTrungFilters({
                       : serviceTypes.filter((t) => t !== "05TDCN");
                     if (newTypes.length > 0) onServiceTypesChange(newTypes);
                   }}
+                  disabled={loading}
                   sx={{
                     color: "#ed6c02",
                     "&.Mui-checked": { color: "#ed6c02" },

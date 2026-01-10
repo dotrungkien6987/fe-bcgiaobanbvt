@@ -5,6 +5,7 @@
  * Config: YEU_CAU_DIEU_PHOI_CONFIG
  */
 import React, { useEffect, useState } from "react";
+import { WorkRoutes } from "utils/navigationHelper";
 import {
   Box,
   Typography,
@@ -121,7 +122,7 @@ function YeuCauDieuPhoiPage() {
   };
 
   const handleViewDetail = (yeuCau) => {
-    navigate(`/quanlycongviec/yeucau/${yeuCau._id}`);
+    navigate(WorkRoutes.yeuCauDetail(yeuCau._id));
   };
 
   const handleRefresh = async () => {

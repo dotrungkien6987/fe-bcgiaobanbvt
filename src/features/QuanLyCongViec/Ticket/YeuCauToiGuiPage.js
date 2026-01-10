@@ -5,6 +5,7 @@
  * Config: YEU_CAU_TOI_GUI_CONFIG
  */
 import React, { useEffect, useState } from "react";
+import { WorkRoutes } from "utils/navigationHelper";
 import {
   Box,
   Typography,
@@ -122,7 +123,7 @@ function YeuCauToiGuiPage() {
   };
 
   const handleViewDetail = (yeuCau) => {
-    navigate(`/quanlycongviec/yeucau/${yeuCau._id}`);
+    navigate(WorkRoutes.yeuCauDetail(yeuCau._id));
   };
 
   const handleRefresh = async () => {

@@ -5,6 +5,7 @@
  * Config: YEU_CAU_QUAN_LY_KHOA_CONFIG
  */
 import React, { useEffect, useState } from "react";
+import { WorkRoutes } from "utils/navigationHelper";
 import {
   Box,
   Typography,
@@ -131,7 +132,7 @@ function YeuCauQuanLyKhoaPage() {
   };
 
   const handleViewDetail = (yeuCau) => {
-    navigate(`/quanlycongviec/yeucau/${yeuCau._id}`);
+    navigate(WorkRoutes.yeuCauDetail(yeuCau._id));
   };
 
   const handleRefresh = async () => {

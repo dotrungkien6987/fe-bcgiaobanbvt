@@ -101,6 +101,8 @@ import NotificationPage from "pages/NotificationPage";
 import NotificationAdminPage from "pages/NotificationAdminPage";
 import NotificationTypeAdminPage from "pages/NotificationTypeAdminPage";
 import { NotificationSettings } from "features/Notification";
+// Dashboard
+import UnifiedDashboardPage from "features/QuanLyCongViec/Dashboard/UnifiedDashboardPage";
 // Ticket System (YeuCau)
 import {
   YeuCauPage,
@@ -290,14 +292,12 @@ function Router() {
           {/* QuanLyCongViec Module - Unified Routes    */}
           {/* ========================================== */}
           <Route path="/quanlycongviec">
-            {/* Root redirect - TODO: Create UnifiedDashboardPage in Phase 2 */}
-            <Route
-              index
-              element={<Navigate to="congviec/nhanvien/me" replace />}
-            />
+            {/* Root Dashboard - Phase 2 */}
+            <Route index element={<UnifiedDashboardPage />} />
 
             {/* Công Việc */}
             <Route path="congviec">
+              <Route index element={<Navigate to="nhanvien/me" replace />} />
               <Route
                 path="nhanvien/:nhanVienId"
                 element={<CongViecByNhanVienPage />}
@@ -424,6 +424,7 @@ function Router() {
 
             {/* Cài đặt */}
             <Route path="cai-dat">
+              <Route index element={<Navigate to="thong-bao" replace />} />
               <Route path="thong-bao" element={<NotificationSettings />} />
             </Route>
           </Route>

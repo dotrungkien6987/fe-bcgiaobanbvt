@@ -2,6 +2,7 @@
  * YeuCauPage - Trang chính quản lý yêu cầu hỗ trợ
  */
 import React, { useEffect, useState } from "react";
+import { WorkRoutes } from "utils/navigationHelper";
 import {
   Box,
   Container,
@@ -63,7 +64,7 @@ function YeuCauPage() {
   };
 
   const handleViewDetail = (yeuCau) => {
-    navigate(`/quanlycongviec/yeucau/${yeuCau._id}`);
+    navigate(WorkRoutes.yeuCauDetail(yeuCau._id));
   };
 
   const handleOpenForm = () => {
