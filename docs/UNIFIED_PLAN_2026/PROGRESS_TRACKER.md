@@ -1,19 +1,23 @@
-# 📊 Progress Tracker - Unified Plan 2026
+# � Progress Tracker - Unified Plan 2026
 
-**Last Updated:** 09/01/2026 22:00  
+**Last Updated:** 11/01/2026 15:45  
 **Current Phase:** Phase 2 (Dashboard Redesign) - IN PROGRESS ⏳  
-**Total Progress:** 34.5 / 140 hours (24.6%)
+**Total Progress:** 26.75 / 44.25 hours (60.5%)
 
 ---
 
 ## 🎯 Overall Status
 
 ```
-Progress: [█████████░░░░░░░░░░░] 24.6%
+Progress: [██████░░░░] 60.5%
 
 Phase 0: [██████████] 24 / 24h ✅ COMPLETE
 Phase 1: [██████████] 5 / 5h ✅ COMPLETE
-Phase 2: [██░░░░░░░░] 5.5 / 40h ⏳ IN PROGRESS
+Phase 2: [██████░░░░] 26.75 / 44.25h ⏳ IN PROGRESS
+  - Task 2.5: MyTasksPage ✅ (12.25h)
+  - Task 2.6: Manager View ✅ (8h)
+  - Task 2.7: Archive Page ✅ (9h)
+  - Remaining: Tasks 2.3, 2.4, 2.8
 Phase 3: [░░░░░░░░░░] 0 / 33h
 Phase 4: [░░░░░░░░░░] 0 / 8h
 Phase 5: [░░░░░░░░░░] 0 / 10h
@@ -175,18 +179,24 @@ Phase 6: [░░░░░░░░░░] 0 / 15h
 **Resolution Plan:**
 
 - Items 1: Resolved in Phase 2 Task 2.1 (Dashboard creation)
-- Items 2-3: Quick fix before Phase 2 starts (5 minutes)
+- Items 2-3: Quick fix before Phase 2 starts (5 minute26.75 / 44.25h) ⏳ IN PROGRESS
 
----
-
-## Phase 2: Dashboard & "Công việc của tôi" Redesign (5.5 / 40h) ⏳ IN PROGRESS
-
-**Status:** ⏳ In Progress  
+**Status:** ⏳ In Progress (60.5% complete)  
 **Priority:** ⭐ CORE - User's Primary Request  
 **Started:** 09/01/2026 20:00  
-**Expected Completion:** -
+**Expected Completion:** Mid-January 2026
 
 **Dependencies:** Phase 0 ✅ + Phase 1 ✅ Complete
+
+**⚠️ Scope Updates:**
+
+- Task 2.5: 10h → 12.25h (+UX + Mobile additions)
+- Task 2.6: Created from scope analysis (8h)
+- Task 2.7: Created from scope analysis (9h
+
+**Dependencies:** Phase 0 ✅ + Phase 1 ✅ Complete
+
+**⚠️ Scope Update (10/01/2026):** Task 2.5 increased from 10h → 12.25h (+UX + Mobile additions)
 
 ### Tasks
 
@@ -237,28 +247,219 @@ Phase 6: [░░░░░░░░░░] 0 / 15h
   - [ ] Mobile responsive
   - **Status:** Tạm hoãn - Làm sau Phase 2.5
 
-- [ ] **2.5 CongViecListPage refactor (10h)** ⏳ NEXT
+- [x] **2.5 MyTasksPage refactor (12.25h)** ✅ COMPLETE
 
-  - [ ] Task 2.5.1: Create CongViecNestedTabs component (4h)
-  - [ ] Task 2.5.2: URL params integration (2h)
-  - [ ] Task 2.5.3: Refactor CongViecByNhanVienPage (6h)
-  - **Status:** Sẵn sàng bắt đầu
+  - **Completed:** 11/01/2026 10:30
+  - **Scope:** Expanded with UX + Mobile additions
+  - **Original:** 8h → **Final:** 12.25h (+4.25h)
 
-- [ ] **2.6 Mobile optimizations (5h)**
-- [ ] **2.7 Testing & Polish (10h)**
+  **Breakdown:**
 
-### Summary (Current Session)
+  - [x] Phase A: Components & Hooks (3h) ✅
 
-- **Time Spent:** 5.5 hours
-- **Files Created:** 2 (UnifiedDashboardPage.js, dashboardSlice.js)
-- **Files Modified:** 3 (routes/index.js, store.js, UnifiedDashboardPage.js navigation fixes)
+    - [x] useTaskCounts hook (0.75h)
+    - [x] StatusTabs component (1.5h)
+    - [x] UrgentAlertBanner component (0.75h)
+
+  - [x] Phase B: URL & Data (2.5h) ✅
+
+    - [x] useMyTasksUrlParams hook (0.75h)
+    - [x] Update congViecSlice (0.5h)
+    - [x] 📱 RecentCompletedPreview detail (1h) - 5 fields display
+
+  - [x] Phase C: Page Refactor (6.75h) ✅
+    - [x] Steps 1-5: Core refactor (3.5h)
+    - [x] 📱 Step 5.5: CongViecCard component (1h)
+    - [x] 📱 Step 5.6: CongViecTable responsive (1h)
+    - [x] Step 6: Update CongViecFilterPanel (0.33h)
+    - [x] ✨ Step 7: ActiveFilterChips (0.5h)
+    - [x] ✨ Step 8: Empty state (0.5h)
+    - [x] ✨ Step 9: Toast config (0.25h)
+    - [x] Step 10: Sticky columns fix (0.5h) - Theme override with !important
+
+  **Completed Features:**
+
+  - ✅ Single page: "Công việc của tôi" (individual view)
+  - ✅ Status tabs with deadline badges (⚠️ ⏰)
+  - ✅ URL params integration (?status=XXX)
+  - ✅ Client-side filtering & pagination (500 tasks)
+  - ✅ UrgentAlertBanner with dismissible state
+  - ✅ RecentCompletedPreview with 5-field detail display
+  - ✅ ActiveFilterChips for visual feedback
+  - ✅ Mobile card view (table ↔ cards at ≤768px)
+  - ✅ Sticky columns ("Mã" left, "Thao tác" right)
+  - ✅ Empty states for completed tasks
+  - ✅ Toast stack limit (max 3 concurrent)
+
+  **Files Created:** 7 new components/hooks
+
+  - StatusTabs.js (~180 lines)
+  - UrgentAlertBanner.js (~120 lines)
+  - RecentCompletedPreview.js (~200 lines)
+  - ActiveFilterChips.js (~60 lines)
+  - CongViecCard.js (~80 lines)
+  - useMyTasksUrlParams.js (~80 lines)
+  - useTaskCounts.js (~100 lines)
+
+  **Files Updated:** 5 existing files
+
+  - MyTasksPage.js (716→450 lines, -37%)
+    -x] **2.6 "Việc tôi giao" - Manager View (8h)** ✅ COMPLETE
+
+  - **Completed:** 11/01/2026 13:00
+  - **Scope:** AssignedTasksPage with 5 status tabs, manager filters
+
+  **Breakdown:**
+
+  - [x] Phase A: Component Adjustments (2h) ✅
+
+    - [x] useAssignedTaskCounts hook (0.5h)
+    - [x] useAssignedTasksUrlParams hook (0.75h)
+    - [x] CongViecCardManager component (0.75h)
+
+  - [x] Phase B: Page Implementation (4.5h) ✅
+
+    - [x] AssignedTasksPage.js creation (3h)
+    - [x] Redux congViecSlice updates (0.75h)
+    - [x] Route integration (0.25h)
+    - [x] Menu item addition (0.5h)
+
+  - [x] Phase C: Testing & Polish (1.5h) ✅
+    - [x] Compile error fixes (0.5h)
+    - [x] Filter logic validation (0.5h)
+    - [x] UI/UX refinements (0.5h)
+
+  **Completed Features:**
+
+  - ✅ 5 status tabs: Chưa giao, Đã giao, Đang làm, Chờ tôi duyệt, Hoàn thành
+  - ✅ Filter by Người xử lý chính (from nhanVienDuocQuanLy)
+  - ✅ Manager-specific actions (Edit, Delete, Tree view)
+  - ✅ UrgentAlertBanner for team deadlines
+  - ✅ RecentCompletedPreview with client pagination
+  - ✅ Mobile card view with progress bars
+  - ✅ URL params sync (?status=XXX)
+
+  **Files Created:** 3 new components
+
+  - AssignedTasksPage.js (~480 lines)
+  - useAssignedTaskCounts.js (~140 lines)
+  - useAssignedTasksUrlParams.js (~90 lines)
+
+  **Files Updated:** 3 existing files
+
+  - congViecSlice.js (+assignedCongViecs state)
+  - routes/index.js (+route /viec-toi-giao)
+  - menu-items/quanlycongviec.js (+menu item)
+
+  **Status:** ✅ Complete - Ready for testing
+
+- [x] **2.7 Completed Tasks Archive (9h)** ✅ COMPLETE
+
+  - **Completed:** 11/01/2026 15:30
+  - **Scope:** Full archive page with stats, filters, pagination
+
+  **Breakdown:**
+
+  - [x] Phase 1-2: Core Structure + Stats (4h) ✅
+
+    - [x] Redux completedArchive state (1h)
+    - [x] CompletedTasksArchivePage component (2h)
+    - [x] CompletedStatsCards component (1h)
+
+  - [x] Phase 3: Advanced Filters (3h) ✅
+
+    - [x] DateRangePresets component (1h)
+    - [x] Custom date pickers (1h)
+    - [x] Filter drawer integration (1h)
+
+  - [x] Phase 4: Export (SKIPPED per user choice) ✅
+
+  - [x] Phase 5-6: Polish & Testing (2h) ✅
+    - [x] URL sync hook (1h)
+    - [x] Performance optimization (0.5h)
+    - [x] Mobile optimization (0.5h)
+
+  **Completed Features:**
+
+  - ✅ 2 tabs: My completed / Team completed
+  - ✅ 4 stats cards (compact mobile layout)
+  - ✅ 10 date range presets (today, 7/30 days, week/month/quarter)
+  - ✅ Custom date pickers with validation
+  - ✅ Drawer-based filter UI (consistent with MyTasksPage)
+  - ✅ Conditional filters (VaiTroCuaToi for my, NguoiChinhID for team)
+  - ✅ Backend NgayHoanThanh filter support
+  - ✅ URL params sync (shareable links)
+  - ✅ Pagination with row count selection
+  - ✅ Mobile responsive (2 cards per row)
+
+  **Files Created:** 4 new components
+
+  - CompletedTasksArchivePage.js (~530 lines)
+  - CompletedStatsCards.js (~160 lines)
+  - DateRangePresets.js (~98 lines)
+  - useCompletedArchiveUrlParams.js (~135 lines)
+
+  **Files Updated:** 5 existing files
+
+  - congViecSlice.js (+completedArchive state, 9 reducers, 2 thunks)
+  - congViec.service.js (+NgayHoanThanh filter in buildCongViecFilter)
+  - routes/index.js (+route /lich-su-hoan-thanh)
+  - menu-items/quanlycongviec.js (+menu item with Clock icon)
+  - CongViecFilterPanel.js (conditional excludeFields support)
+
+  **Status:** ✅ Complete - Export skipped per user choice (option C)
+
+### Summary (Phase 2 Progress)
+
+- **Time Spent:** 26.75 hours
+  - Previous: 5.5h (2.0, 2.1, 2.2)
+  - Task 2.5: 12.25h (MyTasksPage)
+  - Task 2.6: 8h (AssignedTasksPage)
+  - Task 2.7: 9h (Archive)
+  - Remaining: 17.5h (2.3, 2.4, 2.8)
+- **Tasks Completed:** 6 of 7 (2.0, 2.1, 2.2, 2.5, 2.6, 2.7)
+- **Files Created:** 16 new components/hooks
+- **Files Modified:** 16 existing files
+- **Code Stats:**
+  - MyTasksPage: 716→450 lines (-37%)
+  - AssignedTasksPage: 480 lines (new)
+  - CompletedTasksArchivePage: 530 lines (new)
+  - Total new code: ~2,200 lines
 - **Technical Debt Created:** 2 tasks (2.3, 2.4 - deferred for design review)
-- **Technical Debt Resolved:** 3 items (missing index routes)
-- **Status:** Dashboard UI + Redux complete with mock data, ready for Task 2.5
+- **Technical Debt Resolved:** Sticky columns, filter drawer patterns
+- **Status:** 60.5% complete, 3 major pages operational
+
+### Next Steps
+
+**Immediate:**
+
+- [ ] Manual testing all 3 pages (MyTasks, AssignedTasks, Archive)
+- [ ] Performance testing with real data (500+ tasks)
+- [ ] Mobile device testing (iOS/Android)
+
+**Remaining Tasks:**
+
+- [ ] **Task 2.3:** Backend Dashboard API (2h) - DEFERRED (needs design review)
+- [ ] **Task 2.4:** CongViecDashboardPage (8h) - DEFERRED (depends on 2.3)
+- [ ] **Task 2.8:** Testing & Polish (10h) - Can start with completed tasks
+
+**Decision Point:**
+
+- Continue with Task 2.8 (testing current features), or
+- Move to Phase 3 (Splash + Mobile Layouts), or
+- Address technical debt (Tasks 2.3, 2.4)
 
 ### Blockers
 
-- None - Task 2.5 can proceed independently
+- None for immediate work
+- Tasks 2.3, 2.4 require backend API design discussioniao" page (separate planning)
+- [ ] **Task 2.7:** Mobile optimizations (5h)
+- [ ] **Task 2.8:** Testing & Polish (10h)
+
+### Blockers
+
+- None - Task 2.6 can proceed (independent from 2.3, 2.4)
+- Tasks 2.3, 2.4 require backend design review
 
   - [ ] Theme-aware detection
   - [ ] Export showBottomNav, showDrawer helpers

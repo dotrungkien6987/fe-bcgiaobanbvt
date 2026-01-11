@@ -17,6 +17,7 @@ import {
   Calendar2,
   MessageQuestion,
   Category2,
+  Clock,
 } from "iconsax-react";
 
 // icons
@@ -36,6 +37,7 @@ const icons = {
   ticket: MessageQuestion,
   settings: Setting2,
   category: Category2,
+  history: Clock,
 };
 
 // ==============================|| MENU ITEMS - PAGES ||============================== //
@@ -58,13 +60,24 @@ const quanlycongviec = {
           type: "item",
           url: "/quanlycongviec/nhomviec-user",
         },
-        // Node động: Công việc của tôi (thay :NhanVienID bằng user.NhanVienID khi render Navigation)
         {
           id: "congvieccuatoi",
-          title: "Công việc của tôi",
+          title: "Công việc tôi nhận",
           type: "item",
-          // Giữ placeholder, sẽ được thay trong Navigation
-          url: "/quanlycongviec/congviec/nhanvien/:NhanVienID",
+          url: "/quanlycongviec/cong-viec-cua-toi",
+        },
+        {
+          id: "viectoigiao",
+          title: "Việc tôi giao",
+          type: "item",
+          url: "/quanlycongviec/viec-toi-giao",
+        },
+        {
+          id: "lichsuhoanthanh",
+          title: "Lịch sử hoàn thành",
+          type: "item",
+          url: "/quanlycongviec/lich-su-hoan-thanh",
+          icon: icons.history,
         },
         {
           id: "congviecmindmap",

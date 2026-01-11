@@ -85,6 +85,58 @@ const initialState = {
   crossCycleTasksSummary: {}, // ✅ NEW: Keyed by `${nhanVienId}_${chuKyId}`
   summaryLoading: false,
   summaryError: null,
+  // ✅ NEW (Task 2.5): Recent completed tasks for preview
+  recentCompleted: [], // Last N completed tasks (for preview section)
+  recentCompletedTotal: 0, // Total count (for "View all" link)
+  loadingRecentCompleted: false,
+  recentCompletedError: null,
+  // ✅ NEW (Task 2.6): Recent completed assigned tasks for manager view
+  recentCompletedAssigned: [], // Last 30 completed tasks assigned by manager
+  recentCompletedAssignedTotal: 0,
+  loadingRecentCompletedAssigned: false,
+  recentCompletedAssignedError: null,
+  // ✅ NEW (Task 2.7): Completed tasks archive with full pagination & filters
+  completedArchive: {
+    activeTab: "my-completed", // "my-completed" | "team-completed"
+    myCompleted: {
+      tasks: [],
+      total: 0,
+      isLoading: false,
+      error: null,
+      currentPage: 1,
+      rowsPerPage: 25,
+      filters: {
+        search: "",
+        NguoiChinhID: "",
+        MucDoUuTien: "",
+        fromDate: null,
+        toDate: null,
+        NhiemVuThuongQuyID: "",
+        completionStatus: "", // "ON_TIME" | "LATE" | "EARLY" | ""
+      },
+    },
+    teamCompleted: {
+      tasks: [],
+      total: 0,
+      isLoading: false,
+      error: null,
+      currentPage: 1,
+      rowsPerPage: 25,
+      filters: {
+        search: "",
+        NguoiChinhID: "",
+        MucDoUuTien: "",
+        fromDate: null,
+        toDate: null,
+        NhiemVuThuongQuyID: "",
+        completionStatus: "",
+      },
+    },
+    stats: {
+      my: { total: 0, thisWeek: 0, thisMonth: 0, onTimeRate: 0 },
+      team: { total: 0, thisWeek: 0, thisMonth: 0, onTimeRate: 0 },
+    },
+  },
 };
 
 // Create slice
@@ -723,6 +775,116 @@ const slice = createSlice({
       state.summaryError = action.payload;
       state.summaryLoading = false;
     },
+    // ✅ NEW (Task 2.5): Recent completed actions
+    startLoadingRecentCompleted: (state) => {
+      state.loadingRecentCompleted = true;
+      state.recentCompletedError = null;
+    },
+    getRecentCompletedSuccess: (state, action) => {
+      state.loadingRecentCompleted = false;
+      state.recentCompletedError = null;
+      state.recentCompleted = action.payload.tasks;
+      state.recentCompletedTotal = action.payload.total;
+    },
+    getRecentCompletedFailure: (state, action) => {
+      state.loadingRecentCompleted = false;
+      state.recentCompletedError = action.payload;
+    },
+    // ✅ NEW (Task 2.6): Recent completed assigned actions for manager view
+    startLoadingRecentCompletedAssigned: (state) => {
+      state.loadingRecentCompletedAssigned = true;
+      state.recentCompletedAssignedError = null;
+    },
+    getRecentCompletedAssignedSuccess: (state, action) => {
+      state.loadingRecentCompletedAssigned = false;
+      state.recentCompletedAssignedError = null;
+      state.recentCompletedAssigned = action.payload.tasks;
+      state.recentCompletedAssignedTotal = action.payload.total;
+    },
+    getRecentCompletedAssignedFailure: (state, action) => {
+      state.loadingRecentCompletedAssigned = false;
+      state.recentCompletedAssignedError = action.payload;
+    },
+    // ✅ NEW (Task 2.7): Completed archive actions
+    setArchiveTab: (state, action) => {
+      state.completedArchive.activeTab = action.payload;
+    },
+    setArchiveFilters: (state, action) => {
+      const { tab, filters } = action.payload;
+      if (tab === "my-completed") {
+        state.completedArchive.myCompleted.filters = {
+          ...state.completedArchive.myCompleted.filters,
+          ...filters,
+        };
+        state.completedArchive.myCompleted.currentPage = 1; // Reset to page 1 on filter change
+      } else {
+        state.completedArchive.teamCompleted.filters = {
+          ...state.completedArchive.teamCompleted.filters,
+          ...filters,
+        };
+        state.completedArchive.teamCompleted.currentPage = 1;
+      }
+    },
+    setArchivePage: (state, action) => {
+      const { tab, page } = action.payload;
+      if (tab === "my-completed") {
+        state.completedArchive.myCompleted.currentPage = page;
+      } else {
+        state.completedArchive.teamCompleted.currentPage = page;
+      }
+    },
+    setArchiveRowsPerPage: (state, action) => {
+      const { tab, rowsPerPage } = action.payload;
+      if (tab === "my-completed") {
+        state.completedArchive.myCompleted.rowsPerPage = rowsPerPage;
+        state.completedArchive.myCompleted.currentPage = 1;
+      } else {
+        state.completedArchive.teamCompleted.rowsPerPage = rowsPerPage;
+        state.completedArchive.teamCompleted.currentPage = 1;
+      }
+    },
+    startLoadingArchive: (state, action) => {
+      const tab = action.payload;
+      if (tab === "my-completed") {
+        state.completedArchive.myCompleted.isLoading = true;
+        state.completedArchive.myCompleted.error = null;
+      } else {
+        state.completedArchive.teamCompleted.isLoading = true;
+        state.completedArchive.teamCompleted.error = null;
+      }
+    },
+    getArchiveSuccess: (state, action) => {
+      const { tab, tasks, total } = action.payload;
+      if (tab === "my-completed") {
+        state.completedArchive.myCompleted.isLoading = false;
+        state.completedArchive.myCompleted.tasks = tasks;
+        state.completedArchive.myCompleted.total = total;
+        state.completedArchive.myCompleted.error = null;
+      } else {
+        state.completedArchive.teamCompleted.isLoading = false;
+        state.completedArchive.teamCompleted.tasks = tasks;
+        state.completedArchive.teamCompleted.total = total;
+        state.completedArchive.teamCompleted.error = null;
+      }
+    },
+    getArchiveFailure: (state, action) => {
+      const { tab, error } = action.payload;
+      if (tab === "my-completed") {
+        state.completedArchive.myCompleted.isLoading = false;
+        state.completedArchive.myCompleted.error = error;
+      } else {
+        state.completedArchive.teamCompleted.isLoading = false;
+        state.completedArchive.teamCompleted.error = error;
+      }
+    },
+    getArchiveStatsSuccess: (state, action) => {
+      const { tab, stats } = action.payload;
+      if (tab === "my-completed") {
+        state.completedArchive.stats.my = stats;
+      } else {
+        state.completedArchive.stats.team = stats;
+      }
+    },
   },
 });
 
@@ -778,6 +940,15 @@ export const {
   startDeleteSubtask,
   deleteSubtaskSuccess,
   finishDeleteSubtask,
+  // ✅ Archive actions (Task 2.7)
+  setArchiveTab,
+  setArchiveFilters,
+  setArchivePage,
+  setArchiveRowsPerPage,
+  startLoadingArchive,
+  getArchiveSuccess,
+  getArchiveFailure,
+  getArchiveStatsSuccess,
 } = slice.actions;
 
 // API service methods
@@ -1827,5 +1998,231 @@ export const fetchCrossCycleTasksSummary =
         error.message || "Không thể tải dữ liệu công việc chu kỳ cũ";
       dispatch(slice.actions.fetchCrossCycleTasksSummaryFailure(message));
       throw error;
+    }
+  };
+
+/**
+ * ✅ NEW (Task 2.5): Fetch recent completed tasks
+ * @param {Object} params - {nhanVienId, days=7, limit=10}
+ * @returns {Promise} - Recent completed tasks array
+ */
+export const getRecentCompleted =
+  ({ nhanVienId, limit = 10 }) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoadingRecentCompleted());
+
+    try {
+      // ✅ Backend route: GET /workmanagement/congviec/:nhanvienid/received
+      // Supported params: TrangThai, page, limit, ... (NO days/sortBy/sortOrder)
+      const response = await apiService.get(
+        `/workmanagement/congviec/${nhanVienId}/received`,
+        {
+          params: {
+            TrangThai: "HOAN_THANH",
+            page: 1,
+            limit,
+          },
+        }
+      );
+
+      const { CongViecs = [], totalItems = 0 } = response.data.data;
+
+      dispatch(
+        slice.actions.getRecentCompletedSuccess({
+          tasks: CongViecs,
+          total: totalItems,
+        })
+      );
+
+      return CongViecs;
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể tải dữ liệu công việc đã hoàn thành";
+      dispatch(slice.actions.getRecentCompletedFailure(message));
+      // ✅ Silent failure for preview section (avoid unhandled rejection)
+      return [];
+    }
+  };
+
+/**
+ * ✅ NEW (Task 2.7): Fetch completed tasks archive with full pagination
+ * @param {Object} params - {nhanVienId, tab, page, limit, filters}
+ * @returns {Promise} - Completed tasks array
+ */
+export const getCompletedArchive =
+  ({ nhanVienId, tab, page = 1, limit = 25, filters = {} }) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoadingArchive(tab));
+
+    try {
+      const endpoint =
+        tab === "my-completed"
+          ? `/workmanagement/congviec/${nhanVienId}/received`
+          : `/workmanagement/congviec/${nhanVienId}/assigned`;
+
+      // Build query params
+      const params = {
+        TrangThai: "HOAN_THANH",
+        page,
+        limit,
+        ...filters,
+      };
+
+      // Clean up empty filters
+      Object.keys(params).forEach((key) => {
+        if (params[key] === "" || params[key] == null) {
+          delete params[key];
+        }
+      });
+
+      const response = await apiService.get(endpoint, { params });
+      const { CongViecs = [], totalItems = 0 } = response.data.data;
+
+      dispatch(
+        slice.actions.getArchiveSuccess({
+          tab,
+          tasks: CongViecs,
+          total: totalItems,
+        })
+      );
+
+      return CongViecs;
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể tải dữ liệu lịch sử hoàn thành";
+      dispatch(slice.actions.getArchiveFailure({ tab, error: message }));
+      toast.error(message);
+      return [];
+    }
+  };
+
+/**
+ * ✅ NEW (Task 2.7): Calculate stats for completed archive (frontend calculation)
+ * This is a client-side calculation helper. Can be replaced with backend API later.
+ * @param {Array} tasks - Array of completed tasks
+ * @returns {Object} - Stats object { total, thisWeek, thisMonth, onTimeRate }
+ */
+function calculateArchiveStats(tasks) {
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return { total: 0, thisWeek: 0, thisMonth: 0, onTimeRate: 0 };
+  }
+
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - 7);
+  const monthStart = new Date(now);
+  monthStart.setMonth(now.getMonth() - 1);
+
+  let thisWeek = 0;
+  let thisMonth = 0;
+  let onTimeCount = 0;
+
+  tasks.forEach((task) => {
+    const completedDate = new Date(task.NgayHoanThanh || task.updatedAt);
+
+    if (completedDate >= weekStart) {
+      thisWeek++;
+    }
+    if (completedDate >= monthStart) {
+      thisMonth++;
+    }
+    if (!task.HoanThanhTreHan) {
+      onTimeCount++;
+    }
+  });
+
+  const onTimeRate =
+    tasks.length > 0 ? ((onTimeCount / tasks.length) * 100).toFixed(1) : 0;
+
+  return {
+    total: tasks.length,
+    thisWeek,
+    thisMonth,
+    onTimeRate: parseFloat(onTimeRate),
+  };
+}
+
+/**
+ * ✅ NEW (Task 2.7): Get stats for completed archive
+ * @param {Object} params - {nhanVienId, tab}
+ * @returns {Promise} - Stats object
+ */
+export const getCompletedArchiveStats =
+  ({ nhanVienId, tab }) =>
+  async (dispatch, getState) => {
+    try {
+      // Get all completed tasks for this tab (no limit for accurate stats)
+      const endpoint =
+        tab === "my-completed"
+          ? `/workmanagement/congviec/${nhanVienId}/received`
+          : `/workmanagement/congviec/${nhanVienId}/assigned`;
+
+      const response = await apiService.get(endpoint, {
+        params: {
+          TrangThai: "HOAN_THANH",
+          page: 1,
+          limit: 1000, // Get large batch for stats calculation
+        },
+      });
+
+      const { CongViecs = [] } = response.data.data;
+      const stats = calculateArchiveStats(CongViecs);
+
+      dispatch(slice.actions.getArchiveStatsSuccess({ tab, stats }));
+
+      return stats;
+    } catch (error) {
+      console.error("Failed to get archive stats:", error);
+      // Return default stats on error (don't block UI)
+      return { total: 0, thisWeek: 0, thisMonth: 0, onTimeRate: 0 };
+    }
+  };
+
+/**
+ * ✅ NEW (Task 2.6): Fetch recent completed assigned tasks (manager view)
+ * @param {Object} params - {nhanVienId, limit=30}
+ * @returns {Promise} - Recent completed assigned tasks array
+ */
+export const getRecentCompletedAssigned =
+  ({ nhanVienId, limit = 30 }) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoadingRecentCompletedAssigned());
+
+    try {
+      // ✅ Backend route: GET /workmanagement/congviec/:nhanvienid/assigned
+      // Filter by HOAN_THANH status for completed tasks
+      const response = await apiService.get(
+        `/workmanagement/congviec/${nhanVienId}/assigned`,
+        {
+          params: {
+            TrangThai: "HOAN_THANH",
+            page: 1,
+            limit,
+          },
+        }
+      );
+
+      const { CongViecs = [], totalItems = 0 } = response.data.data;
+
+      dispatch(
+        slice.actions.getRecentCompletedAssignedSuccess({
+          tasks: CongViecs,
+          total: totalItems,
+        })
+      );
+
+      return CongViecs;
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể tải dữ liệu công việc đã hoàn thành";
+      dispatch(slice.actions.getRecentCompletedAssignedFailure(message));
+      // ✅ Silent failure for preview section (avoid unhandled rejection)
+      return [];
     }
   };

@@ -77,6 +77,9 @@ import QuanLyNhanVienPage from "features/QuanLyCongViec/QuanLyNhanVien/QuanLyNha
 import CycleAssignmentListPage from "features/QuanLyCongViec/GiaoNhiemVu/CycleAssignmentListPage";
 import CycleAssignmentDetailPage from "features/QuanLyCongViec/GiaoNhiemVu/CycleAssignmentDetailPage";
 import CongViecByNhanVienPage from "features/QuanLyCongViec/CongViec/CongViecByNhanVienPage";
+import MyTasksPage from "features/QuanLyCongViec/CongViec/MyTasksPage";
+import AssignedTasksPage from "features/QuanLyCongViec/CongViec/AssignedTasksPage";
+import CompletedTasksArchivePage from "features/QuanLyCongViec/CongViec/CompletedTasksArchivePage";
 import CongViecDetailPage from "features/QuanLyCongViec/CongViec/CongViecDetailPage";
 import TaskMindMapTreeEnhancedPage from "../pages/TaskMindMapTreeEnhancedPage";
 import TaskMindMapHierarchicalPage from "../pages/TaskMindMapHierarchicalPage";
@@ -295,7 +298,15 @@ function Router() {
             {/* Root Dashboard - Phase 2 */}
             <Route index element={<UnifiedDashboardPage />} />
 
-            {/* Công Việc */}
+            {/* ✅ Task Views (Phase 2) */}
+            <Route path="cong-viec-cua-toi" element={<MyTasksPage />} />
+            <Route path="viec-toi-giao" element={<AssignedTasksPage />} />
+            <Route
+              path="lich-su-hoan-thanh"
+              element={<CompletedTasksArchivePage />}
+            />
+
+            {/* Công Việc (Legacy routes) */}
             <Route path="congviec">
               <Route index element={<Navigate to="nhanvien/me" replace />} />
               <Route

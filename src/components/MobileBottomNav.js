@@ -43,9 +43,11 @@ const NAV_ITEMS = [
   },
   {
     label: "Công việc",
-    path: "/quanlycongviec/congviec",
+    path: "/quanlycongviec/cong-viec-cua-toi",
     icon: Task,
-    matcher: (pathname) => pathname.startsWith("/quanlycongviec/congviec"),
+    matcher: (pathname) =>
+      pathname.startsWith("/quanlycongviec/cong-viec-cua-toi") ||
+      pathname.startsWith("/quanlycongviec/congviec"), // Legacy support
   },
   {
     label: "Yêu cầu",

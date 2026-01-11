@@ -1,10 +1,13 @@
 # Task 2.5: "Công việc của tôi" Page - Status Tabs Refactor
 
-**Tổng thời gian:** 8 giờ  
-**Ước tính chi tiết:** 3h + 1.5h + 3.5h  
+**Tổng thời gian:** 12.25 giờ _(+4.25h UX + Mobile additions)_  
+**Ước tính chi tiết:** 3h + 2.5h + 6.75h  
 **Trạng thái:** 📋 Planning - Chờ review
 
 **⚠️ Scope Change:** Chỉ implement page "Công việc của tôi" (Individual view). "Quản lý công việc" (Manager view) deferred to Task 2.6+.
+
+**✨ UX Additions (10/01/2026):** Active Filter Chips, Empty States, Toast Stack Management  
+**📱 Mobile Additions (10/01/2026):** Mobile Card View for Table, RecentCompleted Detail Display
 
 ---
 
@@ -18,6 +21,11 @@ Chuyển đổi **CongViecByNhanVienPage** (716 dòng) thành **MyTasksPage** v�
 - ✅ Deadline warnings (⚠️ ⏰) from schema
 - ✅ Mobile optimization
 - ✅ Recent completed preview
+- ✨ **Active filter chips** - Visual feedback cho filters đang apply
+- ✨ **Empty state** - Helpful message khi không có completed tasks
+- ✨ **Toast stack limit** - Prevent toast overload (max 3 concurrent)
+- 📱 **Mobile card view** - Card layout thay table cho mobile (≤768px)
+- 📱 **RecentCompleted detail** - Chi tiết 5 fields: TenCongViec, MaCongViec, NgayHoanThanh, SoGioTre, NguoiGiao
 
 **Note:** "Việc tôi giao" (Manager view) sẽ là separate page trong Task 2.6+.
 
@@ -286,9 +294,22 @@ src/features/QuanLyCongViec/
 │   │   │   • Click to filter urgent items
 │   │   │   • Dismissible
 │   │   │
-│   │   └── RecentCompletedPreview.js  ← ✨ NEW (Task 2.5.1)
-│   │       • Show last 7 days completed
-│   │       • Link to full archive
+│   │   ├── RecentCompletedPreview.js  ← ✨ NEW (Task 2.5.1)
+│   │   │   • Show last 7 days completed
+│   │   │   • Link to full archive
+│   │   │   • ✨ Empty state when no data (UX addition)
+│   │   │   • 📱 Detail display with 5 fields (Mobile addition)
+│   │   │
+│   │   ├── ActiveFilterChips.js       ← ✨ NEW (UX Addition)
+│   │   │   • Visual feedback for active filters
+│   │   │   • Removable chips (click X to clear)
+│   │   │   • Excludes status (shown in tabs)
+│   │   │
+│   │   └── CongViecCard.js            ← 📱 NEW (Mobile Addition)
+│   │       • Compact card layout for mobile
+│   │       • Replace table when screen ≤768px
+│   │       • Shows: Status, Priority, Deadline, Assignor
+│   │       • Quick actions: View, Edit, Delete
 │   │
 │   ├── hooks/                         ← 📁 NEW FOLDER
 │   │   ├── useMyTasksUrlParams.js     ← ✨ NEW (Task 2.5.2)
@@ -1181,9 +1202,31 @@ export const getRecentCompleted = (params) => async (dispatch) => {
   - [ ] TinhTrangThoiHan badges calculated correctly
 
 - [ ] **Filter Integration**
+
   - [ ] Other filters (search, người giao, ngày) work with tabs
   - [ ] Clear filters button resets everything except status
   - [ ] Multiple filters combine correctly (AND logic)
+
+- [ ] **✨ Active Filter Chips (UX Addition)**
+
+  - [ ] Chips render when filters are applied
+  - [ ] Click X on chip removes individual filter
+  - [ ] Status filter (tabs) does NOT show as chip
+  - [ ] Chips update when filters change
+  - [ ] "Đang lọc:" label shows with chips
+
+- [ ] **✨ Empty State (UX Addition)**
+
+  - [ ] RecentCompletedPreview shows empty state when no data
+  - [ ] Icon and message render correctly
+  - [ ] "Xem lịch sử" button navigates properly
+  - [ ] Empty state disappears when data loads
+
+- [ ] **✨ Toast Stack Limit (UX Addition)**
+  - [ ] Max 3 toasts show concurrently
+  - [ ] 4th toast replaces oldest toast
+  - [ ] Toasts stack vertically (newest on top)
+  - [ ] Rapid actions don't flood UI with toasts
 
 ### **Mobile Tests**
 
@@ -1193,6 +1236,23 @@ export const getRecentCompleted = (params) => async (dispatch) => {
 - [ ] Tap chip changes status immediately
 - [ ] Layout doesn't break on small screens (320px)
 - [ ] UrgentAlertBanner responsive on mobile
+
+- [ ] **📱 Mobile Card View (Addition)**
+
+  - [ ] Table switches to cards at ≤768px (md breakpoint)
+  - [ ] Cards render correctly with all data (avatar, status, priority, deadline)
+  - [ ] Card actions (View, Edit, Delete) work
+  - [ ] Cards stack vertically with proper spacing
+  - [ ] Pagination works with card layout
+  - [ ] Resize window → Smooth transition table ↔ cards
+
+- [ ] **📱 RecentCompleted Detail (Addition)**
+  - [ ] Shows 5 fields: TenCongViec, MaCongViec, NgayHoanThanh, SoGioTre, NguoiGiao
+  - [ ] Click item navigates to detail page
+  - [ ] Date filter toggle works (7/30/90 days)
+  - [ ] "Xem tất cả" button navigates to archive
+  - [ ] Empty state shows when no completed tasks
+  - [ ] Icons render correctly (✓ ⏱️ 👤)
 
 ### **Edge Cases**
 
@@ -1212,15 +1272,22 @@ export const getRecentCompleted = (params) => async (dispatch) => {
 | --------------------------- | ------------- | ------- | -------------- |
 | `StatusTabs.js`             | New Component | ~180    | ⏳ To Create   |
 | `UrgentAlertBanner.js`      | New Component | ~120    | ⏳ To Create   |
-| `RecentCompletedPreview.js` | New Component | ~150    | ⏳ To Create   |
+| `RecentCompletedPreview.js` | New Component | ~200    | ⏳ To Create   |
+| `ActiveFilterChips.js`      | New Component | ~60     | ✨ UX Addition |
+| `CongViecCard.js`           | New Component | ~80     | 📱 Mobile Add  |
 | `useMyTasksUrlParams.js`    | New Hook      | ~80     | ⏳ To Create   |
 | `useTaskCounts.js`          | New Hook      | ~100    | ⏳ To Create   |
 | `MyTasksPage.js`            | Refactor      | 716→450 | ⏳ To Refactor |
-| `CongViecFilterPanel.js`    | Update        | +20     | ⏳ To Update   |
+| `CongViecTable.js`          | Update        | +30     | 📱 Mobile Add  |
+| `CongViecFilterPanel.js`    | Update        | +30     | ⏳ To Update   |
 | `congViecSlice.js`          | Update        | +50     | ⏳ To Update   |
+| `App.js` (ToastContainer)   | Update        | +2      | ✨ UX Addition |
 | `CongViecTabs.js`           | Deprecate     | -150    | ⏳ To Remove   |
 
-**Total:** 5 new files (630 lines), 3 updates (+70 lines), 1 removal (-150 lines), net reduction ~266 lines (716→450)
+**Total:** 7 new files (820 lines), 5 updates (+112 lines), 1 removal (-150 lines), net reduction ~226 lines
+
+**✨ UX Additions:** +1.25h for ActiveFilterChips, empty states, toast config  
+**📱 Mobile Additions:** +3h for CongViecCard, CongViecTable responsive, RecentCompleted detail
 
 ---
 
@@ -1247,7 +1314,7 @@ export const getRecentCompleted = (params) => async (dispatch) => {
    - "Xem ngay" action triggers filter
    - Test empty state (no banner when counts = 0)
 
-### **Phase B: URL Integration & Data Fetching (1.5h)**
+### **Phase B: URL Integration & Data Fetching (2.5h)** 📱 _+1h Mobile addition_
 
 1. **Create `useMyTasksUrlParams.js` hook** (45 min)
 
@@ -1262,12 +1329,38 @@ export const getRecentCompleted = (params) => async (dispatch) => {
    - Create `getRecentCompleted` thunk (7 days, limit 10)
    - Test thunk with mock API
 
-3. **Create `RecentCompletedPreview.js` component** (15 min)
-   - Timeline display (last 7 days)
-   - "Xem tất cả" link to archive
-   - Empty state when no recent completed
+3. **📱 Create `RecentCompletedPreview.js` component** (1h) _Mobile addition_
 
-### **Phase C: Page Refactor (3.5h)**
+   - **Display Fields (5 required):**
+     - TenCongViec (primary text, fontWeight: medium)
+     - MaCongViec (chip, size: small, outlined)
+     - NgayHoanThanh (caption with ✓ icon, format: DD/MM HH:mm)
+     - SoGioTre (caption with ⏱️ icon, computed duration)
+     - NguoiGiao.HoTen (caption with 👤 icon)
+   - **Layout:** List with ListItem + ListItemText (primary + secondary)
+   - **Interactions:**
+     - Click item → Navigate to WorkRoutes.congViecDetail(id)
+     - Date filter toggle: 7/30/90 days (ToggleButtonGroup)
+     - "Xem tất cả" button → Navigate to archive page
+   - **Empty state:** Paper with CheckCircleOutlineIcon + message
+   - Total ~200 lines (was ~165)
+
+4. **📱 Create `RecentCompletedPreview.js` component** (1h) _Mobile addition_
+   - **Display Fields (5 required):**
+     - TenCongViec (primary text, fontWeight: medium)
+     - MaCongViec (chip, size: small, outlined)
+     - NgayHoanThanh (caption with ✓ icon, format: DD/MM HH:mm)
+     - SoGioTre (caption with ⏱️ icon, computed duration)
+     - NguoiGiao.HoTen (caption with 👤 icon)
+   - **Layout:** List with ListItem + ListItemText (primary + secondary)
+   - **Interactions:**
+     - Click item → Navigate to WorkRoutes.congViecDetail(id)
+     - Date filter toggle: 7/30/90 days (ToggleButtonGroup)
+     - "Xem tất cả" button → Navigate to archive page
+   - **Empty state:** Paper with CheckCircleOutlineIcon + message
+   - Total ~200 lines (was ~165)
+
+### **Phase C: Page Refactor (6.75h)** ✨📱 _+3.25h UX + Mobile additions_
 
 1. **Backup & rename file** (10 min)
 
@@ -1279,7 +1372,7 @@ export const getRecentCompleted = (params) => async (dispatch) => {
 2. **Replace imports & hooks** (45 min)
 
    - Remove CongViecTabs
-   - Add new 5 components/hooks
+   - Add new 6 components/hooks (including CongViecCard)
    - Update route in router config
 
 3. **Update state management** (30 min)
@@ -1303,16 +1396,73 @@ export const getRecentCompleted = (params) => async (dispatch) => {
    - Add RecentCompletedPreview at bottom
    - Test all visual components render
 
+5.5. **📱 Create `CongViecCard.js` Component** (1h) _Mobile addition_
+
+- **Layout:** Card > CardHeader + CardContent + CardActions
+- **CardHeader:**
+  - avatar: EmployeeAvatar (NguoiGiao)
+  - title: TenCongViec (truncate with tooltip)
+  - subheader: MaCongViec
+  - action: MoreVertIcon (3-dot menu)
+- **CardContent:**
+  - Status Chip with color
+  - Stack: PriorityChip + DeadlineChip (with ⚠️ ⏰ icons)
+  - Typography: "Người giao: {HoTen}" (caption)
+- **CardActions:** IconButtons (View, Edit, Delete)
+- **Responsive:** Width 100%, minHeight 160px
+- Test: 10+ cards scrollable, swipe gestures
+
+5.6. **📱 Update `CongViecTable.js` Responsive** (1h) _Mobile addition_
+
+- Add `useTheme` and `useMediaQuery` imports
+- Add breakpoint detection: `const isMobile = useMediaQuery(theme.breakpoints.down('md'));`
+- **Conditional render:**
+  ```javascript
+  if (isMobile) {
+    return (
+      <Box>
+        {congViecs.map(cv => <CongViecCard key={cv._id} data={cv} ... />)}
+        <TablePagination ... />
+      </Box>
+    );
+  }
+  return <Table>...</Table>; // Desktop
+  ```
+- Test: Resize browser, verify table ↔ cards switch at 768px
+
 6. **Update `CongViecFilterPanel.js`** (20 min)
 
    - Add excludeFields prop support
    - Add collapsible accordion functionality
    - Add defaultCollapsed prop (mobile vs desktop)
 
-7. **Full integration testing** (30 min)
-   - All functional tests from checklist
-   - Mobile responsive testing
-   - Edge case verification
+7. **✨ Add Active Filter Chips** (30 min) _UX Addition_
+
+   - Create `ActiveFilterChips.js` component (~60 lines)
+   - Integrate into MyTasksPage below StatusTabs
+   - Add onRemoveFilter handler to clear individual filters
+   - Test: Apply multiple filters → See chips → Click X → Filter removed
+
+8. **✨ Update RecentCompletedPreview Empty State** (30 min) _UX Addition_
+
+   - Replace `return null` with Paper component (+15 lines)
+   - Add CheckCircleOutlineIcon and helpful message
+   - Include "Xem lịch sử đầy đủ" button
+   - Test: No completed tasks → See empty state with icon
+
+9. **✨ Config Toast Stack Limit** (15 min) _UX Addition_
+
+   - Update `App.js` ToastContainer with `limit={3}` prop
+   - Test: Trigger 10 toasts rapidly → Only 3 show at once
+   - Verify newest toasts appear on top
+
+10. **Full integration testing** (30 min)
+
+- All functional tests from checklist
+- Mobile responsive testing (desktop ↔ mobile at 768px)
+- Edge case verification
+- **UX:** Test filter chips removal, empty states, toast stacking
+- **Mobile:** Test card view, swipe gestures, RecentCompleted detail display
 
 ---
 
@@ -1338,6 +1488,11 @@ export const getRecentCompleted = (params) => async (dispatch) => {
 - ✅ Urgent tasks are highly visible (global banner)
 - ✅ Recent completed tasks accessible (7-day preview)
 - ✅ Mobile responsive (≥320px width)
+- ✨ **Active filters visible as chips** (clear visual feedback)
+- ✨ **Empty states helpful** (not just blank space)
+- ✨ **Toast notifications controlled** (max 3, no overload)
+- 📱 **Mobile card view** (table → cards at ≤768px, smooth UX)
+- 📱 **RecentCompleted detail** (5 fields visible, clickable items)
 
 **Technical:**
 
@@ -1345,7 +1500,8 @@ export const getRecentCompleted = (params) => async (dispatch) => {
 - ✅ No prop drilling (hooks + Redux)
 - ✅ Deadline badges use schema fields (no hardcoded logic)
 - ✅ Client-side performance acceptable (≤500 tasks)
-- ✅ All tests pass (functional + mobile + edge cases)
+- ✅ All tests pass (functional + mobile + edge cases + UX + mobile additions)
+- 📱 Responsive breakpoint: md (768px) for table/card switch
 
 **Business:**
 
@@ -1371,6 +1527,33 @@ export const getRecentCompleted = (params) => async (dispatch) => {
 - Clearer separation of concerns (individual vs manager views)
 - Easier to test and maintain
 - Better scalability for manager features later
+
+**✨ UX Additions Rationale (10/01/2026):**
+
+3 small features added with +1.25h overhead (8h → 9.25h = 15% increase):
+
+1. **Active Filter Chips (+0.5h)**
+
+   - Synergy: FilterPanel đã có collapse UI, chỉ cần thêm visual feedback
+   - Impact: Users see exactly which filters are active, can remove individually
+   - Alternative considered: Defer to Phase 3 → Rejected (too much synergy with current work)
+
+2. **Empty State (+0.5h)**
+
+   - Synergy: RecentCompletedPreview đã có trong scope, chỉ update return value
+   - Impact: New users không thấy vùng trống confusing
+   - Scope limit: Chỉ cho 1 component, full empty states system → Phase 3
+
+3. **Toast Stack Limit (+0.25h)**
+   - Synergy: Task 2.5 có nhiều batch operations (delete, status change)
+   - Impact: Prevent UI overload khi user click rapid actions
+   - Implementation: 1-line config change (ToastContainer limit prop)
+
+**Deferred UX Features:**
+
+- Full empty states system → Phase 3 (with illustrations, skeletons)
+- Infinite scroll → Task 2.7+ (conflicts with pagination strategy)
+- Micro-interactions → Phase 4 (gestures, animations)
 
 **Next Steps After Task 2.5:**
 

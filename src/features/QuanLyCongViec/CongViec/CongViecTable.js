@@ -15,6 +15,7 @@ import {
   IconButton,
   Tooltip,
   Stack,
+  useMediaQuery,
 } from "@mui/material";
 import {
   Visibility as VisibilityIcon,
@@ -27,6 +28,7 @@ import {
 import { useTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
 import EmployeeAvatar from "components/EmployeeAvatar";
+import CongViecCard from "./components/CongViecCard"; // 📱 NEW for mobile
 import {
   getStatusColor,
   getPriorityColor,
@@ -60,6 +62,9 @@ const CongViecTable = ({
   currentUserRole,
   currentUserNhanVienId,
   onTree, // callback mở cây phân cấp
+  showProgress = false, // ✅ NEW: Show progress bar in cards
+  showParticipants = false, // ✅ NEW: Show participants count in cards
+  showAssignee = false, // ✅ NEW: Show assignee instead of assignor
 }) => {
   const theme = useTheme();
   const statusOverrides = useSelector((s) => s.colorConfig?.statusColors);
@@ -102,6 +107,64 @@ const CongViecTable = ({
 
   const showEmpty = !isLoading && enhancedRows.length === 0;
 
+  // 📱 Mobile detection
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
+  // 📱 Mobile: Render cards instead of table
+  if (isMobile) {
+    return (
+      <Paper sx={{ position: "relative", minHeight: 200 }}>
+        {isLoading && (
+          <Box sx={{ width: "100%", position: "absolute", top: 0, zIndex: 2 }}>
+            <LinearProgress />
+          </Box>
+        )}
+
+        {showEmpty ? (
+          <Box sx={{ p: 4, textAlign: "center" }}>
+            <Typography variant="body2" color="text.secondary">
+              Không có công việc nào
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ p: 2 }}>
+            {enhancedRows.map((cv) => (
+              <CongViecCard
+                key={cv._id}
+                data={cv}
+                onView={() => onView?.(cv._id)}
+                onEdit={() => onEdit?.(cv)}
+                onDelete={() => onDelete?.(cv)}
+                onTreeView={() => onTree?.(cv._id)} // ✅ Pass tree view handler
+                canEdit={canEdit(cv)}
+                canDelete={canDelete(cv)}
+                showProgress={showProgress} // ✅ Pass progress prop
+                showParticipants={showParticipants} // ✅ Pass participants prop
+                showAssignee={showAssignee} // ✅ Pass assignee prop
+              />
+            ))}
+          </Box>
+        )}
+
+        {/* Pagination */}
+        <TablePagination
+          component="div"
+          count={totalItems}
+          page={currentPage - 1}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          labelRowsPerPage="Số mục/trang:"
+          labelDisplayedRows={({ from, to, count }) =>
+            `${from}–${to} / ${count !== -1 ? count : `nhiều hơn ${to}`}`
+          }
+        />
+      </Paper>
+    );
+  }
+
+  // Desktop: Original table view
   return (
     <Paper sx={{ position: "relative", minHeight: 200 }}>
       {isLoading && (
@@ -135,11 +198,23 @@ const CongViecTable = ({
           </Typography>
         </Box>
       )}
-      <TableContainer>
-        <Table>
+      <TableContainer sx={{ position: "relative", overflow: "auto" }}>
+        <Table sx={{ borderCollapse: "separate" }}>
           <TableHead>
             <TableRow>
-              <TableCell>Mã</TableCell>
+              <TableCell
+                sx={{
+                  position: "sticky !important",
+                  left: 0,
+                  backgroundColor: "white",
+                  backgroundImage: "none",
+                  zIndex: 10,
+                  boxShadow: "2px 0 4px rgba(0,0,0,0.1)",
+                  "&::after": { display: "none" },
+                }}
+              >
+                Mã
+              </TableCell>
               <TableCell>Tiêu đề</TableCell>
               <TableCell>Trạng thái</TableCell>
               <TableCell>Tình trạng hạn</TableCell>
@@ -150,7 +225,20 @@ const CongViecTable = ({
               <TableCell>Hạn chót</TableCell>
               <TableCell>Tiến độ</TableCell>
               <TableCell>Tương tác</TableCell>
-              <TableCell width={120}>Thao tác</TableCell>
+              <TableCell
+                width={120}
+                sx={{
+                  position: "sticky !important",
+                  right: 0,
+                  backgroundColor: "white",
+                  backgroundImage: "none",
+                  zIndex: 10,
+                  boxShadow: "-2px 0 4px rgba(0,0,0,0.1)",
+                  "&::after": { display: "none" },
+                }}
+              >
+                Thao tác
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -182,7 +270,17 @@ const CongViecTable = ({
                     }),
                   }}
                 >
-                  <TableCell>
+                  <TableCell
+                    sx={{
+                      position: "sticky !important",
+                      left: 0,
+                      backgroundColor: "white",
+                      backgroundImage: "none",
+                      zIndex: 2,
+                      boxShadow: "2px 0 4px rgba(0,0,0,0.1)",
+                      "&::after": { display: "none" },
+                    }}
+                  >
                     <Typography
                       variant="body2"
                       fontWeight={600}
@@ -390,7 +488,17 @@ const CongViecTable = ({
                       </Box>
                     </Stack>
                   </TableCell>
-                  <TableCell>
+                  <TableCell
+                    sx={{
+                      position: "sticky !important",
+                      right: 0,
+                      backgroundColor: "white",
+                      backgroundImage: "none",
+                      zIndex: 2,
+                      boxShadow: "-2px 0 4px rgba(0,0,0,0.1)",
+                      "&::after": { display: "none" },
+                    }}
+                  >
                     <Stack direction="row" spacing={0.5}>
                       <Tooltip title="Cây công việc">
                         <IconButton

@@ -61,6 +61,13 @@ const TINH_TRANG_HAN_OPTIONS = [
   { value: "HOAN_THANH_TRE_HAN", label: "Hoàn thành trễ" },
 ];
 
+// Role filter options (for "My Tasks" page)
+const VAI_TRO_CUA_TOI_OPTIONS = [
+  { value: "", label: "Tất cả vai trò" },
+  { value: "NGUOI_CHINH", label: "Tôi là người chính" },
+  { value: "NGUOI_PHOI_HOP", label: "Tôi là người phối hợp" },
+];
+
 const CongViecFilterPanel = ({
   filters,
   onFilterChange,
@@ -71,8 +78,14 @@ const CongViecFilterPanel = ({
   searchValue,
   maCongViecValue,
   immediateFilters,
+  // ✅ NEW (Task 2.5): Exclude specific fields & collapsible support
+  excludeFields = [], // Array of field names to hide (e.g., ['TrangThai'])
+  collapsible = false, // Enable collapse/expand functionality
+  defaultCollapsed = false, // Default collapsed state (desktop vs mobile)
+  customTinhTrangHanOptions = null, // Custom options for TinhTrangHan filter
+  forceOneColumn = false, // ✨ NEW: Force 1 column layout (for drawer)
 }) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(!defaultCollapsed);
 
   // Compose effective filters used for input values. This lets the parent
   // provide locally controlled values (search/ma) and immediate selects.
@@ -122,7 +135,9 @@ const CongViecFilterPanel = ({
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Box display="flex" alignItems="center" gap={1}>
             <FilterListIcon color="primary" />
-            <Typography variant="h6">Bộ lọc</Typography>
+            <Typography variant="h6">
+              {collapsible && !expanded ? "Bộ lọc nâng cao" : "Bộ lọc"}
+            </Typography>
             {hasActiveFilters && (
               <Typography variant="body2" color="primary">
                 (Đang áp dụng)
@@ -139,9 +154,11 @@ const CongViecFilterPanel = ({
             >
               Xóa bộ lọc
             </Button>
-            <IconButton onClick={toggleExpanded} size="small">
-              {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            </IconButton>
+            {collapsible && (
+              <IconButton onClick={toggleExpanded} size="small">
+                {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            )}
           </Box>
         </Box>
 
@@ -149,7 +166,7 @@ const CongViecFilterPanel = ({
 
         {/* Always visible: Mã + Search */}
         <Grid container spacing={2} sx={{ mb: expanded ? 2 : 0 }}>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12} md={forceOneColumn ? 12 : 4}>
             <TextField
               fullWidth
               label="Mã công việc"
@@ -160,7 +177,7 @@ const CongViecFilterPanel = ({
               disabled={isLoading}
             />
           </Grid>
-          <Grid item xs={12} md={8}>
+          <Grid item xs={12} md={forceOneColumn ? 12 : 8}>
             <TextField
               fullWidth
               label="Tìm kiếm trong tiêu đề, mô tả..."
@@ -176,25 +193,38 @@ const CongViecFilterPanel = ({
         {/* Collapsible advanced filters */}
         <Collapse in={expanded}>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Trạng thái</InputLabel>
-                <Select
-                  value={effectiveFilters.TrangThai || ""}
-                  onChange={handleSelectChange("TrangThai")}
-                  label="Trạng thái"
-                  disabled={isLoading}
-                >
-                  {TRANG_THAI_OPTIONS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
+            {/* ✅ Conditionally render TrangThai field */}
+            {!excludeFields.includes("TrangThai") && (
+              <Grid
+                item
+                xs={12}
+                sm={forceOneColumn ? 12 : 6}
+                md={forceOneColumn ? 12 : 3}
+              >
+                <FormControl fullWidth size="small">
+                  <InputLabel>Trạng thái</InputLabel>
+                  <Select
+                    value={effectiveFilters.TrangThai || ""}
+                    onChange={handleSelectChange("TrangThai")}
+                    label="Trạng thái"
+                    disabled={isLoading}
+                  >
+                    {TRANG_THAI_OPTIONS.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid
+              item
+              xs={12}
+              sm={forceOneColumn ? 12 : 6}
+              md={forceOneColumn ? 12 : 3}
+            >
               <FormControl fullWidth size="small">
                 <InputLabel>Mức độ ưu tiên</InputLabel>
                 <Select
@@ -212,7 +242,12 @@ const CongViecFilterPanel = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid
+              item
+              xs={12}
+              sm={forceOneColumn ? 12 : 6}
+              md={forceOneColumn ? 12 : 3}
+            >
               <DatePicker
                 label="Ngày bắt đầu từ"
                 value={
@@ -231,7 +266,12 @@ const CongViecFilterPanel = ({
               />
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid
+              item
+              xs={12}
+              sm={forceOneColumn ? 12 : 6}
+              md={forceOneColumn ? 12 : 3}
+            >
               <DatePicker
                 label="Hạn chót đến"
                 value={
@@ -250,30 +290,76 @@ const CongViecFilterPanel = ({
               />
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Người xử lý chính</InputLabel>
-                <Select
-                  value={effectiveFilters.NguoiChinhID || ""}
-                  onChange={handleSelectChange("NguoiChinhID")}
-                  label="Người xử lý chính"
-                  disabled={isLoading}
-                  displayEmpty
-                >
-                  <MenuItem value="">
-                    <em>Tất cả</em>
-                  </MenuItem>
-                  {managedEmployees.map((nv) => (
-                    <MenuItem key={nv._id} value={nv._id}>
-                      {nv.Ten}{" "}
-                      {nv.KhoaID?.TenKhoa ? `- ${nv.KhoaID.TenKhoa}` : ""}
+            {/* ✅ Conditionally render NguoiChinhID field */}
+            {!excludeFields.includes("NguoiChinhID") && (
+              <Grid
+                item
+                xs={12}
+                sm={forceOneColumn ? 12 : 6}
+                md={forceOneColumn ? 12 : 3}
+              >
+                <FormControl fullWidth size="small">
+                  <InputLabel>Người xử lý chính</InputLabel>
+                  <Select
+                    value={effectiveFilters.NguoiChinhID || ""}
+                    onChange={handleSelectChange("NguoiChinhID")}
+                    label="Người xử lý chính"
+                    disabled={isLoading}
+                    displayEmpty
+                  >
+                    <MenuItem value="">
+                      <em>Tất cả</em>
                     </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
+                    {managedEmployees.map((nv) => (
+                      <MenuItem key={nv._id} value={nv._id}>
+                        {nv.Ten}{" "}
+                        {nv.KhoaID?.TenKhoa ? `- ${nv.KhoaID.TenKhoa}` : ""}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            )}
 
-            <Grid item xs={12} sm={6} md={3}>
+            {/* ✅ NEW: Filter theo vai trò của tôi */}
+            {!excludeFields.includes("VaiTroCuaToi") &&
+              effectiveFilters.hasOwnProperty("VaiTroCuaToi") && (
+                <Grid
+                  item
+                  xs={12}
+                  sm={forceOneColumn ? 12 : 6}
+                  md={forceOneColumn ? 12 : 3}
+                >
+                  <FormControl fullWidth size="small">
+                    <InputLabel
+                      shrink={effectiveFilters.VaiTroCuaToi !== undefined}
+                    >
+                      Vai trò của tôi
+                    </InputLabel>
+                    <Select
+                      value={effectiveFilters.VaiTroCuaToi || ""}
+                      onChange={handleSelectChange("VaiTroCuaToi")}
+                      label="Vai trò của tôi"
+                      disabled={isLoading}
+                      displayEmpty
+                      notched={effectiveFilters.VaiTroCuaToi !== undefined}
+                    >
+                      {VAI_TRO_CUA_TOI_OPTIONS.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              )}
+
+            <Grid
+              item
+              xs={12}
+              sm={forceOneColumn ? 12 : 6}
+              md={forceOneColumn ? 12 : 3}
+            >
               <FormControl fullWidth size="small">
                 <InputLabel>Tình trạng hạn</InputLabel>
                 <Select
@@ -282,11 +368,13 @@ const CongViecFilterPanel = ({
                   label="Tình trạng hạn"
                   disabled={isLoading}
                 >
-                  {TINH_TRANG_HAN_OPTIONS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
+                  {(customTinhTrangHanOptions || TINH_TRANG_HAN_OPTIONS).map(
+                    (option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    )
+                  )}
                 </Select>
               </FormControl>
             </Grid>

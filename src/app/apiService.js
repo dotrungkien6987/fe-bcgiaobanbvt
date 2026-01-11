@@ -30,7 +30,11 @@ apiService.interceptors.response.use(
   },
   function (error) {
     console.log("RESPONSE ERROR", { error });
-    const message = error.response?.data?.errors?.message || "Unkown error";
+    const message =
+      error.response?.data?.message || // Backend AppError message
+      error.response?.data?.errors?.message || // Nested error format
+      error.message || // Axios error message
+      "Đã có lỗi xảy ra"; // Fallback message
     return Promise.reject({ message });
   }
 );
