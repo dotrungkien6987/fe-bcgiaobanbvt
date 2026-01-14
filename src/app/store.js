@@ -5,7 +5,7 @@ import bcgiaobanSlice from "../features/BCGiaoBan/bcgiaobanSlice";
 import userSlice from "../features/User/userSlice";
 import baocaosucoSlice from "../features/BaoCaoSuCo/baocaosucoSlice";
 import dashboardSlice from "../features/DashBoard/dashboardSlice";
-import workDashboardSlice from "../features/QuanLyCongViec/Dashboard/dashboardSlice";
+import workDashboardSlice from "../features/WorkDashboard/workDashboardSlice"; // Phase 2: Unified dashboard for work management
 import dashboardkhoaSlice from "../features/DashBoard/DashBoardKhoa/dashboardkhoaSlice";
 import themeslice from "../features/Theme/themeslice";
 import daotaoSlice from "../features/Daotao/daotaoSlice";

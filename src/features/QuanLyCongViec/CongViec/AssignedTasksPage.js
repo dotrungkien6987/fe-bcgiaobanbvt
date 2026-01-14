@@ -14,10 +14,12 @@ import {
   Badge,
   Drawer,
   Box,
+  Fab,
 } from "@mui/material";
 import {
   Refresh as RefreshIcon,
   FilterList as FilterListIcon,
+  Add as AddIcon,
 } from "@mui/icons-material";
 
 // ✅ Reuse components from Task 2.5
@@ -407,6 +409,16 @@ const AssignedTasksPage = () => {
         </Stack>
 
         <Stack direction="row" spacing={1}>
+          {/* Desktop only: Tạo mới button */}
+          {!isMobile && (
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleOpenForm()}
+            >
+              + Tạo mới
+            </Button>
+          )}
           <Button
             variant="outlined"
             color="primary"
@@ -618,6 +630,23 @@ const AssignedTasksPage = () => {
         message={`Bạn có chắc chắn muốn xóa công việc "${confirmDialog.congViec?.TenCongViec}"?`}
         loading={confirmDialog.loading}
       />
+
+      {/* 🎯 FAB - Mobile only: Native app feel */}
+      {isMobile && (
+        <Fab
+          color="primary"
+          aria-label="add"
+          onClick={() => handleOpenForm()}
+          sx={{
+            position: "fixed",
+            bottom: 80,
+            right: 16,
+            zIndex: 1000,
+          }}
+        >
+          <AddIcon />
+        </Fab>
+      )}
     </Container>
   );
 };

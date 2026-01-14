@@ -44,14 +44,8 @@ import {
 import useMobileLayout from "hooks/useMobileLayout";
 import { WorkRoutes } from "utils/navigationHelper";
 import useAuth from "hooks/useAuth";
-import {
-  getDashboardSummary,
-  refreshDashboard,
-  selectDashboardSummary,
-  selectDashboardLoading,
-  selectDashboardRefreshing,
-  selectLastUpdated,
-} from "./dashboardSlice";
+import { fetchAllDashboardSummaries } from "features/WorkDashboard/workDashboardSlice";
+import { FABMenuButton } from "features/WorkDashboard/components";
 
 /**
  * Dashboard Summary Card Component
@@ -195,105 +189,112 @@ function UnifiedDashboardPage() {
   const { user } = useAuth();
   const { isMobile } = useMobileLayout();
 
-  // Redux state
-  const summary = useSelector(selectDashboardSummary);
-  const isLoading = useSelector(selectDashboardLoading);
-  const isRefreshing = useSelector(selectDashboardRefreshing);
-  const lastUpdated = useSelector(selectLastUpdated);
+  // Redux state - use new workDashboard slice
+  const {
+    congViecSummary,
+    yeuCauSummary,
+    kpiSummary,
+    isLoading,
+    lastFetchTime,
+  } = useSelector(
+    (state) =>
+      state.workDashboard || {
+        congViecSummary: { total: 0, urgent: 0 },
+        yeuCauSummary: { sent: 0, needAction: 0, inProgress: 0, completed: 0 },
+        kpiSummary: {
+          score: null,
+          status: "CHUA_DUYET",
+          cycleName: null,
+          isDone: false,
+          hasEvaluation: false,
+        },
+        isLoading: false,
+        lastFetchTime: null,
+      }
+  );
 
   // Fetch dashboard data
   useEffect(() => {
     if (user?.NhanVienID) {
-      dispatch(getDashboardSummary(user.NhanVienID));
+      dispatch(fetchAllDashboardSummaries(user.NhanVienID));
     }
   }, [dispatch, user?.NhanVienID]);
 
   // Handle refresh
   const handleRefresh = () => {
     if (user?.NhanVienID) {
-      dispatch(refreshDashboard(user.NhanVienID));
+      dispatch(fetchAllDashboardSummaries(user.NhanVienID));
     }
   };
 
   // Build stats from Redux data
   const congViecStats = [
     {
-      label: "Nhận được",
-      value: summary.congViec.totalReceived,
+      label: "Tổng công việc",
+      value: congViecSummary?.total || 0,
       icon: Task,
       color: theme.palette.primary.main,
     },
     {
-      label: "Giao đi",
-      value: summary.congViec.totalAssigned,
-      icon: Edit,
-      color: theme.palette.info.main,
-    },
-    {
-      label: "Đang làm",
-      value: summary.congViec.receivedInProgress,
+      label: "Cần xử lý gấp",
+      value: congViecSummary?.urgent || 0,
       icon: Timer1,
-      color: theme.palette.warning.main,
-    },
-    {
-      label: "Hoàn thành",
-      value: summary.congViec.receivedCompleted,
-      icon: TickCircle,
-      color: theme.palette.success.main,
+      color: theme.palette.error.main,
     },
   ];
 
   const kpiStats = [
     {
-      label: "Điểm TB",
-      value: summary.kpi.averageScore || 0,
+      label: kpiSummary?.cycleName || "Chưa có chu kỳ",
+      value: kpiSummary?.score ? `${kpiSummary.score.toFixed(1)} điểm` : "N/A",
       icon: MedalStar,
-      color: theme.palette.success.main,
+      color:
+        kpiSummary?.score >= 90
+          ? theme.palette.success.main
+          : kpiSummary?.score >= 70
+          ? theme.palette.warning.main
+          : theme.palette.error.main,
     },
     {
-      label: "Chưa đánh giá",
-      value: summary.kpi.notEvaluated,
-      icon: Timer1,
-      color: theme.palette.warning.main,
-    },
-    {
-      label: "Đã duyệt",
-      value: summary.kpi.approved,
-      icon: TickCircle,
-      color: theme.palette.success.main,
-    },
-    {
-      label: "Cần cải thiện",
-      value: summary.kpi.needsImprovement,
-      icon: CloseCircle,
-      color: theme.palette.error.main,
+      label: "Trạng thái",
+      value:
+        kpiSummary?.status === "DA_DUYET"
+          ? "Đã duyệt"
+          : kpiSummary?.status === "CHUA_DUYET"
+          ? "Chưa duyệt"
+          : "N/A",
+      icon: kpiSummary?.status === "DA_DUYET" ? TickCircle : Timer1,
+      color:
+        kpiSummary?.status === "DA_DUYET"
+          ? theme.palette.success.main
+          : theme.palette.warning.main,
     },
   ];
 
   const yeuCauStats = [
     {
       label: "Tôi gửi",
-      value: summary.yeuCau.totalSent,
+      value: yeuCauSummary?.sent || 0,
       icon: MessageQuestion,
       color: theme.palette.primary.main,
     },
     {
       label: "Cần xử lý",
-      value: summary.yeuCau.pending,
+      value: yeuCauSummary?.needAction || 0,
       icon: Timer1,
+      color: theme.palette.error.main,
+    },
+    {
+      label: "Đang xử lý",
+      value: yeuCauSummary?.inProgress || 0,
+      icon: Edit,
       color: theme.palette.warning.main,
     },
     {
-      label: "Đã xử lý",
-      value: summary.yeuCau.completed,
+      label: "Hoàn thành",
+      value: yeuCauSummary?.completed || 0,
       icon: TickCircle,
       color: theme.palette.success.main,
-    },
-    {
-      label: "Quá hạn",
-      value: summary.yeuCau.overdue,
-      icon: CloseCircle,
-      color: theme.palette.error.main,
     },
   ];
 
@@ -361,6 +362,9 @@ function UnifiedDashboardPage() {
           </Stack>
         </Box>
       )}
+
+      {/* FAB Menu Button - Quick Access to All Features */}
+      <FABMenuButton />
     </Container>
   );
 }

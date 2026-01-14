@@ -27,6 +27,7 @@ import KhuyenCaoKhoaPage from "../pages/KhuyenCaoKhoaPage";
 import SupperAdminPage from "../pages/SupperAdminPage";
 
 import Test from "pages/Test";
+import TestMenuGridPage from "pages/TestMenuGridPage";
 import QuanLyHocVienPage from "pages/QuanLyHocVienPage";
 import MainLayoutAble from "layout/MainLayout";
 
@@ -106,6 +107,8 @@ import NotificationTypeAdminPage from "pages/NotificationTypeAdminPage";
 import { NotificationSettings } from "features/Notification";
 // Dashboard
 import UnifiedDashboardPage from "features/QuanLyCongViec/Dashboard/UnifiedDashboardPage";
+import CongViecDashboardPage from "features/QuanLyCongViec/Dashboard/CongViecDashboard/CongViecDashboardPage";
+import YeuCauDashboardPage from "pages/YeuCauDashboardPage";
 // Ticket System (YeuCau)
 import {
   YeuCauPage,
@@ -298,6 +301,13 @@ function Router() {
             {/* Root Dashboard - Phase 2 */}
             <Route index element={<UnifiedDashboardPage />} />
 
+            {/* ✅ Specialized Dashboards (Phase 2C, 2D) */}
+            <Route
+              path="cong-viec-dashboard"
+              element={<CongViecDashboardPage />}
+            />
+            <Route path="yeu-cau-dashboard" element={<YeuCauDashboardPage />} />
+
             {/* ✅ Task Views (Phase 2) */}
             <Route path="cong-viec-cua-toi" element={<MyTasksPage />} />
             <Route path="viec-toi-giao" element={<AssignedTasksPage />} />
@@ -457,6 +467,8 @@ function Router() {
               </AdminRequire>
             }
           />
+          {/* Test Routes - Development Only */}
+          <Route path="/test-menu-grid" element={<TestMenuGridPage />} />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
       </Routes>

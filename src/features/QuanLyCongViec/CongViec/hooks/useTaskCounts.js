@@ -31,12 +31,11 @@ function useTaskCounts(tasks = []) {
     // Initialize counts object
     const counts = {
       ALL: 0,
+      TAO_MOI: 0,
       DA_GIAO: 0,
       DANG_THUC_HIEN: 0,
       CHO_DUYET: 0,
       HOAN_THANH: 0,
-      TU_CHOI: 0,
-      HUY: 0,
       deadlineStatus: {
         overdue: 0, // ⚠️ QUA_HAN
         upcoming: 0, // ⏰ SAP_QUA_HAN
@@ -44,6 +43,7 @@ function useTaskCounts(tasks = []) {
       },
       deadlineByStatus: {
         ALL: { overdue: 0, upcoming: 0, onTrack: 0 },
+        TAO_MOI: { overdue: 0, upcoming: 0, onTrack: 0 },
         DA_GIAO: { overdue: 0, upcoming: 0, onTrack: 0 },
         DANG_THUC_HIEN: { overdue: 0, upcoming: 0, onTrack: 0 },
         CHO_DUYET: { overdue: 0, upcoming: 0, onTrack: 0 },

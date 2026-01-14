@@ -19,7 +19,7 @@
  * ```
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   BottomNavigation,
@@ -27,9 +27,27 @@ import {
   Paper,
   Badge,
   useTheme,
+  Dialog,
+  DialogContent,
+  IconButton,
+  Box,
+  Slide,
 } from "@mui/material";
-import { Home, Task, Notification, Category, Settings } from "iconsax-react";
+import {
+  Home,
+  Task,
+  Notification,
+  Category,
+  Menu as MenuIcon,
+} from "iconsax-react";
+import { Close as CloseIcon } from "@mui/icons-material";
 import { useSelector } from "react-redux";
+import { MenuGridPage } from "features/WorkDashboard/components";
+
+// Slide transition for menu dialog
+const SlideTransition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 /**
  * Navigation items configuration
@@ -43,17 +61,20 @@ const NAV_ITEMS = [
   },
   {
     label: "Công việc",
-    path: "/quanlycongviec/cong-viec-cua-toi",
+    path: "/quanlycongviec/cong-viec-dashboard",
     icon: Task,
     matcher: (pathname) =>
+      pathname.startsWith("/quanlycongviec/cong-viec-dashboard") ||
       pathname.startsWith("/quanlycongviec/cong-viec-cua-toi") ||
       pathname.startsWith("/quanlycongviec/congviec"), // Legacy support
   },
   {
     label: "Yêu cầu",
-    path: "/quanlycongviec/yeucau",
+    path: "/quanlycongviec/yeu-cau-dashboard",
     icon: Category,
-    matcher: (pathname) => pathname.startsWith("/quanlycongviec/yeucau"),
+    matcher: (pathname) =>
+      pathname.startsWith("/quanlycongviec/yeu-cau-dashboard") ||
+      pathname.startsWith("/quanlycongviec/yeucau"),
     badge: "yeuCauCount", // Redux state path for badge count
   },
   {
@@ -64,10 +85,9 @@ const NAV_ITEMS = [
     badge: "notificationCount",
   },
   {
-    label: "Cài đặt",
-    path: "/quanlycongviec/cai-dat",
-    icon: Settings,
-    matcher: (pathname) => pathname.startsWith("/quanlycongviec/cai-dat"),
+    label: "Menu",
+    icon: MenuIcon,
+    isDialog: true,
   },
 ];
 
@@ -78,6 +98,7 @@ function MobileBottomNav() {
   const theme = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
+  const [menuDialogOpen, setMenuDialogOpen] = useState(false);
 
   // Badge counts from Redux
   const yeuCauBadges = useSelector((state) => state.ticket?.badgeCounts);
@@ -122,7 +143,11 @@ function MobileBottomNav() {
   const handleChange = (event, newValue) => {
     const targetItem = NAV_ITEMS[newValue];
     if (targetItem) {
-      navigate(targetItem.path);
+      if (targetItem.isDialog) {
+        setMenuDialogOpen(true);
+      } else {
+        navigate(targetItem.path);
+      }
     }
   };
 
@@ -209,6 +234,41 @@ function MobileBottomNav() {
           );
         })}
       </BottomNavigation>
+
+      {/* Menu Dialog */}
+      <Dialog
+        open={menuDialogOpen}
+        onClose={() => setMenuDialogOpen(false)}
+        fullScreen
+        TransitionComponent={SlideTransition}
+        PaperProps={{
+          sx: {
+            borderRadius: "16px 16px 0 0",
+            maxHeight: "90vh",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            position: "sticky",
+            top: 0,
+            display: "flex",
+            justifyContent: "flex-end",
+            p: 1,
+            bgcolor: "background.paper",
+            borderBottom: 1,
+            borderColor: "divider",
+            zIndex: 1,
+          }}
+        >
+          <IconButton onClick={() => setMenuDialogOpen(false)} size="large">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <DialogContent sx={{ p: 0 }}>
+          <MenuGridPage />
+        </DialogContent>
+      </Dialog>
     </Paper>
   );
 }

@@ -55,6 +55,12 @@ const quanlycongviec = {
       icon: icons.menuboard,
       children: [
         {
+          id: "dashboardcongviec",
+          title: "Dashboard Công Việc",
+          type: "item",
+          url: "/quanlycongviec/cong-viec-dashboard",
+        },
+        {
           id: "nhomviecuser",
           title: "Nhóm việc theo dõi",
           type: "item",
