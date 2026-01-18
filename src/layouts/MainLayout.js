@@ -5,13 +5,12 @@ import MainFooter from "./MainFooter";
 import { Outlet } from "react-router-dom";
 import AlertMsg from "../components/AlertMsg";
 
-
 function MainLayout() {
   return (
     <Stack sx={{ minHeight: "100vh", position: "relative" }}>
-      <MainHeader/>
-      <AlertMsg/>
-      
+      <MainHeader />
+      <AlertMsg />
+
       <Outlet />
 
       <Box sx={{ flexGrow: 1 }} />

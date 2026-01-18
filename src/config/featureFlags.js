@@ -93,6 +93,13 @@ export const FEATURE_FLAGS = {
   ),
 
   /**
+   * Splash screen on app load
+   * Shows animated splash screen during initial app load
+   * Default: true (Phase 3A feature)
+   */
+  enableSplashScreen: parseBooleanEnv("REACT_APP_ENABLE_SPLASH_SCREEN", true),
+
+  /**
    * Dark mode toggle
    * Allow users to switch between light/dark themes
    * Default: true

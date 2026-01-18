@@ -1,368 +1,636 @@
 /**
  * YeuCauDashboardPage - Dashboard tổng quan Yêu cầu
  *
- * Features:
- * - Overview statistics (sent, received, need action)
- * - Quick actions to main request views
- * - Role-based sections (Employee/Manager/Admin)
- * - Status distribution
+ * Native Mobile-First Design với:
+ * - Date range filter (preset chips)
+ * - Badge counts nâng cao (3 sections: Tôi gửi, Tôi xử lý, Điều phối)
+ * - Status distribution (SegmentedControl + horizontal bars)
+ * - Recent activities timeline
+ * - Quick actions grid
+ * - Pull-to-refresh
  */
 
-import React, { useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { Box, Typography, Stack, IconButton, Chip } from "@mui/material";
 import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  Card,
-  CardContent,
-  Stack,
-  Chip,
-  Divider,
-  IconButton,
-  Tooltip,
-  alpha,
-  useTheme,
-  Button,
-  LinearProgress,
-  Alert,
-} from "@mui/material";
+  ArrowBack as ArrowBackIcon,
+  Refresh as RefreshIcon,
+  Send as SendIcon,
+  Inbox as InboxIcon,
+  AccountTree as CoordinateIcon,
+} from "@mui/icons-material";
+import dayjs from "dayjs";
+import { useYeuCauRoles } from "features/QuanLyCongViec/Ticket/hooks/useYeuCauRoles";
 import {
-  MessageQuestion,
-  Send,
-  Receive,
-  Clock,
-  ArrowLeft,
-  Add,
-  Refresh,
-  InfoCircle,
-} from "iconsax-react";
-import { fetchAllDashboardSummaries } from "features/WorkDashboard/workDashboardSlice";
-import useAuth from "hooks/useAuth";
-
-/**
- * Stat Card Component
- */
-function StatCard({ label, value, icon: Icon, color = "primary" }) {
-  const theme = useTheme();
-  const colorValue = theme.palette[color]?.main || theme.palette.primary.main;
-
-  return (
-    <Card>
-      <CardContent>
-        <Stack spacing={1.5}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 1.5,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: alpha(colorValue, 0.1),
-              }}
-            >
-              <Icon size={22} color={colorValue} variant="Bold" />
-            </Box>
-            <Typography variant="body2" color="text.secondary">
-              {label}
-            </Typography>
-          </Stack>
-          <Typography variant="h4" fontWeight={600}>
-            {value ?? 0}
-          </Typography>
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-}
+  fetchBadgeCountsNangCao,
+  selectBadgeCountsNangCao,
+  selectBadgeCountsNangCaoLoading,
+} from "features/QuanLyCongViec/Ticket/yeuCauSlice";
+import {
+  PullToRefreshWrapper,
+  YeuCauFormDialog,
+} from "features/QuanLyCongViec/Ticket/components";
+import DateRangePresets from "features/QuanLyCongViec/Ticket/components/DateRangePresets";
+import DashboardMetricSection from "features/QuanLyCongViec/Ticket/components/DashboardMetricSection";
+import StatusDistributionCard from "features/QuanLyCongViec/Ticket/components/StatusDistributionCard";
+import RecentActivitiesCard from "features/QuanLyCongViec/Ticket/components/RecentActivitiesCard";
+import { Fab } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import apiService from "app/apiService";
 
 /**
  * Main Component
  */
 export default function YeuCauDashboardPage() {
-  const theme = useTheme();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user } = useAuth();
+  const roles = useYeuCauRoles();
 
-  // Get data from Redux
-  const { yeuCauSummary, isLoading } = useSelector(
-    (state) => state.workDashboard
-  );
+  // Date range state
+  const [datePreset, setDatePreset] = useState("30d");
+  const [dateRange, setDateRange] = useState({
+    tuNgay: dayjs().subtract(30, "day").format("YYYY-MM-DD"),
+    denNgay: dayjs().format("YYYY-MM-DD"),
+  });
 
-  // Check user role
-  const isManager = ["manager", "admin", "superadmin"].includes(
-    user?.PhanQuyen
-  );
-  const isAdmin = ["admin", "superadmin"].includes(user?.PhanQuyen);
+  // ✅ NEW: State for Create Dialog
+  const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [khoaOptions, setKhoaOptions] = useState([]);
 
+  // Load khoa có danh mục yêu cầu
   useEffect(() => {
-    if (user?.NhanVienID) {
-      dispatch(fetchAllDashboardSummaries());
-    }
-  }, [dispatch, user?.NhanVienID]);
+    const loadKhoa = async () => {
+      try {
+        const response = await apiService.get(
+          "/workmanagement/danh-muc-yeu-cau/khoa-co-danh-muc"
+        );
+        setKhoaOptions(response.data.data || []);
+      } catch (error) {
+        console.error("Lỗi load khoa:", error);
+      }
+    };
+    loadKhoa();
+  }, []);
 
-  const stats = yeuCauSummary?.data?.stats || {};
-  const needAction = yeuCauSummary?.data?.needAction || [];
+  // ✅ NEW: Handlers for metric clicks
+  const handleMetricClick = useCallback(
+    (metricKey, section) => {
+      if (section === "toiGui") {
+        if (metricKey === "total") {
+          navigate("/quanlycongviec/yeucau/toi-gui");
+        } else {
+          navigate(`/quanlycongviec/yeucau/toi-gui?tab=${metricKey}`);
+        }
+      } else if (section === "xuLy") {
+        if (metricKey === "total") {
+          navigate("/quanlycongviec/yeucau/xu-ly");
+        } else {
+          const tabMap = {
+            canTiepNhan: "cho-tiep-nhan",
+            dangXuLy: "dang-xu-ly",
+            choXacNhan: "cho-xac-nhan",
+          };
+          navigate(`/quanlycongviec/yeucau/xu-ly?tab=${tabMap[metricKey]}`);
+        }
+      } else if (section === "dieuPhoi") {
+        navigate("/quanlycongviec/yeucau/dieu-phoi");
+      }
+    },
+    [navigate]
+  );
+
+  // Get badge counts from Redux
+  const badgeCounts = useSelector(selectBadgeCountsNangCao);
+  const badgeCountsLoading = useSelector(selectBadgeCountsNangCaoLoading);
+
+  // Load badge counts on mount and date change
+  useEffect(() => {
+    const { tuNgay, denNgay } = dateRange;
+    dispatch(fetchBadgeCountsNangCao({ tuNgay, denNgay }));
+  }, [dispatch, dateRange]);
+
+  // Handle date preset change
+  const handleDatePresetChange = useCallback((preset, dates) => {
+    setDatePreset(preset);
+    setDateRange(dates);
+  }, []);
+
+  // Handle refresh
+  const handleRefresh = useCallback(async () => {
+    await dispatch(fetchBadgeCountsNangCao(dateRange));
+  }, [dispatch, dateRange]);
+
+  // Handle navigation
+  const handleNavigate = useCallback(
+    (path) => {
+      navigate(path);
+    },
+    [navigate]
+  );
+
+  // Handle activity click
+  const handleActivityClick = useCallback(
+    (activity) => {
+      if (activity.YeuCauID?._id) {
+        navigate(`/quanlycongviec/yeucau/${activity.YeuCauID._id}`);
+      }
+    },
+    [navigate]
+  );
+
+  // Prepare metrics for sections
+  const toiGuiMetrics = badgeCounts?.toiGui
+    ? [
+        {
+          key: "choTiepNhan",
+          label: "Chờ tiếp nhận",
+          value: badgeCounts.toiGui.choTiepNhan,
+          color: "warning",
+          urgent: badgeCounts.toiGui.choTiepNhan > 0,
+          onClick: () => handleMetricClick("choTiepNhan", "toiGui"),
+        },
+        {
+          key: "dangXuLy",
+          label: "Đang xử lý",
+          value: badgeCounts.toiGui.dangXuLy,
+          color: "info",
+          onClick: () => handleMetricClick("dangXuLy", "toiGui"),
+        },
+        {
+          key: "daHoanThanh",
+          label: "Chờ đánh giá",
+          value: badgeCounts.toiGui.daHoanThanh,
+          color: "success",
+          urgent: badgeCounts.toiGui.daHoanThanh > 0,
+          onClick: () => handleMetricClick("daHoanThanh", "toiGui"),
+        },
+        {
+          key: "daDong",
+          label: "Đã đóng",
+          value: badgeCounts.toiGui.daDong,
+          color: "default",
+          onClick: () => handleMetricClick("daDong", "toiGui"),
+        },
+        {
+          key: "tuChoi",
+          label: "Từ chối",
+          value: badgeCounts.toiGui.tuChoi,
+          color: "error",
+          onClick: () => handleMetricClick("tuChoi", "toiGui"),
+        },
+        {
+          key: "total",
+          label: "Tổng cộng",
+          value: badgeCounts.toiGui.total,
+          color: "primary",
+          onClick: () => handleMetricClick("total", "toiGui"),
+        },
+      ]
+    : [];
+
+  const xuLyMetrics = badgeCounts?.xuLy
+    ? [
+        {
+          key: "canTiepNhan",
+          label: "Chờ tiếp nhận",
+          value: badgeCounts.xuLy.canTiepNhan,
+          color: "warning",
+          urgent: badgeCounts.xuLy.canTiepNhan > 0,
+          onClick: () => handleMetricClick("canTiepNhan", "xuLy"),
+        },
+        {
+          key: "dangXuLy",
+          label: "Đang xử lý",
+          value: badgeCounts.xuLy.dangXuLy,
+          color: "info",
+          onClick: () => handleMetricClick("dangXuLy", "xuLy"),
+        },
+        {
+          key: "choXacNhan",
+          label: "Chờ đánh giá",
+          value: badgeCounts.xuLy.choXacNhan,
+          color: "success",
+          urgent: badgeCounts.xuLy.choXacNhan > 0,
+          onClick: () => handleMetricClick("choXacNhan", "xuLy"),
+        },
+        {
+          key: "total",
+          label: "Tổng cộng",
+          value: badgeCounts.xuLy.total,
+          color: "primary",
+          onClick: () => handleMetricClick("total", "xuLy"),
+        },
+      ]
+    : [];
+
+  const dieuPhoiMetrics =
+    roles.isNguoiDieuPhoi && badgeCounts?.dieuPhoi
+      ? [
+          {
+            key: "moiDen",
+            label: "Mới đến",
+            value: badgeCounts.dieuPhoi.moiDen,
+            color: "error",
+            urgent: badgeCounts.dieuPhoi.moiDen > 0,
+          },
+          {
+            key: "daDieuPhoi",
+            label: "Đã điều phối",
+            value: badgeCounts.dieuPhoi.daDieuPhoi,
+            color: "success",
+          },
+          {
+            key: "total",
+            label: "Tổng cộng",
+            value: badgeCounts.dieuPhoi.total,
+            color: "default",
+          },
+        ]
+      : [];
 
   return (
-    <Container maxWidth="xl" sx={{ py: 3, pb: 10 }}>
-      {/* Header */}
-      <Stack direction="row" alignItems="center" spacing={2} mb={3}>
-        <IconButton onClick={() => navigate("/quanlycongviec")}>
-          <ArrowLeft size={24} />
-        </IconButton>
-        <Box flex={1}>
-          <Typography variant="h5" fontWeight={600}>
-            📝 Dashboard Yêu Cầu
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Tổng quan yêu cầu của bạn
-          </Typography>
-        </Box>
-        <Tooltip title="Làm mới">
-          <IconButton
-            onClick={() => dispatch(fetchAllDashboardSummaries())}
-            disabled={isLoading}
-          >
-            <Refresh size={20} />
-          </IconButton>
-        </Tooltip>
-      </Stack>
-
-      {isLoading && <LinearProgress sx={{ mb: 2 }} />}
-
-      {/* Quick Actions */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="subtitle2" color="text.secondary" mb={2}>
-            Thao tác nhanh:
-          </Typography>
-          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-            <Button
-              variant="contained"
-              startIcon={<Add size={18} />}
-              size="small"
-              onClick={() => navigate("/quanlycongviec/yeucau/tao-moi")}
-            >
-              Tạo yêu cầu mới
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Send size={18} variant="Bold" />}
-              size="small"
-              onClick={() => navigate("/quanlycongviec/yeucau/toi-gui")}
-            >
-              Yêu cầu tôi gửi
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Receive size={18} variant="Bold" />}
-              size="small"
-              onClick={() => navigate("/quanlycongviec/yeucau/toi-nhan")}
-            >
-              Yêu cầu tôi nhận
-            </Button>
-            {isManager && (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => navigate("/quanlycongviec/yeucau")}
-              >
-                Xem tất cả
-              </Button>
-            )}
-          </Stack>
-        </CardContent>
-      </Card>
-
-      {/* Statistics Grid */}
-      <Grid container spacing={2} mb={3}>
-        <Grid item xs={6} sm={3}>
-          <StatCard
-            label="Tôi gửi"
-            value={stats.sent}
-            icon={Send}
-            color="primary"
-          />
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <StatCard
-            label="Cần xử lý"
-            value={stats.needAction}
-            icon={Clock}
-            color="warning"
-          />
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <StatCard
-            label="Đang xử lý"
-            value={stats.processing}
-            icon={Clock}
-            color="info"
-          />
-        </Grid>
-        <Grid item xs={6} sm={3}>
-          <StatCard
-            label="Hoàn thành"
-            value={stats.completed}
-            icon={MessageQuestion}
-            color="success"
-          />
-        </Grid>
-      </Grid>
-
-      {/* Need Action Alert */}
-      {needAction && needAction.length > 0 && (
-        <Alert
-          severity="warning"
-          icon={<InfoCircle variant="Bold" />}
-          sx={{ mb: 3 }}
+    <>
+      <PullToRefreshWrapper onRefresh={handleRefresh}>
+        <Box
+          sx={{
+            minHeight: "100vh",
+            bgcolor: "secondary.lighter",
+            pb: 10, // Bottom padding for mobile nav
+          }}
         >
-          <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-            ⚠️ Yêu cầu cần xử lý ({needAction.length})
-          </Typography>
-          <Stack spacing={0.5}>
-            {needAction.slice(0, 3).map((request, idx) => (
-              <Typography key={idx} variant="body2">
-                • {request.TieuDe || "Yêu cầu"}
-              </Typography>
-            ))}
-            {needAction.length > 3 && (
-              <Typography variant="caption" color="text.secondary">
-                ... và {needAction.length - 3} yêu cầu khác
-              </Typography>
-            )}
-          </Stack>
-        </Alert>
-      )}
-
-      {/* Status Distribution */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Phân bố theo trạng thái
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-          <Grid container spacing={2}>
-            {stats.byStatus && Object.keys(stats.byStatus).length > 0 ? (
-              Object.entries(stats.byStatus).map(([status, count]) => (
-                <Grid item xs={6} sm={4} md={3} key={status}>
-                  <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    spacing={1}
+          {/* Header - Edge to edge on mobile */}
+          <Box
+            sx={{
+              bgcolor: "background.paper",
+              borderBottom: "1px solid",
+              borderColor: "divider",
+              position: "sticky",
+              top: 0,
+              zIndex: 10,
+            }}
+          >
+            <Box
+              sx={{
+                maxWidth: "lg",
+                mx: "auto",
+                px: { xs: 0, md: 3 },
+              }}
+            >
+              <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                sx={{ py: 2, px: { xs: 2, md: 0 } }}
+              >
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <IconButton
+                    onClick={() => navigate(-1)}
+                    size="small"
+                    sx={{ mr: 0.5 }}
                   >
-                    <Typography variant="body2" noWrap>
-                      {status}:
-                    </Typography>
-                    <Chip label={count} size="small" />
-                  </Stack>
-                </Grid>
-              ))
-            ) : (
-              <Grid item xs={12}>
+                    <ArrowBackIcon />
+                  </IconButton>
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: { xs: "1.125rem", sm: "1.25rem" },
+                    }}
+                  >
+                    📋 Dashboard Yêu cầu
+                  </Typography>
+                </Stack>
+                <IconButton
+                  onClick={handleRefresh}
+                  size="small"
+                  disabled={badgeCountsLoading}
+                >
+                  <RefreshIcon />
+                </IconButton>
+              </Stack>
+            </Box>
+          </Box>
+
+          {/* Content - No Container for edge-to-edge mobile */}
+          <Box>
+            {/* Date Range Filter - Full width section */}
+            <Box
+              sx={{
+                bgcolor: "background.paper",
+                py: 2,
+                mb: 1,
+                borderTop: { xs: "1px solid", md: "none" },
+                borderBottom: { xs: "1px solid", md: "none" },
+                borderColor: "divider",
+              }}
+            >
+              <Box sx={{ px: { xs: 0, md: 3 }, maxWidth: "lg", mx: "auto" }}>
+                <DateRangePresets
+                  value={datePreset}
+                  onChange={handleDatePresetChange}
+                />
+              </Box>
+            </Box>
+
+            {/* Quick Navigation Chips - Full width with gradient fade */}
+            <Box
+              sx={{
+                bgcolor: "background.paper",
+                py: 2,
+                mb: 1,
+                borderTop: { xs: "1px solid", md: "none" },
+                borderBottom: { xs: "1px solid", md: "none" },
+                borderColor: "divider",
+              }}
+            >
+              <Box
+                sx={{ px: { xs: 0, md: 3 }, maxWidth: "lg", mx: "auto", mb: 1 }}
+              >
                 <Typography
-                  variant="body2"
+                  variant="caption"
                   color="text.secondary"
-                  align="center"
+                  sx={{ display: "block", px: { xs: 2, md: 0 } }}
                 >
-                  Chưa có dữ liệu
+                  📍 Điều hướng nhanh
                 </Typography>
-              </Grid>
-            )}
-          </Grid>
-        </CardContent>
-      </Card>
-
-      {/* Manager Section */}
-      {isManager && (
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              👥 Quản lý & Điều phối
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Grid container spacing={2}>
-              <Grid item xs={6} sm={4}>
+              </Box>
+              {/* Chips scroll with gradient fade */}
+              <Box
+                sx={{
+                  position: "relative",
+                  maxWidth: { xs: "100%", md: "lg" },
+                  mx: { md: "auto" },
+                }}
+              >
                 <Stack
                   direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
                   spacing={1}
+                  sx={{
+                    overflowX: "auto",
+                    pl: { xs: 0, md: 3 },
+                    pr: { xs: 0, md: 3 },
+                    pb: 1,
+                    "&::-webkit-scrollbar": {
+                      height: "6px",
+                    },
+                    "&::-webkit-scrollbar-track": {
+                      bgcolor: "transparent",
+                    },
+                    "&::-webkit-scrollbar-thumb": {
+                      bgcolor: "divider",
+                      borderRadius: 3,
+                    },
+                  }}
                 >
-                  <Typography variant="body2">Chờ phân công:</Typography>
                   <Chip
-                    label={stats.pendingAssignment || 0}
-                    size="small"
-                    color="warning"
+                    label={`📤 Tôi gửi${
+                      badgeCounts?.toiGui?.total
+                        ? ` (${badgeCounts.toiGui.total})`
+                        : ""
+                    }`}
+                    onClick={() =>
+                      handleNavigate("/quanlycongviec/yeucau/toi-gui")
+                    }
+                    color="primary"
+                    variant="outlined"
+                    clickable
+                    sx={{
+                      fontWeight: 500,
+                      "&:hover": {
+                        bgcolor: "primary.light",
+                        color: "primary.contrastText",
+                      },
+                    }}
                   />
-                </Stack>
-              </Grid>
-              <Grid item xs={6} sm={4}>
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  spacing={1}
-                >
-                  <Typography variant="body2">Đang điều phối:</Typography>
                   <Chip
-                    label={stats.coordinating || 0}
-                    size="small"
+                    label={`📥 Tôi xử lý${
+                      badgeCounts?.xuLy?.total
+                        ? ` (${badgeCounts.xuLy.total})`
+                        : ""
+                    }`}
+                    onClick={() =>
+                      handleNavigate(
+                        "/quanlycongviec/yeucau/xu-ly?tab=cho-tiep-nhan"
+                      )
+                    }
                     color="info"
+                    variant="outlined"
+                    clickable
+                    sx={{
+                      fontWeight: 500,
+                      "&:hover": {
+                        bgcolor: "info.light",
+                        color: "info.contrastText",
+                      },
+                    }}
                   />
+                  {roles.isNguoiDieuPhoi && (
+                    <Chip
+                      label={`📋 Điều phối${
+                        badgeCounts?.dieuPhoi?.total
+                          ? ` (${badgeCounts.dieuPhoi.total})`
+                          : ""
+                      }`}
+                      onClick={() =>
+                        handleNavigate("/quanlycongviec/yeucau/dieu-phoi")
+                      }
+                      color="warning"
+                      variant="outlined"
+                      clickable
+                      sx={{
+                        fontWeight: 500,
+                        "&:hover": {
+                          bgcolor: "warning.light",
+                          color: "warning.contrastText",
+                        },
+                      }}
+                    />
+                  )}
                 </Stack>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      )}
+                {/* Gradient fade overlay at right edge (mobile only) */}
+                <Box
+                  sx={{
+                    display: { xs: "block", md: "none" },
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    width: 40,
+                    height: "calc(100% - 6px)",
+                    background:
+                      "linear-gradient(to right, transparent, rgba(255,255,255,0.9))",
+                    pointerEvents: "none",
+                  }}
+                />
+              </Box>
+            </Box>
 
-      {/* Admin Section */}
-      {isAdmin && (
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              📋 Quản lý Khoa
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Grid container spacing={2}>
-              <Grid item xs={6} sm={4}>
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  spacing={1}
+            {/* Metrics Sections Container */}
+            <Box sx={{ maxWidth: "lg", mx: "auto" }}>
+              {/* Section 1: Yêu cầu tôi gửi */}
+              {toiGuiMetrics.length > 0 && (
+                <Box
+                  sx={{
+                    bgcolor: "background.paper",
+                    mb: 1,
+                    py: 2,
+                    borderTop: { xs: "1px solid", md: "none" },
+                    borderBottom: { xs: "1px solid", md: "none" },
+                    borderColor: "divider",
+                  }}
                 >
-                  <Typography variant="body2">Tổng yêu cầu:</Typography>
-                  <Chip label={stats.total || 0} size="small" />
-                </Stack>
-              </Grid>
-              <Grid item xs={6} sm={4}>
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
-                  spacing={1}
+                  <Box
+                    sx={{ px: { xs: 0, md: 3 }, maxWidth: "lg", mx: "auto" }}
+                  >
+                    <DashboardMetricSection
+                      title="📤 Yêu cầu tôi gửi"
+                      icon={<SendIcon />}
+                      metrics={toiGuiMetrics}
+                      onNavigate={() =>
+                        handleNavigate("/quanlycongviec/yeucau/toi-gui")
+                      }
+                      loading={badgeCountsLoading}
+                    />
+                  </Box>
+                </Box>
+              )}
+
+              {/* Section 2: Yêu cầu tôi xử lý */}
+              {xuLyMetrics.length > 0 && (
+                <Box
+                  sx={{
+                    bgcolor: "background.paper",
+                    mb: 1,
+                    py: 2,
+                    borderTop: { xs: "1px solid", md: "none" },
+                    borderBottom: { xs: "1px solid", md: "none" },
+                    borderColor: "divider",
+                  }}
                 >
-                  <Typography variant="body2">Chờ phê duyệt:</Typography>
-                  <Chip
-                    label={stats.pendingApproval || 0}
-                    size="small"
-                    color="warning"
-                  />
-                </Stack>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      )}
-    </Container>
+                  <Box
+                    sx={{ px: { xs: 0, md: 3 }, maxWidth: "lg", mx: "auto" }}
+                  >
+                    <DashboardMetricSection
+                      title="📥 Yêu cầu tôi xử lý"
+                      icon={<InboxIcon />}
+                      metrics={xuLyMetrics}
+                      onNavigate={() =>
+                        handleNavigate(
+                          "/quanlycongviec/yeucau/xu-ly?tab=cho-tiep-nhan"
+                        )
+                      }
+                      loading={badgeCountsLoading}
+                    />
+                  </Box>
+                </Box>
+              )}
+
+              {/* Section 3: Điều phối (conditional) */}
+              {roles.isNguoiDieuPhoi && dieuPhoiMetrics.length > 0 && (
+                <Box
+                  sx={{
+                    bgcolor: "background.paper",
+                    mb: 1,
+                    py: 2,
+                    borderTop: { xs: "1px solid", md: "none" },
+                    borderBottom: { xs: "1px solid", md: "none" },
+                    borderColor: "divider",
+                  }}
+                >
+                  <Box
+                    sx={{ px: { xs: 0, md: 3 }, maxWidth: "lg", mx: "auto" }}
+                  >
+                    <DashboardMetricSection
+                      title="📋 Điều phối"
+                      icon={<CoordinateIcon />}
+                      metrics={dieuPhoiMetrics}
+                      onNavigate={() =>
+                        handleNavigate("/quanlycongviec/yeucau/dieu-phoi")
+                      }
+                      loading={badgeCountsLoading}
+                    />
+                  </Box>
+                </Box>
+              )}
+            </Box>
+
+            {/* Status Distribution - Full width section */}
+            <Box
+              sx={{
+                bgcolor: "background.paper",
+                py: 2,
+                mb: 1,
+                borderTop: { xs: "1px solid", md: "none" },
+                borderBottom: { xs: "1px solid", md: "none" },
+                borderColor: "divider",
+              }}
+            >
+              <Box sx={{ px: { xs: 0, md: 3 }, maxWidth: "lg", mx: "auto" }}>
+                <StatusDistributionCard
+                  tuNgay={dateRange.tuNgay}
+                  denNgay={dateRange.denNgay}
+                  onBarClick={(status) => {
+                    // Navigate to list with status filter
+                    navigate(`/quanlycongviec/yeucau/xu-ly?status=${status}`);
+                  }}
+                />
+              </Box>
+            </Box>
+
+            {/* Recent Activities - Full width section */}
+            <Box
+              sx={{
+                bgcolor: "background.paper",
+                py: 2,
+                borderTop: { xs: "1px solid", md: "none" },
+                borderBottom: { xs: "1px solid", md: "none" },
+                borderColor: "divider",
+              }}
+            >
+              <Box sx={{ px: { xs: 0, md: 3 }, maxWidth: "lg", mx: "auto" }}>
+                <RecentActivitiesCard
+                  limit={5}
+                  tuNgay={dateRange.tuNgay}
+                  denNgay={dateRange.denNgay}
+                  onActivityClick={handleActivityClick}
+                  onViewAll={() =>
+                    navigate("/quanlycongviec/yeucau/xu-ly?tab=cho-tiep-nhan")
+                  }
+                />
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </PullToRefreshWrapper>
+
+      {/* ✅ NEW: Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="Tạo yêu cầu mới"
+        onClick={() => setOpenCreateDialog(true)}
+        sx={{
+          position: "fixed",
+          bottom: { xs: 80, sm: 24 }, // 80px on mobile to clear bottom nav
+          right: { xs: 16, sm: 24 },
+          zIndex: 1200, // Above bottom nav
+        }}
+      >
+        <AddIcon />
+      </Fab>
+
+      {/* ✅ Create YeuCau Dialog */}
+      <YeuCauFormDialog
+        open={openCreateDialog}
+        onClose={() => {
+          setOpenCreateDialog(false);
+          // Refresh dashboard data after creating
+          handleRefresh();
+        }}
+        yeuCau={null}
+        khoaOptions={khoaOptions}
+        defaultKhoaXuLyID=""
+      />
+    </>
   );
 }

@@ -18,6 +18,10 @@ import {
   CardContent,
   Grid,
   Chip,
+  Button,
+  Fab,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { WorkRoutes } from "utils/navigationHelper";
 import {
@@ -29,12 +33,15 @@ import {
   EmojiEvents as TrophyIcon,
   Timer as TimerIcon,
   Star as StarIcon,
+  FilterList as FilterListIcon,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import YeuCauList from "./components/YeuCauList";
 import { PullToRefreshWrapper } from "./components";
+import YeuCauStatusGrid from "./components/YeuCauStatusGrid";
+import YeuCauFilterDrawer from "./components/YeuCauFilterDrawer";
 import TiepNhanDialog from "./components/TiepNhanDialog";
 import TuChoiDialog from "./components/TuChoiDialog";
 import { Check as AcceptIcon, Close as RejectIcon } from "@mui/icons-material";
@@ -42,9 +49,13 @@ import {
   getYeuCauList,
   getBadgeCounts,
   selectBadgeCounts,
+  fetchDashboardXuLy,
+  selectDashboardXuLy,
+  selectDanhMucList,
+  getDanhMucByKhoa,
 } from "./yeuCauSlice";
 import { useYeuCauTabs } from "./hooks/useYeuCauTabs";
-import { TRANG_THAI } from "./yeuCau.constants";
+import { TRANG_THAI, TRANG_THAI_OPTIONS } from "./yeuCau.constants";
 
 // Icon mapping từ config
 const ICON_MAP = {
@@ -57,6 +68,8 @@ const ICON_MAP = {
 function YeuCauXuLyPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get("tab");
@@ -65,6 +78,9 @@ function YeuCauXuLyPage() {
   const [openTiepNhanDialog, setOpenTiepNhanDialog] = useState(false);
   const [openTuChoiDialog, setOpenTuChoiDialog] = useState(false);
   const [selectedYeuCau, setSelectedYeuCau] = useState(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [currentFilters, setCurrentFilters] = useState({});
+  const [khoaOptions, setKhoaOptions] = useState([]);
 
   // Sử dụng config từ Single Source of Truth
   const {
@@ -80,6 +96,27 @@ function YeuCauXuLyPage() {
 
   const { yeuCauList, isLoading } = useSelector((state) => state.yeuCau);
   const badgeCounts = useSelector(selectBadgeCounts("YEU_CAU_TOI_XU_LY"));
+  const kpiMetrics = useSelector(selectDashboardXuLy);
+  const danhMucList = useSelector(selectDanhMucList);
+
+  // Load khoa có danh mục
+  useEffect(() => {
+    const loadKhoa = async () => {
+      try {
+        const apiService = require("app/apiService").default;
+        const response = await apiService.get(
+          "/workmanagement/danh-muc-yeu-cau/khoa-co-danh-muc"
+        );
+        setKhoaOptions(response.data.data || []);
+        if (response.data.data?.length > 0) {
+          dispatch(getDanhMucByKhoa(response.data.data[0]._id));
+        }
+      } catch (error) {
+        console.error("Lỗi load khoa:", error);
+      }
+    };
+    loadKhoa();
+  }, [dispatch]);
 
   const isClosedTab =
     activeTab === "da-hoan-thanh" ||
@@ -87,12 +124,10 @@ function YeuCauXuLyPage() {
     (Array.isArray(activeTabInfo?.params?.trangThai) &&
       activeTabInfo.params.trangThai.includes(TRANG_THAI.DA_DONG));
 
-  // TODO: Load KPI metrics từ API
-  const kpiMetrics = {
-    tongXuLy: 0,
-    trungBinhSao: 0,
-    tyLeDungHan: 0,
-  };
+  // Load KPI metrics on mount
+  useEffect(() => {
+    dispatch(fetchDashboardXuLy());
+  }, [dispatch]);
 
   // Effect 1: Redirect nếu cần (chạy trước)
   useEffect(() => {
@@ -115,7 +150,9 @@ function YeuCauXuLyPage() {
   }, [dispatch, isLoaded, apiParams, needsRedirect]);
 
   const handleTabChange = (event, newValue) => {
-    setSearchParams({ tab: newValue });
+    // Support both Tabs (event, newValue) and StatusGrid (tabKey only)
+    const tabKey = typeof event === "string" ? event : newValue;
+    setSearchParams({ tab: tabKey });
     dispatch(getBadgeCounts("YEU_CAU_TOI_XU_LY"));
   };
 
@@ -157,7 +194,13 @@ function YeuCauXuLyPage() {
   };
 
   return (
-    <Box sx={{ py: 3, px: { xs: 2, sm: 3 } }}>
+    <Box
+      sx={{
+        py: 3,
+        px: { xs: 1, sm: 2, md: 3 },
+        pb: { xs: "calc(env(safe-area-inset-bottom) + 72px)", md: 3 },
+      }}
+    >
       {/* Breadcrumbs */}
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link
@@ -176,14 +219,29 @@ function YeuCauXuLyPage() {
       </Breadcrumbs>
 
       {/* Header */}
-      <Box mb={3}>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
-          {pageIcon} {pageTitle}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {activeTabInfo?.description}
-        </Typography>
-      </Box>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="flex-start"
+        mb={3}
+      >
+        <Box>
+          <Typography variant="h4" fontWeight="bold" gutterBottom>
+            {pageIcon} {pageTitle}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {activeTabInfo?.description}
+          </Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          startIcon={<FilterListIcon />}
+          onClick={() => setFilterOpen(true)}
+          sx={{ display: { xs: "none", sm: "inline-flex" } }}
+        >
+          Lọc
+        </Button>
+      </Stack>
 
       {/* KPI Metrics */}
       <Grid container spacing={2} mb={3}>
@@ -240,8 +298,16 @@ function YeuCauXuLyPage() {
         </Grid>
       </Grid>
 
-      {/* Tabs */}
-      <Paper sx={{ mb: 3 }}>
+      {/* Status Grid for Mobile */}
+      <YeuCauStatusGrid
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        badgeCounts={badgeCounts}
+      />
+
+      {/* Tabs for Desktop */}
+      <Paper sx={{ mb: 3, display: { xs: "none", md: "block" } }}>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
@@ -312,6 +378,44 @@ function YeuCauXuLyPage() {
         yeuCau={selectedYeuCau}
         onSubmit={handleTuChoiSubmit}
       />
+
+      {/* Filter Drawer */}
+      <YeuCauFilterDrawer
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        filters={currentFilters}
+        onApply={(newFilters) => {
+          setCurrentFilters(newFilters);
+          const mergedParams = { ...apiParams, ...newFilters, page: 1 };
+          dispatch(getYeuCauList(mergedParams));
+          setFilterOpen(false);
+        }}
+        onReset={() => {
+          setCurrentFilters({});
+          dispatch(getYeuCauList(apiParams));
+        }}
+        khoaOptions={khoaOptions}
+        danhMucOptions={danhMucList}
+        trangThaiOptions={TRANG_THAI_OPTIONS}
+      />
+
+      {/* FAB for mobile */}
+      {isMobile && (
+        <Fab
+          color="primary"
+          aria-label="Lọc yêu cầu"
+          onClick={() => setFilterOpen(true)}
+          sx={{
+            position: "fixed",
+            bottom: "calc(env(safe-area-inset-bottom) + 72px)",
+            right: 16,
+            zIndex: 1000,
+            boxShadow: 4,
+          }}
+        >
+          <FilterListIcon />
+        </Fab>
+      )}
     </Box>
   );
 }

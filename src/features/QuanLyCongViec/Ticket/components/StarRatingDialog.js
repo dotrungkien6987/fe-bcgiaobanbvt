@@ -6,10 +6,6 @@
  */
 import React, { useState } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   Typography,
   Box,
@@ -19,6 +15,7 @@ import {
   Alert,
 } from "@mui/material";
 import { Star as StarIcon } from "@mui/icons-material";
+import BottomSheetDialog from "components/BottomSheetDialog";
 
 const RATING_LABELS = {
   1: "Rất không hài lòng",
@@ -99,94 +96,97 @@ function StarRatingDialog({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
+    <BottomSheetDialog
+      open={open}
+      onClose={handleClose}
+      title={
         <Stack direction="row" alignItems="center" spacing={1}>
           <StarIcon color="warning" />
           <span>{title}</span>
         </Stack>
-      </DialogTitle>
-      <DialogContent>
-        <Stack spacing={3} sx={{ pt: 2 }}>
-          {/* Rating stars */}
-          <Box sx={{ textAlign: "center" }}>
-            <Typography variant="body1" gutterBottom>
-              Bạn đánh giá mức độ hài lòng với việc xử lý yêu cầu này?
-            </Typography>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                mt: 2,
+      }
+      actions={
+        <>
+          <Button onClick={handleClose} disabled={loading}>
+            Hủy
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={loading || !canSubmit}
+            color="warning"
+          >
+            {loading ? "Đang xử lý..." : "Xác nhận đánh giá"}
+          </Button>
+        </>
+      }
+    >
+      <Stack spacing={3} sx={{ pt: 2 }}>
+        {/* Rating stars */}
+        <Box sx={{ textAlign: "center" }}>
+          <Typography variant="body1" gutterBottom>
+            Bạn đánh giá mức độ hài lòng với việc xử lý yêu cầu này?
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              mt: 2,
+            }}
+          >
+            <Rating
+              name="star-rating"
+              value={rating}
+              size="large"
+              onChange={handleRatingChange}
+              onChangeActive={(event, newHover) => {
+                setHover(newHover);
               }}
-            >
-              <Rating
-                name="star-rating"
-                value={rating}
-                size="large"
-                onChange={handleRatingChange}
-                onChangeActive={(event, newHover) => {
-                  setHover(newHover);
-                }}
-                getLabelText={getLabelText}
-                sx={{
-                  fontSize: "3rem",
-                  "& .MuiRating-iconFilled": {
-                    color: "warning.main",
-                  },
-                }}
-              />
-            </Box>
-            {rating !== null && (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                {RATING_LABELS[hover !== -1 ? hover : rating]}
-              </Typography>
-            )}
+              getLabelText={getLabelText}
+              sx={{
+                fontSize: "3rem",
+                "& .MuiRating-iconFilled": {
+                  color: "warning.main",
+                },
+              }}
+            />
           </Box>
-
-          {/* Comment - required if low rating */}
-          <TextField
-            label={
-              isLowRating ? "Lý do đánh giá thấp *" : "Ghi chú (không bắt buộc)"
-            }
-            placeholder={
-              isLowRating
-                ? "Vui lòng cho biết lý do bạn không hài lòng (ít nhất 10 ký tự)..."
-                : "Nhập nhận xét của bạn về việc xử lý yêu cầu..."
-            }
-            multiline
-            rows={3}
-            value={ghiChu}
-            onChange={handleGhiChuChange}
-            fullWidth
-            error={!!error}
-            helperText={error}
-            color={isLowRating ? "warning" : "primary"}
-          />
-
-          {isLowRating && (
-            <Alert severity="warning" sx={{ mt: -1 }}>
-              Khi đánh giá dưới 3 sao, vui lòng nhập lý do để chúng tôi cải
-              thiện chất lượng dịch vụ.
-            </Alert>
+          {rating !== null && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {RATING_LABELS[hover !== -1 ? hover : rating]}
+            </Typography>
           )}
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
-          Hủy
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleSubmit}
-          disabled={loading || !canSubmit}
-          color="warning"
-        >
-          {loading ? "Đang xử lý..." : "Xác nhận đánh giá"}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        </Box>
+
+        {/* Comment - required if low rating */}
+        <TextField
+          label={
+            isLowRating ? "Lý do đánh giá thấp *" : "Ghi chú (không bắt buộc)"
+          }
+          placeholder={
+            isLowRating
+              ? "Vui lòng cho biết lý do bạn không hài lòng (ít nhất 10 ký tự)..."
+              : "Nhập nhận xét của bạn về việc xử lý yêu cầu..."
+          }
+          multiline
+          rows={3}
+          value={ghiChu}
+          onChange={handleGhiChuChange}
+          fullWidth
+          error={!!error}
+          helperText={error}
+          color={isLowRating ? "warning" : "primary"}
+        />
+
+        {isLowRating && (
+          <Alert severity="warning" sx={{ mt: -1 }}>
+            Khi đánh giá dưới 3 sao, vui lòng nhập lý do để chúng tôi cải thiện
+            chất lượng dịch vụ.
+          </Alert>
+        )}
+      </Stack>
+    </BottomSheetDialog>
   );
 }
 

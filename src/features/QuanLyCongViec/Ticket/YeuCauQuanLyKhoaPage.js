@@ -22,6 +22,11 @@ import {
   Button,
   ButtonGroup,
   Chip,
+  Fab,
+  SpeedDial,
+  SpeedDialAction,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   Home as HomeIcon,
@@ -31,20 +36,26 @@ import {
   Assessment,
   Download as DownloadIcon,
   Refresh as RefreshIcon,
+  FilterList as FilterListIcon,
+  MoreVert as MoreVertIcon,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import YeuCauList from "./components/YeuCauList";
 import { PullToRefreshWrapper } from "./components";
+import YeuCauStatusGrid from "./components/YeuCauStatusGrid";
+import YeuCauFilterDrawer from "./components/YeuCauFilterDrawer";
 import {
   getYeuCauList,
   getBadgeCounts,
   selectBadgeCounts,
+  selectDanhMucList,
+  getDanhMucByKhoa,
 } from "./yeuCauSlice";
 import { useYeuCauRoles } from "./hooks/useYeuCauRoles";
 import { useYeuCauTabs } from "./hooks/useYeuCauTabs";
-import { TRANG_THAI } from "./yeuCau.constants";
+import { TRANG_THAI, TRANG_THAI_OPTIONS } from "./yeuCau.constants";
 
 // Icon mapping từ config
 const ICON_MAP = {
@@ -57,10 +68,15 @@ const ICON_MAP = {
 function YeuCauQuanLyKhoaPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [searchParams, setSearchParams] = useSearchParams();
   const roles = useYeuCauRoles();
   const urlTab = searchParams.get("tab");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [currentFilters, setCurrentFilters] = useState({});
+  const [khoaOptions, setKhoaOptions] = useState([]);
 
   // Sử dụng config từ Single Source of Truth
   const {
@@ -76,6 +92,26 @@ function YeuCauQuanLyKhoaPage() {
 
   const { yeuCauList, isLoading } = useSelector((state) => state.yeuCau);
   const badgeCounts = useSelector(selectBadgeCounts("YEU_CAU_QUAN_LY_KHOA"));
+  const danhMucList = useSelector(selectDanhMucList);
+
+  // Load khoa có danh mục
+  useEffect(() => {
+    const loadKhoa = async () => {
+      try {
+        const apiService = require("app/apiService").default;
+        const response = await apiService.get(
+          "/workmanagement/danh-muc-yeu-cau/khoa-co-danh-muc"
+        );
+        setKhoaOptions(response.data.data || []);
+        if (response.data.data?.length > 0) {
+          dispatch(getDanhMucByKhoa(response.data.data[0]._id));
+        }
+      } catch (error) {
+        console.error("Lỗi load khoa:", error);
+      }
+    };
+    loadKhoa();
+  }, [dispatch]);
 
   const isClosedTab =
     activeTab === "da-dong" ||
@@ -127,7 +163,9 @@ function YeuCauQuanLyKhoaPage() {
   ]);
 
   const handleTabChange = (event, newValue) => {
-    setSearchParams({ tab: newValue });
+    // Support both Tabs (event, newValue) and StatusGrid (tabKey only)
+    const tabKey = typeof event === "string" ? event : newValue;
+    setSearchParams({ tab: tabKey });
     dispatch(getBadgeCounts("YEU_CAU_QUAN_LY_KHOA"));
   };
 
@@ -170,7 +208,13 @@ function YeuCauQuanLyKhoaPage() {
   }
 
   return (
-    <Box sx={{ py: 3, px: { xs: 2, sm: 3 } }}>
+    <Box
+      sx={{
+        py: 3,
+        px: { xs: 1, sm: 2, md: 3 },
+        pb: { xs: "calc(env(safe-area-inset-bottom) + 72px)", md: 3 },
+      }}
+    >
       {/* Breadcrumbs */}
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link
@@ -204,12 +248,32 @@ function YeuCauQuanLyKhoaPage() {
             {activeTabInfo?.description}
           </Typography>
         </Box>
-        <ButtonGroup variant="outlined">
-          <Button startIcon={<RefreshIcon />}>Làm mới</Button>
-          <Button startIcon={<DownloadIcon />} onClick={handleExportReport}>
-            Xuất báo cáo
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="outlined"
+            startIcon={<FilterListIcon />}
+            onClick={() => setFilterOpen(true)}
+            sx={{ display: { xs: "none", sm: "inline-flex" } }}
+          >
+            Lọc
           </Button>
-        </ButtonGroup>
+          <ButtonGroup
+            variant="outlined"
+            size="small"
+            sx={{ display: { xs: "none", sm: "inline-flex" } }}
+          >
+            <Button
+              startIcon={<RefreshIcon />}
+              onClick={handleRefresh}
+              disabled={isLoading}
+            >
+              Làm mới
+            </Button>
+            <Button startIcon={<DownloadIcon />} onClick={handleExportReport}>
+              Xuất báo cáo
+            </Button>
+          </ButtonGroup>
+        </Stack>
       </Stack>
 
       {/* Summary Stats */}
@@ -276,8 +340,16 @@ function YeuCauQuanLyKhoaPage() {
         </Grid>
       </Grid>
 
-      {/* Tabs */}
-      <Paper sx={{ mb: 3 }}>
+      {/* Status Grid for Mobile */}
+      <YeuCauStatusGrid
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        badgeCounts={badgeCounts}
+      />
+
+      {/* Tabs for Desktop */}
+      <Paper sx={{ mb: 3, display: { xs: "none", md: "block" } }}>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
@@ -332,6 +404,60 @@ function YeuCauQuanLyKhoaPage() {
             showRatingColumn={isClosedTab}
           />
         </PullToRefreshWrapper>
+      )}
+
+      {/* Filter Drawer */}
+      <YeuCauFilterDrawer
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        filters={currentFilters}
+        onApply={(newFilters) => {
+          setCurrentFilters(newFilters);
+          const mergedParams = { ...apiParams, ...newFilters, page: 1 };
+          dispatch(getYeuCauList(mergedParams));
+          setFilterOpen(false);
+        }}
+        onReset={() => {
+          setCurrentFilters({});
+          dispatch(getYeuCauList(apiParams));
+        }}
+        khoaOptions={khoaOptions}
+        danhMucOptions={danhMucList}
+        trangThaiOptions={TRANG_THAI_OPTIONS}
+      />
+
+      {/* SpeedDial FAB for mobile */}
+      {isMobile && (
+        <SpeedDial
+          ariaLabel="Hành động"
+          sx={{
+            position: "fixed",
+            bottom: "calc(env(safe-area-inset-bottom) + 72px)",
+            right: 16,
+            "& .MuiSpeedDial-fab": {
+              bgcolor: "primary.main",
+              color: "white",
+              boxShadow: 4,
+            },
+          }}
+          icon={<MoreVertIcon />}
+        >
+          <SpeedDialAction
+            icon={<FilterListIcon />}
+            tooltipTitle="Lọc"
+            onClick={() => setFilterOpen(true)}
+          />
+          <SpeedDialAction
+            icon={<RefreshIcon />}
+            tooltipTitle="Làm mới"
+            onClick={handleRefresh}
+          />
+          <SpeedDialAction
+            icon={<DownloadIcon />}
+            tooltipTitle="Xuất báo cáo"
+            onClick={handleExportReport}
+          />
+        </SpeedDial>
       )}
     </Box>
   );

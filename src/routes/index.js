@@ -28,6 +28,7 @@ import SupperAdminPage from "../pages/SupperAdminPage";
 
 import Test from "pages/Test";
 import TestMenuGridPage from "pages/TestMenuGridPage";
+import ComponentPreviewPage from "pages/ComponentPreviewPage";
 import QuanLyHocVienPage from "pages/QuanLyHocVienPage";
 import MainLayoutAble from "layout/MainLayout";
 
@@ -82,6 +83,9 @@ import MyTasksPage from "features/QuanLyCongViec/CongViec/MyTasksPage";
 import AssignedTasksPage from "features/QuanLyCongViec/CongViec/AssignedTasksPage";
 import CompletedTasksArchivePage from "features/QuanLyCongViec/CongViec/CompletedTasksArchivePage";
 import CongViecDetailPage from "features/QuanLyCongViec/CongViec/CongViecDetailPage";
+import CongViecDetailPageNew from "features/QuanLyCongViec/CongViec/CongViecDetailPageNew";
+import CongViecDetailMobile from "features/QuanLyCongViec/CongViec/CongViecDetailMobile";
+import CongViecDetailResponsive from "../features/QuanLyCongViec/CongViec/CongViecDetailResponsive";
 import TaskMindMapTreeEnhancedPage from "../pages/TaskMindMapTreeEnhancedPage";
 import TaskMindMapHierarchicalPage from "../pages/TaskMindMapHierarchicalPage";
 import CongViecHierarchyTreeDynamicPage from "../pages/CongViecHierarchyTreeDynamicPage";
@@ -324,6 +328,13 @@ function Router() {
                 element={<CongViecByNhanVienPage />}
               />
               <Route path=":id" element={<CongViecDetailPage />} />
+              {/* 🧪 TEST ROUTES - New Implementations */}
+              <Route path="new/:id" element={<CongViecDetailPageNew />} />
+              <Route path="mobile/:id" element={<CongViecDetailMobile />} />
+              <Route
+                path="responsive/:id"
+                element={<CongViecDetailResponsive />}
+              />
               <Route
                 path="mind-map"
                 element={<TaskMindMapHierarchicalPage />}
@@ -469,6 +480,10 @@ function Router() {
           />
           {/* Test Routes - Development Only */}
           <Route path="/test-menu-grid" element={<TestMenuGridPage />} />
+          <Route
+            path="/components-preview"
+            element={<ComponentPreviewPage />}
+          />
           {/* <Route path="*" element={<NotFoundPage />} /> */}
         </Route>
       </Routes>

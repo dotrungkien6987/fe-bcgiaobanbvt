@@ -1,8 +1,17 @@
 # Phase 5: Performance Optimization
 
-**Thời gian:** 10 giờ  
+**Thời gian:** 4 giờ (revised from 10h - saved 6h)  
 **Ưu tiên:** 🟡 MEDIUM  
 **Trạng thái:** ⏸️ Blocked by Phase 0-4
+
+**⚠️ Revision Notes (15/01/2026):**
+
+- Task 5B (Service Worker): **ALREADY COMPLETE** ✅ - Skip entirely (6h → 0h)
+- **Existing Implementation:**
+  - `public/service-worker.js` - Full cache strategy implementation
+  - `src/serviceWorker.js` - Registration helper
+  - Features: Cache-first for static assets, Network-first for API, Offline fallback
+- **Only Remaining:** Task 5A (Code Splitting) - 4h
 
 ---
 
@@ -32,15 +41,16 @@ Bundle Size: 850KB   →   < 500KB (initial)
 - ✅ Component lazy loading
 - ✅ Suspense fallbacks
 
-### 5B. Service Worker + Offline Strategy (6h) - OPTIONAL
+### 5B. Service Worker + Offline Strategy (0h) - ✅ ALREADY COMPLETE
 
-- ✅ Service Worker setup
-- ✅ Cache static assets
-- ✅ Offline fallback page
+- ✅ Service Worker setup - **DONE** (`public/service-worker.js`)
+- ✅ Cache static assets - **DONE** (Cache-first strategy)
+- ✅ Offline fallback page - **DONE** (`offline.html`)
+- ✅ Registration helper - **DONE** (`src/serviceWorker.js`)
 
 ---
 
-## 📋 Task Breakdown (10h)
+## 📋 Task Breakdown (4h - revised from 10h)
 
 ## PHASE 5A: Code Splitting + Lazy Loading (4h)
 

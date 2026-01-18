@@ -1,9 +1,5 @@
 import React from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Grid,
   Box,
   Typography,
@@ -16,6 +12,7 @@ import {
 import RestoreIcon from "@mui/icons-material/Restore";
 import { useDispatch, useSelector } from "react-redux";
 import { updateColorConfig } from "../colorConfigSlice";
+import BottomSheetDialog from "components/BottomSheetDialog";
 import {
   STATUS_COLOR_MAP as DEFAULT_STATUS_COLOR_MAP,
   PRIORITY_COLOR_MAP as DEFAULT_PRIORITY_COLOR_MAP,
@@ -106,9 +103,21 @@ const AdminColorSettingsDialog = ({ open, onClose, isAdmin }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Thiết lập màu trạng thái và ưu tiên</DialogTitle>
-      <DialogContent dividers>
+    <BottomSheetDialog
+      open={open}
+      onClose={onClose}
+      title="Thiết lập màu trạng thái và ưu tiên"
+      maxWidth="md"
+      actions={
+        <>
+          <Button onClick={onClose}>Đóng</Button>
+          <Button onClick={handleSave} disabled={!isAdmin} variant="contained">
+            Lưu
+          </Button>
+        </>
+      }
+    >
+      <Box>
         {!isAdmin && (
           <Typography variant="body2" color="warning.main" sx={{ mb: 2 }}>
             Bạn không có quyền thay đổi. Vui lòng liên hệ Admin.
@@ -190,14 +199,8 @@ const AdminColorSettingsDialog = ({ open, onClose, isAdmin }) => {
             ))}
           </Grid>
         </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Đóng</Button>
-        <Button onClick={handleSave} disabled={!isAdmin} variant="contained">
-          Lưu
-        </Button>
-      </DialogActions>
-    </Dialog>
+      </Box>
+    </BottomSheetDialog>
   );
 };
 

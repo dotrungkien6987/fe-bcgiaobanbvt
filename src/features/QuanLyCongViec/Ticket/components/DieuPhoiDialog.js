@@ -23,7 +23,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { FormProvider, FAutocomplete, FTextField } from "components/form";
-import BottomSheetDialog from "./BottomSheetDialog";
+import BottomSheetDialog from "components/BottomSheetDialog";
 
 // Validation
 const dieuPhoiSchema = Yup.object().shape({

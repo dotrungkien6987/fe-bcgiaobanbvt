@@ -26,7 +26,6 @@ export { default as TiepNhanDialog } from "./TiepNhanDialog";
 export { default as MoLaiDialog } from "./MoLaiDialog";
 export { default as AppealDialog } from "./AppealDialog";
 export { default as GuiVeKhoaDialog } from "./GuiVeKhoaDialog";
-export { default as BottomSheetDialog } from "./BottomSheetDialog";
 
 // Mobile UX components
 export { default as SwipeableYeuCauCard } from "./SwipeableYeuCauCard";

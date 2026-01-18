@@ -25,7 +25,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import dayjs from "dayjs";
 import { FormProvider } from "components/form";
-import BottomSheetDialog from "./BottomSheetDialog";
+import BottomSheetDialog from "components/BottomSheetDialog";
 
 // Validation schema
 const tiepNhanSchema = Yup.object().shape({

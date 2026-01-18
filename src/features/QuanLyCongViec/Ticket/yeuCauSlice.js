@@ -55,6 +55,26 @@ const initialState = {
   dashboardMetrics: null,
   dashboardLoading: false,
 
+  // Dashboard xử lý (handler metrics)
+  dashboardXuLy: {
+    tongXuLy: 0,
+    trungBinhSao: 0,
+    tyLeDungHan: 0,
+    tongDangXuLy: 0,
+    tongQuaHan: 0,
+  },
+  dashboardXuLyLoading: false,
+
+  // Dashboard điều phối (coordinator metrics)
+  dashboardDieuPhoi: {
+    moiHomNay: 0,
+    dangChoXuLy: 0,
+    quaHan: 0,
+    dangXuLy: 0,
+    hoanThanhHomNay: 0,
+  },
+  dashboardDieuPhoiLoading: false,
+
   // Bình luận
   binhLuanList: [],
   binhLuanLoading: false,
@@ -103,6 +123,23 @@ const initialState = {
   yeuCauCounts: {}, // { "chukyID_nhanvienID": { "nvtqID1": 12, "nvtqID2": 8, ... } }
   yeuCauDashboard: {}, // { "nvtqID_chukyID": { data, isLoading, error, timestamp } }
   otherYeuCauSummary: {}, // { "nhanvienID_chukyID": { data, isLoading, error, timestamp } }
+
+  // NEW: Dashboard Native Mobile
+  recentActivities: [],
+  recentActivitiesLoading: false,
+  recentActivitiesError: null,
+
+  statusDistribution: {
+    gui: null, // { total, distribution, loai }
+    "xu-ly": null,
+    khoa: null,
+  },
+  statusDistributionLoading: false,
+  statusDistributionError: null,
+
+  badgeCountsNangCao: null, // { toiGui, xuLy, dieuPhoi, quanLyKhoa }
+  badgeCountsNangCaoLoading: false,
+  badgeCountsNangCaoError: null,
 };
 
 // ============== SLICE ==============
@@ -250,6 +287,30 @@ const slice = createSlice({
       state.dashboardMetrics = action.payload;
     },
 
+    // Dashboard xử lý
+    startDashboardXuLyLoading: (state) => {
+      state.dashboardXuLyLoading = true;
+    },
+    getDashboardXuLySuccess: (state, action) => {
+      state.dashboardXuLyLoading = false;
+      state.dashboardXuLy = action.payload;
+    },
+    getDashboardXuLyError: (state) => {
+      state.dashboardXuLyLoading = false;
+    },
+
+    // Dashboard điều phối
+    startDashboardDieuPhoiLoading: (state) => {
+      state.dashboardDieuPhoiLoading = true;
+    },
+    getDashboardDieuPhoiSuccess: (state, action) => {
+      state.dashboardDieuPhoiLoading = false;
+      state.dashboardDieuPhoi = action.payload;
+    },
+    getDashboardDieuPhoiError: (state) => {
+      state.dashboardDieuPhoiLoading = false;
+    },
+
     // Master data
     startDanhMucLoading: (state) => {
       state.danhMucLoading = true;
@@ -369,6 +430,49 @@ const slice = createSlice({
         isLoading: false,
         error,
       };
+    },
+
+    // NEW: Dashboard Native Mobile - Recent Activities
+    fetchRecentActivitiesPending: (state) => {
+      state.recentActivitiesLoading = true;
+      state.recentActivitiesError = null;
+    },
+    fetchRecentActivitiesSuccess: (state, action) => {
+      state.recentActivitiesLoading = false;
+      state.recentActivities = action.payload;
+    },
+    fetchRecentActivitiesRejected: (state, action) => {
+      state.recentActivitiesLoading = false;
+      state.recentActivitiesError = action.payload;
+    },
+
+    // NEW: Dashboard Native Mobile - Status Distribution
+    fetchStatusDistributionPending: (state, action) => {
+      state.statusDistributionLoading = true;
+      state.statusDistributionError = null;
+    },
+    fetchStatusDistributionSuccess: (state, action) => {
+      const { loai, data } = action.payload;
+      state.statusDistributionLoading = false;
+      state.statusDistribution[loai] = data;
+    },
+    fetchStatusDistributionRejected: (state, action) => {
+      state.statusDistributionLoading = false;
+      state.statusDistributionError = action.payload;
+    },
+
+    // NEW: Dashboard Native Mobile - Badge Counts Nâng Cao
+    fetchBadgeCountsNangCaoPending: (state) => {
+      state.badgeCountsNangCaoLoading = true;
+      state.badgeCountsNangCaoError = null;
+    },
+    fetchBadgeCountsNangCaoSuccess: (state, action) => {
+      state.badgeCountsNangCaoLoading = false;
+      state.badgeCountsNangCao = action.payload;
+    },
+    fetchBadgeCountsNangCaoRejected: (state, action) => {
+      state.badgeCountsNangCaoLoading = false;
+      state.badgeCountsNangCaoError = action.payload;
     },
   },
 });
@@ -934,6 +1038,34 @@ export const getDashboardMetrics =
     }
   };
 
+/**
+ * Lấy dashboard xử lý (handler metrics)
+ */
+export const fetchDashboardXuLy = () => async (dispatch) => {
+  dispatch(slice.actions.startDashboardXuLyLoading());
+  try {
+    const response = await apiService.get(`${BASE_URL}/dashboard/xu-ly`);
+    dispatch(slice.actions.getDashboardXuLySuccess(response.data.data));
+  } catch (error) {
+    dispatch(slice.actions.getDashboardXuLyError());
+    console.error("Failed to fetch dashboard xu ly:", error.message);
+  }
+};
+
+/**
+ * Lấy dashboard điều phối (coordinator metrics)
+ */
+export const fetchDashboardDieuPhoi = () => async (dispatch) => {
+  dispatch(slice.actions.startDashboardDieuPhoiLoading());
+  try {
+    const response = await apiService.get(`${BASE_URL}/dashboard/dieu-phoi`);
+    dispatch(slice.actions.getDashboardDieuPhoiSuccess(response.data.data));
+  } catch (error) {
+    dispatch(slice.actions.getDashboardDieuPhoiError());
+    console.error("Failed to fetch dashboard dieu phoi:", error.message);
+  }
+};
+
 // ============== MASTER DATA THUNKS ==============
 
 /**
@@ -1114,6 +1246,92 @@ export const fetchOtherYeuCauSummary = (params) => async (dispatch) => {
   }
 };
 
+// ============== DASHBOARD NATIVE MOBILE THUNKS ==============
+
+/**
+ * Fetch recent activities (hoạt động gần đây)
+ * @param {Object} options - { limit, tuNgay, denNgay }
+ */
+export const fetchRecentActivities =
+  (options = {}) =>
+  async (dispatch) => {
+    dispatch(slice.actions.fetchRecentActivitiesPending());
+    try {
+      const { limit = 20, tuNgay, denNgay } = options;
+      const params = { limit };
+      if (tuNgay) params.tuNgay = tuNgay;
+      if (denNgay) params.denNgay = denNgay;
+
+      const response = await apiService.get(`${BASE_URL}/hoat-dong-gan-day`, {
+        params,
+      });
+
+      dispatch(slice.actions.fetchRecentActivitiesSuccess(response.data.data));
+    } catch (error) {
+      dispatch(slice.actions.fetchRecentActivitiesRejected(error.message));
+      toast.error(`Lỗi tải hoạt động: ${error.message}`);
+    }
+  };
+
+/**
+ * Fetch status distribution (phân bố trạng thái)
+ * @param {Object} options - { loai, tuNgay, denNgay }
+ */
+export const fetchStatusDistribution =
+  (options = {}) =>
+  async (dispatch) => {
+    dispatch(slice.actions.fetchStatusDistributionPending());
+    try {
+      const { loai = "xu-ly", tuNgay, denNgay } = options;
+      const params = { loai };
+      if (tuNgay) params.tuNgay = tuNgay;
+      if (denNgay) params.denNgay = denNgay;
+
+      const response = await apiService.get(`${BASE_URL}/phan-bo-trang-thai`, {
+        params,
+      });
+
+      dispatch(
+        slice.actions.fetchStatusDistributionSuccess({
+          loai,
+          data: response.data.data,
+        })
+      );
+    } catch (error) {
+      dispatch(slice.actions.fetchStatusDistributionRejected(error.message));
+      toast.error(`Lỗi tải phân bố trạng thái: ${error.message}`);
+    }
+  };
+
+/**
+ * Fetch badge counts nâng cao (with date filtering)
+ * @param {Object} options - { tuNgay, denNgay }
+ */
+export const fetchBadgeCountsNangCao =
+  (options = {}) =>
+  async (dispatch) => {
+    dispatch(slice.actions.fetchBadgeCountsNangCaoPending());
+    try {
+      const { tuNgay, denNgay } = options;
+      const params = {};
+      if (tuNgay) params.tuNgay = tuNgay;
+      if (denNgay) params.denNgay = denNgay;
+
+      const response = await apiService.get(
+        `${BASE_URL}/badge-counts-nang-cao`,
+        { params }
+      );
+
+      dispatch(
+        slice.actions.fetchBadgeCountsNangCaoSuccess(response.data.data)
+      );
+    } catch (error) {
+      dispatch(slice.actions.fetchBadgeCountsNangCaoRejected(error.message));
+      // Don't toast - badge counts are not critical
+      console.error("Failed to load badge counts nâng cao:", error.message);
+    }
+  };
+
 // ============== SELECTORS ==============
 
 export const selectYeuCauState = (state) => state.yeuCau;
@@ -1123,6 +1341,13 @@ export const selectAvailableActions = (state) => state.yeuCau.availableActions;
 export const selectFilters = (state) => state.yeuCau.filters;
 export const selectActiveTab = (state) => state.yeuCau.activeTab;
 export const selectDashboardMetrics = (state) => state.yeuCau.dashboardMetrics;
+export const selectDashboardXuLy = (state) => state.yeuCau.dashboardXuLy;
+export const selectDashboardXuLyLoading = (state) =>
+  state.yeuCau.dashboardXuLyLoading;
+export const selectDashboardDieuPhoi = (state) =>
+  state.yeuCau.dashboardDieuPhoi;
+export const selectDashboardDieuPhoiLoading = (state) =>
+  state.yeuCau.dashboardDieuPhoiLoading;
 export const selectDanhMucList = (state) => state.yeuCau.danhMucList;
 export const selectLyDoTuChoiList = (state) => state.yeuCau.lyDoTuChoiList;
 export const selectLichSuList = (state) => state.yeuCau.lichSuList;
@@ -1130,5 +1355,20 @@ export const selectLichSuLoading = (state) => state.yeuCau.lichSuLoading;
 export const selectCauHinhKhoa = (state) => state.yeuCau.cauHinhKhoa;
 export const selectBadgeCounts = (pageKey) => (state) =>
   state.yeuCau.badgeCounts[pageKey] || {};
+
+// NEW: Dashboard Native Mobile selectors
+export const selectRecentActivities = (state) => state.yeuCau.recentActivities;
+export const selectRecentActivitiesLoading = (state) =>
+  state.yeuCau.recentActivitiesLoading;
+
+export const selectStatusDistribution = (loai) => (state) =>
+  state.yeuCau.statusDistribution[loai];
+export const selectStatusDistributionLoading = (state) =>
+  state.yeuCau.statusDistributionLoading;
+
+export const selectBadgeCountsNangCao = (state) =>
+  state.yeuCau.badgeCountsNangCao;
+export const selectBadgeCountsNangCaoLoading = (state) =>
+  state.yeuCau.badgeCountsNangCaoLoading;
 
 export default slice.reducer;

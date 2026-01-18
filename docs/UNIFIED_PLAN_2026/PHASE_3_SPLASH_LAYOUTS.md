@@ -1,8 +1,18 @@
 # Phase 3: Splash Screen + Mobile Layouts
 
-**Thời gian:** 33 giờ  
+**Thời gian:** 28.5 giờ (revised from 33h - saved 4.5h)  
 **Ưu tiên:** 🟡 MEDIUM  
-**Trạng thái:** ⏸️ Blocked by Phase 0, Phase 1
+**Trạng thái:** ⏸️ Blocked by Phase 0 ✅, Phase 1 ✅, Phase 2 ✅
+
+**⚠️ Revision Notes (15/01/2026):**
+
+- Reduced Task 3A.2 (App Integration): 1h → 0.5h (simplified preload logic)
+- Reduced Task 3A.3 (SkeletonLoader): 2h → 1h (reuse patterns from YeuCauDashboard)
+- Reduced Task 3B (MobileDetailLayout): 28h → 24h (reuse PullToRefreshWrapper from existing implementation)
+- **Existing Assets to Reuse:**
+  - `src/features/QuanLyCongViec/Ticket/components/PullToRefreshWrapper.jsx` (move to shared)
+  - Skeleton patterns from `src/features/QuanLyCongViec/Dashboard/YeuCauDashboard/` components
+  - `src/hooks/useMobileLayout.js` already exists from Phase 1
 
 ---
 
@@ -43,11 +53,11 @@ App Launch Flow:           Mobile Detail Layouts:
 
 ---
 
-## 📋 Task Breakdown (33h)
+## 📋 Task Breakdown (28.5h)
 
-## PHASE 3A: Splash Screen + Skeleton (5h)
+## PHASE 3A: Splash Screen + Skeleton (3.5h - revised from 5h)
 
-### Task 3A.1: Create SplashScreen Component (2h)
+### Task 3A.1: Create SplashScreen Component (2h) - NO CHANGE
 
 **File:** `src/components/SplashScreen.js`
 
@@ -143,7 +153,9 @@ export default SplashScreen;
 
 ---
 
-### Task 3A.2: Integrate SplashScreen in App (1h)
+### Task 3A.2: Integrate SplashScreen in App (0.5h - revised from 1h)
+
+**Simplification:** Remove preload logic (not critical for initial MVP)
 
 **File:** `src/App.js`
 
@@ -209,7 +221,9 @@ if (featureFlags.enableSplashScreen && (showSplash || !isAppReady)) {
 
 ---
 
-### Task 3A.3: Create SkeletonLoader Components (2h)
+### Task 3A.3: Create SkeletonLoader Components (1h - revised from 2h)
+
+**⚠️ Reuse Existing Patterns:** Extract from `src/features/QuanLyCongViec/Dashboard/YeuCauDashboard/` components
 
 **File:** `src/components/SkeletonLoader/CardSkeleton.js`
 

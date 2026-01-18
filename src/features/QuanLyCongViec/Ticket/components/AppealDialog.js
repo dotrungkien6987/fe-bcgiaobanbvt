@@ -6,17 +6,7 @@
  * - Bắt buộc nhập LyDoAppeal
  */
 import React, { useEffect } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  Stack,
-  Alert,
-  Box,
-} from "@mui/material";
+import { Button, Typography, Stack, Alert, Box } from "@mui/material";
 import {
   Report as ReportIcon,
   Cancel as CancelIcon,
@@ -25,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import { FormProvider, FTextField } from "components/form";
+import BottomSheetDialog from "components/BottomSheetDialog";
 
 // Validation schema
 const appealSchema = Yup.object().shape({
@@ -84,81 +75,17 @@ function AppealDialog({
   const ghiChuTuChoi = yeuCau?.GhiChuTuChoi;
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <FormProvider methods={methods} onSubmit={handleSubmit(handleFormSubmit)}>
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <ReportIcon color="warning" />
-            <span>Khiếu nại từ chối</span>
-          </Stack>
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={3} sx={{ pt: 2 }}>
-            {/* Thông tin yêu cầu */}
-            {yeuCau && (
-              <Alert severity="info" icon={false}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Yêu cầu: {yeuCau.MaYeuCau}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {yeuCau.TieuDe}
-                </Typography>
-              </Alert>
-            )}
-
-            {/* Lý do từ chối cũ */}
-            <Box
-              sx={{
-                p: 2,
-                bgcolor: "error.lighter",
-                borderRadius: 1,
-                border: 1,
-                borderColor: "error.light",
-              }}
-            >
-              <Stack direction="row" spacing={1} alignItems="flex-start">
-                <CancelIcon color="error" fontSize="small" sx={{ mt: 0.25 }} />
-                <Stack spacing={0.5}>
-                  <Typography variant="subtitle2" color="error.dark">
-                    Lý do từ chối:
-                  </Typography>
-                  <Typography variant="body2">{lyDoTuChoi}</Typography>
-                  {ghiChuTuChoi && (
-                    <>
-                      <Typography
-                        variant="subtitle2"
-                        color="error.dark"
-                        sx={{ mt: 1 }}
-                      >
-                        Ghi chú:
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {ghiChuTuChoi}
-                      </Typography>
-                    </>
-                  )}
-                </Stack>
-              </Stack>
-            </Box>
-
-            {/* Form nhập lý do khiếu nại */}
-            <FTextField
-              name="LyDoAppeal"
-              label="Lý do khiếu nại *"
-              placeholder="Vui lòng giải thích tại sao bạn cho rằng yêu cầu không nên bị từ chối..."
-              multiline
-              rows={4}
-            />
-
-            {/* Thông tin */}
-            <Alert severity="info">
-              Sau khi gửi khiếu nại, yêu cầu sẽ quay về trạng thái{" "}
-              <strong>Mới</strong> để được xem xét lại. Người điều phối sẽ nhận
-              được thông báo về khiếu nại của bạn.
-            </Alert>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
+    <BottomSheetDialog
+      open={open}
+      onClose={handleClose}
+      title={
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <ReportIcon color="warning" />
+          <span>Khiếu nại từ chối</span>
+        </Stack>
+      }
+      actions={
+        <>
           <Button onClick={handleClose} disabled={loading}>
             Hủy
           </Button>
@@ -170,9 +97,76 @@ function AppealDialog({
           >
             {loading ? "Đang xử lý..." : "Gửi khiếu nại"}
           </Button>
-        </DialogActions>
+        </>
+      }
+    >
+      <FormProvider methods={methods} onSubmit={handleSubmit(handleFormSubmit)}>
+        <Stack spacing={3} sx={{ pt: 2 }}>
+          {/* Thông tin yêu cầu */}
+          {yeuCau && (
+            <Alert severity="info" icon={false}>
+              <Typography variant="subtitle2" gutterBottom>
+                Yêu cầu: {yeuCau.MaYeuCau}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {yeuCau.TieuDe}
+              </Typography>
+            </Alert>
+          )}
+
+          {/* Lý do từ chối cũ */}
+          <Box
+            sx={{
+              p: 2,
+              bgcolor: "error.lighter",
+              borderRadius: 1,
+              border: 1,
+              borderColor: "error.light",
+            }}
+          >
+            <Stack direction="row" spacing={1} alignItems="flex-start">
+              <CancelIcon color="error" fontSize="small" sx={{ mt: 0.25 }} />
+              <Stack spacing={0.5}>
+                <Typography variant="subtitle2" color="error.dark">
+                  Lý do từ chối:
+                </Typography>
+                <Typography variant="body2">{lyDoTuChoi}</Typography>
+                {ghiChuTuChoi && (
+                  <>
+                    <Typography
+                      variant="subtitle2"
+                      color="error.dark"
+                      sx={{ mt: 1 }}
+                    >
+                      Ghi chú:
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {ghiChuTuChoi}
+                    </Typography>
+                  </>
+                )}
+              </Stack>
+            </Stack>
+          </Box>
+
+          {/* Form nhập lý do khiếu nại */}
+          <FTextField
+            name="LyDoAppeal"
+            label="Lý do khiếu nại *"
+            placeholder="Vui lòng giải thích tại sao bạn cho rằng yêu cầu không nên bị từ chối..."
+            multiline
+            rows={4}
+          />
+
+          {/* Thông tin */}
+          <Alert severity="info">
+            Sau khi gửi khiếu nại, yêu cầu sẽ quay về trạng thái{" "}
+            <strong>Mới</strong> để được xem xét lại. Người điều phối sẽ nhận
+            được thông báo về khiếu nại của bạn.
+          </Alert>
+        </Stack>
       </FormProvider>
-    </Dialog>
+    </BottomSheetDialog>
   );
 }
 

@@ -57,6 +57,8 @@ import {
 } from "./cycleAssignmentSlice";
 import apiService from "../../../app/apiService";
 import MainCard from "components/MainCard";
+import MobileDetailLayout from "components/MobileDetailLayout";
+import useMobileLayout from "hooks/useMobileLayout";
 
 /**
  * CycleAssignmentDetailPage - Two-column layout for cycle-based task assignment
@@ -68,6 +70,7 @@ const CycleAssignmentDetailPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
+  const { isMobile } = useMobileLayout();
   const { NhanVienID } = useParams();
   const employeeId = NhanVienID; // Alias for consistency with backend calls
 
@@ -224,6 +227,12 @@ const CycleAssignmentDetailPage = () => {
     };
     setWorkingTasks([...workingTasks, newTask]);
     dispatch(addTaskLocally({ duty, mucDoKho: duty.MucDoKhoDefault || 5.0 }));
+  };
+
+  const handleRefresh = async () => {
+    if (employeeId && selectedChuKyId) {
+      await dispatch(getAssignmentsByCycle(employeeId, selectedChuKyId));
+    }
   };
 
   const handleRemoveTask = async (dutyId) => {
@@ -395,6 +404,13 @@ const CycleAssignmentDetailPage = () => {
   const isEditingBlocked =
     kpiStatus === "DA_DUYET" || selectedChuKy?.isDong === true;
 
+  // Helper: get block reason message
+  const blockReason = isEditingBlocked
+    ? kpiStatus === "DA_DUYET"
+      ? "KPI đã được duyệt, không thể thay đổi nhiệm vụ"
+      : "Chu kỳ đã đóng, không thể thay đổi nhiệm vụ"
+    : null;
+
   if (!employee && isLoading) {
     return (
       <Box
@@ -408,7 +424,7 @@ const CycleAssignmentDetailPage = () => {
     );
   }
 
-  return (
+  const pageContent = (
     <Box
       sx={{
         p: { xs: 2, sm: 3 },
@@ -416,46 +432,48 @@ const CycleAssignmentDetailPage = () => {
           theme.palette.primary.main,
           0.02
         )} 0%, ${alpha(theme.palette.secondary.main, 0.02)} 100%)`,
-        minHeight: "100vh",
+        minHeight: isMobile ? "auto" : "100vh",
       }}
     >
       {/* Header with Back Button */}
-      <Stack direction="row" spacing={2} alignItems="center" mb={3}>
-        <Tooltip title="Quay lại danh sách">
-          <IconButton
-            onClick={handleBack}
-            sx={{
-              bgcolor: alpha(theme.palette.primary.main, 0.1),
-              border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
-              "&:hover": {
-                bgcolor: alpha(theme.palette.primary.main, 0.2),
-                borderColor: alpha(theme.palette.primary.main, 0.4),
-                transform: "scale(1.05)",
-              },
-              transition: "all 0.2s ease-in-out",
-            }}
-          >
-            <ArrowLeft />
-          </IconButton>
-        </Tooltip>
-        <Box flex={1}>
-          <Typography
-            variant="h4"
-            fontWeight={700}
-            sx={{
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            📋 Giao nhiệm vụ theo chu kỳ
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Phân công nhiệm vụ và thiết lập mức độ khó cho từng nhân viên
-          </Typography>
-        </Box>
-      </Stack>
+      {!isMobile && (
+        <Stack direction="row" spacing={2} alignItems="center" mb={3}>
+          <Tooltip title="Quay lại danh sách">
+            <IconButton
+              onClick={handleBack}
+              sx={{
+                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+                "&:hover": {
+                  bgcolor: alpha(theme.palette.primary.main, 0.2),
+                  borderColor: alpha(theme.palette.primary.main, 0.4),
+                  transform: "scale(1.05)",
+                },
+                transition: "all 0.2s ease-in-out",
+              }}
+            >
+              <ArrowLeft />
+            </IconButton>
+          </Tooltip>
+          <Box flex={1}>
+            <Typography
+              variant="h4"
+              fontWeight={700}
+              sx={{
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              📋 Giao nhiệm vụ theo chu kỳ
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              Phân công nhiệm vụ và thiết lập mức độ khó cho từng nhân viên
+            </Typography>
+          </Box>
+        </Stack>
+      )}
 
       {/* Employee Info Card */}
       {employee && (
@@ -834,10 +852,10 @@ const CycleAssignmentDetailPage = () => {
         </Box>
       ) : (
         <>
-          {/* Two-Column Layout */}
+          {/* Two-Column Layout - Stack on mobile */}
           <Grid container spacing={3}>
             {/* Left Column: Available Duties */}
-            <Grid item xs={12} md={5}>
+            <Grid item xs={12} md={isMobile ? 12 : 5}>
               <MainCard
                 elevation={0}
                 sx={{
@@ -974,7 +992,7 @@ const CycleAssignmentDetailPage = () => {
             </Grid>
 
             {/* Right Column: Assigned Tasks */}
-            <Grid item xs={12} md={7}>
+            <Grid item xs={12} md={isMobile ? 12 : 7}>
               <MainCard
                 elevation={0}
                 sx={{
@@ -1007,41 +1025,44 @@ const CycleAssignmentDetailPage = () => {
                         <Box sx={{ width: 24 }} />
                       </MuiBadge>
                     </Stack>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={
-                        isSaving ? <CircularProgress size={16} /> : <Save />
-                      }
-                      onClick={handleSave}
-                      disabled={
-                        isSaving ||
-                        workingTasks.length === 0 ||
-                        isEditingBlocked
-                      }
-                      sx={{
-                        borderRadius: 1.5,
-                        textTransform: "none",
-                        fontWeight: 600,
-                        px: 2,
-                        boxShadow: isEditingBlocked
-                          ? "none"
-                          : `0 2px 8px ${alpha(
-                              theme.palette.primary.main,
-                              0.3
-                            )}`,
-                        ...(isEditingBlocked && {
-                          bgcolor: alpha(theme.palette.grey[500], 0.3),
-                          color: theme.palette.text.primary,
-                          opacity: 0.8,
-                          "&:hover": {
+                    {/* Hide Save button on mobile (moved to sticky footer) */}
+                    {!isMobile && (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={
+                          isSaving ? <CircularProgress size={16} /> : <Save />
+                        }
+                        onClick={handleSave}
+                        disabled={
+                          isSaving ||
+                          workingTasks.length === 0 ||
+                          isEditingBlocked
+                        }
+                        sx={{
+                          borderRadius: 1.5,
+                          textTransform: "none",
+                          fontWeight: 600,
+                          px: 2,
+                          boxShadow: isEditingBlocked
+                            ? "none"
+                            : `0 2px 8px ${alpha(
+                                theme.palette.primary.main,
+                                0.3
+                              )}`,
+                          ...(isEditingBlocked && {
                             bgcolor: alpha(theme.palette.grey[500], 0.3),
-                          },
-                        }),
-                      }}
-                    >
-                      {isEditingBlocked ? "🔒 Đã khóa" : "Lưu thay đổi"}
-                    </Button>
+                            color: theme.palette.text.primary,
+                            opacity: 0.8,
+                            "&:hover": {
+                              bgcolor: alpha(theme.palette.grey[500], 0.3),
+                            },
+                          }),
+                        }}
+                      >
+                        {isEditingBlocked ? "🔒 Đã khóa" : "Lưu thay đổi"}
+                      </Button>
+                    )}
                   </Stack>
                 }
               >
@@ -1293,6 +1314,69 @@ const CycleAssignmentDetailPage = () => {
       )}
     </Box>
   );
+
+  // Mobile: wrap with MobileDetailLayout
+  if (isMobile) {
+    return (
+      <MobileDetailLayout
+        title={employee?.Ten || "Giao Nhiệm Vụ"}
+        subtitle="Phân công nhiệm vụ theo chu kỳ"
+        backPath="/quanlycongviec/giao-nhiemvu"
+        enablePullToRefresh
+        onRefresh={handleRefresh}
+        footer={
+          !isLoading &&
+          selectedChuKyId && (
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{
+                p: 2,
+                borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                bgcolor: "background.paper",
+              }}
+            >
+              {!isEditingBlocked && (
+                <>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="large"
+                    fullWidth
+                    onClick={() => navigate(-1)}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    fullWidth
+                    onClick={handleSave}
+                    disabled={isSaving || workingTasks.length === 0}
+                    startIcon={
+                      isSaving ? <CircularProgress size={20} /> : <Save />
+                    }
+                  >
+                    {isSaving ? "Đang lưu..." : "Lưu gán việc"}
+                  </Button>
+                </>
+              )}
+              {isEditingBlocked && (
+                <Alert severity="warning" sx={{ flex: 1 }}>
+                  {blockReason || "Chu kỳ đã đóng hoặc KPI đã duyệt"}
+                </Alert>
+              )}
+            </Stack>
+          )
+        }
+      >
+        {pageContent}
+      </MobileDetailLayout>
+    );
+  }
+
+  // Desktop: original layout
+  return pageContent;
 };
 
 export default CycleAssignmentDetailPage;

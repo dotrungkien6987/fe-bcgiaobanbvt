@@ -29,8 +29,11 @@ import {
   useTheme,
   useMediaQuery,
   Badge,
+  Chip,
+  Fab,
 } from "@mui/material";
 import { ArrowLeft, Refresh, Filter } from "iconsax-react";
+import { Add as AddIcon } from "@mui/icons-material";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import useAuth from "hooks/useAuth";
@@ -48,10 +51,12 @@ import DateRangePresets from "../../CongViec/components/DateRangePresets";
 import OverallMetrics from "./components/OverallMetrics";
 import ReceivedDashboardSection from "./components/ReceivedDashboardSection";
 import AssignedDashboardSection from "./components/AssignedDashboardSection";
+import RecentActivitiesSection from "./components/RecentActivitiesSection";
 
 // Import new mobile components
 import CollapsibleAlertCard from "./components/CollapsibleAlertCard";
 import MobileFilterDrawer from "./components/MobileFilterDrawer";
+import CongViecFormDialog from "../../CongViec/CongViecFormDialog";
 
 // Import hooks
 import useTaskCounts from "../../CongViec/hooks/useTaskCounts";
@@ -112,6 +117,9 @@ export default function CongViecDashboardPage() {
 
   // Filter drawer state (mobile only)
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+
+  // ✅ NEW Sprint 2.4: State for create dialog
+  const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [deadlineFilter, setDeadlineFilter] = useState("ALL"); // ALL | QUA_HAN | SAP_QUA_HAN | DUNG_HAN
 
   // Get data from Redux
@@ -212,6 +220,45 @@ export default function CongViecDashboardPage() {
 
       {isLoading && <LinearProgress sx={{ mb: 2 }} />}
 
+      {/* Quick Navigation Chips */}
+      <Box
+        sx={{
+          bgcolor: "background.paper",
+          borderRadius: 2,
+          p: 2,
+          mb: 3,
+        }}
+      >
+        <Typography variant="subtitle2" color="text.secondary" mb={1.5}>
+          Truy cập nhanh
+        </Typography>
+        <Stack direction="row" spacing={1} sx={{ overflowX: "auto", pb: 0.5 }}>
+          <Chip
+            label={`📥 Tôi nhận (${receivedCounts.ALL || 0})`}
+            onClick={() => navigate("/quanlycongviec/cong-viec-cua-toi")}
+            color="primary"
+            variant="outlined"
+            clickable
+            sx={{ fontWeight: 500 }}
+          />
+          <Chip
+            label={`📤 Tôi giao (${assignedCounts.ALL || 0})`}
+            onClick={() => navigate("/quanlycongviec/viec-toi-giao")}
+            color="info"
+            variant="outlined"
+            clickable
+            sx={{ fontWeight: 500 }}
+          />
+          <Chip
+            label="📋 Lịch sử hoàn thành"
+            onClick={() => navigate("/quanlycongviec/lich-su-hoan-thanh")}
+            variant="outlined"
+            clickable
+            sx={{ fontWeight: 500 }}
+          />
+        </Stack>
+      </Box>
+
       {/* Dashboard Sections */}
       <Stack spacing={3}>
         {/* Overall Metrics */}
@@ -271,6 +318,13 @@ export default function CongViecDashboardPage() {
           dateRange={dateRange}
           isLoading={isLoading}
         />
+
+        {/* Recent Activities Section */}
+        <RecentActivitiesSection
+          limit={10}
+          tuNgay={dateRange.from}
+          denNgay={dateRange.to}
+        />
       </Stack>
 
       {/* Mobile Filter Drawer */}
@@ -284,11 +338,36 @@ export default function CongViecDashboardPage() {
         onDeadlineFilterChange={handleDeadlineFilterChange}
         onApply={() => {
           // Filter is applied on parent state change
-          // This is just a callback for future enhancements
         }}
         onReset={() => {
           // Reset callback placeholder
         }}
+      />
+
+      {/* ✅ Sprint 2.4: Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="Tạo công việc mới"
+        onClick={() => setOpenCreateDialog(true)}
+        sx={{
+          position: "fixed",
+          bottom: { xs: 80, sm: 24 }, // 80px on mobile to clear bottom nav
+          right: { xs: 16, sm: 24 },
+          zIndex: 1200, // Above bottom nav
+        }}
+      >
+        <AddIcon />
+      </Fab>
+
+      {/* Create CongViec Dialog */}
+      <CongViecFormDialog
+        open={openCreateDialog}
+        onClose={() => {
+          setOpenCreateDialog(false);
+          // Refresh dashboard data after creating
+          handleRefresh();
+        }}
+        congViec={null} // null = create mode
       />
     </Container>
   );

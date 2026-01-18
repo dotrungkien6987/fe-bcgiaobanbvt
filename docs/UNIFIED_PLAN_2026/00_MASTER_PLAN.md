@@ -1,9 +1,10 @@
 # 🎯 Kế Hoạch Hợp Nhất: PWA + UX/UI Enhancement 2026
 
 **Ngày bắt đầu:** 09/01/2026  
-**Trạng thái:** 📋 Planning Complete  
-**Phiên bản:** 2.0 (Unified)  
-**Tổng thời gian:** ~140 giờ (~18 ngày làm việc, ~6 tháng @ 60% capacity)
+**Trạng thái:** � Phase 2 Complete - Phase 3 Ready  
+**Phiên bản:** 2.1 (Revised)  
+**Tổng thời gian:** ~126.5 giờ (~16 ngày làm việc, ~5 tháng @ 60% capacity)  
+**⚠️ Revision:** Saved 13.5h from reusing existing implementations (PullToRefresh, Service Worker)
 
 > **📍 HỘI THOẠI MỚI?** Đọc [CONTEXT_FOR_NEW_CONVERSATION.md](./CONTEXT_FOR_NEW_CONVERSATION.md) trước!
 
@@ -40,19 +41,21 @@ Kế hoạch này hợp nhất từ 2 plans trước:
 ## 🗺️ Tổng Quan 8 Phases
 
 ```
-Timeline: 18 ngày làm việc (140 giờ)
+Timeline: 16 ngày làm việc (126.5 giờ - revised from 140h)
 
 ┌────────────┬────────────┬────────────┬────────────┬────────────┐
 │  Tuần 1-2  │  Tuần 3-4  │  Tuần 5-6  │  Tuần 7-8  │  Tuần 9+   │
 ├────────────┼────────────┼────────────┼────────────┼────────────┤
 │  PHASE 0   │  PHASE 2   │  PHASE 3   │  PHASE 4   │  PHASE 6   │
 │Navigation  │ Dashboard  │Splash+     │ Gestures   │  Testing   │
-│   (24h)    │   (40h)    │Layouts(33h)│   (8h)     │   (15h)    │
-│            │            │            │            │            │
+│  (24h) ✅  │  (44h) ✅  │Layouts     │   (5h) ⬇️  │   (15h)    │
+│            │            │ (28.5h) ⬇️ │            │            │
 │            │  PHASE 1   │            │  PHASE 5   │            │
 │            │ Mobile Nav │            │Performance │            │
-│            │   (5h)     │            │   (10h)    │            │
+│            │  (5h) ✅   │            │  (4h) ⬇️   │            │
 └────────────┴────────────┴────────────┴────────────┴────────────┘
+
+✅ Complete  ⬇️ Reduced effort (existing implementations reused)
 ```
 
 ### Dependency Graph

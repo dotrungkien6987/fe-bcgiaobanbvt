@@ -137,6 +137,10 @@ const initialState = {
       team: { total: 0, thisWeek: 0, thisMonth: 0, onTimeRate: 0 },
     },
   },
+  // ✅ NEW Sprint 2.3: Recent activities for dashboard
+  recentActivities: [],
+  recentActivitiesLoading: false,
+  recentActivitiesError: null,
 };
 
 // Create slice
@@ -805,6 +809,22 @@ const slice = createSlice({
       state.loadingRecentCompletedAssigned = false;
       state.recentCompletedAssignedError = action.payload;
     },
+
+    // ✅ NEW Sprint 2.3: Recent activities actions
+    getRecentActivitiesRequest: (state) => {
+      state.recentActivitiesLoading = true;
+      state.recentActivitiesError = null;
+    },
+    getRecentActivitiesSuccess: (state, action) => {
+      state.recentActivitiesLoading = false;
+      state.recentActivitiesError = null;
+      state.recentActivities = action.payload;
+    },
+    getRecentActivitiesFailure: (state, action) => {
+      state.recentActivitiesLoading = false;
+      state.recentActivitiesError = action.payload;
+    },
+
     // ✅ NEW (Task 2.7): Completed archive actions
     setArchiveTab: (state, action) => {
       state.completedArchive.activeTab = action.payload;
@@ -887,6 +907,37 @@ const slice = createSlice({
     },
   },
 });
+
+/**
+ * ✅ NEW Sprint 2.3: Fetch recent activities (status changes, progress, comments)
+ * GET /api/workmanagement/congviec/hoat-dong-gan-day
+ */
+export const fetchRecentActivities =
+  ({ limit = 20, tuNgay, denNgay } = {}) =>
+  async (dispatch) => {
+    dispatch(slice.actions.getRecentActivitiesRequest());
+    try {
+      const response = await apiService.get(
+        "/workmanagement/congviec/hoat-dong-gan-day",
+        {
+          params: { limit, tuNgay, denNgay },
+        }
+      );
+
+      const activities = response.data.data.activities || [];
+      dispatch(slice.actions.getRecentActivitiesSuccess(activities));
+
+      return activities;
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Không thể tải hoạt động gần đây";
+      dispatch(slice.actions.getRecentActivitiesFailure(message));
+      toast.error(message);
+      return [];
+    }
+  };
 
 // Reducer
 export default slice.reducer;

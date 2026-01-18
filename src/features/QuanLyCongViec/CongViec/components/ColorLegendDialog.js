@@ -1,24 +1,19 @@
 import React from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   Typography,
   Box,
   Chip,
   Divider,
-  IconButton,
   useTheme,
 } from "@mui/material";
 import {
-  Close as CloseIcon,
   CheckCircle as CheckCircleIcon,
   Flag as FlagIcon,
   Palette as PaletteIcon,
 } from "@mui/icons-material";
 import { useSelector } from "react-redux";
+import BottomSheetDialog from "components/BottomSheetDialog";
 import {
   getStatusColor,
   getPriorityColor,
@@ -98,27 +93,25 @@ const ColorLegendDialog = ({ open, onClose }) => {
   }));
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          pb: 2,
-        }}
-      >
+    <BottomSheetDialog
+      open={open}
+      onClose={onClose}
+      title={
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <PaletteIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
           <Typography variant="h6" sx={{ fontWeight: 600 }}>
             Ghi chú màu sắc
           </Typography>
         </Box>
-        <IconButton onClick={onClose} size="small">
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent dividers>
+      }
+      maxWidth="sm"
+      actions={
+        <Button onClick={onClose} variant="contained">
+          Đóng
+        </Button>
+      }
+    >
+      <Box>
         {/* Trạng thái */}
         <Box sx={{ mb: 3 }}>
           <Typography
@@ -234,34 +227,28 @@ const ColorLegendDialog = ({ open, onClose }) => {
             ))}
           </Box>
         </Box>
+      </Box>
 
-        {/* Ghi chú bổ sung */}
-        <Box
-          sx={{
-            mt: 3,
-            p: 2,
-            backgroundColor: theme.palette.grey[50],
-            borderRadius: 2,
-            border: `1px solid ${theme.palette.grey[200]}`,
-          }}
+      {/* Ghi chú bổ sung */}
+      <Box
+        sx={{
+          mt: 3,
+          p: 2,
+          backgroundColor: theme.palette.grey[50],
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.grey[200]}`,
+        }}
+      >
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ fontStyle: "italic" }}
         >
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ fontStyle: "italic" }}
-          >
-            💡 <strong>Ghi chú:</strong> Màu sắc giúp bạn dễ dàng phân biệt
-            trạng thái và mức độ ưu tiên của các công việc trong hệ thống.
-          </Typography>
-        </Box>
-      </DialogContent>
-
-      <DialogActions sx={{ p: 2 }}>
-        <Button onClick={onClose} variant="contained">
-          Đóng
-        </Button>
-      </DialogActions>
-    </Dialog>
+          💡 <strong>Ghi chú:</strong> Màu sắc giúp bạn dễ dàng phân biệt trạng
+          thái và mức độ ưu tiên của các công việc trong hệ thống.
+        </Typography>
+      </Box>
+    </BottomSheetDialog>
   );
 };
 

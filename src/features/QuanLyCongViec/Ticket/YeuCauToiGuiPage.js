@@ -17,6 +17,9 @@ import {
   Breadcrumbs,
   Link,
   Chip,
+  Fab,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -26,6 +29,7 @@ import {
   RateReview,
   CheckCircle,
   Cancel,
+  FilterList as FilterListIcon,
 } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -33,13 +37,17 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import YeuCauList from "./components/YeuCauList";
 import { PullToRefreshWrapper } from "./components";
 import YeuCauFormDialog from "./components/YeuCauFormDialog";
+import YeuCauStatusGrid from "./components/YeuCauStatusGrid";
+import YeuCauFilterDrawer from "./components/YeuCauFilterDrawer";
 import {
   getYeuCauList,
   getBadgeCounts,
   selectBadgeCounts,
+  selectDanhMucList,
+  getDanhMucByKhoa,
 } from "./yeuCauSlice";
 import { useYeuCauTabs } from "./hooks/useYeuCauTabs";
-import { TRANG_THAI } from "./yeuCau.constants";
+import { TRANG_THAI, TRANG_THAI_OPTIONS } from "./yeuCau.constants";
 
 // Icon mapping
 const ICON_MAP = {
@@ -53,6 +61,8 @@ const ICON_MAP = {
 function YeuCauToiGuiPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get("tab");
@@ -70,10 +80,13 @@ function YeuCauToiGuiPage() {
   } = useYeuCauTabs("YEU_CAU_TOI_GUI", urlTab);
 
   const [openForm, setOpenForm] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [khoaOptions, setKhoaOptions] = useState([]);
+  const [currentFilters, setCurrentFilters] = useState({});
 
   const { yeuCauList, isLoading } = useSelector((state) => state.yeuCau);
   const badgeCounts = useSelector(selectBadgeCounts("YEU_CAU_TOI_GUI"));
+  const danhMucList = useSelector(selectDanhMucList);
 
   const isClosedTab =
     activeTab === "da-dong" ||
@@ -90,12 +103,16 @@ function YeuCauToiGuiPage() {
           "/workmanagement/danh-muc-yeu-cau/khoa-co-danh-muc"
         );
         setKhoaOptions(response.data.data || []);
+        // Load danh mục for first khoa
+        if (response.data.data?.length > 0) {
+          dispatch(getDanhMucByKhoa(response.data.data[0]._id));
+        }
       } catch (error) {
         console.error("Lỗi load khoa:", error);
       }
     };
     loadKhoa();
-  }, []);
+  }, [dispatch]);
 
   // Load badge counts on mount
   useEffect(() => {
@@ -118,7 +135,9 @@ function YeuCauToiGuiPage() {
   }, [dispatch, isLoaded, apiParams, needsRedirect]);
 
   const handleTabChange = (event, newValue) => {
-    setSearchParams({ tab: newValue });
+    // Support both Tabs (event, newValue) and StatusGrid (tabKey only)
+    const tabKey = typeof event === "string" ? event : newValue;
+    setSearchParams({ tab: tabKey });
     dispatch(getBadgeCounts("YEU_CAU_TOI_GUI"));
   };
 
@@ -136,7 +155,13 @@ function YeuCauToiGuiPage() {
   };
 
   return (
-    <Box sx={{ py: 3, px: { xs: 2, sm: 3 } }}>
+    <Box
+      sx={{
+        py: 3,
+        px: { xs: 1, sm: 2, md: 3 },
+        pb: { xs: "calc(env(safe-area-inset-bottom) + 72px)", md: 3 },
+      }}
+    >
       {/* Breadcrumbs */}
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link
@@ -170,17 +195,37 @@ function YeuCauToiGuiPage() {
             {activeTabInfo?.description}
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setOpenForm(true)}
-        >
-          Tạo yêu cầu
-        </Button>
+        <Stack direction="row" spacing={1}>
+          <Button
+            variant="outlined"
+            startIcon={<FilterListIcon />}
+            onClick={() => setFilterOpen(true)}
+            sx={{ display: { xs: "none", sm: "inline-flex" } }}
+          >
+            Lọc
+          </Button>
+          {!isMobile && (
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => setOpenForm(true)}
+            >
+              Tạo yêu cầu
+            </Button>
+          )}
+        </Stack>
       </Stack>
 
-      {/* Tabs */}
-      <Paper sx={{ mb: 3 }}>
+      {/* Status Grid for Mobile */}
+      <YeuCauStatusGrid
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        badgeCounts={badgeCounts}
+      />
+
+      {/* Tabs for Desktop */}
+      <Paper sx={{ mb: 3, display: { xs: "none", md: "block" } }}>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}
@@ -230,6 +275,62 @@ function YeuCauToiGuiPage() {
         open={openForm}
         onClose={() => setOpenForm(false)}
         khoaOptions={khoaOptions}
+      />
+
+      {/* FAB for mobile */}
+      {isMobile && (
+        <>
+          <Fab
+            color="primary"
+            aria-label="Tạo yêu cầu mới"
+            onClick={() => setOpenForm(true)}
+            sx={{
+              position: "fixed",
+              bottom: "calc(env(safe-area-inset-bottom) + 72px)",
+              right: 16,
+              zIndex: 1000,
+              boxShadow: 4,
+            }}
+          >
+            <AddIcon />
+          </Fab>
+          <Fab
+            color="default"
+            aria-label="Lọc yêu cầu"
+            onClick={() => setFilterOpen(true)}
+            sx={{
+              position: "fixed",
+              bottom: "calc(env(safe-area-inset-bottom) + 144px)",
+              right: 16,
+              zIndex: 1000,
+              boxShadow: 4,
+            }}
+          >
+            <FilterListIcon />
+          </Fab>
+        </>
+      )}
+
+      {/* Filter Drawer */}
+      <YeuCauFilterDrawer
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        filters={currentFilters}
+        onApply={(newFilters) => {
+          setCurrentFilters(newFilters);
+          // Merge with existing apiParams and reload
+          const mergedParams = { ...apiParams, ...newFilters, page: 1 };
+          dispatch(getYeuCauList(mergedParams));
+          setFilterOpen(false);
+        }}
+        onReset={() => {
+          setCurrentFilters({});
+          // Reload with original params
+          dispatch(getYeuCauList(apiParams));
+        }}
+        khoaOptions={khoaOptions}
+        danhMucOptions={danhMucList}
+        trangThaiOptions={TRANG_THAI_OPTIONS}
       />
     </Box>
   );

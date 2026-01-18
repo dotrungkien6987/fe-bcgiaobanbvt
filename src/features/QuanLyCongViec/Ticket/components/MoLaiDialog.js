@@ -6,17 +6,7 @@
  * - Hiển thị số ngày còn lại để mở lại
  */
 import React, { useEffect, useMemo } from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  Stack,
-  Alert,
-  Chip,
-} from "@mui/material";
+import { Button, Typography, Stack, Alert, Chip } from "@mui/material";
 import {
   Refresh as RefreshIcon,
   Schedule as ScheduleIcon,
@@ -26,6 +16,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
 import dayjs from "dayjs";
 import { FormProvider, FTextField } from "components/form";
+import BottomSheetDialog from "components/BottomSheetDialog";
 
 // Validation schema
 const moLaiSchema = Yup.object().shape({
@@ -101,78 +92,17 @@ function MoLaiDialog({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <FormProvider methods={methods} onSubmit={handleSubmit(handleFormSubmit)}>
-        <DialogTitle>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <RefreshIcon color="primary" />
-            <span>Mở lại yêu cầu</span>
-          </Stack>
-        </DialogTitle>
-        <DialogContent>
-          <Stack spacing={3} sx={{ pt: 2 }}>
-            {/* Thông tin yêu cầu */}
-            {yeuCau && (
-              <Alert severity="info" icon={false}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Yêu cầu: {yeuCau.MaYeuCau}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {yeuCau.TieuDe}
-                </Typography>
-              </Alert>
-            )}
-
-            {/* Thông tin thời hạn */}
-            <Stack direction="row" alignItems="center" spacing={2}>
-              <ScheduleIcon color="action" />
-              <Stack>
-                <Typography variant="body2" color="text.secondary">
-                  Đóng ngày: {ngayDongFormatted}
-                </Typography>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <Typography variant="body2">Thời hạn mở lại:</Typography>
-                  <Chip
-                    size="small"
-                    label={coTheMoLai ? `Còn ${ngayConLai} ngày` : "Đã hết hạn"}
-                    color={
-                      coTheMoLai
-                        ? ngayConLai <= 2
-                          ? "warning"
-                          : "success"
-                        : "error"
-                    }
-                  />
-                </Stack>
-              </Stack>
-            </Stack>
-
-            {/* Form nhập lý do */}
-            {coTheMoLai ? (
-              <>
-                <FTextField
-                  name="LyDoMoLai"
-                  label="Lý do mở lại *"
-                  placeholder="Vui lòng mô tả lý do cần mở lại yêu cầu này..."
-                  multiline
-                  rows={4}
-                />
-
-                <Alert severity="info">
-                  Sau khi mở lại, yêu cầu sẽ quay về trạng thái{" "}
-                  <strong>Đã hoàn thành</strong> để người xử lý tiếp tục xem
-                  xét.
-                </Alert>
-              </>
-            ) : (
-              <Alert severity="error">
-                Yêu cầu này đã đóng quá {MAX_REOPEN_DAYS} ngày, không thể mở
-                lại. Vui lòng tạo yêu cầu mới nếu cần hỗ trợ thêm.
-              </Alert>
-            )}
-          </Stack>
-        </DialogContent>
-        <DialogActions>
+    <BottomSheetDialog
+      open={open}
+      onClose={handleClose}
+      title={
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <RefreshIcon color="primary" />
+          <span>Mở lại yêu cầu</span>
+        </Stack>
+      }
+      actions={
+        <>
           <Button onClick={handleClose} disabled={loading}>
             {coTheMoLai ? "Hủy" : "Đóng"}
           </Button>
@@ -181,9 +111,72 @@ function MoLaiDialog({
               {loading ? "Đang xử lý..." : "Xác nhận mở lại"}
             </Button>
           )}
-        </DialogActions>
+        </>
+      }
+    >
+      <FormProvider methods={methods} onSubmit={handleSubmit(handleFormSubmit)}>
+        <Stack spacing={3} sx={{ pt: 2 }}>
+          {/* Thông tin yêu cầu */}
+          {yeuCau && (
+            <Alert severity="info" icon={false}>
+              <Typography variant="subtitle2" gutterBottom>
+                Yêu cầu: {yeuCau.MaYeuCau}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {yeuCau.TieuDe}
+              </Typography>
+            </Alert>
+          )}
+
+          {/* Thông tin thời hạn */}
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <ScheduleIcon color="action" />
+            <Stack>
+              <Typography variant="body2" color="text.secondary">
+                Đóng ngày: {ngayDongFormatted}
+              </Typography>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Typography variant="body2">Thời hạn mở lại:</Typography>
+                <Chip
+                  size="small"
+                  label={coTheMoLai ? `Còn ${ngayConLai} ngày` : "Đã hết hạn"}
+                  color={
+                    coTheMoLai
+                      ? ngayConLai <= 2
+                        ? "warning"
+                        : "success"
+                      : "error"
+                  }
+                />
+              </Stack>
+            </Stack>
+          </Stack>
+
+          {/* Form nhập lý do */}
+          {coTheMoLai ? (
+            <>
+              <FTextField
+                name="LyDoMoLai"
+                label="Lý do mở lại *"
+                placeholder="Vui lòng mô tả lý do cần mở lại yêu cầu này..."
+                multiline
+                rows={4}
+              />
+
+              <Alert severity="info">
+                Sau khi mở lại, yêu cầu sẽ quay về trạng thái{" "}
+                <strong>Đã hoàn thành</strong> để người xử lý tiếp tục xem xét.
+              </Alert>
+            </>
+          ) : (
+            <Alert severity="error">
+              Yêu cầu này đã đóng quá {MAX_REOPEN_DAYS} ngày, không thể mở lại.
+              Vui lòng tạo yêu cầu mới nếu cần hỗ trợ thêm.
+            </Alert>
+          )}
+        </Stack>
       </FormProvider>
-    </Dialog>
+    </BottomSheetDialog>
   );
 }
 

@@ -1,13 +1,7 @@
 import React from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Button,
-} from "@mui/material";
+import { Button } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
+import BottomSheetDialog from "components/BottomSheetDialog";
 
 const ConfirmActionDialog = ({
   open,
@@ -20,22 +14,26 @@ const ConfirmActionDialog = ({
   if (!open || !action) return null;
   const { title, desc } = buildConfirmTexts(action);
   return (
-    <Dialog open onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
-        <DialogContentText>{desc}</DialogContentText>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Hủy</Button>
-        <LoadingButton
-          loading={actionLoading === action}
-          variant="contained"
-          onClick={() => executeAction(action)}
-        >
-          Xác nhận
-        </LoadingButton>
-      </DialogActions>
-    </Dialog>
+    <BottomSheetDialog
+      open={open}
+      onClose={onClose}
+      title={title}
+      maxWidth="xs"
+      actions={
+        <>
+          <Button onClick={onClose}>Hủy</Button>
+          <LoadingButton
+            loading={actionLoading === action}
+            variant="contained"
+            onClick={() => executeAction(action)}
+          >
+            Xác nhận
+          </LoadingButton>
+        </>
+      }
+    >
+      {desc}
+    </BottomSheetDialog>
   );
 };
 

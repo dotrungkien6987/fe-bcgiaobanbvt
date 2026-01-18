@@ -24,8 +24,10 @@ import {
   Comment as CommentIcon,
   Groups as GroupsIcon,
   AccountTree as AccountTreeIcon,
+  OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import EmployeeAvatar from "components/EmployeeAvatar";
 import CongViecCard from "./components/CongViecCard"; // 📱 NEW for mobile
@@ -67,6 +69,7 @@ const CongViecTable = ({
   showAssignee = false, // ✅ NEW: Show assignee instead of assignor
 }) => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const statusOverrides = useSelector((s) => s.colorConfig?.statusColors);
   const priorityOverrides = useSelector((s) => s.colorConfig?.priorityColors);
   const dueStatusOverrides = useSelector((s) => s.colorConfig?.dueStatusColors);
@@ -509,13 +512,30 @@ const CongViecTable = ({
                           <AccountTreeIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Xem chi tiết">
+                      <Tooltip title="Xem chi tiết (Dialog)">
                         <IconButton
                           size="small"
                           onClick={() => onView?.(congViec._id)}
                           color="primary"
                         >
                           <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Xem Page mới (Responsive)">
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            navigate(
+                              `/quanlycongviec/congviec/responsive/${congViec._id}`
+                            )
+                          }
+                          color="secondary"
+                          sx={{
+                            bgcolor: "secondary.lighter",
+                            "&:hover": { bgcolor: "secondary.light" },
+                          }}
+                        >
+                          <OpenInNewIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title={editTooltip}>

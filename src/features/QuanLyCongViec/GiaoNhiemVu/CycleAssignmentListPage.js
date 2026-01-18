@@ -46,6 +46,9 @@ import dayjs from "dayjs";
 import apiService from "../../../app/apiService";
 import MainCard from "components/MainCard";
 import useAuth from "hooks/useAuth";
+import MobileDetailLayout from "components/MobileDetailLayout";
+import useMobileLayout from "hooks/useMobileLayout";
+import PullToRefreshWrapper from "components/PullToRefreshWrapper";
 
 /**
  * CycleAssignmentListPage - Employee list view with cycle-based assignment stats
@@ -55,6 +58,7 @@ const CycleAssignmentListPage = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const { user } = useAuth();
+  const { isMobile } = useMobileLayout();
 
   // State
   const [cycles, setCycles] = useState([]);
@@ -81,31 +85,60 @@ const CycleAssignmentListPage = () => {
     fetchManagerInfo();
   }, [user]);
 
+  // Fetch cycles function (moved outside useEffect for reusability)
+  const fetchCycles = async () => {
+    setLoadingCycles(true);
+    try {
+      const response = await apiService.get("/workmanagement/chu-ky-danh-gia");
+      const cyclesData = response.data.data;
+
+      if (cyclesData && Array.isArray(cyclesData.danhSach)) {
+        setCycles(cyclesData.danhSach);
+      } else if (Array.isArray(cyclesData)) {
+        setCycles(cyclesData);
+      } else {
+        setCycles([]);
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch cycles:", error);
+      toast.error("Không thể tải danh sách chu kỳ");
+      setCycles([]);
+    } finally {
+      setLoadingCycles(false);
+    }
+  };
+
+  // Fetch employees function (moved outside useEffect for reusability)
+  const fetchEmployees = async (cycleId) => {
+    if (!cycleId) {
+      setEmployees([]);
+      return;
+    }
+
+    setLoadingEmployees(true);
+    try {
+      const response = await apiService.get(
+        `/workmanagement/giao-nhiem-vu/employees-with-cycle-stats?chuKyId=${cycleId}`
+      );
+
+      const employeesData = response.data.data;
+      if (Array.isArray(employeesData)) {
+        setEmployees(employeesData);
+      } else {
+        console.warn("⚠️ Employees data is not an array:", employeesData);
+        setEmployees([]);
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch employees:", error);
+      toast.error("Không thể tải danh sách nhân viên");
+      setEmployees([]);
+    } finally {
+      setLoadingEmployees(false);
+    }
+  };
+
   // Fetch cycles on mount
   useEffect(() => {
-    const fetchCycles = async () => {
-      setLoadingCycles(true);
-      try {
-        const response = await apiService.get(
-          "/workmanagement/chu-ky-danh-gia"
-        );
-        const cyclesData = response.data.data;
-
-        if (cyclesData && Array.isArray(cyclesData.danhSach)) {
-          setCycles(cyclesData.danhSach);
-        } else if (Array.isArray(cyclesData)) {
-          setCycles(cyclesData);
-        } else {
-          setCycles([]);
-        }
-      } catch (error) {
-        console.error("❌ Failed to fetch cycles:", error);
-        toast.error("Không thể tải danh sách chu kỳ");
-        setCycles([]);
-      } finally {
-        setLoadingCycles(false);
-      }
-    };
     fetchCycles();
   }, []);
 
@@ -115,31 +148,7 @@ const CycleAssignmentListPage = () => {
       setEmployees([]);
       return;
     }
-
-    const fetchEmployees = async () => {
-      setLoadingEmployees(true);
-      try {
-        const response = await apiService.get(
-          `/workmanagement/giao-nhiem-vu/employees-with-cycle-stats?chuKyId=${selectedCycleId}`
-        );
-
-        const employeesData = response.data.data;
-        if (Array.isArray(employeesData)) {
-          setEmployees(employeesData);
-        } else {
-          console.warn("⚠️ Employees data is not an array:", employeesData);
-          setEmployees([]);
-        }
-      } catch (error) {
-        console.error("❌ Failed to fetch employees:", error);
-        toast.error("Không thể tải danh sách nhân viên");
-        setEmployees([]);
-      } finally {
-        setLoadingEmployees(false);
-      }
-    };
-
-    fetchEmployees();
+    fetchEmployees(selectedCycleId);
   }, [selectedCycleId]);
 
   const handleCycleChange = (event) => {
@@ -154,8 +163,15 @@ const CycleAssignmentListPage = () => {
   const handleAssignTasks = (employeeId) => {
     // Navigate to detail page with cycle context
     navigate(
-      `/quanlycongviec/giao-nhiem-vu-chu-ky/${employeeId}?chuKyId=${selectedCycleId}`
+      `/quanlycongviec/giao-nhiemvu/${employeeId}?chuKyId=${selectedCycleId}`
     );
+  };
+
+  const handleRefresh = async () => {
+    await Promise.all([
+      fetchCycles(),
+      selectedCycleId ? fetchEmployees(selectedCycleId) : Promise.resolve(),
+    ]);
   };
 
   const getProgressColor = (assigned, total) => {
@@ -170,7 +186,7 @@ const CycleAssignmentListPage = () => {
   const safeCycles = Array.isArray(cycles) ? cycles : [];
   const safeEmployees = Array.isArray(employees) ? employees : [];
 
-  return (
+  const pageContent = (
     <Box
       sx={{
         p: { xs: 2, sm: 3 },
@@ -178,29 +194,31 @@ const CycleAssignmentListPage = () => {
           theme.palette.primary.main,
           0.03
         )} 0%, ${alpha(theme.palette.secondary.main, 0.03)} 100%)`,
-        minHeight: "100vh",
+        minHeight: isMobile ? "auto" : "100vh",
       }}
     >
-      {/* Header with Manager Info */}
+      {/* Header with Manager Info - Hide title on mobile */}
       <Stack spacing={3} mb={4}>
-        <Box>
-          <Typography
-            variant="h3"
-            fontWeight={700}
-            sx={{
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              mb: 1,
-            }}
-          >
-            📅 Giao nhiệm vụ theo chu kỳ
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            Phân công nhiệm vụ cho nhân viên theo chu kỳ đánh giá
-          </Typography>
-        </Box>
+        {!isMobile && (
+          <Box>
+            <Typography
+              variant="h3"
+              fontWeight={700}
+              sx={{
+                background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                mb: 1,
+              }}
+            >
+              📅 Giao nhiệm vụ theo chu kỳ
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+              Phân công nhiệm vụ cho nhân viên theo chu kỳ đánh giá
+            </Typography>
+          </Box>
+        )}
 
         {/* Manager Info Card */}
         {managerInfo && (
@@ -740,6 +758,26 @@ const CycleAssignmentListPage = () => {
       )}
     </Box>
   );
+
+  // Mobile: wrap with MobileDetailLayout
+  if (isMobile) {
+    return (
+      <MobileDetailLayout
+        title="Giao Nhiệm Vụ Chu Kỳ"
+        subtitle="Phân công nhiệm vụ theo chu kỳ"
+        backPath="/quanlycongviec"
+        enablePullToRefresh
+        onRefresh={handleRefresh}
+      >
+        <PullToRefreshWrapper onRefresh={handleRefresh}>
+          {pageContent}
+        </PullToRefreshWrapper>
+      </MobileDetailLayout>
+    );
+  }
+
+  // Desktop: original layout
+  return pageContent;
 };
 
 export default CycleAssignmentListPage;

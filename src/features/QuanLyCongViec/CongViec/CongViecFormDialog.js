@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Button,
   TextField,
   FormControl,
@@ -14,7 +10,6 @@ import {
   Box,
   Grid,
   Typography,
-  IconButton,
   useTheme,
   useMediaQuery,
   Alert,
@@ -29,11 +24,8 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { Autocomplete } from "@mui/material";
-import {
-  Close as CloseIcon,
-  Info as InfoIcon,
-  Check as CheckIcon,
-} from "@mui/icons-material";
+import { Info as InfoIcon, Check as CheckIcon } from "@mui/icons-material";
+import BottomSheetDialog from "components/BottomSheetDialog";
 import { computeExtendedDueStatus as computeDueStatus } from "../../../utils/congViecUtils";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -46,7 +38,6 @@ import {
   createCongViec,
   updateCongViec,
   getCongViecDetail,
-  transitionCongViec,
   createSubtask,
   updateSubtask,
 } from "./congViecSlice";
@@ -148,7 +139,7 @@ const CongViecFormDialog = ({
   const [nguoiThamGia, setNguoiThamGia] = useState([]);
   // Deprecated state (legacy select); no longer needed after Autocomplete multiple refactor
   const [loadingParticipants, setLoadingParticipants] = useState(false);
-  const [assigning, setAssigning] = useState(false); // local state for Lưu & giao việc flow
+  const [assigning] = useState(false); // local state for Lưu & giao việc flow
 
   // Map trạng thái hạn cho preview & helper tính
   const previewStatusChip = {
@@ -480,34 +471,63 @@ const CongViecFormDialog = ({
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Dialog
+      <BottomSheetDialog
         open={open}
         onClose={handleClose}
         maxWidth="md"
-        fullWidth
         fullScreen={fullScreen}
-        PaperProps={{ sx: { minHeight: "80vh" } }}
+        title={
+          isEdit
+            ? "Chỉnh sửa công việc"
+            : parentId
+            ? "Tạo công việc con"
+            : "Tạo công việc mới"
+        }
+        actions={
+          <>
+            <Button onClick={handleClose} disabled={formik.isSubmitting}>
+              Hủy
+            </Button>
+            <Button
+              variant="contained"
+              disabled={(() => {
+                const hasBlockingErrors =
+                  formik.touched.TieuDe && formik.errors.TieuDe;
+                const missingRequired = !formik.values.NguoiChinh;
+                return (
+                  loading || assigning || hasBlockingErrors || missingRequired
+                );
+              })()}
+              onClick={async () => {
+                const errors = await formik.validateForm();
+                if (errors && Object.keys(errors).length > 0) {
+                  const touched = Object.keys(errors).reduce((acc, key) => {
+                    acc[key] = true;
+                    return acc;
+                  }, {});
+                  formik.setTouched(touched, false);
+                  console.warn("[CongViecFormDialog] Form invalid:", errors);
+                  return;
+                }
+                console.log(
+                  "[CongViecFormDialog] Submit button clicked: submitting form"
+                );
+                formik.submitForm();
+              }}
+            >
+              {loading
+                ? "Đang lưu..."
+                : isEdit
+                ? "Cập nhật"
+                : parentId
+                ? "Tạo subtask"
+                : "Tạo mới"}
+            </Button>
+          </>
+        }
       >
         <form onSubmit={formik.handleSubmit}>
-          <DialogTitle
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {isEdit
-                ? "Chỉnh sửa công việc"
-                : parentId
-                ? "Tạo công việc con"
-                : "Tạo công việc mới"}
-            </Typography>
-            <IconButton size="small" onClick={handleClose}>
-              <CloseIcon />
-            </IconButton>
-          </DialogTitle>
-          <DialogContent dividers sx={{ position: "relative" }}>
+          <Box sx={{ position: "relative" }}>
             {(assigning || formik.isSubmitting) && (
               <Box
                 sx={{
@@ -1019,148 +1039,9 @@ const CongViecFormDialog = ({
                 )}
               </Grid>
             </Grid>
-          </DialogContent>
-          <DialogActions sx={{ p: 2 }}>
-            <Button onClick={handleClose}>Hủy</Button>
-            {(() => {
-              const isTaoMoiBackend = congViec?.TrangThai === "TAO_MOI";
-              const isTaoMoiFE = formik.values.TrangThai === "Tạo mới";
-              const canSaveAndAssign =
-                !isEdit || (isEdit && (isTaoMoiBackend || isTaoMoiFE));
-              if (!canSaveAndAssign) return null;
-              return (
-                <Button
-                  type="button"
-                  variant="outlined"
-                  color="secondary"
-                  disabled={(function () {
-                    const hasBlockingErrors =
-                      Boolean(formik.errors.TieuDe) ||
-                      Boolean(formik.errors.NgayBatDau) ||
-                      Boolean(formik.errors.NgayHetHan) ||
-                      (formik.values.CanhBaoMode === "FIXED" &&
-                        Boolean(formik.errors.NgayCanhBao));
-                    const missingRequired =
-                      !formik.values.TieuDe ||
-                      !formik.values.NguoiChinh ||
-                      !formik.values.NgayBatDau ||
-                      !formik.values.NgayHetHan ||
-                      !formik.values.CanhBaoMode ||
-                      (formik.values.CanhBaoMode === "FIXED" &&
-                        !formik.values.NgayCanhBao);
-                    return (
-                      loading ||
-                      formik.isSubmitting ||
-                      assigning ||
-                      hasBlockingErrors ||
-                      missingRequired
-                    );
-                  })()}
-                  onClick={async () => {
-                    const errors = await formik.validateForm();
-                    if (errors && Object.keys(errors).length > 0) {
-                      formik.setTouched(
-                        Object.keys(errors).reduce((acc, k) => {
-                          acc[k] = true;
-                          return acc;
-                        }, {}),
-                        false
-                      );
-                      return;
-                    }
-                    try {
-                      setAssigning(true);
-                      const payload = buildPayload(formik.values);
-                      if (!isEdit) {
-                        const created = await dispatch(createCongViec(payload));
-                        const newId = created?._id;
-                        if (newId) {
-                          await dispatch(
-                            transitionCongViec({
-                              id: newId,
-                              action: "GIAO_VIEC",
-                            })
-                          );
-                          handleClose();
-                        }
-                      } else if (congViec?._id) {
-                        await dispatch(
-                          updateCongViec({ id: congViec._id, data: payload })
-                        );
-                        await dispatch(
-                          transitionCongViec({
-                            id: congViec._id,
-                            action: "GIAO_VIEC",
-                          })
-                        );
-                        handleClose();
-                      }
-                    } catch (err) {
-                      console.error("Save & assign failed", err);
-                    } finally {
-                      setAssigning(false);
-                    }
-                  }}
-                >
-                  {assigning ? "Đang lưu & giao..." : "Lưu & giao việc"}
-                </Button>
-              );
-            })()}
-            <Button
-              type="button"
-              variant="contained"
-              disabled={(function () {
-                const hasBlockingErrors =
-                  Boolean(formik.errors.TieuDe) ||
-                  Boolean(formik.errors.NgayBatDau) ||
-                  Boolean(formik.errors.NgayHetHan) ||
-                  (formik.values.CanhBaoMode === "FIXED" &&
-                    Boolean(formik.errors.NgayCanhBao));
-                const missingRequired =
-                  !formik.values.TieuDe ||
-                  !formik.values.NguoiChinh ||
-                  !formik.values.NgayBatDau ||
-                  !formik.values.NgayHetHan ||
-                  !formik.values.CanhBaoMode ||
-                  (formik.values.CanhBaoMode === "FIXED" &&
-                    !formik.values.NgayCanhBao);
-                return (
-                  loading ||
-                  formik.isSubmitting ||
-                  assigning ||
-                  hasBlockingErrors ||
-                  missingRequired
-                );
-              })()}
-              onClick={async () => {
-                // Explicitly validate and surface errors, then submit if valid
-                const errors = await formik.validateForm();
-                if (errors && Object.keys(errors).length > 0) {
-                  const touched = Object.keys(errors).reduce((acc, key) => {
-                    acc[key] = true;
-                    return acc;
-                  }, {});
-                  formik.setTouched(touched, false);
-                  console.warn("[CongViecFormDialog] Form invalid:", errors);
-                  return;
-                }
-                console.log(
-                  "[CongViecFormDialog] Submit button clicked: submitting form"
-                );
-                formik.submitForm();
-              }}
-            >
-              {loading
-                ? "Đang lưu..."
-                : isEdit
-                ? "Cập nhật"
-                : parentId
-                ? "Tạo subtask"
-                : "Tạo mới"}
-            </Button>
-          </DialogActions>
+          </Box>
         </form>
-      </Dialog>
+      </BottomSheetDialog>
     </LocalizationProvider>
   );
 };

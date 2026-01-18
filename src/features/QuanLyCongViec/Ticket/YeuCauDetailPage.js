@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { WorkRoutes } from "utils/navigationHelper";
@@ -28,7 +28,6 @@ import {
   DialogContentText,
   DialogActions,
   Typography as MuiTypography,
-  useMediaQuery,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -42,6 +41,8 @@ import dayjs from "dayjs";
 import { useTheme } from "@mui/material/styles";
 
 import useAuth from "hooks/useAuth";
+import useMobileLayout from "hooks/useMobileLayout";
+import PullToRefreshWrapper from "components/PullToRefreshWrapper";
 import EmployeeAvatar from "components/EmployeeAvatar";
 import {
   getYeuCauDetail,
@@ -116,7 +117,7 @@ function YeuCauDetailPage() {
   const { user } = useAuth();
 
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { isMobile } = useMobileLayout();
 
   const yeuCau = useSelector(selectYeuCauDetail);
   const availableActions = useSelector(selectAvailableActions);
@@ -156,6 +157,17 @@ function YeuCauDetailPage() {
     loadYeuCau();
   }, [loadYeuCau]);
 
+  // Refresh handler for pull-to-refresh
+  const handleRefresh = async () => {
+    await Promise.all(
+      [
+        dispatch(getYeuCauDetail(id)),
+        dispatch(getBinhLuan(id)),
+        id && dispatch(getLichSu(id)),
+      ].filter(Boolean)
+    );
+  };
+
   // Load lý do từ chối
   useEffect(() => {
     dispatch(getLyDoTuChoi());
@@ -167,6 +179,8 @@ function YeuCauDetailPage() {
       dispatch(getLichSu(id));
     }
   }, [dispatch, id]);
+
+  // Note: smart-sticky footer uses PullToRefreshWrapper's scroll container on mobile
 
   // Load cấu hình khoa khi có yêu cầu
   useEffect(() => {
@@ -505,509 +519,534 @@ function YeuCauDetailPage() {
   const latestHistoryItems = getLatestHistoryItems(lichSuList);
 
   return (
-    <Container
-      maxWidth="lg"
-      sx={{ py: { xs: 1, md: 3 }, px: { xs: 0, md: 3 } }}
-    >
-      {/* Sticky blue request toolbar (mobile-first) */}
-      <Box
-        sx={{
-          position: "sticky",
-          top: 0,
-          zIndex: (t) => t.zIndex.appBar,
-          mb: 2,
-          borderRadius: { xs: 0, md: 2 },
-          bgcolor: "primary.main",
-          color: "primary.contrastText",
-          px: 1.5,
-          py: 1,
-        }}
-      >
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <IconButton
-            onClick={() => navigate(WorkRoutes.yeuCauList())}
-            size="small"
-            sx={{ color: "inherit" }}
+    <>
+      <PullToRefreshWrapper onRefresh={handleRefresh}>
+        <Container
+          maxWidth="lg"
+          sx={{ py: { xs: 1, md: 3 }, px: { xs: 0, md: 3 } }}
+        >
+          {/* Sticky blue request toolbar (mobile-first) */}
+          <Box
+            sx={{
+              position: "sticky",
+              top: 0,
+              zIndex: (t) => t.zIndex.appBar,
+              mb: 2,
+              borderRadius: { xs: 0, md: 2 },
+              bgcolor: "primary.main",
+              color: "primary.contrastText",
+              px: 1.5,
+              py: 1,
+            }}
           >
-            <ArrowBackIcon />
-          </IconButton>
-
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography
-              variant={isMobile ? "subtitle1" : "h6"}
-              sx={{ color: "inherit" }}
-              noWrap
-            >
-              Yêu cầu #{yeuCau.MaYeuCau}
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{ color: "inherit", opacity: 0.9 }}
-              noWrap
-            >
-              {yeuCau.TieuDe}
-            </Typography>
-          </Box>
-
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <YeuCauStatusChip trangThai={yeuCau.TrangThai} size="small" />
-            {canEdit && (
+            <Stack direction="row" alignItems="center" spacing={1}>
               <IconButton
-                onClick={() => setOpenEditDialog(true)}
+                onClick={() => navigate(WorkRoutes.yeuCauList())}
                 size="small"
                 sx={{ color: "inherit" }}
               >
-                <EditIcon />
+                <ArrowBackIcon />
               </IconButton>
-            )}
-          </Stack>
-        </Stack>
-      </Box>
 
-      {/* Progress Indicator with SLA tracking */}
-      <Box sx={{ mb: 2, mx: { xs: 2, md: 0 } }}>
-        <YeuCauProgressIndicator yeuCau={yeuCau} />
-      </Box>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography
+                  variant={isMobile ? "subtitle1" : "h6"}
+                  sx={{ color: "inherit" }}
+                  noWrap
+                >
+                  Yêu cầu #{yeuCau.MaYeuCau}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ color: "inherit", opacity: 0.9 }}
+                  noWrap
+                >
+                  {yeuCau.TieuDe}
+                </Typography>
+              </Box>
 
-      {/* Card thao tác - hiển thị ngay sau toolbar (Desktop only) */}
-      {availableActions.length > 0 && (
-        <Card
-          sx={{
-            mb: 2,
-            mx: { xs: 0, md: 0 },
-            borderRadius: { xs: 0, md: 1 },
-            display: { xs: "none", md: "block" }, // Hidden on mobile (use sticky bar instead)
-          }}
-        >
-          <CardHeader
-            title="Thao tác"
-            titleTypographyProps={{ variant: "subtitle1" }}
-          />
-          <Divider />
-          <CardContent
-            sx={{ pb: 2, "&:last-child": { pb: 2 }, overflow: "hidden" }}
-          >
-            <YeuCauActionButtons
-              availableActions={availableActions}
-              onAction={handleAction}
-              loading={actionLoading}
-              loadingAction={currentAction}
-              variant="scroll"
-              size="small"
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      <Grid container spacing={3}>
-        {/* Cột chính - Nội dung */}
-        <Grid item xs={12} md={8}>
-          {/* Thông tin yêu cầu */}
-          <Card sx={{ mb: 3 }}>
-            <CardHeader
-              title={yeuCau.TieuDe}
-              titleTypographyProps={{ variant: "h6" }}
-            />
-            <Divider />
-            <CardContent>
-              <Typography
-                variant="body1"
-                sx={{ whiteSpace: "pre-wrap", mb: 2 }}
-              >
-                {yeuCau.MoTa}
-              </Typography>
-
-              {/* Danh mục & Thời hạn */}
-              <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mt: 2 }}>
-                {(yeuCau.DanhMucYeuCauID || yeuCau.SnapshotDanhMuc) && (
-                  <Chip
-                    icon={<CategoryIcon />}
-                    label={
-                      yeuCau.DanhMucYeuCauID?.TenLoaiYeuCau ||
-                      yeuCau.SnapshotDanhMuc?.TenLoaiYeuCau
-                    }
-                    variant="outlined"
+              <Stack direction="row" alignItems="center" spacing={0.5}>
+                <YeuCauStatusChip trangThai={yeuCau.TrangThai} size="small" />
+                {canEdit && (
+                  <IconButton
+                    onClick={() => setOpenEditDialog(true)}
                     size="small"
-                  />
-                )}
-                {yeuCau.ThoiGianHen && (
-                  <Chip
-                    icon={<CalendarIcon />}
-                    label={`Hạn: ${dayjs(yeuCau.ThoiGianHen).format(
-                      "DD/MM/YYYY HH:mm"
-                    )}`}
-                    variant="outlined"
-                    size="small"
-                    color={
-                      dayjs(yeuCau.ThoiGianHen).isBefore(dayjs())
-                        ? "error"
-                        : "default"
-                    }
-                  />
+                    sx={{ color: "inherit" }}
+                  >
+                    <EditIcon />
+                  </IconButton>
                 )}
               </Stack>
-            </CardContent>
-          </Card>
+            </Stack>
+          </Box>
 
-          {/* Bình luận */}
-          <Card>
-            <CardHeader title={`Bình luận (${yeuCau.BinhLuan?.length || 0})`} />
-            <Divider />
-            <CardContent>
-              <YeuCauCommentsSection
-                yeuCauId={yeuCau._id}
-                user={user}
-                theme={theme}
-              />
-            </CardContent>
-          </Card>
-        </Grid>
+          {/* Progress Indicator with SLA tracking */}
+          <Box sx={{ mb: 2, mx: { xs: 2, md: 0 } }}>
+            <YeuCauProgressIndicator yeuCau={yeuCau} />
+          </Box>
 
-        {/* Cột phụ - Thông tin & Actions */}
-        <Grid item xs={12} md={4}>
-          {/* Thông tin người liên quan */}
-          <Card sx={{ mb: 3 }}>
-            <CardHeader title="Thông tin" />
-            <Divider />
-            <CardContent>
-              <Stack spacing={2}>
-                {/* Người gửi */}
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Người gửi
-                  </Typography>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <EmployeeAvatar
-                      size="sm"
-                      nhanVienId={
-                        yeuCau.NguoiYeuCauID?._id || yeuCau.NguoiYeuCauID
-                      }
-                      name={
-                        yeuCau.NguoiYeuCauID?.HoTen || yeuCau.NguoiYeuCauID?.Ten
-                      }
-                    />
-                    <Box>
-                      <Typography variant="body2" fontWeight="medium">
-                        {yeuCau.NguoiYeuCauID?.Ten}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {yeuCau.KhoaNguonID?.TenKhoa}
-                      </Typography>
-                    </Box>
-                    {isNguoiGui && (
-                      <Chip label="Bạn" size="small" color="primary" />
-                    )}
-                  </Box>
-                </Box>
-
-                {/* Người nhận / Người xử lý */}
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    {yeuCau.NguoiXuLyID ? "Người xử lý" : "Khoa tiếp nhận"}
-                  </Typography>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    {yeuCau.NguoiXuLyID?._id || yeuCau.NguoiXuLyID ? (
-                      <EmployeeAvatar
-                        size="sm"
-                        nhanVienId={
-                          yeuCau.NguoiXuLyID?._id || yeuCau.NguoiXuLyID
-                        }
-                        name={
-                          yeuCau.NguoiXuLyID?.HoTen || yeuCau.NguoiXuLyID?.Ten
-                        }
-                      />
-                    ) : (
-                      <Avatar sx={{ width: 32, height: 32 }}>
-                        <PersonIcon fontSize="small" />
-                      </Avatar>
-                    )}
-                    <Box>
-                      <Typography variant="body2" fontWeight="medium">
-                        {yeuCau.NguoiXuLyID?.Ten
-                          ? yeuCau.NguoiXuLyID.Ten
-                          : yeuCau.KhoaDichID?.TenKhoa}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {yeuCau.KhoaDichID?.TenKhoa}
-                      </Typography>
-                    </Box>
-                    {isNguoiXuLy && (
-                      <Chip label="Bạn" size="small" color="secondary" />
-                    )}
-                  </Box>
-                </Box>
-
-                <Divider />
-
-                {/* Thống kê thời gian */}
-                <Box>
-                  <Typography variant="caption" color="text.secondary">
-                    Thời gian
-                  </Typography>
-                  <Stack spacing={0.5} sx={{ mt: 0.5 }}>
-                    <Typography variant="body2">
-                      Tạo: {formatDateTime(yeuCau.createdAt)}
-                    </Typography>
-                    {yeuCau.NgayTiepNhan && (
-                      <Typography variant="body2">
-                        Tiếp nhận: {formatDateTime(yeuCau.NgayTiepNhan)}
-                      </Typography>
-                    )}
-                    {yeuCau.NgayHoanThanh && (
-                      <Typography variant="body2">
-                        Hoàn thành: {formatDateTime(yeuCau.NgayHoanThanh)}
-                      </Typography>
-                    )}
-                    {yeuCau.NgayDong && (
-                      <Typography variant="body2">
-                        Đóng: {formatDateTime(yeuCau.NgayDong)}
-                      </Typography>
-                    )}
-                  </Stack>
-                </Box>
-              </Stack>
-            </CardContent>
-          </Card>
-
-          {/* ✅ NEW: Routine Task Assignment Card */}
-          {canAssignRoutineTask && (
-            <Card sx={{ mb: 3 }}>
+          {/* Card thao tác - hiển thị ngay sau toolbar (Desktop only) */}
+          {availableActions.length > 0 && (
+            <Card
+              sx={{
+                mb: 2,
+                mx: { xs: 0, md: 0 },
+                borderRadius: { xs: 0, md: 1 },
+                display: { xs: "none", md: "block" }, // Hidden on mobile (use sticky bar instead)
+              }}
+            >
               <CardHeader
-                title="Nhiệm vụ thường quy"
-                titleTypographyProps={{ variant: "h6" }}
+                title="Thao tác"
+                titleTypographyProps={{ variant: "subtitle1" }}
               />
               <Divider />
-              <CardContent>
-                <RoutineTaskCompactButton
-                  congViecDetail={{
-                    ...yeuCau,
-                    _id: yeuCau._id,
-                    NhiemVuThuongQuyID: yeuCau.NhiemVuThuongQuyID,
-                    FlagNVTQKhac: yeuCau.LaNhiemVuKhac,
-                    updatedAt: yeuCau.updatedAt,
-                  }}
-                  myRoutineTasks={myRoutineTasks}
-                  loadingRoutineTasks={loadingRoutineTasks}
-                  myRoutineTasksError={null}
-                  isMain={true}
-                  handleSelectRoutine={handleAssignRoutineTask}
-                  dispatch={dispatch}
-                  fetchMyRoutineTasks={fetchMyRoutineTasks}
-                  embedded={true}
-                  availableCycles={availableCycles}
-                  selectedCycleId={selectedCycleId}
-                  onCycleChange={handleCycleChange}
-                  loadingCycles={loadingCycles}
+              <CardContent
+                sx={{ pb: 2, "&:last-child": { pb: 2 }, overflow: "hidden" }}
+              >
+                <YeuCauActionButtons
+                  availableActions={availableActions}
+                  onAction={handleAction}
+                  loading={actionLoading}
+                  loadingAction={currentAction}
+                  variant="scroll"
+                  size="small"
                 />
               </CardContent>
             </Card>
           )}
-        </Grid>
-      </Grid>
 
-      {/* Lịch sử xử lý - chiếm full width */}
-      <Card sx={{ mt: 3 }}>
-        <Accordion defaultExpanded={false} disableGutters elevation={0}>
-          <AccordionSummary
-            expandIcon={<ExpandMoreIcon />}
-            sx={{
-              px: 2,
-              py: 1,
-              "& .MuiAccordionSummary-content": { my: 0 },
-            }}
-          >
-            <Stack spacing={0.25} sx={{ width: "100%" }}>
-              <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-              >
-                <Typography variant="subtitle1">Lịch sử xử lý</Typography>
-                <MuiTypography variant="caption" color="text.secondary">
-                  {lichSuList?.length || 0} mục
-                </MuiTypography>
-              </Stack>
+          <Grid container spacing={3}>
+            {/* Cột chính - Nội dung */}
+            <Grid item xs={12} md={8}>
+              {/* Thông tin yêu cầu */}
+              <Card sx={{ mb: 3 }}>
+                <CardHeader
+                  title={yeuCau.TieuDe}
+                  titleTypographyProps={{ variant: "h6" }}
+                />
+                <Divider />
+                <CardContent>
+                  <Typography
+                    variant="body1"
+                    sx={{ whiteSpace: "pre-wrap", mb: 2 }}
+                  >
+                    {yeuCau.MoTa}
+                  </Typography>
 
-              {latestHistoryItems.length > 0 ? (
-                <Stack spacing={0.25}>
-                  {latestHistoryItems.map((it, idx) => (
-                    <MuiTypography
-                      key={it._id || idx}
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
+                  {/* Danh mục & Thời hạn */}
+                  <Stack
+                    direction="row"
+                    spacing={2}
+                    flexWrap="wrap"
+                    sx={{ mt: 2 }}
+                  >
+                    {(yeuCau.DanhMucYeuCauID || yeuCau.SnapshotDanhMuc) && (
+                      <Chip
+                        icon={<CategoryIcon />}
+                        label={
+                          yeuCau.DanhMucYeuCauID?.TenLoaiYeuCau ||
+                          yeuCau.SnapshotDanhMuc?.TenLoaiYeuCau
+                        }
+                        variant="outlined"
+                        size="small"
+                      />
+                    )}
+                    {yeuCau.ThoiGianHen && (
+                      <Chip
+                        icon={<CalendarIcon />}
+                        label={`Hạn: ${dayjs(yeuCau.ThoiGianHen).format(
+                          "DD/MM/YYYY HH:mm"
+                        )}`}
+                        variant="outlined"
+                        size="small"
+                        color={
+                          dayjs(yeuCau.ThoiGianHen).isBefore(dayjs())
+                            ? "error"
+                            : "default"
+                        }
+                      />
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+
+              {/* Bình luận */}
+              <Card>
+                <CardHeader
+                  title={`Bình luận (${yeuCau.BinhLuan?.length || 0})`}
+                />
+                <Divider />
+                <CardContent>
+                  <YeuCauCommentsSection
+                    yeuCauId={yeuCau._id}
+                    user={user}
+                    theme={theme}
+                  />
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Cột phụ - Thông tin & Actions */}
+            <Grid item xs={12} md={4}>
+              {/* Thông tin người liên quan */}
+              <Card sx={{ mb: 3 }}>
+                <CardHeader title="Thông tin" />
+                <Divider />
+                <CardContent>
+                  <Stack spacing={2}>
+                    {/* Người gửi */}
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Người gửi
+                      </Typography>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        <EmployeeAvatar
+                          size="sm"
+                          nhanVienId={
+                            yeuCau.NguoiYeuCauID?._id || yeuCau.NguoiYeuCauID
+                          }
+                          name={
+                            yeuCau.NguoiYeuCauID?.HoTen ||
+                            yeuCau.NguoiYeuCauID?.Ten
+                          }
+                        />
+                        <Box>
+                          <Typography variant="body2" fontWeight="medium">
+                            {yeuCau.NguoiYeuCauID?.Ten}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {yeuCau.KhoaNguonID?.TenKhoa}
+                          </Typography>
+                        </Box>
+                        {isNguoiGui && (
+                          <Chip label="Bạn" size="small" color="primary" />
+                        )}
+                      </Box>
+                    </Box>
+
+                    {/* Người nhận / Người xử lý */}
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        {yeuCau.NguoiXuLyID ? "Người xử lý" : "Khoa tiếp nhận"}
+                      </Typography>
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
+                        {yeuCau.NguoiXuLyID?._id || yeuCau.NguoiXuLyID ? (
+                          <EmployeeAvatar
+                            size="sm"
+                            nhanVienId={
+                              yeuCau.NguoiXuLyID?._id || yeuCau.NguoiXuLyID
+                            }
+                            name={
+                              yeuCau.NguoiXuLyID?.HoTen ||
+                              yeuCau.NguoiXuLyID?.Ten
+                            }
+                          />
+                        ) : (
+                          <Avatar sx={{ width: 32, height: 32 }}>
+                            <PersonIcon fontSize="small" />
+                          </Avatar>
+                        )}
+                        <Box>
+                          <Typography variant="body2" fontWeight="medium">
+                            {yeuCau.NguoiXuLyID?.Ten
+                              ? yeuCau.NguoiXuLyID.Ten
+                              : yeuCau.KhoaDichID?.TenKhoa}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {yeuCau.KhoaDichID?.TenKhoa}
+                          </Typography>
+                        </Box>
+                        {isNguoiXuLy && (
+                          <Chip label="Bạn" size="small" color="secondary" />
+                        )}
+                      </Box>
+                    </Box>
+
+                    <Divider />
+
+                    {/* Thống kê thời gian */}
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Thời gian
+                      </Typography>
+                      <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+                        <Typography variant="body2">
+                          Tạo: {formatDateTime(yeuCau.createdAt)}
+                        </Typography>
+                        {yeuCau.NgayTiepNhan && (
+                          <Typography variant="body2">
+                            Tiếp nhận: {formatDateTime(yeuCau.NgayTiepNhan)}
+                          </Typography>
+                        )}
+                        {yeuCau.NgayHoanThanh && (
+                          <Typography variant="body2">
+                            Hoàn thành: {formatDateTime(yeuCau.NgayHoanThanh)}
+                          </Typography>
+                        )}
+                        {yeuCau.NgayDong && (
+                          <Typography variant="body2">
+                            Đóng: {formatDateTime(yeuCau.NgayDong)}
+                          </Typography>
+                        )}
+                      </Stack>
+                    </Box>
+                  </Stack>
+                </CardContent>
+              </Card>
+
+              {/* ✅ NEW: Routine Task Assignment Card */}
+              {canAssignRoutineTask && (
+                <Card sx={{ mb: 3 }}>
+                  <CardHeader
+                    title="Nhiệm vụ thường quy"
+                    titleTypographyProps={{ variant: "h6" }}
+                  />
+                  <Divider />
+                  <CardContent>
+                    <RoutineTaskCompactButton
+                      congViecDetail={{
+                        ...yeuCau,
+                        _id: yeuCau._id,
+                        NhiemVuThuongQuyID: yeuCau.NhiemVuThuongQuyID,
+                        FlagNVTQKhac: yeuCau.LaNhiemVuKhac,
+                        updatedAt: yeuCau.updatedAt,
                       }}
-                    >
-                      {formatDateTime(it.ThoiGian)} •{" "}
-                      {getTenNguoi(it.NguoiThucHienID)}
-                      {" • "}
-                      {getEnhancedDescription(it)}
-                      {it?.GhiChu ? ` — ${it.GhiChu}` : ""}
-                    </MuiTypography>
-                  ))}
-                </Stack>
-              ) : (
-                <MuiTypography variant="caption" color="text.secondary">
-                  Chưa có lịch sử
-                </MuiTypography>
+                      myRoutineTasks={myRoutineTasks}
+                      loadingRoutineTasks={loadingRoutineTasks}
+                      myRoutineTasksError={null}
+                      isMain={true}
+                      handleSelectRoutine={handleAssignRoutineTask}
+                      dispatch={dispatch}
+                      fetchMyRoutineTasks={fetchMyRoutineTasks}
+                      embedded={true}
+                      availableCycles={availableCycles}
+                      selectedCycleId={selectedCycleId}
+                      onCycleChange={handleCycleChange}
+                      loadingCycles={loadingCycles}
+                    />
+                  </CardContent>
+                </Card>
               )}
-            </Stack>
-          </AccordionSummary>
-          <AccordionDetails sx={{ px: 2, pb: 2 }}>
-            <Divider sx={{ mb: 2 }} />
-            <YeuCauTimeline lichSu={lichSuList} loading={lichSuLoading} />
-          </AccordionDetails>
-        </Accordion>
-      </Card>
+            </Grid>
+          </Grid>
 
-      {/* Edit Dialog */}
-      <YeuCauFormDialog
-        open={openEditDialog}
-        onClose={() => setOpenEditDialog(false)}
-        yeuCau={yeuCau}
-        onSubmit={handleUpdateSuccess}
-        mode="edit"
-      />
+          {/* Lịch sử xử lý - chiếm full width */}
+          <Card sx={{ mt: 3 }}>
+            <Accordion defaultExpanded={false} disableGutters elevation={0}>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  px: 2,
+                  py: 1,
+                  "& .MuiAccordionSummary-content": { my: 0 },
+                }}
+              >
+                <Stack spacing={0.25} sx={{ width: "100%" }}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
+                    <Typography variant="subtitle1">Lịch sử xử lý</Typography>
+                    <MuiTypography variant="caption" color="text.secondary">
+                      {lichSuList?.length || 0} mục
+                    </MuiTypography>
+                  </Stack>
 
-      {/* Đánh giá Dialog */}
-      <StarRatingDialog
-        open={openDanhGiaDialog}
-        onClose={() => setOpenDanhGiaDialog(false)}
-        onSubmit={handleDanhGia}
-        loading={actionLoading}
-        title="Đánh giá yêu cầu"
-      />
+                  {latestHistoryItems.length > 0 ? (
+                    <Stack spacing={0.25}>
+                      {latestHistoryItems.map((it, idx) => (
+                        <MuiTypography
+                          key={it._id || idx}
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                          }}
+                        >
+                          {formatDateTime(it.ThoiGian)} •{" "}
+                          {getTenNguoi(it.NguoiThucHienID)}
+                          {" • "}
+                          {getEnhancedDescription(it)}
+                          {it?.GhiChu ? ` — ${it.GhiChu}` : ""}
+                        </MuiTypography>
+                      ))}
+                    </Stack>
+                  ) : (
+                    <MuiTypography variant="caption" color="text.secondary">
+                      Chưa có lịch sử
+                    </MuiTypography>
+                  )}
+                </Stack>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 2, pb: 2 }}>
+                <Divider sx={{ mb: 2 }} />
+                <YeuCauTimeline lichSu={lichSuList} loading={lichSuLoading} />
+              </AccordionDetails>
+            </Accordion>
+          </Card>
 
-      {/* Điều phối Dialog */}
-      <DieuPhoiDialog
-        open={openDieuPhoiDialog}
-        onClose={() => setOpenDieuPhoiDialog(false)}
-        onSubmit={handleDieuPhoi}
-        nhanVienList={nhanVienList}
-        loading={actionLoading}
-        yeuCau={yeuCau}
-      />
-
-      {/* Từ chối Dialog */}
-      <TuChoiDialog
-        open={openTuChoiDialog}
-        onClose={() => setOpenTuChoiDialog(false)}
-        onSubmit={handleTuChoi}
-        loading={actionLoading}
-        yeuCau={yeuCau}
-        lyDoList={lyDoTuChoiList}
-      />
-
-      {/* Tiếp nhận Dialog */}
-      <TiepNhanDialog
-        open={openTiepNhanDialog}
-        onClose={() => setOpenTiepNhanDialog(false)}
-        onSubmit={handleTiepNhan}
-        loading={actionLoading}
-        yeuCau={yeuCau}
-      />
-
-      {/* Mở lại Dialog */}
-      <MoLaiDialog
-        open={openMoLaiDialog}
-        onClose={() => setOpenMoLaiDialog(false)}
-        onSubmit={handleMoLai}
-        loading={actionLoading}
-        yeuCau={yeuCau}
-      />
-
-      {/* Khiếu nại Dialog */}
-      <AppealDialog
-        open={openAppealDialog}
-        onClose={() => setOpenAppealDialog(false)}
-        onSubmit={handleAppeal}
-        loading={actionLoading}
-        yeuCau={yeuCau}
-      />
-
-      {/* Confirm Dialog */}
-      <Dialog
-        open={openConfirmDialog}
-        onClose={() => setOpenConfirmDialog(false)}
-      >
-        <DialogTitle>{confirmAction?.title || "Xác nhận"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {confirmAction?.message ||
-              "Bạn có chắc chắn muốn thực hiện hành động này?"}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenConfirmDialog(false)}>Hủy</Button>
-          <Button
-            onClick={handleConfirmAction}
-            color={
-              confirmAction?.action === HANH_DONG.XOA ? "error" : "primary"
-            }
-            variant="contained"
-          >
-            Xác nhận
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Đổi thời gian hẹn Dialog */}
-      <Dialog
-        open={openThoiGianHenDialog}
-        onClose={() => setOpenThoiGianHenDialog(false)}
-      >
-        <DialogTitle>Đổi thời gian hẹn</DialogTitle>
-        <DialogContent>
-          <TextField
-            type="datetime-local"
-            value={thoiGianHenMoi}
-            onChange={(e) => setThoiGianHenMoi(e.target.value)}
-            fullWidth
-            sx={{ mt: 2 }}
-            InputLabelProps={{ shrink: true }}
-            label="Thời gian hẹn mới"
+          {/* Edit Dialog */}
+          <YeuCauFormDialog
+            open={openEditDialog}
+            onClose={() => setOpenEditDialog(false)}
+            yeuCau={yeuCau}
+            onSubmit={handleUpdateSuccess}
+            mode="edit"
           />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenThoiGianHenDialog(false)}>Hủy</Button>
-          <Button
-            onClick={handleDoiThoiGianHen}
-            color="primary"
-            variant="contained"
-            disabled={!thoiGianHenMoi}
+
+          {/* Đánh giá Dialog */}
+          <StarRatingDialog
+            open={openDanhGiaDialog}
+            onClose={() => setOpenDanhGiaDialog(false)}
+            onSubmit={handleDanhGia}
+            loading={actionLoading}
+            title="Đánh giá yêu cầu"
+          />
+
+          {/* Điều phối Dialog */}
+          <DieuPhoiDialog
+            open={openDieuPhoiDialog}
+            onClose={() => setOpenDieuPhoiDialog(false)}
+            onSubmit={handleDieuPhoi}
+            nhanVienList={nhanVienList}
+            loading={actionLoading}
+            yeuCau={yeuCau}
+          />
+
+          {/* Từ chối Dialog */}
+          <TuChoiDialog
+            open={openTuChoiDialog}
+            onClose={() => setOpenTuChoiDialog(false)}
+            onSubmit={handleTuChoi}
+            loading={actionLoading}
+            yeuCau={yeuCau}
+            lyDoList={lyDoTuChoiList}
+          />
+
+          {/* Tiếp nhận Dialog */}
+          <TiepNhanDialog
+            open={openTiepNhanDialog}
+            onClose={() => setOpenTiepNhanDialog(false)}
+            onSubmit={handleTiepNhan}
+            loading={actionLoading}
+            yeuCau={yeuCau}
+          />
+
+          {/* Mở lại Dialog */}
+          <MoLaiDialog
+            open={openMoLaiDialog}
+            onClose={() => setOpenMoLaiDialog(false)}
+            onSubmit={handleMoLai}
+            loading={actionLoading}
+            yeuCau={yeuCau}
+          />
+
+          {/* Khiếu nại Dialog */}
+          <AppealDialog
+            open={openAppealDialog}
+            onClose={() => setOpenAppealDialog(false)}
+            onSubmit={handleAppeal}
+            loading={actionLoading}
+            yeuCau={yeuCau}
+          />
+
+          {/* Confirm Dialog */}
+          <Dialog
+            open={openConfirmDialog}
+            onClose={() => setOpenConfirmDialog(false)}
           >
-            Cập nhật
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <DialogTitle>{confirmAction?.title || "Xác nhận"}</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                {confirmAction?.message ||
+                  "Bạn có chắc chắn muốn thực hiện hành động này?"}
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenConfirmDialog(false)}>Hủy</Button>
+              <Button
+                onClick={handleConfirmAction}
+                color={
+                  confirmAction?.action === HANH_DONG.XOA ? "error" : "primary"
+                }
+                variant="contained"
+              >
+                Xác nhận
+              </Button>
+            </DialogActions>
+          </Dialog>
 
-      {/* Gửi về khoa Dialog */}
-      <GuiVeKhoaDialog
-        open={openGuiVeKhoaDialog}
-        onClose={() => setOpenGuiVeKhoaDialog(false)}
-        onSubmit={handleGuiVeKhoa}
-        isLoading={actionLoading && currentAction === HANH_DONG.GUI_VE_KHOA}
-      />
+          {/* Đổi thời gian hẹn Dialog */}
+          <Dialog
+            open={openThoiGianHenDialog}
+            onClose={() => setOpenThoiGianHenDialog(false)}
+          >
+            <DialogTitle>Đổi thời gian hẹn</DialogTitle>
+            <DialogContent>
+              <TextField
+                type="datetime-local"
+                value={thoiGianHenMoi}
+                onChange={(e) => setThoiGianHenMoi(e.target.value)}
+                fullWidth
+                sx={{ mt: 2 }}
+                InputLabelProps={{ shrink: true }}
+                label="Thời gian hẹn mới"
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenThoiGianHenDialog(false)}>
+                Hủy
+              </Button>
+              <Button
+                onClick={handleDoiThoiGianHen}
+                color="primary"
+                variant="contained"
+                disabled={!thoiGianHenMoi}
+              >
+                Cập nhật
+              </Button>
+            </DialogActions>
+          </Dialog>
 
-      {/* Sticky Action Bar - Mobile Only */}
+          {/* Gửi về khoa Dialog */}
+          <GuiVeKhoaDialog
+            open={openGuiVeKhoaDialog}
+            onClose={() => setOpenGuiVeKhoaDialog(false)}
+            onSubmit={handleGuiVeKhoa}
+            isLoading={actionLoading && currentAction === HANH_DONG.GUI_VE_KHOA}
+          />
+
+          {/* Spacer for sticky action bar on mobile */}
+          {availableActions.length > 0 && (
+            <Box sx={{ display: { xs: "block", md: "none" }, height: 200 }} />
+          )}
+        </Container>
+      </PullToRefreshWrapper>
+
+      {/* Sticky Action Bar - Mobile Only (outside scroll container) */}
       {availableActions.length > 0 && (
         <Box
           sx={{
             position: "fixed",
-            bottom: 0,
+            bottom: 56, // Above bottom navigation (56px)
             left: 0,
             right: 0,
             bgcolor: "background.paper",
             borderTop: 1,
             borderColor: "divider",
             p: 2,
-            zIndex: 1000,
+            zIndex: theme.zIndex.appBar,
             display: { xs: "block", md: "none" }, // Only on mobile
             boxShadow: "0 -2px 10px rgba(0,0,0,0.1)",
+            pb: `calc(env(safe-area-inset-bottom) + 16px)`, // Safe area for notched devices
           }}
         >
           <YeuCauActionButtons
@@ -1019,12 +1058,7 @@ function YeuCauDetailPage() {
           />
         </Box>
       )}
-
-      {/* Spacer for sticky action bar on mobile */}
-      {availableActions.length > 0 && (
-        <Box sx={{ display: { xs: "block", md: "none" }, height: 200 }} />
-      )}
-    </Container>
+    </>
   );
 }
 

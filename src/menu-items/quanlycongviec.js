@@ -56,7 +56,7 @@ const quanlycongviec = {
       children: [
         {
           id: "dashboardcongviec",
-          title: "Dashboard Công Việc",
+          title: "📊 Dashboard Công Việc",
           type: "item",
           url: "/quanlycongviec/cong-viec-dashboard",
         },
@@ -130,6 +130,12 @@ const quanlycongviec = {
       type: "collapse",
       icon: icons.ticket,
       children: [
+        {
+          id: "dashboardyeucau",
+          title: "📊 Dashboard Yêu cầu",
+          type: "item",
+          url: "/quanlycongviec/yeu-cau-dashboard",
+        },
         {
           id: "yeucau-toi-gui",
           title: "Yêu cầu tôi gửi",

@@ -56,17 +56,14 @@ export default function SubtasksSection({
     if (parentId) dispatch(fetchSubtasks(parentId, { force: true }));
   };
 
-  // Fetch on open (initial & each reopen). Track previous open state.
-  const prevOpenRef = React.useRef(false);
+  // ✅ Fetch subtasks when parent ID is available (no 'open' dependency for page mode)
   React.useEffect(() => {
     if (!parentId) return;
-    const wasOpen = prevOpenRef.current;
-    if (open && !wasOpen) {
-      const force = !!subtasksState?.loaded; // if already loaded before, force refresh on reopen
-      dispatch(fetchSubtasks(parentId, force ? { force: true } : undefined));
+    // Only fetch if not already loaded or if this is first mount
+    if (!subtasksState?.loaded) {
+      dispatch(fetchSubtasks(parentId));
     }
-    prevOpenRef.current = open;
-  }, [open, parentId, subtasksState, dispatch]);
+  }, [parentId, subtasksState?.loaded, dispatch]);
 
   const handleOpenCreate = () => {
     setEditing(null);

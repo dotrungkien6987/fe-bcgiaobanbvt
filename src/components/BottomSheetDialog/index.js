@@ -3,6 +3,8 @@
  *
  * Desktop: Regular center modal (professional)
  * Mobile: Bottom sheet with swipe-to-dismiss (native feel)
+ *
+ * SHARED COMPONENT - Used across QuanLyCongViec module
  */
 import React from "react";
 import {
@@ -92,6 +94,7 @@ export default function BottomSheetDialog({
         "& .MuiDialogActions-root": {
           px: 3,
           py: 2,
+          pb: "calc(env(safe-area-inset-bottom, 0px) + 16px)", // 👈 Safe area padding with fallback
           flexDirection: "column",
           gap: 1,
         },

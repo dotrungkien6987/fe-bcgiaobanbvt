@@ -1,8 +1,19 @@
 # Phase 4: Gesture Components
 
-**Thời gian:** 8 giờ  
+**Thời gian:** 5 giờ (revised from 8h - saved 3h)  
 **Ưu tiên:** 🟢 LOW  
-**Trạng thái:** ⏸️ Blocked by Phase 1, Phase 3
+**Trạng thái:** ⏸️ Blocked by Phase 1 ✅, Phase 3
+
+**⚠️ Revision Notes (15/01/2026):**
+
+- Task 4A.1 (PullToRefresh): **ALREADY EXISTS** - Only need to move to shared location (2h → 0.5h)
+- Task 4B: YeuCau already has PullToRefresh applied, only need CongViec (3h → 1.5h)
+- **Existing Implementation:** `src/features/QuanLyCongViec/Ticket/components/PullToRefreshWrapper.jsx`
+  - Full gesture system with resistance curve
+  - Mobile detection via useMobileLayout
+  - Haptic feedback support
+  - Already used in YeuCauDashboardPage
+- **Action Required:** Move to `src/components/gestures/PullToRefresh.js` and apply to CongViec module
 
 ---
 
@@ -40,20 +51,32 @@ Gestures:
 
 ---
 
-## 📋 Task Breakdown (8h)
+## 📋 Task Breakdown (5h - revised from 8h)
 
-## PHASE 4A: Core Gesture Components (5h)
+## PHASE 4A: Core Gesture Components (3.5h - revised from 5h)
 
-### Task 4A.1: Create PullToRefresh Component (2h)
+### Task 4A.1: Move Existing PullToRefresh Component (0.5h - revised from 2h)
 
-**File:** `src/components/gestures/PullToRefresh.js`
+**✅ EXISTING IMPLEMENTATION FOUND:** `src/features/QuanLyCongViec/Ticket/components/PullToRefreshWrapper.jsx`
 
-**Features:**
+**Current Features (Already Working):**
 
-- Detects pull-down gesture on scroll container
-- Shows refresh indicator with progress
-- Triggers onRefresh callback
-- Haptic feedback (if supported)
+- ✅ Detects pull-down gesture on scroll container
+- ✅ Shows refresh indicator with progress
+- ✅ Triggers onRefresh callback
+- ✅ Haptic feedback (if supported)
+- ✅ Resistance curve (DRAG_RESISTANCE = 3)
+- ✅ Mobile detection via useMobileLayout
+- ✅ Used in YeuCauDashboardPage
+
+**Action Required:**
+
+1. Move file from `Ticket/components/` to `src/components/gestures/PullToRefresh.js`
+2. Update import in YeuCauDashboardPage
+3. Test gesture still works after move
+4. Document component API for other modules
+
+**Target File:** `src/components/gestures/PullToRefresh.js`
 
 **Implementation:**
 
