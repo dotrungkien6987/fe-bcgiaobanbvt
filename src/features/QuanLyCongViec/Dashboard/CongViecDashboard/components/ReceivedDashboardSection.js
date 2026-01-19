@@ -21,10 +21,10 @@ import {
   Button,
 } from "@mui/material";
 import { Receive, Task, Clock, TickCircle, ArrowRight } from "iconsax-react";
+import { StatusGridSkeleton } from "components/SkeletonLoader";
 
 // Import shared components
 import StatusCardItem from "./shared/StatusCardItem";
-import StatusGridSkeleton from "./shared/StatusGridSkeleton";
 
 /**
  * Main Component
