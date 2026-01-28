@@ -33,13 +33,7 @@ import {
   Box,
   Slide,
 } from "@mui/material";
-import {
-  Home,
-  Task,
-  Notification,
-  Category,
-  Menu as MenuIcon,
-} from "iconsax-react";
+import { Home, Task, Medal, Category, Menu as MenuIcon } from "iconsax-react";
 import { Close as CloseIcon } from "@mui/icons-material";
 import { useSelector } from "react-redux";
 import { MenuGridPage } from "features/WorkDashboard/components";
@@ -78,11 +72,11 @@ const NAV_ITEMS = [
     badge: "yeuCauCount", // Redux state path for badge count
   },
   {
-    label: "Thông báo",
-    path: "/quanlycongviec/thong-bao",
-    icon: Notification,
-    matcher: (pathname) => pathname.startsWith("/quanlycongviec/thong-bao"),
-    badge: "notificationCount",
+    label: "KPI",
+    path: "/quanlycongviec/kpi",
+    icon: Medal,
+    matcher: (pathname) => pathname.startsWith("/quanlycongviec/kpi"),
+    // badge: "kpiPendingCount", // TODO: Add KPI badge counter
   },
   {
     label: "Menu",
@@ -103,7 +97,7 @@ function MobileBottomNav() {
   // Badge counts from Redux
   const yeuCauBadges = useSelector((state) => state.ticket?.badgeCounts);
   const notificationCount = useSelector(
-    (state) => state.notification?.unreadCount || 0
+    (state) => state.notification?.unreadCount || 0,
   );
 
   // Calculate badge values

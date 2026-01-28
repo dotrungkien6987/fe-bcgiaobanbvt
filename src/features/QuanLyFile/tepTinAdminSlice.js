@@ -11,6 +11,12 @@ const initialState = {
   total: 0,
   stats: null,
   tree: null,
+  // Orphaned files management
+  orphanedFiles: [],
+  orphanedTotal: 0,
+  orphanedTotalSize: 0,
+  // Storage stats
+  storageStats: null,
 };
 
 const slice = createSlice({
@@ -48,6 +54,22 @@ const slice = createSlice({
     },
     removeOne(state, action) {
       state.items = state.items.filter((x) => x._id !== action.payload);
+    },
+    orphanedSuccess(state, action) {
+      state.isLoading = false;
+      const { files, total, totalSize } = action.payload;
+      state.orphanedFiles = files || [];
+      state.orphanedTotal = total || 0;
+      state.orphanedTotalSize = totalSize || 0;
+    },
+    storageStatsSuccess(state, action) {
+      state.isLoading = false;
+      state.storageStats = action.payload;
+    },
+    clearOrphaned(state) {
+      state.orphanedFiles = [];
+      state.orphanedTotal = 0;
+      state.orphanedTotalSize = 0;
     },
   },
 });
@@ -92,7 +114,7 @@ export const getTree =
 export const restoreFile = (id) => async (dispatch) => {
   try {
     const res = await apiService.patch(
-      `/workmanagement/admin/files/${id}/restore`
+      `/workmanagement/admin/files/${id}/restore`,
     );
     dispatch(slice.actions.updateOne(res.data.data));
     toast.success("Phục hồi tệp thành công");
@@ -133,16 +155,70 @@ export const cleanup =
       const res = await apiService.post(
         `/workmanagement/admin/files/cleanup`,
         null,
-        { params: { fix: fix ? 1 : 0 } }
+        { params: { fix: fix ? 1 : 0 } },
       );
       const d = res.data && res.data.data;
       toast.info(
         `Cleanup: total=${d?.total || 0}, missing=${
           d?.missingOnDisk || 0
-        }, marked=${d?.markedDeleted || 0}`
+        }, marked=${d?.markedDeleted || 0}`,
       );
     } catch (e) {
       toast.error(e.message);
       throw e;
     }
   };
+
+// =============== ORPHANED FILES ===============
+
+export const getOrphanedFiles =
+  (params = {}) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const res = await apiService.get("/workmanagement/admin/files/orphaned", {
+        params,
+      });
+      dispatch(slice.actions.orphanedSuccess(res.data.data));
+      return res.data.data;
+    } catch (e) {
+      dispatch(slice.actions.hasError(e.message));
+      toast.error(e.message);
+    }
+  };
+
+export const deleteOrphanedFiles = (data) => async (dispatch) => {
+  dispatch(slice.actions.startLoading());
+  try {
+    const res = await apiService.post(
+      "/workmanagement/admin/files/orphaned/delete",
+      data,
+    );
+    const result = res.data.data;
+    toast.success(
+      `Đã xóa ${result.deleted} files, giải phóng ${result.freedSpaceMB} MB`,
+    );
+    dispatch(slice.actions.clearOrphaned());
+    return result;
+  } catch (e) {
+    dispatch(slice.actions.hasError(e.message));
+    toast.error(e.message);
+    throw e;
+  }
+};
+
+// =============== STORAGE STATS ===============
+
+export const getStorageStats = () => async (dispatch) => {
+  dispatch(slice.actions.startLoading());
+  try {
+    const res = await apiService.get(
+      "/workmanagement/admin/files/storage-stats",
+    );
+    dispatch(slice.actions.storageStatsSuccess(res.data.data));
+    return res.data.data;
+  } catch (e) {
+    dispatch(slice.actions.hasError(e.message));
+    toast.error(e.message);
+  }
+};

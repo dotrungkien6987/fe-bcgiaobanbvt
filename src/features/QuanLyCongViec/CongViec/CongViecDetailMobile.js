@@ -79,6 +79,7 @@ import ProgressEditDialog from "./components/ProgressEditDialog";
 import VersionConflictNotice from "./components/VersionConflictNotice";
 import CongViecTreeDialog from "../TreeView/CongViecTreeDialog";
 import RoutineTaskCompactButton from "./components/RoutineTaskCompactButton";
+import SwipeableViews from "react-swipeable-views";
 
 dayjs.extend(relativeTime);
 
@@ -739,15 +740,15 @@ const CongViecDetailMobile = () => {
         </Tabs>
       </Paper>
 
-      {/* 📄 Tab Content */}
+      {/* 📄 Tab Content with SwipeableViews */}
       <Box
         sx={{
           flex: 1,
-          overflow: "auto",
+          overflow: "hidden",
           pb:
             availableActions.length > 0
               ? "calc(80px + env(safe-area-inset-bottom))"
-              : 2,
+              : 1,
         }}
       >
         {loading ? (
@@ -755,229 +756,238 @@ const CongViecDetailMobile = () => {
             <Typography>Đang tải...</Typography>
           </Box>
         ) : error ? (
-          <Box sx={{ textAlign: "center", py: 4, px: 2 }}>
+          <Box sx={{ textAlign: "center", py: 4, px: 1 }}>
             <Typography color="error">Có lỗi xảy ra: {error}</Typography>
           </Box>
         ) : (
-          <>
+          <SwipeableViews
+            index={activeTab}
+            onChangeIndex={(index) => setActiveTab(index)}
+            resistance
+            style={{ height: "100%" }}
+            containerStyle={{ height: "100%" }}
+          >
             {/* Tab 0: Thông tin */}
-            {activeTab === 0 && (
-              <Box sx={{ px: 2, py: 2 }}>
-                <TaskMainContent
-                  congViec={congViec}
-                  theme={theme}
-                  newComment={newComment}
-                  setNewComment={setNewComment}
-                  pendingFiles={pendingFiles}
-                  setPendingFiles={setPendingFiles}
-                  dragCommentActive={dragCommentActive}
-                  setDragCommentActive={setDragCommentActive}
-                  handleAddComment={handleAddComment}
-                  submittingComment={submittingComment}
-                  user={user}
-                  congViecId={congViecId}
-                  dispatch={dispatch}
-                  recallComment={recallComment}
-                  recallCommentText={recallCommentText}
-                  deleteFileThunk={deleteFileThunk}
-                  markCommentFileDeleted={markCommentFileDeleted}
-                  fetchReplies={fetchReplies}
-                  addReply={addReply}
-                  createCommentWithFiles={createCommentWithFiles}
-                  repliesByParent={repliesByParent}
-                  initialReplyCounts={initialReplyCounts}
-                  handleViewFile={handleViewFile}
-                  handleDownloadFile={handleDownloadFile}
-                  formatDateTime={formatDateTime}
-                />
+            <Box sx={{ px: 1, py: 1.5, height: "100%", overflow: "auto" }}>
+              <TaskMainContent
+                congViec={congViec}
+                theme={theme}
+                newComment={newComment}
+                setNewComment={setNewComment}
+                pendingFiles={pendingFiles}
+                setPendingFiles={setPendingFiles}
+                dragCommentActive={dragCommentActive}
+                setDragCommentActive={setDragCommentActive}
+                handleAddComment={handleAddComment}
+                submittingComment={submittingComment}
+                user={user}
+                congViecId={congViecId}
+                dispatch={dispatch}
+                recallComment={recallComment}
+                recallCommentText={recallCommentText}
+                deleteFileThunk={deleteFileThunk}
+                markCommentFileDeleted={markCommentFileDeleted}
+                fetchReplies={fetchReplies}
+                addReply={addReply}
+                createCommentWithFiles={createCommentWithFiles}
+                repliesByParent={repliesByParent}
+                initialReplyCounts={initialReplyCounts}
+                handleViewFile={handleViewFile}
+                handleDownloadFile={handleDownloadFile}
+                formatDateTime={formatDateTime}
+              />
 
-                {/* Deadline Status Chips */}
-                {dueChips.length > 0 && (
-                  <Paper sx={{ mt: 2, p: 2 }}>
-                    <Typography
-                      variant="subtitle2"
-                      gutterBottom
-                      sx={{ fontWeight: 600 }}
-                    >
-                      ⏰ Tình trạng deadline
-                    </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
-                      {dueChips.map((chip) => (
-                        <Chip
-                          key={chip.key}
-                          label={chip.label}
-                          size="small"
-                          sx={{
-                            bgcolor: chip.color,
-                            color: "white",
-                            fontWeight: 600,
-                            mb: 1,
-                          }}
-                        />
-                      ))}
-                    </Stack>
-                  </Paper>
-                )}
-
-                {/* Metadata Section */}
-                <Paper sx={{ mt: 2, p: 2 }}>
+              {/* Deadline Status Chips */}
+              {dueChips.length > 0 && (
+                <Paper sx={{ mt: 1.5, px: 1.5, py: 1 }}>
                   <Typography
                     variant="subtitle2"
-                    gutterBottom
-                    sx={{ fontWeight: 600 }}
+                    sx={{ fontWeight: 600, mb: 0.75, fontSize: "0.8125rem" }}
                   >
-                    Thông tin chung
+                    ⏰ Tình trạng deadline
                   </Typography>
-                  <List dense>
-                    <ListItem>
-                      <ListItemText
-                        primary="Người giao việc"
-                        secondary={
-                          congViec.NguoiGiaoViecID?.Ten ||
-                          congViec.NguoiGiaoViecID?.HoTen ||
-                          "N/A"
-                        }
+                  <Stack direction="row" spacing={0.75} flexWrap="wrap">
+                    {dueChips.map((chip) => (
+                      <Chip
+                        key={chip.key}
+                        label={chip.label}
+                        size="small"
+                        sx={{
+                          bgcolor: chip.color,
+                          color: "white",
+                          fontWeight: 600,
+                          mb: 0.75,
+                          height: 24,
+                        }}
                       />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemText
-                        primary="Người thực hiện"
-                        secondary={
-                          congViec.NguoiChinhID?.Ten ||
-                          congViec.NguoiChinhID?.HoTen ||
-                          "N/A"
-                        }
-                      />
-                    </ListItem>
-                    {congViec.NgayBatDau && (
-                      <ListItem>
-                        <ListItemText
-                          primary="Ngày bắt đầu"
-                          secondary={dayjs(congViec.NgayBatDau).format(
-                            "DD/MM/YYYY HH:mm"
-                          )}
-                        />
-                      </ListItem>
-                    )}
-                    {congViec.NgayHetHan && (
-                      <ListItem>
-                        <ListItemText
-                          primary="Hạn hoàn thành"
-                          secondary={dayjs(congViec.NgayHetHan).format(
-                            "DD/MM/YYYY HH:mm"
-                          )}
-                        />
-                      </ListItem>
-                    )}
-                  </List>
+                    ))}
+                  </Stack>
                 </Paper>
+              )}
 
-                {/* Routine Task Selector */}
-                {isMain && (
-                  <Box sx={{ mt: 2 }}>
-                    <RoutineTaskCompactButton
-                      congViecDetail={congViecDetail}
-                      myRoutineTasks={myRoutineTasks}
-                      loadingRoutineTasks={loadingRoutineTasks}
-                      myRoutineTasksError={myRoutineTasksError}
-                      isMain={isMain}
-                      handleSelectRoutine={handleSelectRoutine}
-                      dispatch={dispatch}
-                      fetchMyRoutineTasks={fetchMyRoutineTasks}
-                      availableCycles={availableCycles}
-                      selectedCycleId={selectedCycleId}
-                      onCycleChange={handleCycleChange}
-                      loadingCycles={loadingCycles}
+              {/* Metadata Section - Compact */}
+              <Paper sx={{ mt: 1.5, p: 0 }}>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 600,
+                    px: 1.5,
+                    pt: 1,
+                    pb: 0.5,
+                    fontSize: "0.8125rem",
+                  }}
+                >
+                  Thông tin chung
+                </Typography>
+                <List dense disablePadding>
+                  <ListItem sx={{ py: 0.5, px: 1.5 }}>
+                    <ListItemText
+                      primary="Người giao việc"
+                      secondary={
+                        congViec.NguoiGiaoViecID?.Ten ||
+                        congViec.NguoiGiaoViecID?.HoTen ||
+                        "N/A"
+                      }
+                      primaryTypographyProps={{ variant: "body2" }}
+                      secondaryTypographyProps={{ variant: "caption" }}
                     />
-                  </Box>
-                )}
-              </Box>
-            )}
+                  </ListItem>
+                  <ListItem sx={{ py: 0.5, px: 1.5 }}>
+                    <ListItemText
+                      primary="Người thực hiện"
+                      secondary={
+                        congViec.NguoiChinhID?.Ten ||
+                        congViec.NguoiChinhID?.HoTen ||
+                        "N/A"
+                      }
+                      primaryTypographyProps={{ variant: "body2" }}
+                      secondaryTypographyProps={{ variant: "caption" }}
+                    />
+                  </ListItem>
+                  {congViec.NgayBatDau && (
+                    <ListItem sx={{ py: 0.5, px: 1.5 }}>
+                      <ListItemText
+                        primary="Ngày bắt đầu"
+                        secondary={dayjs(congViec.NgayBatDau).format(
+                          "DD/MM/YYYY HH:mm"
+                        )}
+                        primaryTypographyProps={{ variant: "body2" }}
+                        secondaryTypographyProps={{ variant: "caption" }}
+                      />
+                    </ListItem>
+                  )}
+                  {congViec.NgayHetHan && (
+                    <ListItem sx={{ py: 0.5, px: 1.5 }}>
+                      <ListItemText
+                        primary="Hạn hoàn thành"
+                        secondary={dayjs(congViec.NgayHetHan).format(
+                          "DD/MM/YYYY HH:mm"
+                        )}
+                        primaryTypographyProps={{ variant: "body2" }}
+                        secondaryTypographyProps={{ variant: "caption" }}
+                      />
+                    </ListItem>
+                  )}
+                </List>
+              </Paper>
+
+              {/* Routine Task Selector */}
+              {isMain && (
+                <Box sx={{ mt: 1.5 }}>
+                  <RoutineTaskCompactButton
+                    congViecDetail={congViecDetail}
+                    myRoutineTasks={myRoutineTasks}
+                    loadingRoutineTasks={loadingRoutineTasks}
+                    myRoutineTasksError={myRoutineTasksError}
+                    isMain={isMain}
+                    handleSelectRoutine={handleSelectRoutine}
+                    dispatch={dispatch}
+                    fetchMyRoutineTasks={fetchMyRoutineTasks}
+                    availableCycles={availableCycles}
+                    selectedCycleId={selectedCycleId}
+                    onCycleChange={handleCycleChange}
+                    loadingCycles={loadingCycles}
+                  />
+                </Box>
+              )}
+            </Box>
 
             {/* Tab 1: Bình luận */}
-            {activeTab === 1 && (
-              <Box sx={{ px: 2, py: 2 }}>
-                <CommentsSection
-                  congViec={congViec}
-                  theme={theme}
-                  newComment={newComment}
-                  setNewComment={setNewComment}
-                  pendingFiles={pendingFiles}
-                  setPendingFiles={setPendingFiles}
-                  dragCommentActive={dragCommentActive}
-                  setDragCommentActive={setDragCommentActive}
-                  handleAddComment={handleAddComment}
-                  submittingComment={submittingComment}
-                  user={user}
-                  congViecId={congViecId}
-                  dispatch={dispatch}
-                  recallComment={recallComment}
-                  recallCommentText={recallCommentText}
-                  deleteFileThunk={deleteFileThunk}
-                  markCommentFileDeleted={markCommentFileDeleted}
-                  fetchReplies={fetchReplies}
-                  addReply={addReply}
-                  createCommentWithFiles={createCommentWithFiles}
-                  repliesByParent={repliesByParent}
-                  initialReplyCounts={initialReplyCounts}
-                  handleViewFile={handleViewFile}
-                  handleDownloadFile={handleDownloadFile}
-                  formatDateTime={formatDateTime}
-                />
-              </Box>
-            )}
+            <Box sx={{ px: 1, py: 1.5, height: "100%", overflow: "auto" }}>
+              <CommentsSection
+                congViec={congViec}
+                theme={theme}
+                newComment={newComment}
+                setNewComment={setNewComment}
+                pendingFiles={pendingFiles}
+                setPendingFiles={setPendingFiles}
+                dragCommentActive={dragCommentActive}
+                setDragCommentActive={setDragCommentActive}
+                handleAddComment={handleAddComment}
+                submittingComment={submittingComment}
+                user={user}
+                congViecId={congViecId}
+                dispatch={dispatch}
+                recallComment={recallComment}
+                recallCommentText={recallCommentText}
+                deleteFileThunk={deleteFileThunk}
+                markCommentFileDeleted={markCommentFileDeleted}
+                fetchReplies={fetchReplies}
+                addReply={addReply}
+                createCommentWithFiles={createCommentWithFiles}
+                repliesByParent={repliesByParent}
+                initialReplyCounts={initialReplyCounts}
+                handleViewFile={handleViewFile}
+                handleDownloadFile={handleDownloadFile}
+                formatDateTime={formatDateTime}
+              />
+            </Box>
 
-            {/* Tab 2: Tệp tin */}
-            {activeTab === 2 && (
-              <Box sx={{ px: 2, py: 2 }}>
-                <TaskSidebarPanel
-                  theme={theme}
-                  dragSidebarActive={dragSidebarActive}
-                  setDragSidebarActive={setDragSidebarActive}
-                  fileCount={fileCount}
-                  filesState={filesState}
-                  uploadFilesForTask={uploadFilesForTask}
-                  congViecId={congViecId}
-                  dispatch={dispatch}
-                  handleViewFile={handleViewFile}
-                  handleDownloadFile={handleDownloadFile}
-                  deleteFileThunk={deleteFileThunk}
-                  congViec={congViec}
-                  extDue={extDue}
-                  cooperators={cooperators}
-                  handleSidebarDragOver={handleSidebarDragOver}
-                  handleSidebarDragEnter={handleSidebarDragEnter}
-                  handleSidebarDragLeave={handleSidebarDragLeave}
-                  handleSidebarDrop={handleSidebarDrop}
-                  handleSidebarPaste={handleSidebarPaste}
-                />
-              </Box>
-            )}
+            {/* Tab 2: Tệp tin - Full width */}
+            <Box sx={{ px: 0, py: 0, height: "100%", overflow: "auto" }}>
+              <TaskSidebarPanel
+                theme={theme}
+                dragSidebarActive={dragSidebarActive}
+                setDragSidebarActive={setDragSidebarActive}
+                fileCount={fileCount}
+                filesState={filesState}
+                uploadFilesForTask={uploadFilesForTask}
+                congViecId={congViecId}
+                dispatch={dispatch}
+                handleViewFile={handleViewFile}
+                handleDownloadFile={handleDownloadFile}
+                deleteFileThunk={deleteFileThunk}
+                congViec={congViec}
+                extDue={extDue}
+                cooperators={cooperators}
+                handleSidebarDragOver={handleSidebarDragOver}
+                handleSidebarDragEnter={handleSidebarDragEnter}
+                handleSidebarDragLeave={handleSidebarDragLeave}
+                handleSidebarDrop={handleSidebarDrop}
+                handleSidebarPaste={handleSidebarPaste}
+              />
+            </Box>
 
-            {/* Tab 3: Công việc con */}
-            {activeTab === 3 && (
-              <Box sx={{ px: 2, py: 2 }}>
-                <SubtasksSection
-                  parent={congViec}
-                  isMain={isMain}
-                  currentUserRole={currentUserRole}
-                  currentUserNhanVienId={currentUserNhanVienId}
-                  onOpenTree={handleOpenTree}
-                />
-              </Box>
-            )}
+            {/* Tab 3: Công việc con - Full width */}
+            <Box sx={{ px: 0, py: 0, height: "100%", overflow: "auto" }}>
+              <SubtasksSection
+                parent={congViec}
+                isMain={isMain}
+                currentUserRole={currentUserRole}
+                currentUserNhanVienId={currentUserNhanVienId}
+                onOpenTree={handleOpenTree}
+              />
+            </Box>
 
             {/* Tab 4: Lịch sử */}
-            {activeTab === 4 && (
-              <Box sx={{ px: 2, py: 2 }}>
-                <HistorySection
-                  congViecDetail={congViecDetail}
-                  congViecId={congViecId}
-                  theme={theme}
-                />
-              </Box>
-            )}
-          </>
+            <Box sx={{ px: 1, py: 1, height: "100%", overflow: "auto" }}>
+              <HistorySection
+                congViecDetail={congViecDetail}
+                congViecId={congViecId}
+                theme={theme}
+              />
+            </Box>
+          </SwipeableViews>
         )}
       </Box>
 

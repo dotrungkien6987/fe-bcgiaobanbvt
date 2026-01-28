@@ -51,6 +51,69 @@ Gestures:
 
 ---
 
+## 📁 Folder Structure (Mobile Components Organization)
+
+**Location:** `src/components/mobile/`
+
+```
+src/components/mobile/
+├── README.md                    ← Architecture documentation
+│
+├── gestures/                    ← Touch gesture components
+│   ├── index.js                 ← Export all gestures
+│   ├── PullToRefresh.js         ← Pull-down refresh (MOVE FROM PullToRefreshWrapper)
+│   ├── SwipeableCard.js         ← Swipe-to-reveal actions (NEW)
+│   ├── LongPressMenu.js         ← Long press context menu (NEW)
+│   └── __tests__/
+│       ├── PullToRefresh.test.js
+│       ├── SwipeableCard.test.js
+│       └── LongPressMenu.test.js
+│
+├── layout/                      ← Mobile layout components
+│   ├── index.js
+│   ├── MobileDetailLayout/      ← MOVE FROM src/components/
+│   ├── MobileBottomNav/         ← MOVE FROM src/components/
+│   └── MobilePageHeader.js
+│
+├── cards/                       ← Mobile-optimized cards (NEW)
+│   ├── index.js
+│   ├── BaseMobileCard.js
+│   ├── SwipeableMobileCard.js
+│   └── CompactCard.js
+│
+├── feedback/                    ← Loading, toasts, alerts
+│   ├── index.js
+│   ├── LoadingScreen.js         ← MOVE FROM src/components/
+│   ├── SkeletonLoader/          ← MOVE FROM src/components/
+│   ├── SplashScreen/            ← MOVE FROM src/components/
+│   └── MobileToast.js
+│
+└── utils/                       ← Mobile utility hooks (NEW)
+    ├── index.js
+    ├── useMobileGesture.js
+    ├── useMobileSafeArea.js
+    └── mobileDetection.js
+```
+
+**Rationale:**
+
+- ✅ Tập trung tất cả mobile code → Dễ maintain
+- ✅ Clear separation mobile vs desktop
+- ✅ Better code splitting & tree-shaking
+- ✅ Developers know exactly where to find mobile components
+
+**Migration Status:**
+
+- ⏳ Components to MOVE: PullToRefreshWrapper, MobileDetailLayout, MobileBottomNav, LoadingScreen, SkeletonLoader, SplashScreen
+- ⏳ Components to CREATE: SwipeableCard, LongPressMenu, cards/_, utils/_
+
+**Documentation:**
+
+- 📄 [mobile/README.md](../../src/components/mobile/README.md) - Architecture guide
+- 📄 [GESTURE_INTEGRATION_GUIDE.md](./GESTURE_INTEGRATION_GUIDE.md) - Usage guide
+
+---
+
 ## 📋 Task Breakdown (5h - revised from 8h)
 
 ## PHASE 4A: Core Gesture Components (3.5h - revised from 5h)

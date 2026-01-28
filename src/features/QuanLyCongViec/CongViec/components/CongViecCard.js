@@ -23,7 +23,9 @@ import {
   Schedule as ScheduleIcon,
   People as PeopleIcon,
   AccountTree as AccountTreeIcon,
+  OpenInNew as OpenInNewIcon,
 } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import EmployeeAvatar from "components/EmployeeAvatar";
 import {
@@ -63,6 +65,7 @@ function CongViecCard({
   showParticipants = false,
   showAssignee = false,
 }) {
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
 
@@ -92,6 +95,11 @@ function CongViecCard({
   const handleTreeView = () => {
     handleMenuClose();
     if (onTreeView) onTreeView(data._id);
+  };
+
+  const handleViewNewPage = () => {
+    handleMenuClose();
+    navigate(`/quanlycongviec/congviec/responsive/${data._id}`);
   };
 
   // Get deadline icon based on TinhTrangThoiHan
@@ -283,6 +291,10 @@ function CongViecCard({
         <MenuItem onClick={handleView}>
           <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
           Xem chi tiết
+        </MenuItem>
+        <MenuItem onClick={handleViewNewPage}>
+          <OpenInNewIcon fontSize="small" sx={{ mr: 1 }} color="secondary" />
+          Xem Page mới
         </MenuItem>
         {onTreeView && (
           <MenuItem onClick={handleTreeView}>

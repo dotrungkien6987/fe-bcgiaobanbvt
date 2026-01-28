@@ -98,7 +98,12 @@ import DoanVaoDetailPage from "features/NghienCuuKhoaHoc/DoanVao/DoanVaoDetailPa
 import DoanRaMembersPage from "features/NghienCuuKhoaHoc/Members/DoanRaMembersPage";
 import DoanVaoMembersPage from "features/NghienCuuKhoaHoc/Members/DoanVaoMembersPage";
 import TepTinAdminPage from "features/QuanLyFile/pages/TepTinAdminPage";
-import { XemKPIPage, BaoCaoKPIPage } from "features/QuanLyCongViec/KPI/pages";
+import {
+  XemKPIPage,
+  BaoCaoKPIPage,
+  ChamDiemKPIResponsive,
+  KPIHubPage,
+} from "features/QuanLyCongViec/KPI/pages";
 import KPIEvaluationPage from "features/QuanLyCongViec/KPI/pages/KPIEvaluationPage";
 import TuDanhGiaKPIPage from "features/QuanLyCongViec/KPI/pages/TuDanhGiaKPIPage";
 import {
@@ -359,12 +364,18 @@ function Router() {
 
             {/* KPI */}
             <Route path="kpi">
-              <Route index element={<Navigate to="xem" replace />} />
+              <Route index element={<Navigate to="hub" replace />} />
+              <Route path="hub" element={<KPIHubPage />} />
               <Route path="xem" element={<XemKPIPage />} />
               <Route path="tu-danh-gia" element={<TuDanhGiaKPIPage />} />
               <Route
                 path="danh-gia-nhan-vien"
                 element={<KPIEvaluationPage />}
+              />
+              {/* NEW: Route-based KPI Scoring Page (Responsive Desktop/Mobile) */}
+              <Route
+                path="cham-diem/:nhanVienId"
+                element={<ChamDiemKPIResponsive />}
               />
               <Route
                 path="bao-cao"

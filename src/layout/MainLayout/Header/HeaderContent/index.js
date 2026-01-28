@@ -21,7 +21,7 @@ import Localization from "./Localization";
 import Notification from "./Notification";
 import MobileSection from "./MobileSection";
 import MegaMenuSection from "./MegaMenuSection";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 import useConfig from "hooks/useConfig";
 import DrawerHeader from "layout/MainLayout/Drawer/DrawerHeader";
 import { MenuOrientation } from "configAble";
@@ -32,6 +32,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import { useDispatch } from "react-redux";
 import UserResetPassForm from "features/User/UserResetPassForm";
 import avatar1 from "assets/images/users/avatar-6.png";
+import EnvironmentBadge from "components/EnvironmentBadge";
 // ==============================|| HEADER - CONTENT ||============================== //
 
 const HeaderContent = () => {
@@ -46,6 +47,7 @@ const HeaderContent = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const { user, logout } = useAuth();
+  const location = useLocation();
   // const { user, logout } ={};
   const [anchorEl, setAnchorEl] = React.useState(null);
   const navigate = useNavigate();
@@ -204,7 +206,7 @@ const HeaderContent = () => {
         component={RouterLink}
         sx={{ mx: 1 }}
       >
-       Thay đổi thông tin cá nhân 
+        Thay đổi thông tin cá nhân
       </MenuItem>
 
       <MenuItem
@@ -230,6 +232,14 @@ const HeaderContent = () => {
       {/* <Notification /> */}
       {/* <Message /> */}
       <Box sx={{ flexGrow: 1 }} />
+
+      {/* Environment Indicator - Chỉ hiển trên trang admin */}
+      {location.pathname.startsWith("/admin") && (
+        <>
+          <EnvironmentBadge size="small" showIcon={true} />
+          <Box sx={{ mx: 1 }} />
+        </>
+      )}
 
       {renderMenu}
       <UserResetPassForm

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import {
   Grid,
   Stack,
@@ -30,6 +31,11 @@ import {
   Paper,
   IconButton,
   Tooltip,
+  Fab,
+  Drawer,
+  Badge,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   Refresh as RefreshIcon,
@@ -39,25 +45,21 @@ import {
   Warning as WarningIcon,
   Person as PersonIcon,
   Email as EmailIcon,
-  Badge as BadgeIcon,
   Business as BusinessIcon,
   Search as SearchIcon,
   FilterList as FilterListIcon,
   AssignmentLate as AssignmentLateIcon,
+  ArrowBack as ArrowBackIcon,
+  Close as CloseIcon,
+  FilterAlt as FilterAltIcon,
 } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
 
-import MainCard from "components/MainCard";
-import ChamDiemKPIDialog from "../v2/components/ChamDiemKPIDialog";
+import KPIHistoryCard from "../components/KPIHistoryCard";
 import useAuth from "hooks/useAuth";
 
-import {
-  getDanhGiaKPIs,
-  getChuKyDanhGias,
-  getChamDiemDetail,
-  clearCurrentChamDiem,
-} from "../kpiSlice";
+import { getDanhGiaKPIs, getChuKyDanhGias } from "../kpiSlice";
 import { getNhanVienById } from "features/NhanVien/nhanvienSlice";
 
 /**
@@ -104,7 +106,7 @@ function KPIHistoryTableEnhanced({
         (typeof chuKyRef === "object" ? chuKyRef : null)
       );
     },
-    [chuKyDanhGias]
+    [chuKyDanhGias],
   );
 
   const filteredData = useMemo(() => {
@@ -172,7 +174,7 @@ function KPIHistoryTableEnhanced({
 
   const paginatedData = filteredData.slice(
     page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
+    page * rowsPerPage + rowsPerPage,
   );
 
   const getScoreColor = (score) => {
@@ -242,8 +244,8 @@ function KPIHistoryTableEnhanced({
                           chuKy.TrangThai === "DANG_DIEN_RA"
                             ? "success"
                             : chuKy.TrangThai === "CHO_BAT_DAU"
-                            ? "warning"
-                            : "default"
+                              ? "warning"
+                              : "default"
                         }
                         sx={{ height: 20 }}
                       />
@@ -466,8 +468,8 @@ function KPIHistoryTableEnhanced({
                             row.TongDiemKPI >= 8
                               ? "success"
                               : row.TongDiemKPI >= 6
-                              ? "warning"
-                              : "error"
+                                ? "warning"
+                                : "error"
                           }
                         />
                       </Stack>
@@ -527,9 +529,10 @@ function KPIHistoryTableEnhanced({
  */
 function XemKPIPage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const { danhGiaKPIs, chuKyDanhGias, isLoading, error } = useSelector(
-    (state) => state.kpi
+    (state) => state.kpi,
   );
 
   const { nhanviens } = useSelector((state) => state.nhanvien);
@@ -544,7 +547,7 @@ function XemKPIPage() {
     if (currentUser && !currentUser.NhanVienID) {
       setNhanVienIdWarning(true);
       toast.warning(
-        "Tài khoản chưa liên kết với hồ sơ nhân viên. Vui lòng liên hệ quản trị viên."
+        "Tài khoản chưa liên kết với hồ sơ nhân viên. Vui lòng liên hệ quản trị viên.",
       );
     }
   }, [currentUser]);
@@ -575,23 +578,18 @@ function XemKPIPage() {
     }
   };
 
-  // ✅ Custom state for ChamDiemKPIDialog
-  const [dialogOpen, setDialogOpen] = useState(false);
-
-  // ✅ Custom handler để load data cho ChamDiemKPIDialog
-  const handleOpenChamDiemDialog = async (danhGiaKPI) => {
+  // ✅ Navigate to ChamDiemKPIPage with readonly mode
+  const handleOpenChamDiemDialog = (danhGiaKPI) => {
     const chuKyId =
       typeof danhGiaKPI.ChuKyDanhGiaID === "object"
         ? danhGiaKPI.ChuKyDanhGiaID._id
         : danhGiaKPI.ChuKyDanhGiaID;
 
-    await dispatch(getChamDiemDetail(chuKyId, currentUser.NhanVienID));
-    setDialogOpen(true);
-  };
-
-  const handleCloseDialogCustom = () => {
-    setDialogOpen(false);
-    dispatch(clearCurrentChamDiem());
+    if (currentUser?.NhanVienID && chuKyId) {
+      navigate(
+        `/quanlycongviec/kpi/cham-diem/${currentUser.NhanVienID}?chuky=${chuKyId}&readonly=true`,
+      );
+    }
   };
 
   // Tính toán thống kê
@@ -605,14 +603,14 @@ function XemKPIPage() {
         ? (
             danhGiaKPIs.reduce(
               (sum, item) => sum + (item.TongDiemKPI || 0),
-              0
+              0,
             ) / danhGiaKPIs.length
           ).toFixed(2)
         : 0,
     diemCaoNhat:
       danhGiaKPIs.length > 0
         ? Math.max(...danhGiaKPIs.map((item) => item.TongDiemKPI || 0)).toFixed(
-            2
+            2,
           )
         : 0,
   };
@@ -623,7 +621,7 @@ function XemKPIPage() {
   // ✅ CORRECT: Lấy thông tin từ NhanVien model
   // currentUser.NhanVienID là STRING → tìm trong danh sách nhanviens
   const nhanVienData = nhanviens.find(
-    (nv) => nv._id === currentUser?.NhanVienID
+    (nv) => nv._id === currentUser?.NhanVienID,
   );
 
   // ✅ Format for display in cards
@@ -635,277 +633,607 @@ function XemKPIPage() {
       nhanVienData?.KhoaID?.TenKhoa || currentUser?.KhoaID?.TenKhoa || "N/A",
   };
 
-  // ✅ Format for ChamDiemKPIDialog (matches expected structure)
-  const nhanVienForDialog = nhanVienData
-    ? {
-        _id: nhanVienData._id,
-        Ten: nhanVienData.Ten,
-        MaNhanVien: nhanVienData.MaNhanVien,
-        Email: nhanVienData.Email,
-        KhoaID: nhanVienData.KhoaID,
-      }
-    : {
-        _id: currentUser?.NhanVienID,
-        Ten: currentUser?.HoTen || "N/A",
-        MaNhanVien: "N/A",
-        Email: currentUser?.Email || "N/A",
-        KhoaID: currentUser?.KhoaID || { TenKhoa: "N/A" },
-      };
+  // ✅ Mobile detection
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
+  // ✅ Mobile filter drawer state
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [mobileFilters, setMobileFilters] = useState({
+    searchTerm: "",
+    filterChuKy: "",
+    filterTrangThai: "",
+  });
+
+  // ✅ Get chuKy data helper
+  const getChuKyData = useCallback(
+    (chuKyRef) => {
+      const chuKyId =
+        typeof chuKyRef === "object" && chuKyRef !== null
+          ? chuKyRef._id
+          : chuKyRef;
+      return (
+        chuKyDanhGias.find((ck) => ck._id === chuKyId) ||
+        (typeof chuKyRef === "object" ? chuKyRef : null)
+      );
+    },
+    [chuKyDanhGias],
+  );
+
+  // ✅ Filtered data for mobile
+  const mobileFilteredData = useMemo(() => {
+    let filtered = [...danhGiaKPIs];
+
+    if (mobileFilters.searchTerm) {
+      filtered = filtered.filter((item) => {
+        const chuKy = getChuKyData(item.ChuKyDanhGiaID);
+        const tenChuKy = chuKy?.TenChuKy || "";
+        return tenChuKy
+          .toLowerCase()
+          .includes(mobileFilters.searchTerm.toLowerCase());
+      });
+    }
+
+    if (mobileFilters.filterChuKy) {
+      filtered = filtered.filter((item) => {
+        const chuKyRef = item.ChuKyDanhGiaID;
+        const chuKyId =
+          typeof chuKyRef === "object" && chuKyRef !== null
+            ? chuKyRef._id
+            : chuKyRef;
+        return chuKyId === mobileFilters.filterChuKy;
+      });
+    }
+
+    if (mobileFilters.filterTrangThai) {
+      filtered = filtered.filter(
+        (item) => item.TrangThai === mobileFilters.filterTrangThai,
+      );
+    }
+
+    // Sort by NgayDuyet desc
+    filtered.sort((a, b) => {
+      const aValue = a.NgayDuyet ? new Date(a.NgayDuyet).getTime() : 0;
+      const bValue = b.NgayDuyet ? new Date(b.NgayDuyet).getTime() : 0;
+      return bValue - aValue;
+    });
+
+    return filtered;
+  }, [danhGiaKPIs, mobileFilters, getChuKyData]);
+
+  // ✅ Active filter count for badge
+  const activeFilterCount = [
+    mobileFilters.searchTerm,
+    mobileFilters.filterChuKy,
+    mobileFilters.filterTrangThai,
+  ].filter(Boolean).length;
+
+  // ✅ Edge-to-edge layout for both mobile and desktop
   return (
-    <MainCard>
-      <Grid container spacing={3}>
-        {/* Header */}
-        <Grid item xs={12}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "secondary.lighter",
+        pb: 10,
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          bgcolor: "background.paper",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: { xs: "100%", md: "lg" },
+            mx: { xs: 0, md: "auto" },
+            px: { xs: 2, md: 0 },
+          }}
+        >
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
-            spacing={2}
-            flexWrap="wrap"
+            sx={{ py: 2 }}
           >
-            <Stack direction="row" spacing={2} alignItems="center">
-              <VisibilityIcon sx={{ fontSize: 32, color: "primary.main" }} />
-              <Typography variant="h4">KPI của tôi</Typography>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <IconButton
+                onClick={() => window.history.back()}
+                size="small"
+                sx={{ mr: 0.5 }}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 600,
+                  fontSize: { xs: "1.125rem", sm: "1.25rem" },
+                }}
+              >
+                📊 KPI của tôi
+              </Typography>
             </Stack>
-
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
+            <IconButton
               onClick={handleRefresh}
+              size="small"
               disabled={isLoading}
             >
-              Làm mới
-            </Button>
+              <RefreshIcon />
+            </IconButton>
           </Stack>
-        </Grid>
+        </Box>
+      </Box>
 
-        {/* Employee Info Card - Compact Design */}
-        <Grid item xs={12}>
-          <Card
+      {/* Loading State */}
+      {isLoading && danhGiaKPIs.length === 0 && (
+        <Box sx={{ textAlign: "center", py: 8 }}>
+          <CircularProgress />
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            Đang tải dữ liệu...
+          </Typography>
+        </Box>
+      )}
+
+      {/* Content */}
+      {(!isLoading || danhGiaKPIs.length > 0) && (
+        <Box>
+          {/* Employee Info Card */}
+          <Box
             sx={{
-              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-              color: "white",
+              bgcolor: "background.paper",
+              py: 2,
+              mb: 1,
+              borderBottom: "1px solid",
+              borderColor: "divider",
             }}
           >
-            <CardContent
+            <Box
               sx={{
-                p: { xs: 2, sm: 3 },
-                "&:last-child": { pb: { xs: 2, sm: 3 } },
+                px: 2,
+                maxWidth: { xs: "100%", md: "lg" },
+                mx: { xs: 0, md: "auto" },
               }}
             >
-              {/* Main Content Row */}
-              <Stack
-                direction={{ xs: "column", md: "row" }}
-                spacing={{ xs: 2, md: 3 }}
-                alignItems={{ xs: "flex-start", md: "center" }}
-                justifyContent="space-between"
+              <Card
+                elevation={0}
+                sx={{
+                  background:
+                    "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  color: "white",
+                  borderRadius: 2,
+                }}
               >
-                {/* Left: Name + Badge + Info */}
-                <Stack spacing={1} flex={1}>
-                  {/* Name + Badge Row */}
+                <CardContent sx={{ p: 2.5, "&:last-child": { pb: 2.5 } }}>
+                  {/* Name + Badge */}
                   <Stack
                     direction="row"
                     alignItems="center"
-                    spacing={2}
-                    flexWrap="wrap"
+                    spacing={1.5}
+                    mb={1.5}
                   >
-                    <Typography
-                      variant="h5"
-                      fontWeight={600}
-                      sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                    >
-                      <PersonIcon sx={{ fontSize: 28 }} />
+                    <PersonIcon sx={{ fontSize: 28 }} />
+                    <Typography variant="h6" fontWeight={600}>
                       {nhanVienInfo.ten}
                     </Typography>
-                    <Box
+                    <Chip
+                      label={nhanVienInfo.maNhanVien}
+                      size="small"
                       sx={{
-                        backgroundColor: "rgba(255,255,255,0.25)",
-                        px: 1.5,
-                        py: 0.5,
-                        borderRadius: 1,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 0.5,
+                        bgcolor: "rgba(255,255,255,0.2)",
+                        color: "white",
+                        fontWeight: 600,
                       }}
-                    >
-                      <BadgeIcon sx={{ fontSize: 16 }} />
-                      <Typography variant="body2" fontWeight={600}>
-                        {nhanVienInfo.maNhanVien}
-                      </Typography>
-                    </Box>
+                    />
                   </Stack>
 
-                  {/* Compact Info Row */}
+                  {/* Info Row */}
                   <Stack
                     direction="row"
-                    spacing={3}
+                    spacing={2}
                     flexWrap="wrap"
-                    sx={{ opacity: 0.95 }}
+                    sx={{ opacity: 0.9, mb: 2 }}
                   >
                     <Stack direction="row" spacing={0.5} alignItems="center">
-                      <BusinessIcon sx={{ fontSize: 18 }} />
+                      <BusinessIcon sx={{ fontSize: 16 }} />
                       <Typography variant="body2">
                         {nhanVienInfo.khoaPhong}
                       </Typography>
                     </Stack>
                     <Stack direction="row" spacing={0.5} alignItems="center">
-                      <EmailIcon sx={{ fontSize: 18 }} />
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          wordBreak: "break-word",
-                          fontSize: { xs: "0.75rem", sm: "0.875rem" },
-                        }}
-                      >
+                      <EmailIcon sx={{ fontSize: 16 }} />
+                      <Typography variant="body2">
                         {nhanVienInfo.email}
                       </Typography>
                     </Stack>
                   </Stack>
-                </Stack>
 
-                {/* Right: Stats (Desktop) */}
-                <Stack
-                  direction="row"
-                  spacing={3}
-                  sx={{
-                    display: { xs: "none", md: "flex" },
-                    borderLeft: "1px solid rgba(255,255,255,0.2)",
-                    pl: 3,
-                  }}
-                >
-                  <Stack spacing={0.5} alignItems="center">
-                    <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                      Tổng đánh giá
-                    </Typography>
-                    <Typography variant="h5" fontWeight={700}>
-                      {stats.tongSoDanhGia}
-                    </Typography>
-                  </Stack>
-                  <Stack spacing={0.5} alignItems="center">
-                    <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                      Đã duyệt
-                    </Typography>
-                    <Typography variant="h5" fontWeight={700}>
-                      {stats.daDuyet}
-                    </Typography>
-                  </Stack>
-                  <Stack spacing={0.5} alignItems="center">
-                    <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                      Điểm TB
-                    </Typography>
-                    <Typography variant="h5" fontWeight={700}>
-                      {((stats.diemTrungBinh / 10) * 100).toFixed(0)}%
-                    </Typography>
-                  </Stack>
-                  {danhGiaGanNhat && (
-                    <Stack spacing={0.5} alignItems="center">
-                      <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                        KPI gần nhất
-                      </Typography>
-                      <Typography variant="h5" fontWeight={700}>
-                        {((danhGiaGanNhat.TongDiemKPI / 10) * 100).toFixed(0)}%
-                      </Typography>
-                    </Stack>
-                  )}
-                </Stack>
-              </Stack>
+                  {/* Stats Grid */}
+                  <Grid container spacing={1.5}>
+                    <Grid item xs={6} sm={3}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          bgcolor: "rgba(255,255,255,0.15)",
+                          p: 1.5,
+                          borderRadius: 1.5,
+                          textAlign: "center",
+                        }}
+                      >
+                        <Typography variant="h5" fontWeight={700}>
+                          {stats.tongSoDanhGia}
+                        </Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                          Tổng đánh giá
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={6} sm={3}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          bgcolor: "rgba(255,255,255,0.15)",
+                          p: 1.5,
+                          borderRadius: 1.5,
+                          textAlign: "center",
+                        }}
+                      >
+                        <Typography variant="h5" fontWeight={700}>
+                          {stats.daDuyet}
+                        </Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                          Đã duyệt
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={6} sm={3}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          bgcolor: "rgba(255,255,255,0.15)",
+                          p: 1.5,
+                          borderRadius: 1.5,
+                          textAlign: "center",
+                        }}
+                      >
+                        <Typography variant="h5" fontWeight={700}>
+                          {((stats.diemTrungBinh / 10) * 100).toFixed(0)}%
+                        </Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                          Điểm TB
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    <Grid item xs={6} sm={3}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          bgcolor: "rgba(255,255,255,0.15)",
+                          p: 1.5,
+                          borderRadius: 1.5,
+                          textAlign: "center",
+                        }}
+                      >
+                        <Typography variant="h5" fontWeight={700}>
+                          {danhGiaGanNhat
+                            ? ((danhGiaGanNhat.TongDiemKPI / 10) * 100).toFixed(
+                                0,
+                              ) + "%"
+                            : "—"}
+                        </Typography>
+                        <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                          KPI gần nhất
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Box>
+          </Box>
 
-              {/* Bottom: Stats (Mobile) */}
-              <Stack
-                direction="row"
-                spacing={3}
-                sx={{
-                  display: { xs: "flex", md: "none" },
-                  mt: 2,
-                  pt: 2,
-                  borderTop: "1px solid rgba(255,255,255,0.2)",
-                }}
-                flexWrap="wrap"
-              >
-                <Stack spacing={0.5}>
-                  <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                    Tổng đánh giá
-                  </Typography>
-                  <Typography variant="h5" fontWeight={700}>
-                    {stats.tongSoDanhGia}
-                  </Typography>
-                </Stack>
-                <Stack spacing={0.5}>
-                  <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                    Đã duyệt
-                  </Typography>
-                  <Typography variant="h5" fontWeight={700}>
-                    {stats.daDuyet}
-                  </Typography>
-                </Stack>
-                <Stack spacing={0.5}>
-                  <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                    Điểm TB
-                  </Typography>
-                  <Typography variant="h5" fontWeight={700}>
-                    {((stats.diemTrungBinh / 10) * 100).toFixed(0)}%
-                  </Typography>
-                </Stack>
-                {danhGiaGanNhat && (
-                  <Stack spacing={0.5}>
-                    <Typography variant="caption" sx={{ opacity: 0.9 }}>
-                      KPI gần nhất
-                    </Typography>
-                    <Typography variant="h5" fontWeight={700}>
-                      {((danhGiaGanNhat.TongDiemKPI / 10) * 100).toFixed(0)}%
-                    </Typography>
-                  </Stack>
+          {/* Error Alert */}
+          {error && (
+            <Box sx={{ px: 2, mb: 2 }}>
+              <Alert severity="error">
+                <AlertTitle>Lỗi tải dữ liệu</AlertTitle>
+                {error}
+              </Alert>
+            </Box>
+          )}
+
+          {/* NhanVienID Warning */}
+          {nhanVienIdWarning && (
+            <Box sx={{ px: 2, mb: 2 }}>
+              <Alert severity="warning" icon={<WarningIcon />}>
+                <AlertTitle>Cảnh báo</AlertTitle>
+                Tài khoản của bạn chưa được liên kết với hồ sơ nhân viên.
+              </Alert>
+            </Box>
+          )}
+
+          {/* Active Filters Chips (Mobile) */}
+          {isMobile && activeFilterCount > 0 && (
+            <Box sx={{ px: 2, mb: 2 }}>
+              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                {mobileFilters.searchTerm && (
+                  <Chip
+                    label={`Tìm: ${mobileFilters.searchTerm}`}
+                    size="small"
+                    onDelete={() =>
+                      setMobileFilters((prev) => ({
+                        ...prev,
+                        searchTerm: "",
+                      }))
+                    }
+                  />
+                )}
+                {mobileFilters.filterChuKy && (
+                  <Chip
+                    label={`Chu kỳ: ${
+                      getChuKyData(mobileFilters.filterChuKy)?.TenChuKy || "N/A"
+                    }`}
+                    size="small"
+                    onDelete={() =>
+                      setMobileFilters((prev) => ({
+                        ...prev,
+                        filterChuKy: "",
+                      }))
+                    }
+                  />
+                )}
+                {mobileFilters.filterTrangThai && (
+                  <Chip
+                    label={
+                      mobileFilters.filterTrangThai === "DA_DUYET"
+                        ? "Đã duyệt"
+                        : "Chưa duyệt"
+                    }
+                    size="small"
+                    color={
+                      mobileFilters.filterTrangThai === "DA_DUYET"
+                        ? "success"
+                        : "warning"
+                    }
+                    onDelete={() =>
+                      setMobileFilters((prev) => ({
+                        ...prev,
+                        filterTrangThai: "",
+                      }))
+                    }
+                  />
                 )}
               </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
+            </Box>
+          )}
 
-        {/* Error Alert */}
-        {error && (
-          <Grid item xs={12}>
-            <Alert severity="error">
-              <AlertTitle>Lỗi tải dữ liệu</AlertTitle>
-              {error}
-            </Alert>
-          </Grid>
-        )}
+          {/* Content Section Title */}
+          <Box
+            sx={{
+              bgcolor: "background.paper",
+              py: 2,
+              borderBottom: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <Box
+              sx={{
+                px: 2,
+                maxWidth: { xs: "100%", md: "lg" },
+                mx: { xs: 0, md: "auto" },
+              }}
+            >
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography variant="h6" fontWeight={600}>
+                  Lịch sử đánh giá
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {isMobile ? mobileFilteredData.length : danhGiaKPIs.length}{" "}
+                  kết quả
+                </Typography>
+              </Stack>
+            </Box>
+          </Box>
 
-        {/* NhanVienID Warning */}
-        {nhanVienIdWarning && (
-          <Grid item xs={12}>
-            <Alert severity="warning" icon={<WarningIcon />}>
-              <AlertTitle>Cảnh báo</AlertTitle>
-              Tài khoản của bạn chưa được liên kết với hồ sơ nhân viên. Vui lòng
-              liên hệ quản trị viên để được hỗ trợ.
-            </Alert>
-          </Grid>
-        )}
+          {/* Mobile: Card List */}
+          {isMobile && (
+            <Box sx={{ px: 2, py: 2 }}>
+              {mobileFilteredData.length === 0 ? (
+                <Box sx={{ textAlign: "center", py: 6 }}>
+                  <AssignmentLateIcon
+                    sx={{ fontSize: 64, color: "text.disabled", mb: 2 }}
+                  />
+                  <Typography variant="h6" gutterBottom>
+                    Không tìm thấy dữ liệu
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {activeFilterCount > 0
+                      ? "Thử thay đổi bộ lọc để xem kết quả khác"
+                      : "Chưa có đánh giá KPI nào"}
+                  </Typography>
+                </Box>
+              ) : (
+                <Stack spacing={1.5}>
+                  {mobileFilteredData.map((danhGiaKPI, index) => (
+                    <KPIHistoryCard
+                      key={danhGiaKPI._id}
+                      danhGiaKPI={danhGiaKPI}
+                      chuKy={getChuKyData(danhGiaKPI.ChuKyDanhGiaID)}
+                      onClick={handleOpenChamDiemDialog}
+                      index={index}
+                    />
+                  ))}
+                </Stack>
+              )}
+            </Box>
+          )}
 
-        {/* ✅ Enhanced Table with integrated filters */}
-        <Grid item xs={12}>
-          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-            Lịch sử đánh giá KPI
-          </Typography>
+          {/* Desktop: Table */}
+          {!isMobile && (
+            <Box
+              sx={{
+                px: 2,
+                py: 2,
+                maxWidth: { xs: "100%", md: "lg" },
+                mx: { xs: 0, md: "auto" },
+              }}
+            >
+              <KPIHistoryTableEnhanced
+                data={danhGiaKPIs}
+                isLoading={isLoading}
+                chuKyDanhGias={chuKyDanhGias}
+                onRowClick={handleOpenChamDiemDialog}
+              />
+            </Box>
+          )}
+        </Box>
+      )}
 
-          <KPIHistoryTableEnhanced
-            data={danhGiaKPIs}
-            isLoading={isLoading}
-            chuKyDanhGias={chuKyDanhGias}
-            onRowClick={handleOpenChamDiemDialog}
-          />
-        </Grid>
-      </Grid>
+      {/* Mobile FAB for Filter */}
+      {isMobile && (
+        <Fab
+          color="primary"
+          onClick={() => setFilterDrawerOpen(true)}
+          sx={{
+            position: "fixed",
+            bottom: 80,
+            right: 16,
+            zIndex: 1000,
+          }}
+        >
+          <Badge
+            badgeContent={activeFilterCount}
+            color="error"
+            invisible={activeFilterCount === 0}
+          >
+            <FilterAltIcon />
+          </Badge>
+        </Fab>
+      )}
 
-      {/* ✅ Beautiful ChamDiemKPIDialog for employee view */}
-      <ChamDiemKPIDialog
-        open={dialogOpen}
-        onClose={handleCloseDialogCustom}
-        nhanVien={nhanVienForDialog}
-        readOnly={true}
-      />
-    </MainCard>
+      {/* Mobile Filter Drawer */}
+      <Drawer
+        anchor="right"
+        open={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        PaperProps={{
+          sx: { width: { xs: "100%", sm: 400 } },
+        }}
+      >
+        <Box sx={{ p: 3 }}>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={3}
+          >
+            <Typography variant="h6" fontWeight={600}>
+              Bộ lọc
+            </Typography>
+            <IconButton onClick={() => setFilterDrawerOpen(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Stack>
+
+          <Stack spacing={3}>
+            <TextField
+              fullWidth
+              size="small"
+              label="Tìm kiếm theo chu kỳ"
+              value={mobileFilters.searchTerm}
+              onChange={(e) =>
+                setMobileFilters((prev) => ({
+                  ...prev,
+                  searchTerm: e.target.value,
+                }))
+              }
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
+            <FormControl fullWidth size="small">
+              <InputLabel>Chu kỳ đánh giá</InputLabel>
+              <Select
+                value={mobileFilters.filterChuKy}
+                label="Chu kỳ đánh giá"
+                onChange={(e) =>
+                  setMobileFilters((prev) => ({
+                    ...prev,
+                    filterChuKy: e.target.value,
+                  }))
+                }
+              >
+                <MenuItem value="">
+                  <em>Tất cả chu kỳ</em>
+                </MenuItem>
+                {chuKyDanhGias.map((chuKy) => (
+                  <MenuItem key={chuKy._id} value={chuKy._id}>
+                    {chuKy.TenChuKy}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth size="small">
+              <InputLabel>Trạng thái</InputLabel>
+              <Select
+                value={mobileFilters.filterTrangThai}
+                label="Trạng thái"
+                onChange={(e) =>
+                  setMobileFilters((prev) => ({
+                    ...prev,
+                    filterTrangThai: e.target.value,
+                  }))
+                }
+              >
+                <MenuItem value="">
+                  <em>Tất cả trạng thái</em>
+                </MenuItem>
+                <MenuItem value="DA_DUYET">Đã duyệt</MenuItem>
+                <MenuItem value="CHUA_DUYET">Chưa duyệt</MenuItem>
+              </Select>
+            </FormControl>
+
+            <Stack direction="row" spacing={2}>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() =>
+                  setMobileFilters({
+                    searchTerm: "",
+                    filterChuKy: "",
+                    filterTrangThai: "",
+                  })
+                }
+              >
+                Xóa bộ lọc
+              </Button>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() => setFilterDrawerOpen(false)}
+              >
+                Áp dụng
+              </Button>
+            </Stack>
+          </Stack>
+        </Box>
+      </Drawer>
+    </Box>
   );
 }
 

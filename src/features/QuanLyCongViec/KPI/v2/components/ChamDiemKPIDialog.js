@@ -119,7 +119,7 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
   const progress = useMemo(() => {
     const total = currentNhiemVuList.length;
     const scored = currentNhiemVuList.filter(
-      (nv) => nv.ChiTietDiem && nv.ChiTietDiem.some((tc) => tc.DiemDat > 0)
+      (nv) => nv.ChiTietDiem && nv.ChiTietDiem.some((tc) => tc.DiemDat > 0),
     ).length;
     const percentage = total > 0 ? (scored / total) * 100 : 0;
     return { scored, total, percentage };
@@ -145,7 +145,7 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
     // Otherwise, calculate preview in real-time
     const { tongDiem } = calculateTotalScore(
       currentNhiemVuList,
-      diemTuDanhGiaMap
+      diemTuDanhGiaMap,
     );
     return tongDiem;
   }, [currentNhiemVuList, diemTuDanhGiaMap, currentDanhGiaKPI]);
@@ -163,7 +163,7 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
   // Get unscored tasks
   const unscoredTasks = useMemo(() => {
     return currentNhiemVuList.filter(
-      (nv) => !nv.ChiTietDiem || !nv.ChiTietDiem.some((tc) => tc.DiemDat > 0)
+      (nv) => !nv.ChiTietDiem || !nv.ChiTietDiem.some((tc) => tc.DiemDat > 0),
     );
   }, [currentNhiemVuList]);
 
@@ -226,10 +226,10 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
     nhiemVuId,
     tieuChiIndex,
     newScore,
-    fieldName = "DiemDat"
+    fieldName = "DiemDat",
   ) => {
     dispatch(
-      updateTieuChiScoreLocal(nhiemVuId, tieuChiIndex, newScore, fieldName)
+      updateTieuChiScoreLocal(nhiemVuId, tieuChiIndex, newScore, fieldName),
     );
   };
 
@@ -284,7 +284,7 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
       undoApproveKPI({
         danhGiaKPIId: currentDanhGiaKPI._id,
         lyDo: undoReason.trim(),
-      })
+      }),
     );
     handleCloseUndoDialog();
   };
@@ -355,9 +355,19 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
       dispatch(fetchOtherTasksSummary({ nhanVienId, chuKyId }));
       dispatch(fetchCrossCycleTasksSummary({ nhanVienId, chuKyId }));
       dispatch(fetchCollabTasksSummary({ nhanVienId, chuKyId }));
-      dispatch(fetchOtherYeuCauSummary({ nhanVienId, chuKyId }));
+      dispatch(
+        fetchOtherYeuCauSummary({
+          nhanVienID: nhanVienId,
+          chuKyDanhGiaID: chuKyId,
+        }),
+      );
     }
   }, [open, nhanVien?._id, currentDanhGiaKPI, dispatch]);
+
+  // ✅ Early return if dialog not open or nhanVien is null
+  if (!open || !nhanVien) {
+    return null;
+  }
 
   if (isLoading && !currentDanhGiaKPI) {
     return (
@@ -474,13 +484,13 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
                   }: ${
                     currentDanhGiaKPI.ChuKyDanhGiaID.NgayBatDau
                       ? dayjs(
-                          currentDanhGiaKPI.ChuKyDanhGiaID.NgayBatDau
+                          currentDanhGiaKPI.ChuKyDanhGiaID.NgayBatDau,
                         ).format("DD/MM/YYYY")
                       : "N/A"
                   } - ${
                     currentDanhGiaKPI.ChuKyDanhGiaID.NgayKetThuc
                       ? dayjs(
-                          currentDanhGiaKPI.ChuKyDanhGiaID.NgayKetThuc
+                          currentDanhGiaKPI.ChuKyDanhGiaID.NgayKetThuc,
                         ).format("DD/MM/YYYY")
                       : "N/A"
                   }`}
@@ -570,8 +580,8 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
                       progress.percentage === 100
                         ? "#10b981"
                         : progress.percentage > 50
-                        ? "#f59e0b"
-                        : "#ef4444",
+                          ? "#f59e0b"
+                          : "#ef4444",
                   },
                 }}
               />
@@ -609,8 +619,8 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
                 totalKPIScore >= 80
                   ? "success.main"
                   : totalKPIScore >= 60
-                  ? "warning.main"
-                  : "error.main",
+                    ? "warning.main"
+                    : "error.main",
             }}
           >
             <Typography
@@ -620,8 +630,8 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
                   totalKPIScore >= 80
                     ? "success.main"
                     : totalKPIScore >= 60
-                    ? "warning.main"
-                    : "error.main",
+                      ? "warning.main"
+                      : "error.main",
               }}
             >
               📊
@@ -641,8 +651,8 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
                 totalKPIScore >= 80
                   ? "success.main"
                   : totalKPIScore >= 60
-                  ? "warning.main"
-                  : "error.main"
+                    ? "warning.main"
+                    : "error.main"
               }
             >
               {totalKPIScore.toFixed(1)}
@@ -893,7 +903,7 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
                   window.open(
                     `/ticket/${yeuCauId}`,
                     "_blank",
-                    "noopener,noreferrer"
+                    "noopener,noreferrer",
                   );
                 };
 
@@ -983,7 +993,7 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
                 </Typography>
                 <Typography variant="caption" color="#166534">
                   {dayjs(currentDanhGiaKPI.NgayDuyet).format(
-                    "DD/MM/YYYY HH:mm"
+                    "DD/MM/YYYY HH:mm",
                   )}
                 </Typography>
               </Box>
@@ -1157,13 +1167,15 @@ function ChamDiemKPIDialog({ open, onClose, nhanVien, readOnly = false }) {
               Thông tin KPI:
             </Typography>
             <Typography variant="body1" fontWeight="600">
-              {nhanVien?.HoTen}
+              {nhanVien?.Ten}
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Tháng {dayjs(currentDanhGiaKPI?.ThangDanhGia).format("MM/YYYY")}
-            </Typography>
+            {currentDanhGiaKPI?.ChuKyDanhGiaID && (
+              <Typography variant="body2" color="text.secondary">
+                {currentDanhGiaKPI.ChuKyDanhGiaID.TenChuKy}
+              </Typography>
+            )}
             <Typography variant="body2" color="success.main" fontWeight="600">
-              Điểm hiện tại: {totalKPIScore.toFixed(2)}
+              Điểm hiện tại: {totalKPIScore.toFixed(1)}
             </Typography>
           </Box>
 

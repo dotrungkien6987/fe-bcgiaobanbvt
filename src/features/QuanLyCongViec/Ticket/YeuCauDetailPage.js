@@ -1036,7 +1036,7 @@ function YeuCauDetailPage() {
         <Box
           sx={{
             position: "fixed",
-            bottom: 56, // Above bottom navigation (56px)
+            bottom: 0, // Stick to bottom (full-screen layout, no bottom nav)
             left: 0,
             right: 0,
             bgcolor: "background.paper",
