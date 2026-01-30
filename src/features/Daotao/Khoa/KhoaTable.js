@@ -1,4 +1,4 @@
-import { Grid, Stack } from "@mui/material";
+import { Chip, Grid, Stack } from "@mui/material";
 import MainCard from "components/MainCard";
 import SimpleTable from "pages/tables/MyTable/SimpleTable";
 import React, { useEffect, useMemo } from "react";
@@ -10,32 +10,32 @@ import { getAllKhoa } from "./khoaSlice";
 
 function KhoaTable() {
   const dispatch = useDispatch();
-  
+
   useEffect(() => {
     dispatch(getAllKhoa());
   }, [dispatch]);
-  
+
   const { Khoa } = useSelector((state) => state.khoa);
-  
+
   const data = useMemo(() => Khoa, [Khoa]);
 
   const getLoaiKhoaLabel = (loaiKhoa) => {
     const loaiKhoaOptions = {
-      "kcc": "Khoa cấp cứu",
-      "kkb": "Khoa khám bệnh",
-      "noi": "Nội",
-      "ngoai": "Ngoại",
-      "cskh": "Chăm sóc khách hàng",
-      "gmhs": "Gây mê hồi sức",
-      "cdha": "Chẩn đoán hình ảnh",
-      "tdcn": "Thăm dò chức năng",
-      "clc": "Chất lượng cao",
-      "xn": "Xét nghiệm",
-      "hhtm": "Huyết học truyền máu",
-      "pkyc": "Phòng khám yêu cầu",
-      "khac": "Khác"
+      kcc: "Khoa cấp cứu",
+      kkb: "Khoa khám bệnh",
+      noi: "Nội",
+      ngoai: "Ngoại",
+      cskh: "Chăm sóc khách hàng",
+      gmhs: "Gây mê hồi sức",
+      cdha: "Chẩn đoán hình ảnh",
+      tdcn: "Thăm dò chức năng",
+      clc: "Chất lượng cao",
+      xn: "Xét nghiệm",
+      hhtm: "Huyết học truyền máu",
+      pkyc: "Phòng khám yêu cầu",
+      khac: "Khác",
     };
-    
+
     return loaiKhoaOptions[loaiKhoa] || loaiKhoa;
   };
 
@@ -82,7 +82,19 @@ function KhoaTable() {
         Footer: "Loại khoa",
         accessor: "LoaiKhoa",
         disableGroupBy: true,
-        Cell: ({ value }) => getLoaiKhoaLabel(value)
+        Cell: ({ value }) => getLoaiKhoaLabel(value),
+      },
+      {
+        Header: "ISO",
+        Footer: "ISO",
+        accessor: "IsISORelevant",
+        disableGroupBy: true,
+        Cell: ({ value }) =>
+          value ? (
+            <Chip label="ISO" color="success" size="small" />
+          ) : (
+            <Chip label="-" color="default" size="small" variant="outlined" />
+          ),
       },
       {
         Header: "HIS Department ID",
@@ -103,7 +115,7 @@ function KhoaTable() {
         disableGroupBy: true,
       },
     ],
-    []
+    [],
   );
 
   return (

@@ -23,6 +23,8 @@ export const WorkRoutes = {
   congViecDashboard: () => "/quanlycongviec/congviec/dashboard",
   congViecList: (nhanVienId = ":nhanVienId") =>
     `/quanlycongviec/congviec/nhanvien/${nhanVienId}`,
+  congViecAssigned: (nhanVienId = ":nhanVienId") =>
+    `/quanlycongviec/congviec/assigned/${nhanVienId}`,
   congViecDetail: (id = ":id") => `/quanlycongviec/congviec/${id}`,
   congViecCreate: () => "/quanlycongviec/congviec/create",
   congViecEdit: (id = ":id") => `/quanlycongviec/congviec/${id}/edit`,
@@ -34,6 +36,8 @@ export const WorkRoutes = {
   kpiCreate: () => "/quanlycongviec/kpi/create",
   kpiEdit: (id = ":id") => `/quanlycongviec/kpi/${id}/edit`,
   kpiApprove: (id = ":id") => `/quanlycongviec/kpi/${id}/approve`,
+  kpiSelfEval: () => "/quanlycongviec/kpi/tu-danh-gia",
+  kpiEvaluation: () => "/quanlycongviec/kpi/danh-gia-nhan-vien",
 
   // Báo cáo KPI
   baoCaoKPI: () => "/quanlycongviec/kpi/bao-cao",
@@ -59,6 +63,8 @@ export const WorkRoutes = {
   yeuCauDetail: (id = ":id") => `/quanlycongviec/yeucau/${id}`,
   yeuCauCreate: () => "/quanlycongviec/yeucau/create",
   yeuCauEdit: (id = ":id") => `/quanlycongviec/yeucau/${id}/edit`,
+  yeuCauSent: () => "/quanlycongviec/yeucau?tab=sent",
+  yeuCauProcess: () => "/quanlycongviec/yeucau?tab=process",
 
   // ==================== Cấu Hình / Configuration ====================
   cauHinh: () => "/quanlycongviec/cau-hinh",
@@ -252,7 +258,7 @@ export function getBreadcrumbs(pathname) {
     // If not found, try pattern matching for dynamic segments
     if (!config) {
       const patternKeys = Object.keys(BreadcrumbConfig).filter((key) =>
-        key.includes(":")
+        key.includes(":"),
       );
       for (const patternKey of patternKeys) {
         const pattern = patternKey.split("/").filter(Boolean);

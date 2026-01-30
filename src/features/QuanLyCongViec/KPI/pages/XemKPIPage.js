@@ -413,7 +413,11 @@ function KPIHistoryTableEnhanced({
                   >
                     <TableCell>
                       <Stack spacing={0.5}>
-                        <Typography variant="body2" fontWeight={600}>
+                        <Typography
+                          variant="body2"
+                          fontWeight={600}
+                          color="primary.main"
+                        >
                           {chuKy?.TenChuKy || "N/A"}
                         </Typography>
                         {chuKy && (
@@ -452,6 +456,7 @@ function KPIHistoryTableEnhanced({
                       <Stack spacing={0.5}>
                         <Typography
                           variant="h6"
+                          fontWeight={700}
                           sx={{ color: getScoreColor(row.TongDiemKPI) }}
                         >
                           {((row.TongDiemKPI / 10) * 100).toFixed(1)}%
@@ -460,8 +465,8 @@ function KPIHistoryTableEnhanced({
                           variant="determinate"
                           value={Math.min((row.TongDiemKPI / 10) * 100, 100)}
                           sx={{
-                            height: 6,
-                            borderRadius: 3,
+                            height: 8,
+                            borderRadius: 4,
                             bgcolor: "action.hover",
                           }}
                           color={
@@ -477,11 +482,24 @@ function KPIHistoryTableEnhanced({
                     <TableCell
                       sx={{ display: { xs: "none", md: "table-cell" } }}
                     >
-                      <Typography variant="body2">
-                        {row.NgayDuyet
-                          ? dayjs(row.NgayDuyet).format("DD/MM/YYYY HH:mm")
-                          : "Chưa duyệt"}
-                      </Typography>
+                      {row.NgayDuyet ? (
+                        <Stack spacing={0.25}>
+                          <Typography
+                            variant="body2"
+                            fontWeight={500}
+                            color="text.primary"
+                          >
+                            {dayjs(row.NgayDuyet).format("DD/MM/YYYY")}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {dayjs(row.NgayDuyet).format("HH:mm")}
+                          </Typography>
+                        </Stack>
+                      ) : (
+                        <Typography variant="body2" color="warning.main">
+                          Chưa duyệt
+                        </Typography>
+                      )}
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title="Xem chi tiết">
@@ -865,10 +883,13 @@ function XemKPIPage() {
                           textAlign: "center",
                         }}
                       >
-                        <Typography variant="h5" fontWeight={700}>
+                        <Typography variant="h5" fontWeight={700} color="white">
                           {stats.tongSoDanhGia}
                         </Typography>
-                        <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ opacity: 0.9, color: "white" }}
+                        >
                           Tổng đánh giá
                         </Typography>
                       </Paper>
@@ -883,10 +904,13 @@ function XemKPIPage() {
                           textAlign: "center",
                         }}
                       >
-                        <Typography variant="h5" fontWeight={700}>
+                        <Typography variant="h5" fontWeight={700} color="white">
                           {stats.daDuyet}
                         </Typography>
-                        <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ opacity: 0.9, color: "white" }}
+                        >
                           Đã duyệt
                         </Typography>
                       </Paper>
@@ -901,10 +925,13 @@ function XemKPIPage() {
                           textAlign: "center",
                         }}
                       >
-                        <Typography variant="h5" fontWeight={700}>
+                        <Typography variant="h5" fontWeight={700} color="white">
                           {((stats.diemTrungBinh / 10) * 100).toFixed(0)}%
                         </Typography>
-                        <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ opacity: 0.9, color: "white" }}
+                        >
                           Điểm TB
                         </Typography>
                       </Paper>
@@ -919,14 +946,17 @@ function XemKPIPage() {
                           textAlign: "center",
                         }}
                       >
-                        <Typography variant="h5" fontWeight={700}>
+                        <Typography variant="h5" fontWeight={700} color="white">
                           {danhGiaGanNhat
                             ? ((danhGiaGanNhat.TongDiemKPI / 10) * 100).toFixed(
                                 0,
                               ) + "%"
                             : "—"}
                         </Typography>
-                        <Typography variant="caption" sx={{ opacity: 0.9 }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ opacity: 0.9, color: "white" }}
+                        >
                           KPI gần nhất
                         </Typography>
                       </Paper>

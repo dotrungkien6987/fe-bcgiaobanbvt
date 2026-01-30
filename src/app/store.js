@@ -54,6 +54,8 @@ import {
   cauHinhKhoaReducer,
   lyDoTuChoiAdminReducer,
 } from "features/QuanLyCongViec/Ticket";
+// QuyTrinhISO (ISO Document Management)
+import quyTrinhISOReducer from "features/QuyTrinhISO/quyTrinhISOSlice";
 // import baocaosucoSlice from "../features/User/baocaosucoSlice";
 
 const rootReducer = {
@@ -108,6 +110,8 @@ const rootReducer = {
   danhMucYeuCau: danhMucYeuCauReducer,
   cauHinhKhoa: cauHinhKhoaReducer,
   lyDoTuChoiAdmin: lyDoTuChoiAdminReducer,
+  // QuyTrinhISO (ISO Document Management)
+  quyTrinhISO: quyTrinhISOReducer,
 };
 
 const store = configureStore({

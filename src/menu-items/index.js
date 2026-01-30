@@ -8,6 +8,7 @@ import admin from "./admin";
 import lichtruc from "./lichtruc";
 import quanlycongviec from "./quanlycongviec";
 import notification from "./notification";
+import quanlychatluong from "./quanlychatluong";
 
 import newfeature from "./NoiBo/newfeature";
 // Thêm thuộc tính roles cho từng menu item
@@ -20,6 +21,7 @@ quanlycongviec.roles = ["admin", "daotao", "nomal", "manager", "default"]; // T�
 admin.roles = ["admin"]; // Chỉ admin mới thấy
 lichtruc.roles = ["admin", "nomal", "default"]; // Tất cả đều thấy menu lịch trực
 notification.roles = ["admin", "daotao", "nomal", "manager", "default"]; // Tất cả đều thấy
+// quanlychatluong đã có roles trong file của nó
 
 // ==============================|| MENU ITEMS ||============================== //
 
@@ -30,6 +32,7 @@ const menuItems = {
     baocao,
     lichtruc,
     quanlycongviec,
+    quanlychatluong,
     notification,
     hethong,
     admin,

@@ -1,4 +1,19 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select, TextField } from "@mui/material";
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  FormControlLabel,
+  FormHelperText,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
 import { useFormik } from "formik";
 import React, { useEffect } from "react";
 import * as Yup from "yup";
@@ -17,6 +32,7 @@ function KhoaForm({ open, handleClose, khoa }) {
       HisDepartmentID: khoa?.HisDepartmentID || "",
       HisDepartmentGroupID: khoa?.HisDepartmentGroupID || "",
       HisDepartmentType: khoa?.HisDepartmentType || "",
+      IsISORelevant: khoa?.IsISORelevant || false,
     },
     enableReinitialize: true, // Đảm bảo form khởi tạo lại khi props thay đổi
     validationSchema: Yup.object({
@@ -30,7 +46,7 @@ function KhoaForm({ open, handleClose, khoa }) {
         ...values,
         HisDepartmentID: values.HisDepartmentID || null,
         HisDepartmentGroupID: values.HisDepartmentGroupID || null,
-        HisDepartmentType: values.HisDepartmentType || null
+        HisDepartmentType: values.HisDepartmentType || null,
       };
 
       if (khoa && khoa._id !== 0) {
@@ -39,7 +55,7 @@ function KhoaForm({ open, handleClose, khoa }) {
       } else {
         dispatch(insertOneKhoa(khoaData));
       }
-      
+
       handleClose();
     },
   });
@@ -49,6 +65,7 @@ function KhoaForm({ open, handleClose, khoa }) {
     if (!open) {
       formik.resetForm();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const loaiKhoaOptions = [
@@ -70,7 +87,9 @@ function KhoaForm({ open, handleClose, khoa }) {
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{khoa?._id === 0 ? "Thêm mới khoa" : "Cập nhật thông tin khoa"}</DialogTitle>
+      <DialogTitle>
+        {khoa?._id === 0 ? "Thêm mới khoa" : "Cập nhật thông tin khoa"}
+      </DialogTitle>
       <DialogContent>
         <form onSubmit={formik.handleSubmit}>
           <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -112,7 +131,12 @@ function KhoaForm({ open, handleClose, khoa }) {
               />
             </Grid>
             <Grid item xs={12}>
-              <FormControl fullWidth error={formik.touched.LoaiKhoa && Boolean(formik.errors.LoaiKhoa)}>
+              <FormControl
+                fullWidth
+                error={
+                  formik.touched.LoaiKhoa && Boolean(formik.errors.LoaiKhoa)
+                }
+              >
                 <InputLabel id="loai-khoa-label">Loại khoa</InputLabel>
                 <Select
                   labelId="loai-khoa-label"
@@ -166,6 +190,19 @@ function KhoaForm({ open, handleClose, khoa }) {
                 onChange={formik.handleChange}
               />
             </Grid>
+            <Grid item xs={12}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    id="IsISORelevant"
+                    name="IsISORelevant"
+                    checked={formik.values.IsISORelevant}
+                    onChange={formik.handleChange}
+                  />
+                }
+                label="Liên quan đến quy trình ISO"
+              />
+            </Grid>
           </Grid>
         </form>
       </DialogContent>
@@ -173,7 +210,11 @@ function KhoaForm({ open, handleClose, khoa }) {
         <Button onClick={handleClose} color="inherit">
           Hủy
         </Button>
-        <Button onClick={formik.handleSubmit} variant="contained" color="primary">
+        <Button
+          onClick={formik.handleSubmit}
+          variant="contained"
+          color="primary"
+        >
           {khoa?._id === 0 ? "Thêm mới" : "Cập nhật"}
         </Button>
       </DialogActions>

@@ -75,7 +75,7 @@ function KPIHubPage() {
   useEffect(() => {
     dispatch(getChuKyDanhGias());
     if (user?.NhanVienID) {
-      dispatch(getDanhGiaKPIs(user.NhanVienID));
+      dispatch(getDanhGiaKPIs({ NhanVienID: user.NhanVienID }));
     }
   }, [dispatch, user]);
 
@@ -87,10 +87,17 @@ function KPIHubPage() {
     }
   }, [chuKyDanhGias, selectedChuKy]);
 
-  // Load assignments for selected cycle
+  // Load assignments and KPI for selected cycle
   useEffect(() => {
     if (user?.NhanVienID && selectedChuKy?._id) {
       dispatch(layDanhSachNhiemVu(user.NhanVienID, selectedChuKy._id));
+      // Reload KPI data for selected cycle to get correct TongDiemKPI
+      dispatch(
+        getDanhGiaKPIs({
+          NhanVienID: user.NhanVienID,
+          ChuKyDanhGiaID: selectedChuKy._id,
+        }),
+      );
     }
   }, [dispatch, user, selectedChuKy]);
 
@@ -114,10 +121,12 @@ function KPIHubPage() {
   const handleRefresh = () => {
     dispatch(getChuKyDanhGias());
     if (user?.NhanVienID) {
-      dispatch(getDanhGiaKPIs(user.NhanVienID));
+      const filters = { NhanVienID: user.NhanVienID };
       if (selectedChuKy?._id) {
+        filters.ChuKyDanhGiaID = selectedChuKy._id;
         dispatch(layDanhSachNhiemVu(user.NhanVienID, selectedChuKy._id));
       }
+      dispatch(getDanhGiaKPIs(filters));
     }
   };
 

@@ -1,3 +1,11 @@
+/**
+ * workDashboardSlice.js - Redux slice cho Trang chủ (Simplified v2)
+ *
+ * Removed: KPI (không cần cho daily use)
+ * Added: Mixed urgent items (CongViec + YeuCau)
+ * Added: Mixed recent activities (CongViec + YeuCau)
+ */
+
 import { createSlice } from "@reduxjs/toolkit";
 import apiService from "app/apiService";
 import { toast } from "react-toastify";
@@ -8,29 +16,34 @@ const initialState = {
   isLoading: false,
   error: null,
 
-  // Summary data for 3 cards on Trang chủ
-  congViecSummary: {
-    total: 0,
-    urgent: 0,
-  },
-  yeuCauSummary: {
-    sent: 0,
-    needAction: 0,
-    inProgress: 0,
-    completed: 0,
-  },
-  kpiSummary: {
-    score: null,
-    status: "CHUA_DUYET",
-    cycleName: null,
-    isDone: false,
-    hasEvaluation: false,
+  // Home summary from single API call
+  homeSummary: {
+    congViec: {
+      dangLam: 0,
+      toiGiao: 0,
+      gap: 0,
+      quaHan: 0,
+    },
+    yeuCau: {
+      toiGui: 0,
+      canXuLy: 0,
+      quaHan: 0,
+    },
+    alert: null, // { hasUrgent, message, type }
   },
 
-  // Loading states for individual cards
-  loadingCongViec: false,
-  loadingYeuCau: false,
-  loadingKPI: false,
+  // Urgent items (mixed CongViec + YeuCau)
+  urgentItems: {
+    items: [],
+    total: 0,
+    isLoading: false,
+  },
+
+  // Recent activities (mixed CongViec + YeuCau)
+  recentActivities: {
+    items: [],
+    isLoading: false,
+  },
 
   lastFetchTime: null,
 };
@@ -48,49 +61,38 @@ const slice = createSlice({
       state.error = action.payload;
     },
 
-    // Công Việc Summary
-    startLoadingCongViec(state) {
-      state.loadingCongViec = true;
-    },
-    getCongViecSummarySuccess(state, action) {
-      state.loadingCongViec = false;
-      state.congViecSummary = action.payload;
-    },
-    getCongViecSummaryError(state, action) {
-      state.loadingCongViec = false;
-      state.error = action.payload;
-    },
-
-    // Yêu Cầu Summary
-    startLoadingYeuCau(state) {
-      state.loadingYeuCau = true;
-    },
-    getYeuCauSummarySuccess(state, action) {
-      state.loadingYeuCau = false;
-      state.yeuCauSummary = action.payload;
-    },
-    getYeuCauSummaryError(state, action) {
-      state.loadingYeuCau = false;
-      state.error = action.payload;
-    },
-
-    // KPI Summary
-    startLoadingKPI(state) {
-      state.loadingKPI = true;
-    },
-    getKPISummarySuccess(state, action) {
-      state.loadingKPI = false;
-      state.kpiSummary = action.payload;
-    },
-    getKPISummaryError(state, action) {
-      state.loadingKPI = false;
-      state.error = action.payload;
-    },
-
-    // Batch fetch all summaries
-    fetchAllSummariesSuccess(state) {
+    // Home Summary
+    getHomeSummarySuccess(state, action) {
       state.isLoading = false;
+      state.homeSummary = action.payload;
       state.lastFetchTime = new Date().toISOString();
+    },
+
+    // Urgent Items
+    startLoadingUrgentItems(state) {
+      state.urgentItems.isLoading = true;
+    },
+    getUrgentItemsSuccess(state, action) {
+      state.urgentItems.isLoading = false;
+      state.urgentItems.items = action.payload.items || [];
+      state.urgentItems.total = action.payload.total || 0;
+    },
+    getUrgentItemsError(state, action) {
+      state.urgentItems.isLoading = false;
+      state.error = action.payload;
+    },
+
+    // Recent Activities
+    startLoadingRecentActivities(state) {
+      state.recentActivities.isLoading = true;
+    },
+    getRecentActivitiesSuccess(state, action) {
+      state.recentActivities.isLoading = false;
+      state.recentActivities.items = action.payload || [];
+    },
+    getRecentActivitiesError(state, action) {
+      state.recentActivities.isLoading = false;
+      state.error = action.payload;
     },
   },
 });
@@ -101,115 +103,108 @@ export default slice.reducer;
 export const {
   startLoading,
   hasError,
-  startLoadingCongViec,
-  getCongViecSummarySuccess,
-  getCongViecSummaryError,
-  startLoadingYeuCau,
-  getYeuCauSummarySuccess,
-  getYeuCauSummaryError,
-  startLoadingKPI,
-  getKPISummarySuccess,
-  getKPISummaryError,
-  fetchAllSummariesSuccess,
+  getHomeSummarySuccess,
+  startLoadingUrgentItems,
+  getUrgentItemsSuccess,
+  getUrgentItemsError,
+  startLoadingRecentActivities,
+  getRecentActivitiesSuccess,
+  getRecentActivitiesError,
 } = slice.actions;
 
-// Thunks
+// ========== THUNKS ==========
 
 /**
- * Fetch Công Việc Summary
- * GET /api/workmanagement/congviec/summary/:nhanVienId
+ * Fetch Home Summary - Single API for all summary data
+ * GET /api/workmanagement/home/summary/:nhanVienId
  */
-export const fetchCongViecSummary = (nhanVienId) => async (dispatch) => {
+export const fetchHomeSummary = (nhanVienId) => async (dispatch) => {
   if (!nhanVienId) {
     return;
   }
 
-  dispatch(startLoadingCongViec());
+  dispatch(startLoading());
   try {
     const response = await apiService.get(
-      `/workmanagement/congviec/summary/${nhanVienId}`
+      `/workmanagement/home/summary/${nhanVienId}`,
     );
 
     if (response.data.success) {
-      dispatch(getCongViecSummarySuccess(response.data.data));
+      dispatch(getHomeSummarySuccess(response.data.data));
     }
   } catch (error) {
-    dispatch(getCongViecSummaryError(error.message));
-    console.error("Error fetching CongViec summary:", error);
+    dispatch(hasError(error.message));
+    console.error("Error fetching home summary:", error);
   }
 };
 
 /**
- * Fetch Yêu Cầu Summary
- * GET /api/workmanagement/yeucau/summary/:nhanVienId
+ * Fetch Urgent Items (mixed CongViec + YeuCau)
+ * GET /api/workmanagement/home/urgent/:nhanVienId
  */
-export const fetchYeuCauSummary = (nhanVienId) => async (dispatch) => {
-  if (!nhanVienId) {
-    return;
-  }
+export const fetchUrgentItems =
+  (nhanVienId, limit = 5) =>
+  async (dispatch) => {
+    if (!nhanVienId) return;
 
-  dispatch(startLoadingYeuCau());
-  try {
-    const response = await apiService.get(
-      `/workmanagement/yeucau/summary/${nhanVienId}`
-    );
+    dispatch(startLoadingUrgentItems());
+    try {
+      const response = await apiService.get(
+        `/workmanagement/home/urgent/${nhanVienId}?limit=${limit}`,
+      );
 
-    if (response.data.success) {
-      dispatch(getYeuCauSummarySuccess(response.data.data));
+      if (response.data.success) {
+        dispatch(getUrgentItemsSuccess(response.data.data));
+      }
+    } catch (error) {
+      dispatch(getUrgentItemsError(error.message));
+      console.error("Error fetching urgent items:", error);
     }
-  } catch (error) {
-    dispatch(getYeuCauSummaryError(error.message));
-    console.error("Error fetching YeuCau summary:", error);
-  }
-};
+  };
 
 /**
- * Fetch KPI Summary
- * GET /api/workmanagement/kpi/summary/:nhanVienId
+ * Fetch Recent Activities (mixed CongViec + YeuCau)
+ * GET /api/workmanagement/home/activities/:nhanVienId
  */
-export const fetchKPISummary = (nhanVienId) => async (dispatch) => {
-  if (!nhanVienId) {
-    return;
-  }
+export const fetchRecentActivities =
+  (nhanVienId, limit = 5) =>
+  async (dispatch) => {
+    if (!nhanVienId) return;
 
-  dispatch(startLoadingKPI());
-  try {
-    const response = await apiService.get(
-      `/workmanagement/kpi/summary/${nhanVienId}`
-    );
+    dispatch(startLoadingRecentActivities());
+    try {
+      const response = await apiService.get(
+        `/workmanagement/home/activities/${nhanVienId}?limit=${limit}`,
+      );
 
-    if (response.data.success) {
-      dispatch(getKPISummarySuccess(response.data.data));
+      if (response.data.success) {
+        dispatch(getRecentActivitiesSuccess(response.data.data.activities));
+      }
+    } catch (error) {
+      dispatch(getRecentActivitiesError(error.message));
+      console.error("Error fetching recent activities:", error);
     }
-  } catch (error) {
-    dispatch(getKPISummaryError(error.message));
-    console.error("Error fetching KPI summary:", error);
-  }
-};
+  };
 
 /**
- * Fetch all dashboard summaries in parallel
- * For Trang chủ (UnifiedDashboardPage)
+ * Fetch all home data in parallel
+ * For Trang chủ
  */
-export const fetchAllDashboardSummaries = (nhanVienId) => async (dispatch) => {
+export const fetchAllHomeData = (nhanVienId) => async (dispatch) => {
   if (!nhanVienId) {
     toast.error("Không tìm thấy thông tin nhân viên");
     return;
   }
 
-  dispatch(startLoading());
-
   try {
     // Parallel fetch for performance
     await Promise.all([
-      dispatch(fetchCongViecSummary(nhanVienId)),
-      dispatch(fetchYeuCauSummary(nhanVienId)),
-      dispatch(fetchKPISummary(nhanVienId)),
+      dispatch(fetchHomeSummary(nhanVienId)),
+      dispatch(fetchUrgentItems(nhanVienId, 5)),
+      dispatch(fetchRecentActivities(nhanVienId, 5)),
     ]);
-
-    dispatch(fetchAllSummariesSuccess());
   } catch (error) {
-    dispatch(hasError(error.message));
-    toast.error("Không thể tải dữ liệu dashboard");
+    console.error("Error fetching home data:", error);
+    toast.error("Không thể tải dữ liệu trang chủ");
   }
 };

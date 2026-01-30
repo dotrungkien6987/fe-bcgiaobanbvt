@@ -138,6 +138,8 @@ export default function AttachmentSection({
   canDelete = true,
   allowedTypes = null,
   maxSizeMB = null,
+  maxFiles = null, // Giới hạn số lượng tệp, null = không giới hạn
+  accept = null, // HTML accept attribute (e.g., ".pdf", "image/*")
   onChange = null,
   onError = null,
   labels = {},
@@ -180,7 +182,7 @@ export default function AttachmentSection({
         "Bạn có chắc chắn muốn xóa tệp này không? Hành động này không thể hoàn tác.",
       fileName: labels.fileName || "Tên tệp",
     }),
-    [labels]
+    [labels],
   );
 
   const onChangeRef = React.useRef(onChange);
@@ -248,18 +250,48 @@ export default function AttachmentSection({
   const handleFiles = async (fileList) => {
     if (!fileList || !fileList.length) return;
     const filesArr = Array.from(fileList);
+
+    // Validate file types and sizes FIRST
     const rejected = [];
     const accepted = [];
+
     for (const f of filesArr) {
-      if (!isTypeAllowed(f) || !isSizeAllowed(f)) rejected.push(f);
-      else accepted.push(f);
+      if (!isTypeAllowed(f)) {
+        rejected.push({ file: f, reason: "loại file không được phép" });
+      } else if (!isSizeAllowed(f)) {
+        rejected.push({ file: f, reason: `vượt quá ${maxSizeMB}MB` });
+      } else {
+        accepted.push(f);
+      }
     }
-    if (rejected.length) {
-      notifyError(
-        `Một số tệp không hợp lệ (loại/kích thước). Đã bỏ qua ${rejected.length} tệp.`
-      );
+
+    // Show detailed error for rejected files
+    if (rejected.length > 0) {
+      const reasons = rejected
+        .map((r) => `${r.file.name} (${r.reason})`)
+        .join(", ");
+      notifyError(`${rejected.length} file bị từ chối: ${reasons}`);
     }
+
     if (!accepted.length) return;
+
+    // Kiểm tra giới hạn số lượng tệp (CHỈ với file hợp lệ)
+    if (maxFiles !== null) {
+      const remainingSlots = maxFiles - files.length;
+      if (remainingSlots <= 0) {
+        notifyError(
+          `Đã đạt giới hạn tối đa ${maxFiles} tệp. Vui lòng xóa file cũ trước khi tải lên file mới.`,
+        );
+        return;
+      }
+      if (accepted.length > remainingSlots) {
+        notifyError(
+          `Chỉ có thể tải thêm ${remainingSlots} tệp nữa (giới hạn ${maxFiles} tệp tổng cộng).`,
+        );
+        accepted.splice(remainingSlots);
+      }
+    }
+
     setUploading(true);
     setProgress(0);
     setError(null);
@@ -408,6 +440,10 @@ export default function AttachmentSection({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
   };
 
+  // Check if upload should be disabled due to maxFiles limit
+  const isMaxFilesReached = maxFiles !== null && files.length >= maxFiles;
+  const canShowUpload = canUpload && !isMaxFilesReached;
+
   return (
     <Box>
       {/* Header */}
@@ -421,10 +457,11 @@ export default function AttachmentSection({
           </Typography>
           <Typography variant="body2" color="text.secondary">
             {(t.totalFiles || "{n}").replace("{n}", String(total))}
+            {maxFiles && ` (tối đa ${maxFiles})`}
           </Typography>
         </Box>
         <Box sx={{ flex: 1 }} />
-        {canUpload && (
+        {canShowUpload && (
           <Button
             component="label"
             variant="contained"
@@ -433,7 +470,13 @@ export default function AttachmentSection({
             sx={{ borderRadius: 2 }}
           >
             {t.pickBtn}
-            <input hidden type="file" multiple onChange={onPick} />
+            <input
+              hidden
+              type="file"
+              multiple={maxFiles !== 1}
+              accept={accept || undefined}
+              onChange={onPick}
+            />
           </Button>
         )}
       </Stack>
@@ -470,7 +513,7 @@ export default function AttachmentSection({
       )}
 
       {/* Drag & Drop Zone */}
-      {canUpload && (
+      {canShowUpload && (
         <Paper
           elevation={0}
           onDrop={onDrop}
@@ -508,7 +551,13 @@ export default function AttachmentSection({
               sx={{ borderRadius: 2 }}
             >
               {t.pickBtn}
-              <input hidden type="file" multiple onChange={onPick} />
+              <input
+                hidden
+                type="file"
+                multiple={maxFiles !== 1}
+                accept={accept || undefined}
+                onChange={onPick}
+              />
             </Button>
           </Stack>
         </Paper>
@@ -564,7 +613,7 @@ export default function AttachmentSection({
                               color="text.secondary"
                             >
                               {new Date(file.updatedAt).toLocaleDateString(
-                                "vi-VN"
+                                "vi-VN",
                               )}
                             </Typography>
                           )}

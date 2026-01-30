@@ -99,6 +99,17 @@ import DoanRaMembersPage from "features/NghienCuuKhoaHoc/Members/DoanRaMembersPa
 import DoanVaoMembersPage from "features/NghienCuuKhoaHoc/Members/DoanVaoMembersPage";
 import TepTinAdminPage from "features/QuanLyFile/pages/TepTinAdminPage";
 import {
+  QuyTrinhISOPage,
+  QuyTrinhISOCreatePage,
+  QuyTrinhISOEditPage,
+  QuyTrinhISODetailPage,
+  QuyTrinhISODashboard,
+  DistributionManagementPage,
+  DistributedToMePage,
+  BuiltByMyDeptPage,
+  ISOKhoaManagementPage,
+} from "features/QuyTrinhISO";
+import {
   XemKPIPage,
   BaoCaoKPIPage,
   ChamDiemKPIResponsive,
@@ -294,6 +305,25 @@ function Router() {
           <Route path="/doanvao/:doanVaoId" element={<DoanVaoDetailPage />} />
           {/* TapSan nested routes */}
           <Route path="/tapsan/*" element={<TapSanRoutes />} />
+
+          {/* ========================================== */}
+          {/* Quy Trình ISO - Quản Lý Chất Lượng       */}
+          {/* ========================================== */}
+          <Route path="/quytrinh-iso">
+            <Route index element={<QuyTrinhISOPage />} />
+            <Route path="dashboard" element={<QuyTrinhISODashboard />} />
+            <Route path="create" element={<QuyTrinhISOCreatePage />} />
+            <Route path="phan-phoi" element={<DistributionManagementPage />} />
+            <Route
+              path="quan-ly-khoa-iso"
+              element={<ISOKhoaManagementPage />}
+            />
+            <Route path="duoc-phan-phoi" element={<DistributedToMePage />} />
+            <Route path="khoa-xay-dung" element={<BuiltByMyDeptPage />} />
+            <Route path=":id" element={<QuyTrinhISODetailPage />} />
+            <Route path=":id/edit" element={<QuyTrinhISOEditPage />} />
+          </Route>
+
           <Route
             path="/admin/teptin"
             element={

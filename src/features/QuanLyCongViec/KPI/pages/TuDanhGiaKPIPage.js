@@ -669,6 +669,7 @@ function TuDanhGiaKPIPage() {
                               max={100}
                               step={1}
                               valueLabelDisplay="auto"
+                              valueLabelFormat={(value) => `${value}%`}
                               size="small"
                             />
                           </Box>

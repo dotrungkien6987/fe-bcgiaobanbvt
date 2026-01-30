@@ -2,7 +2,7 @@
  * KPIAssignmentCard - Mobile-friendly self-evaluation card
  *
  * Touch-friendly card for TuDanhGiaKPIPage mobile view
- * Features: Task info, slider, quick score buttons, status indicators
+ * Features: Task info, slider, status indicators
  */
 
 import React from "react";
@@ -16,19 +16,8 @@ import {
   Box,
   Slider,
   TextField,
-  ButtonGroup,
-  Button,
 } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-
-// Quick score preset buttons
-const QUICK_SCORES = [
-  { label: "0", value: 0 },
-  { label: "25", value: 25 },
-  { label: "50", value: 50 },
-  { label: "75", value: 75 },
-  { label: "100", value: 100 },
-];
 
 function KPIAssignmentCard({
   assignment,
@@ -132,106 +121,61 @@ function KPIAssignmentCard({
             </Box>
           </Stack>
 
-          {/* Score Display - Large and Centered */}
-          <Box
-            sx={{
-              textAlign: "center",
-              py: 2,
-              px: 3,
-              borderRadius: 2,
-              bgcolor: `${scoreColor}.lighter`,
-              border: "1px solid",
-              borderColor: `${scoreColor}.light`,
-            }}
-          >
-            <Typography
-              variant="h2"
-              fontWeight="bold"
-              color={`${scoreColor}.main`}
-            >
-              {currentScore}
-              <Typography
-                component="span"
-                variant="h5"
-                color="text.secondary"
-                sx={{ ml: 0.5 }}
-              >
-                %
-              </Typography>
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Mức độ hoàn thành
-            </Typography>
-          </Box>
+          {/* Compact Score Row - Score badge + Slider + Input in one line */}
+          {canEdit ? (
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              {/* Score Badge */}
+              <Chip
+                label={`${currentScore}%`}
+                color={scoreColor}
+                size="medium"
+                sx={{
+                  minWidth: 65,
+                  height: 36,
+                  fontWeight: 700,
+                  fontSize: "1.1rem",
+                  "& .MuiChip-label": {
+                    px: 1.5,
+                  },
+                }}
+              />
 
-          {/* Quick Score Buttons */}
-          {canEdit && (
-            <ButtonGroup
-              fullWidth
-              size="large"
-              disabled={isSaving}
-              sx={{
-                "& .MuiButton-root": {
-                  py: 1.5,
-                  fontWeight: 600,
-                },
-              }}
-            >
-              {QUICK_SCORES.map((preset) => (
-                <Button
-                  key={preset.value}
-                  onClick={() => onScoreChange(assignment._id, preset.value)}
-                  variant={
-                    currentScore === preset.value ? "contained" : "outlined"
-                  }
-                  color={
-                    currentScore === preset.value
-                      ? getScoreColor(preset.value)
-                      : "inherit"
-                  }
-                >
-                  {preset.label}
-                </Button>
-              ))}
-            </ButtonGroup>
-          )}
-
-          {/* Slider for Fine Adjustment */}
-          {canEdit && (
-            <Stack direction="row" spacing={2} alignItems="center">
+              {/* Slider */}
               <Box flex={1}>
                 <Slider
                   value={currentScore}
-                  onChange={(e, value) => onScoreChange(assignment._id, value)}
+                  onChange={(e, value) => onScoreChange(value)}
                   disabled={isSaving}
                   min={0}
                   max={100}
                   step={1}
                   valueLabelDisplay="auto"
+                  valueLabelFormat={(value) => `${value}%`}
                   color={scoreColor}
                   sx={{
-                    height: 10,
+                    height: 8,
                     "& .MuiSlider-thumb": {
-                      width: 24,
-                      height: 24,
+                      width: 20,
+                      height: 20,
                     },
                   }}
                 />
               </Box>
+
+              {/* Input */}
               <TextField
                 type="number"
                 value={currentScore}
                 onChange={(e) =>
                   onScoreChange(
-                    assignment._id,
                     Math.min(100, Math.max(0, Number(e.target.value))),
                   )
                 }
-                disabled={!canEdit || isSaving}
+                disabled={isSaving}
                 size="small"
-                sx={{ width: 80 }}
+                sx={{ width: 70 }}
                 InputProps={{
-                  sx: { fontWeight: 600 },
+                  sx: { fontWeight: 600, fontSize: "0.95rem" },
                   endAdornment: (
                     <Typography variant="caption" color="text.secondary">
                       %
@@ -240,6 +184,29 @@ function KPIAssignmentCard({
                 }}
               />
             </Stack>
+          ) : (
+            <Box
+              sx={{
+                textAlign: "center",
+                py: 1.5,
+                px: 2,
+                borderRadius: 2,
+                bgcolor: `${scoreColor}.lighter`,
+                border: "1px solid",
+                borderColor: `${scoreColor}.light`,
+              }}
+            >
+              <Typography
+                variant="h4"
+                fontWeight="bold"
+                color={`${scoreColor}.main`}
+              >
+                {currentScore}%
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Mức độ hoàn thành (chỉ xem)
+              </Typography>
+            </Box>
           )}
 
           {/* Read-only mode indicator */}
