@@ -32,11 +32,25 @@ import {
   IconButton,
   Box,
   Slide,
+  Chip,
+  Stack,
+  Typography,
 } from "@mui/material";
-import { Home, Task, Medal, Category, Menu as MenuIcon } from "iconsax-react";
-import { Close as CloseIcon } from "@mui/icons-material";
+import {
+  Home,
+  Task,
+  Medal,
+  Category,
+  Menu as MenuIcon,
+  Magicpen,
+} from "iconsax-react";
+import {
+  Close as CloseIcon,
+  AutoAwesome as NewIcon,
+} from "@mui/icons-material";
 import { useSelector } from "react-redux";
 import { MenuGridPage } from "features/WorkDashboard/components";
+import MenuGridPageV3 from "features/WorkDashboard/components/MenuGridPageV3";
 
 // Slide transition for menu dialog
 const SlideTransition = React.forwardRef(function Transition(props, ref) {
@@ -82,6 +96,14 @@ const NAV_ITEMS = [
     label: "Menu",
     icon: MenuIcon,
     isDialog: true,
+    dialogType: "menuV1",
+  },
+  {
+    label: "Menu V2",
+    icon: Magicpen,
+    isDialog: true,
+    dialogType: "menuV2",
+    badge: "beta", // Special badge type
   },
 ];
 
@@ -93,6 +115,7 @@ function MobileBottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const [menuDialogOpen, setMenuDialogOpen] = useState(false);
+  const [menuV2DialogOpen, setMenuV2DialogOpen] = useState(false);
 
   // Badge counts from Redux
   const yeuCauBadges = useSelector((state) => state.ticket?.badgeCounts);
@@ -138,7 +161,11 @@ function MobileBottomNav() {
     const targetItem = NAV_ITEMS[newValue];
     if (targetItem) {
       if (targetItem.isDialog) {
-        setMenuDialogOpen(true);
+        if (targetItem.dialogType === "menuV2") {
+          setMenuV2DialogOpen(true);
+        } else {
+          setMenuDialogOpen(true);
+        }
       } else {
         navigate(targetItem.path);
       }
@@ -191,45 +218,74 @@ function MobileBottomNav() {
       >
         {NAV_ITEMS.map((item, index) => {
           const IconComponent = item.icon;
-          const badgeCount = item.badge ? getBadgeCount(item.badge) : 0;
+          const badgeCount =
+            item.badge && item.badge !== "beta" ? getBadgeCount(item.badge) : 0;
+          const isBeta = item.badge === "beta";
+
+          // Render icon with optional badge
+          const renderIconWithBadge = () => {
+            const iconElement = (
+              <IconComponent
+                size={24}
+                variant={activeIndex === index ? "Bold" : "Linear"}
+              />
+            );
+
+            if (isBeta) {
+              return (
+                <Badge
+                  badgeContent="✨"
+                  color="secondary"
+                  sx={{
+                    "& .MuiBadge-badge": {
+                      fontSize: "0.5rem",
+                      height: 14,
+                      minWidth: 14,
+                      padding: 0,
+                      top: -2,
+                      right: -2,
+                    },
+                  }}
+                >
+                  {iconElement}
+                </Badge>
+              );
+            }
+
+            if (badgeCount > 0) {
+              return (
+                <Badge
+                  badgeContent={badgeCount > 99 ? "99+" : badgeCount}
+                  color="error"
+                  max={99}
+                  sx={{
+                    "& .MuiBadge-badge": {
+                      fontSize: "0.65rem",
+                      height: 16,
+                      minWidth: 16,
+                      padding: "0 4px",
+                    },
+                  }}
+                >
+                  {iconElement}
+                </Badge>
+              );
+            }
+
+            return iconElement;
+          };
 
           return (
             <BottomNavigationAction
-              key={item.path}
+              key={item.path || item.label}
               label={item.label}
-              icon={
-                badgeCount > 0 ? (
-                  <Badge
-                    badgeContent={badgeCount > 99 ? "99+" : badgeCount}
-                    color="error"
-                    max={99}
-                    sx={{
-                      "& .MuiBadge-badge": {
-                        fontSize: "0.65rem",
-                        height: 16,
-                        minWidth: 16,
-                        padding: "0 4px",
-                      },
-                    }}
-                  >
-                    <IconComponent
-                      size={24}
-                      variant={activeIndex === index ? "Bold" : "Linear"}
-                    />
-                  </Badge>
-                ) : (
-                  <IconComponent
-                    size={24}
-                    variant={activeIndex === index ? "Bold" : "Linear"}
-                  />
-                )
-              }
+              icon={renderIconWithBadge()}
             />
           );
         })}
       </BottomNavigation>
 
-      {/* Menu Dialog */}
+      {/* Menu Dialog (V1) */}
       <Dialog
         open={menuDialogOpen}
         onClose={() => setMenuDialogOpen(false)}
@@ -261,6 +317,67 @@ function MobileBottomNav() {
         </Box>
         <DialogContent sx={{ p: 0 }}>
           <MenuGridPage />
+        </DialogContent>
+      </Dialog>
+
+      {/* Menu Dialog V2 (Beta - Single Source of Truth) */}
+      <Dialog
+        open={menuV2DialogOpen}
+        onClose={() => setMenuV2DialogOpen(false)}
+        fullScreen
+        TransitionComponent={SlideTransition}
+        PaperProps={{
+          sx: {
+            borderRadius: "16px 16px 0 0",
+            maxHeight: "95vh",
+            background:
+              theme.palette.mode === "dark"
+                ? "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)"
+                : "linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%)",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            position: "sticky",
+            top: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            p: 1.5,
+            px: 2,
+            bgcolor:
+              theme.palette.mode === "dark"
+                ? "rgba(26, 26, 46, 0.95)"
+                : "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            borderBottom: 1,
+            borderColor: "divider",
+            zIndex: 1,
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <NewIcon sx={{ color: "primary.main" }} />
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              Menu V2
+            </Typography>
+            <Chip
+              label="Beta"
+              color="secondary"
+              size="small"
+              sx={{
+                height: 20,
+                fontSize: "0.65rem",
+                fontWeight: 700,
+              }}
+            />
+          </Stack>
+          <IconButton onClick={() => setMenuV2DialogOpen(false)} size="large">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <DialogContent sx={{ p: 0 }}>
+          <MenuGridPageV3 onNavigate={() => setMenuV2DialogOpen(false)} />
         </DialogContent>
       </Dialog>
     </Paper>

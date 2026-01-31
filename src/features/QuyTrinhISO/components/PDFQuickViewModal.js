@@ -237,11 +237,21 @@ function PDFQuickViewModal({ open, onClose, file }) {
         ) : error ? (
           <Box
             display="flex"
+            flexDirection="column"
             alignItems="center"
             justifyContent="center"
             height={400}
+            gap={2}
           >
             <Typography color="error">{error}</Typography>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={fetchPdf}
+              sx={{ mt: 1 }}
+            >
+              Thử lại
+            </Button>
           </Box>
         ) : blobUrl ? (
           <Box
