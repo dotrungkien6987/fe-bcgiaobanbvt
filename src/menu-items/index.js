@@ -8,20 +8,28 @@ import admin from "./admin";
 import lichtruc from "./lichtruc";
 import quanlycongviec from "./quanlycongviec";
 import notification from "./notification";
-import quanlychatluong from "./quanlychatluong";
+import { quanlychatluongAdmin, quanlychatluongUser } from "./quanlychatluong";
 
 import newfeature from "./NoiBo/newfeature";
 // Thêm thuộc tính roles cho từng menu item
-nghiencuukhoahocs.roles = ["admin", "daotao", "default"]; // Tất cả đều thấy
+// Note: User.PhanQuyen có 6 giá trị: "admin", "daotao", "nomal", "manager", "noibo", "qlcl"
+nghiencuukhoahocs.roles = [
+  "admin",
+  "daotao",
+  "nomal",
+  "manager",
+  "noibo",
+  "qlcl",
+]; // Tất cả đều thấy
 daotaos.roles = ["admin", "daotao"];
 baocao.roles = ["admin", "daotao", "manager"];
 hethong.roles = ["admin", "daotao"];
 newfeature.roles = ["admin", "noibo"];
-quanlycongviec.roles = ["admin", "daotao", "nomal", "manager", "default"]; // Tất cả đều thấy
+quanlycongviec.roles = ["admin", "daotao", "nomal", "manager", "noibo", "qlcl"]; // Tất cả đều thấy
 admin.roles = ["admin"]; // Chỉ admin mới thấy
-lichtruc.roles = ["admin", "nomal", "default"]; // Tất cả đều thấy menu lịch trực
-notification.roles = ["admin", "daotao", "nomal", "manager", "default"]; // Tất cả đều thấy
-// quanlychatluong đã có roles trong file của nó
+lichtruc.roles = ["admin", "daotao", "nomal", "manager", "noibo", "qlcl"]; // Tất cả đều thấy
+notification.roles = ["admin", "daotao", "nomal", "manager", "noibo", "qlcl"]; // Tất cả đều thấy
+// quanlychatluong đã có roles trong file của nó (2 groups riêng biệt)
 
 // ==============================|| MENU ITEMS ||============================== //
 
@@ -32,7 +40,8 @@ const menuItems = {
     baocao,
     lichtruc,
     quanlycongviec,
-    quanlychatluong,
+    quanlychatluongAdmin, // Group cho phòng QLCL (5 items)
+    quanlychatluongUser, // Group cho tất cả users (2 items)
     notification,
     hethong,
     admin,

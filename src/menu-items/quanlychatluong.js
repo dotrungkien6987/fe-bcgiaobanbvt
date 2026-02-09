@@ -24,15 +24,16 @@ const icons = {
 
 // ==============================|| MENU ITEMS - QUẢN LÝ CHẤT LƯỢNG ||============================== //
 
-const quanlychatluong = {
-  id: "group-quanlychatluong",
+// Group 1: Dành cho phòng Quản lý chất lượng (QLCL)
+const quanlychatluongAdmin = {
+  id: "group-quanlychatluong-admin",
   title: "Quản lý chất lượng",
   type: "group",
   icon: icons.clipboard,
   children: [
     {
-      id: "quytrinh-iso",
-      title: "Quy trình ISO",
+      id: "quytrinh-iso-admin",
+      title: "Quy trình ISO - Quản lý",
       type: "collapse",
       icon: icons.document,
       children: [
@@ -53,42 +54,66 @@ const quanlychatluong = {
           title: "➕ Thêm quy trình mới",
           type: "item",
           url: "/quytrinh-iso/create",
-          roles: ["qlcl", "admin", "superadmin"],
         },
         {
           id: "quytrinh-phanphoi",
           title: "🎯 Quản lý phân phối",
           type: "item",
           url: "/quytrinh-iso/phan-phoi",
-          roles: ["qlcl", "admin", "superadmin"],
         },
         {
           id: "quytrinh-khoa-iso",
           title: "⚙️ Quản lý khoa ISO",
           type: "item",
           url: "/quytrinh-iso/quan-ly-khoa-iso",
-          roles: ["qlcl", "admin", "superadmin"],
-        },
-        {
-          id: "quytrinh-duocphanphoi",
-          title: "📥 QT được phân phối",
-          type: "item",
-          url: "/quytrinh-iso/duoc-phan-phoi",
-          roles: ["default"],
-        },
-        {
-          id: "quytrinh-khoaxaydung",
-          title: "🏗️ QT khoa xây dựng",
-          type: "item",
-          url: "/quytrinh-iso/khoa-xay-dung",
-          roles: ["default"],
         },
       ],
     },
   ],
 };
 
-// Roles: qlcl, admin, superadmin - hoặc default nếu muốn cho tất cả xem
-quanlychatluong.roles = ["admin", "qlcl", "default"];
+// Roles: Chỉ admin và qlcl
+quanlychatluongAdmin.roles = ["admin", "qlcl"];
 
-export default quanlychatluong;
+// Group 2: Dành cho tất cả users
+const quanlychatluongUser = {
+  id: "group-quanlychatluong-user",
+  title: "Quy trình ISO",
+  type: "group",
+  icon: icons.document,
+  children: [
+    {
+      id: "quytrinh-iso-user",
+      title: "Quy trình ISO",
+      type: "collapse",
+      icon: icons.document,
+      children: [
+        {
+          id: "quytrinh-duocphanphoi",
+          title: "📥 QT được phân phối",
+          type: "item",
+          url: "/quytrinh-iso/duoc-phan-phoi",
+        },
+        {
+          id: "quytrinh-khoaxaydung",
+          title: "🏗️ QT khoa xây dựng",
+          type: "item",
+          url: "/quytrinh-iso/khoa-xay-dung",
+        },
+      ],
+    },
+  ],
+};
+
+// Roles: Tất cả users
+quanlychatluongUser.roles = [
+  "admin",
+  "qlcl",
+  "nomal",
+  "manager",
+  "noibo",
+  "daotao",
+];
+
+export { quanlychatluongAdmin, quanlychatluongUser };
+export default quanlychatluongAdmin; // Backward compatibility
