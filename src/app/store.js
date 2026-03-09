@@ -42,6 +42,7 @@ import kpiEvaluationSlice from "features/QuanLyCongViec/KPI/kpiEvaluationSlice";
 import khuyenCaoKhoaBQBAReducer from "../features/DashBoard/BinhQuanBenhAn/khuyenCaoKhoaBQBASlice";
 import baoCaoKPIReducer from "features/QuanLyCongViec/BaoCaoThongKeKPI/baoCaoKPISlice";
 import dichvutrungReducer from "../features/DashBoard/DichVuTrung/dichvutrungSlice";
+import datLichKhamReducer from "../features/DashBoard/DatLichKham/datLichKhamSlice";
 import { notificationReducer } from "features/Notification";
 import {
   notificationTemplateReducer,
@@ -101,6 +102,7 @@ const rootReducer = {
   kpiEvaluation: kpiEvaluationSlice,
   khuyenCaoKhoaBQBA: khuyenCaoKhoaBQBAReducer,
   dichvutrung: dichvutrungReducer,
+  datLichKham: datLichKhamReducer,
   baoCaoKPI: baoCaoKPIReducer,
   notification: notificationReducer,
   notificationTemplate: notificationTemplateReducer,

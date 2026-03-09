@@ -127,6 +127,7 @@ import NotificationTypeAdminPage from "pages/NotificationTypeAdminPage";
 import { NotificationSettings } from "features/Notification";
 // Dashboard
 import UnifiedDashboardPage from "features/QuanLyCongViec/Dashboard/UnifiedDashboardPage";
+import DatLichKhamDashboard from "features/DashBoard/DatLichKham/DatLichKhamDashboard";
 import CongViecDashboardPage from "features/QuanLyCongViec/Dashboard/CongViecDashboard/CongViecDashboardPage";
 import YeuCauDashboardPage from "pages/YeuCauDashboardPage";
 // Ticket System (YeuCau)
@@ -290,6 +291,14 @@ function Router() {
             element={
               <AdminRequire>
                 <AdminBackupPage />
+              </AdminRequire>
+            }
+          />
+          <Route
+            path="/dat-lich-kham"
+            element={
+              <AdminRequire>
+                <DatLichKhamDashboard />
               </AdminRequire>
             }
           />
