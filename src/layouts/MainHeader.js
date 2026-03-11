@@ -141,6 +141,17 @@ function MainHeader() {
         Hoạt động chung bệnh viện
       </MenuItem>
 
+      {["admin", "cntt"].includes((user?.PhanQuyen || "").toLowerCase()) && (
+        <MenuItem
+          onClick={handleMenuClose}
+          to="/dat-lich-kham"
+          component={RouterLink}
+          sx={{ mx: 1 }}
+        >
+          Quản lý đặt lịch khám
+        </MenuItem>
+      )}
+
       <Divider sx={{ borderStyle: "dashed" }} />
 
       <MenuItem
@@ -168,7 +179,6 @@ function MainHeader() {
         Đổi mật khẩu
       </MenuItem>
 
-
       <MenuItem
         key="account"
         onClick={handleMenuClose}
@@ -176,7 +186,7 @@ function MainHeader() {
         component={RouterLink}
         sx={{ mx: 1 }}
       >
-       Thay đổi thông tin cá nhân 
+        Thay đổi thông tin cá nhân
       </MenuItem>
 
       <MenuItem

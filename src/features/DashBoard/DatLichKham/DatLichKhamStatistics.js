@@ -13,6 +13,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Loop as LoopIcon,
   VerifiedUser as VerifiedUserIcon,
+  DateRange as DateRangeIcon,
 } from "@mui/icons-material";
 
 const CARDS = [
@@ -32,7 +33,7 @@ const CARDS = [
   },
   {
     key: "vong1",
-    label: "Vòng 1",
+    label: "Có khám phát sinh tiền",
     icon: CheckCircleIcon,
     color: "#ed6c02",
     bg: "#fff3e0",
@@ -51,6 +52,13 @@ const CARDS = [
     color: "#0288d1",
     bg: "#e1f5fe",
   },
+  {
+    key: "trungNgay",
+    label: "Trùng ngày",
+    icon: DateRangeIcon,
+    color: "#00897b",
+    bg: "#e0f2f1",
+  },
 ];
 
 function formatVND(num) {
@@ -60,7 +68,7 @@ function formatVND(num) {
 
 function DatLichKhamStatistics({ thongKe = {}, loading = false }) {
   return (
-    <Box sx={{ mb: 2 }}>
+    <Box sx={{ mb: 1 }}>
       <Grid container spacing={2}>
         {CARDS.map((c) => {
           const Icon = c.icon;

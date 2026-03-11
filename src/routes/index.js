@@ -20,6 +20,7 @@ import DanhSachSuCoPage from "../pages/DanhSachSuCoPage";
 import BaoCaoSuCoYKhoaPage from "../pages/BaoCaoSuCoYKhoaPage";
 import DanhSachSuCoDataGridPage from "../pages/DanhSachSuCoDataGridPage";
 import AdminRequire from "./AdminRequire";
+import AdminOrCnttRequire from "./AdminOrCnttRequire";
 import QuanLyKhoaOrAdminRequire from "./QuanLyKhoaOrAdminRequire";
 import DashBoardPage from "../pages/DashBoardPage";
 
@@ -104,7 +105,6 @@ import {
   QuyTrinhISOEditPage,
   QuyTrinhISODetailPage,
   QuyTrinhISODashboard,
-  DistributionManagementPage,
   DistributedToMePage,
   BuiltByMyDeptPage,
   ISOKhoaManagementPage,
@@ -201,6 +201,14 @@ function Router() {
             path="/hoatdongbenhvien/schema"
             element={<DataSourceExplanation />}
           /> */}
+          <Route
+            path="/dat-lich-kham"
+            element={
+              <AdminOrCnttRequire>
+                <DatLichKhamDashboard />
+              </AdminOrCnttRequire>
+            }
+          />
         </Route>
 
         <Route element={<BlankLayout />}>
@@ -294,14 +302,6 @@ function Router() {
               </AdminRequire>
             }
           />
-          <Route
-            path="/dat-lich-kham"
-            element={
-              <AdminRequire>
-                <DatLichKhamDashboard />
-              </AdminRequire>
-            }
-          />
           <Route path="/Xa" element={<XaTable />} />
           <Route path="/quocgia" element={<QuocGiaTable />} />
           <Route path="/khoas" element={<KhoaTable />} />
@@ -322,7 +322,6 @@ function Router() {
             <Route index element={<QuyTrinhISOPage />} />
             <Route path="dashboard" element={<QuyTrinhISODashboard />} />
             <Route path="create" element={<QuyTrinhISOCreatePage />} />
-            <Route path="phan-phoi" element={<DistributionManagementPage />} />
             <Route
               path="quan-ly-khoa-iso"
               element={<ISOKhoaManagementPage />}

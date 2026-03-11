@@ -186,6 +186,15 @@ function LichSuKhamDialog({ open, onClose, patient }) {
                         />
                       )}
                     </Stack>
+                    {(visit.departmentgroupname || visit.departmentname) && (
+                      <Typography variant="caption" color="text.secondary">
+                        {visit.departmentgroupname || ""}
+                        {visit.departmentgroupname &&
+                          visit.departmentname &&
+                          " — "}
+                        {visit.departmentname || ""}
+                      </Typography>
+                    )}
                     <Box sx={{ mt: 0.5 }}>
                       {visit.chandoanravien_code && (
                         <Chip
@@ -195,12 +204,12 @@ function LichSuKhamDialog({ open, onClose, patient }) {
                           sx={{ mr: 0.5, mb: 0.5 }}
                         />
                       )}
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography variant="body2" color="text.primary">
                         {visit.chandoanravien || "Chưa có chẩn đoán"}
                       </Typography>
                       {visit.chandoanravien_kemtheo && (
-                        <Typography variant="caption" color="text.disabled">
-                          Kèm theo:{" "}
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Kèm theo:</strong>{" "}
                           {visit.chandoanravien_kemtheo_code &&
                             `[${visit.chandoanravien_kemtheo_code}] `}
                           {visit.chandoanravien_kemtheo}

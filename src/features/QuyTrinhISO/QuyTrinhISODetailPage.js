@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams, Link as RouterLink } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Button,
   Card,
   CardContent,
+  Grid,
   Stack,
   Typography,
   Chip,
@@ -14,23 +15,17 @@ import {
   ListItemIcon,
   ListItemText,
   ListItemSecondaryAction,
-  Dialog,
-  DialogContent,
-  DialogTitle,
   Tooltip,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
-  Breadcrumbs,
-  Link,
-  useMediaQuery,
-  useTheme,
   Divider,
   Paper,
   Alert,
   Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  CircularProgress,
 } from "@mui/material";
 import {
   ArrowLeft,
@@ -38,43 +33,82 @@ import {
   DocumentText1,
   Eye,
   Edit,
-  CloseCircle,
   Calendar,
   Building,
   Clock,
   Category2,
   AddCircle,
-  Home2,
 } from "iconsax-react";
 import CreateVersionDialog from "./components/CreateVersionDialog";
 import NetworkError from "./components/NetworkError";
 import DistributionChips from "./components/DistributionChips";
 import PermissionDenied from "./components/PermissionDenied";
+import PDFQuickViewModal from "./components/PDFQuickViewModal";
+import ISOPageShell from "./components/ISOPageShell";
+import ISOStatusChip from "./components/ISOStatusChip";
 import dayjs from "dayjs";
-import MainCard from "../../components/MainCard";
 import {
   getQuyTrinhISODetail,
   getQuyTrinhISOVersions,
+  activateQuyTrinh,
+  deactivateQuyTrinh,
 } from "./quyTrinhISOSlice";
 import useAuth from "../../hooks/useAuth";
-import { downloadUrl } from "../../shared/services/attachments.api";
 import apiService from "../../app/apiService";
+
+// Shared breadcrumbs for this page
+const DETAIL_BREADCRUMBS_BASE = [
+  { label: "Trang chủ", to: "/" },
+  { label: "Quy trình ISO", to: "/quytrinh-iso" },
+];
+
+// Simple info row component for metadata display
+function InfoRow({ icon, label, children }) {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        gap: 1.5,
+        py: 1.25,
+        borderBottom: "1px solid",
+        borderColor: "divider",
+        "&:last-child": { borderBottom: "none" },
+      }}
+    >
+      <Box sx={{ color: "text.disabled", flexShrink: 0, pt: 0.15, width: 20 }}>
+        {icon}
+      </Box>
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        fontWeight={500}
+        sx={{ minWidth: 150, flexShrink: 0 }}
+      >
+        {label}
+      </Typography>
+      <Box sx={{ flex: 1 }}>
+        {typeof children === "string" ? (
+          <Typography variant="body2">{children || "-"}</Typography>
+        ) : (
+          children
+        )}
+      </Box>
+    </Box>
+  );
+}
 
 function QuyTrinhISODetailPage() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { currentItem, currentFiles, versions, isLoading, error } = useSelector(
-    (state) => state.quyTrinhISO,
-  );
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { currentItem, currentFiles, versions, isLoading, error, errorStatus } =
+    useSelector((state) => state.quyTrinhISO);
 
-  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState(null);
-  const [pdfLoading, setPdfLoading] = useState(false);
   const [createVersionOpen, setCreateVersionOpen] = useState(false);
+  const [lifecycleAction, setLifecycleAction] = useState(null); // "activate" | "deactivate"
+  const [lifecycleLoading, setLifecycleLoading] = useState(false);
 
   const isQLCL =
     user?.PhanQuyen === "qlcl" ||
@@ -100,35 +134,11 @@ function QuyTrinhISODetailPage() {
     }
   }, [currentItem?.MaQuyTrinh, currentItem?._id, dispatch]);
 
-  const handleViewPdf = async (file) => {
-    setPdfLoading(true);
-    setPdfViewerOpen(true);
-    try {
-      const res = await apiService.get(
-        `/attachments/files/${file._id}/inline`,
-        {
-          responseType: "blob",
-        },
-      );
-      const blobUrl = URL.createObjectURL(res.data);
-      setSelectedPdf({
-        ...file,
-        blobUrl,
-        downloadUrl: downloadUrl(file),
-      });
-    } catch (error) {
-      console.error("Error loading PDF:", error);
-      setSelectedPdf(null);
-    } finally {
-      setPdfLoading(false);
-    }
+  const handleViewPdf = (file) => {
+    setSelectedPdf(file);
   };
 
   const handleClosePdfViewer = () => {
-    if (selectedPdf?.blobUrl) {
-      URL.revokeObjectURL(selectedPdf.blobUrl);
-    }
-    setPdfViewerOpen(false);
     setSelectedPdf(null);
   };
 
@@ -151,29 +161,60 @@ function QuyTrinhISODetailPage() {
     }
   };
 
+  const handleLifecycleConfirm = async () => {
+    setLifecycleLoading(true);
+    try {
+      if (lifecycleAction === "activate") {
+        await dispatch(activateQuyTrinh(id));
+      } else {
+        await dispatch(deactivateQuyTrinh(id));
+      }
+      setLifecycleAction(null);
+      fetchData();
+    } finally {
+      setLifecycleLoading(false);
+    }
+  };
+
+  const shellBase = (
+    <ISOPageShell
+      title="Chi Tiết Quy Trình ISO"
+      breadcrumbs={DETAIL_BREADCRUMBS_BASE}
+    />
+  );
+
   // Handle permission denied error
-  if (error?.includes("403") || error?.includes("không có quyền")) {
+  if (errorStatus === 403 || error?.includes("không có quyền")) {
     return (
-      <MainCard title="Chi Tiết Quy Trình ISO">
+      <ISOPageShell
+        title="Chi Tiết Quy Trình ISO"
+        breadcrumbs={DETAIL_BREADCRUMBS_BASE}
+      >
         <PermissionDenied />
-      </MainCard>
+      </ISOPageShell>
     );
   }
 
   // Handle network error
   if (error && !isLoading) {
     return (
-      <MainCard title="Chi Tiết Quy Trình ISO">
+      <ISOPageShell
+        title="Chi Tiết Quy Trình ISO"
+        breadcrumbs={DETAIL_BREADCRUMBS_BASE}
+      >
         <NetworkError message={error} onRetry={fetchData} />
-      </MainCard>
+      </ISOPageShell>
     );
   }
 
   if (!currentItem || currentItem._id !== id) {
     return (
-      <MainCard title="Chi Tiết Quy Trình ISO">
+      <ISOPageShell
+        title="Chi Tiết Quy Trình ISO"
+        breadcrumbs={DETAIL_BREADCRUMBS_BASE}
+      >
         <Typography>Đang tải...</Typography>
-      </MainCard>
+      </ISOPageShell>
     );
   }
 
@@ -183,131 +224,154 @@ function QuyTrinhISODetailPage() {
 
   return (
     <>
-      {/* Breadcrumb Navigation */}
-      <Breadcrumbs sx={{ mb: 2 }}>
-        <Link
-          component={RouterLink}
-          to="/"
-          underline="hover"
-          color="inherit"
-          sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-        >
-          <Home2 size={16} />
-          Trang chủ
-        </Link>
-        <Link
-          component={RouterLink}
-          to="/quytrinh-iso"
-          underline="hover"
-          color="inherit"
-        >
-          Quy trình ISO
-        </Link>
-        <Typography color="text.primary">{currentItem.TenQuyTrinh}</Typography>
-      </Breadcrumbs>
-
-      <MainCard
-        title={
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Typography variant="h5">
-              {currentItem.MaQuyTrinh} - Phiên bản {currentItem.PhienBan}
-            </Typography>
-            <Chip
-              label={
-                currentItem.TrangThai === "ACTIVE" ? "Hiệu lực" : "Hết hiệu lực"
-              }
-              color={currentItem.TrangThai === "ACTIVE" ? "success" : "default"}
-              size="small"
-            />
-          </Stack>
-        }
-        secondary={
-          <Stack direction="row" spacing={1}>
+      <ISOPageShell
+        title={`${currentItem.MaQuyTrinh} — Phên Bản ${currentItem.PhienBan}`}
+        subtitle={currentItem.TenQuyTrinh}
+        breadcrumbs={[
+          ...DETAIL_BREADCRUMBS_BASE,
+          { label: currentItem.MaQuyTrinh },
+        ]}
+        headerActions={
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            flexWrap="wrap"
+          >
+            <ISOStatusChip status={currentItem.TrangThai} />
             {isQLCL && (
               <>
-                <Button
-                  startIcon={<AddCircle size={18} />}
-                  variant="contained"
-                  color="success"
-                  onClick={() => setCreateVersionOpen(true)}
-                >
-                  Tạo phiên bản mới
-                </Button>
-                <Button
-                  startIcon={<Edit size={18} />}
-                  variant="outlined"
-                  onClick={() => navigate(`/quytrinh-iso/${id}/edit`)}
-                >
-                  Chỉnh sửa
-                </Button>
+                {currentItem.TrangThai === "DRAFT" && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="success"
+                    onClick={() => setLifecycleAction("activate")}
+                    sx={{
+                      bgcolor: "rgba(255,255,255,0.2)",
+                      color: "white",
+                      borderColor: "rgba(255,255,255,0.4)",
+                      border: 1,
+                      "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
+                    }}
+                  >
+                    Phát hành
+                  </Button>
+                )}
+                {currentItem.TrangThai === "ACTIVE" && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => setLifecycleAction("deactivate")}
+                    sx={{
+                      color: "rgba(255,255,255,0.9)",
+                      borderColor: "rgba(255,255,255,0.4)",
+                      "&:hover": { borderColor: "white" },
+                    }}
+                  >
+                    Thu hồi
+                  </Button>
+                )}
+                {currentItem.TrangThai === "INACTIVE" && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    color="success"
+                    onClick={() => setLifecycleAction("activate")}
+                    sx={{
+                      bgcolor: "rgba(255,255,255,0.2)",
+                      color: "white",
+                      border: 1,
+                      borderColor: "rgba(255,255,255,0.4)",
+                      "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
+                    }}
+                  >
+                    Phát hành lại
+                  </Button>
+                )}
               </>
             )}
-            <Button
-              startIcon={<ArrowLeft size={18} />}
-              onClick={() => navigate("/quytrinh-iso")}
-            >
-              Quay lại
-            </Button>
           </Stack>
         }
       >
+        {/* Action strip */}
+        <Stack
+          direction="row"
+          spacing={1}
+          alignItems="center"
+          sx={{ mb: 3, flexWrap: "wrap", gap: 1 }}
+        >
+          <Button
+            startIcon={<ArrowLeft size={18} />}
+            onClick={() => navigate("/quytrinh-iso")}
+            variant="outlined"
+            size="small"
+          >
+            Quay lại
+          </Button>
+          {isQLCL && (
+            <>
+              <Button
+                startIcon={<AddCircle size={18} />}
+                variant="contained"
+                color="primary"
+                size="small"
+                onClick={() => setCreateVersionOpen(true)}
+              >
+                Tạo phiên bản mới
+              </Button>
+              <Button
+                startIcon={<Edit size={18} />}
+                variant="outlined"
+                size="small"
+                onClick={() => navigate(`/quytrinh-iso/${id}/edit`)}
+              >
+                Chỉnh sửa
+              </Button>
+            </>
+          )}
+        </Stack>
+
         <Stack spacing={3}>
           {/* Basic Info */}
           <Card variant="outlined">
             <CardContent>
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1.5 }}>
                 Thông Tin Chung
               </Typography>
 
-              <TableContainer>
-                <Table size="small">
-                  <TableBody>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 500, width: 200 }}>
-                        <Stack direction="row" alignItems="center" spacing={1}>
-                          <Category2 size={18} color="#9e9e9e" />
-                          <span>Tên Quy Trình</span>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>{currentItem.TenQuyTrinh}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 500 }}>
-                        <Stack direction="row" alignItems="center" spacing={1}>
-                          <Building size={18} color="#9e9e9e" />
-                          <span>Khoa Xây Dựng</span>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        {currentItem.KhoaXayDungID?.TenKhoa || "-"}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 500 }}>
-                        <Stack direction="row" alignItems="center" spacing={1}>
-                          <Calendar size={18} color="#9e9e9e" />
-                          <span>Ngày Hiệu Lực</span>
-                        </Stack>
-                      </TableCell>
-                      <TableCell>
-                        {currentItem.NgayHieuLuc
-                          ? dayjs(currentItem.NgayHieuLuc).format("DD/MM/YYYY")
-                          : "-"}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 500 }}>Ghi Chú</TableCell>
-                      <TableCell>
-                        {currentItem.GhiChu || (
-                          <Typography variant="body2" color="text.secondary">
-                            Không có ghi chú
-                          </Typography>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <InfoRow icon={<Category2 size={17} />} label="Tên Quy Trình">
+                <Typography variant="body2" fontWeight={500}>
+                  {currentItem.TenQuyTrinh}
+                </Typography>
+              </InfoRow>
+              <InfoRow icon={<Building size={17} />} label="Khoa Xây Dựng">
+                {currentItem.KhoaXayDungID?.TenKhoa || "-"}
+              </InfoRow>
+              <InfoRow icon={<Calendar size={17} />} label="Ngày Hiệu Lực">
+                {currentItem.NgayHieuLuc
+                  ? dayjs(currentItem.NgayHieuLuc).format("DD/MM/YYYY")
+                  : "-"}
+              </InfoRow>
+              <InfoRow icon={<Category2 size={17} />} label="Trạng Thái">
+                <ISOStatusChip status={currentItem.TrangThai} />
+              </InfoRow>
+              {currentItem.GhiChu && (
+                <InfoRow icon={<Category2 size={17} />} label="Ghi Chú">
+                  {currentItem.GhiChu}
+                </InfoRow>
+              )}
+              {currentItem.createdAt && (
+                <InfoRow icon={<Clock size={17} />} label="Ngày Tạo">
+                  {dayjs(currentItem.createdAt).format("DD/MM/YYYY HH:mm")}
+                </InfoRow>
+              )}
+              {currentItem.updatedAt &&
+                currentItem.updatedAt !== currentItem.createdAt && (
+                  <InfoRow icon={<Clock size={17} />} label="Cập Nhật Lần Cuối">
+                    {dayjs(currentItem.updatedAt).format("DD/MM/YYYY HH:mm")}
+                  </InfoRow>
+                )}
             </CardContent>
           </Card>
 
@@ -330,15 +394,15 @@ function QuyTrinhISODetailPage() {
           <Card
             sx={{
               border: "2px solid",
-              borderColor: "error.main",
-              bgcolor: "#fff5f5",
+              borderColor: "primary.main",
+              bgcolor: "#e3f2fd",
             }}
           >
             <CardContent>
               <Stack direction="row" spacing={2} alignItems="center" mb={2}>
                 <Box
                   sx={{
-                    bgcolor: "error.main",
+                    bgcolor: "primary.main",
                     color: "white",
                     p: 1.5,
                     borderRadius: 2,
@@ -348,7 +412,7 @@ function QuyTrinhISODetailPage() {
                   <DocumentDownload size={32} />
                 </Box>
                 <Box flex={1}>
-                  <Typography variant="h6" fontWeight={600} color="error">
+                  <Typography variant="h6" fontWeight={600} color="primary">
                     File Quy Trình Chính (PDF)
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -359,7 +423,7 @@ function QuyTrinhISODetailPage() {
                   icon={<DocumentDownload size={16} />}
                   label={`${filesPDF.length} file`}
                   sx={{
-                    bgcolor: "error.main",
+                    bgcolor: "primary.main",
                     color: "white",
                     "& .MuiChip-icon": { color: "white" },
                   }}
@@ -410,7 +474,7 @@ function QuyTrinhISODetailPage() {
                               <Chip
                                 label="PDF"
                                 size="small"
-                                color="error"
+                                color="primary"
                                 sx={{ height: 20 }}
                               />
                             </Stack>
@@ -455,15 +519,15 @@ function QuyTrinhISODetailPage() {
           <Card
             sx={{
               border: "2px solid",
-              borderColor: "primary.main",
-              bgcolor: "#f0f7ff",
+              borderColor: "#ed6c02",
+              bgcolor: "#fff3e0",
             }}
           >
             <CardContent>
               <Stack direction="row" spacing={2} alignItems="center" mb={2}>
                 <Box
                   sx={{
-                    bgcolor: "primary.main",
+                    bgcolor: "#ed6c02",
                     color: "white",
                     p: 1.5,
                     borderRadius: 2,
@@ -473,7 +537,11 @@ function QuyTrinhISODetailPage() {
                   <DocumentText1 size={32} />
                 </Box>
                 <Box flex={1}>
-                  <Typography variant="h6" fontWeight={600} color="primary">
+                  <Typography
+                    variant="h6"
+                    fontWeight={600}
+                    sx={{ color: "#e65100" }}
+                  >
                     Biểu Mẫu Đi Kèm (Word)
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -484,7 +552,7 @@ function QuyTrinhISODetailPage() {
                   icon={<DocumentText1 size={16} />}
                   label={`${filesWord.length} file`}
                   sx={{
-                    bgcolor: "primary.main",
+                    bgcolor: "#ed6c02",
                     color: "white",
                     "& .MuiChip-icon": { color: "white" },
                   }}
@@ -579,104 +647,118 @@ function QuyTrinhISODetailPage() {
                 </Stack>
 
                 <List disablePadding>
-                  {versions.map((ver) => (
-                    <ListItem
-                      key={ver._id}
-                      button
-                      onClick={() => navigate(`/quytrinh-iso/${ver._id}`)}
-                      sx={{
-                        border: 1,
-                        borderColor: "divider",
-                        borderRadius: 1,
-                        mb: 1,
-                      }}
-                    >
-                      <ListItemText
-                        primary={`Phiên bản ${ver.PhienBan}`}
-                        secondary={
-                          <>
-                            Ngày hiệu lực:{" "}
-                            {dayjs(ver.NgayHieuLuc).format("DD/MM/YYYY")} •{" "}
-                            Khoa: {ver.KhoaXayDungID?.TenKhoa || "N/A"}
-                          </>
+                  {versions.map((ver, index) => {
+                    const isCurrent = ver._id === id;
+                    const isLatest = index === 0;
+                    return (
+                      <ListItem
+                        key={ver._id}
+                        button
+                        onClick={() =>
+                          !isCurrent && navigate(`/quytrinh-iso/${ver._id}`)
                         }
-                      />
-                    </ListItem>
-                  ))}
+                        sx={{
+                          border: 1,
+                          borderColor: isCurrent ? "primary.main" : "divider",
+                          borderRadius: 1,
+                          mb: 1,
+                          bgcolor: isCurrent ? "primary.50" : "transparent",
+                          cursor: isCurrent ? "default" : "pointer",
+                        }}
+                      >
+                        <ListItemText
+                          primary={
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
+                            >
+                              <Typography fontWeight={isCurrent ? 700 : 400}>
+                                Phiên bản {ver.PhienBan}
+                              </Typography>
+                              {isCurrent && (
+                                <Chip
+                                  label="Hiện tại"
+                                  size="small"
+                                  color="primary"
+                                  sx={{ height: 20, fontSize: "0.7rem" }}
+                                />
+                              )}
+                              {isLatest && (
+                                <Chip
+                                  label="Mới nhất"
+                                  size="small"
+                                  color="success"
+                                  sx={{ height: 20, fontSize: "0.7rem" }}
+                                />
+                              )}
+                            </Stack>
+                          }
+                          secondary={
+                            <>
+                              Ngày hiệu lực:{" "}
+                              {dayjs(ver.NgayHieuLuc).format("DD/MM/YYYY")} •{" "}
+                              Khoa: {ver.KhoaXayDungID?.TenKhoa || "N/A"}
+                            </>
+                          }
+                        />
+                      </ListItem>
+                    );
+                  })}
                 </List>
               </CardContent>
             </Card>
           )}
         </Stack>
-      </MainCard>
+      </ISOPageShell>
 
-      {/* PDF Viewer Dialog */}
+      {/* Lifecycle Confirmation Dialog */}
       <Dialog
-        open={pdfViewerOpen}
-        onClose={handleClosePdfViewer}
-        maxWidth="lg"
-        fullWidth
-        fullScreen={isMobile}
-        PaperProps={{ sx: isMobile ? {} : { height: "90vh" } }}
+        open={!!lifecycleAction}
+        onClose={() => !lifecycleLoading && setLifecycleAction(null)}
       >
         <DialogTitle>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Typography variant="h6">
-              {selectedPdf?.TenGoc || selectedPdf?.TenFile}
-            </Typography>
-            <Stack direction="row" spacing={1}>
-              <Tooltip title="Tải xuống">
-                <IconButton
-                  onClick={() =>
-                    selectedPdf?.downloadUrl &&
-                    window.open(selectedPdf.downloadUrl, "_blank")
-                  }
-                >
-                  <DocumentDownload size={20} />
-                </IconButton>
-              </Tooltip>
-              <IconButton onClick={handleClosePdfViewer}>
-                <CloseCircle size={20} />
-              </IconButton>
-            </Stack>
-          </Stack>
+          {lifecycleAction === "activate"
+            ? "Xác nhận phát hành"
+            : "Xác nhận thu hồi"}
         </DialogTitle>
-        <DialogContent sx={{ p: 0 }}>
-          {pdfLoading ? (
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              height={400}
-            >
-              <Typography color="text.secondary">Đang tải PDF...</Typography>
-            </Box>
-          ) : selectedPdf?.blobUrl ? (
-            <iframe
-              src={`${selectedPdf.blobUrl}#toolbar=0&navpanes=0`}
-              title={selectedPdf.TenGoc || selectedPdf.TenFile}
-              width="100%"
-              height="100%"
-              style={{ border: "none" }}
-            />
-          ) : (
-            <Box
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              height={400}
-            >
-              <Typography color="text.secondary">
-                Không thể hiển thị file PDF
-              </Typography>
-            </Box>
-          )}
+        <DialogContent>
+          <DialogContentText>
+            {lifecycleAction === "activate"
+              ? `Phát hành quy trình "${currentItem.TenQuyTrinh}" (v${currentItem.PhienBan})? Các phiên bản khác cùng mã sẽ tự động chuyển sang "Đã thu hồi".`
+              : `Thu hồi quy trình "${currentItem.TenQuyTrinh}" (v${currentItem.PhienBan})? Người dùng sẽ không còn thấy tài liệu này.`}
+          </DialogContentText>
         </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setLifecycleAction(null)}
+            disabled={lifecycleLoading}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={handleLifecycleConfirm}
+            variant="contained"
+            color={lifecycleAction === "activate" ? "success" : "warning"}
+            disabled={lifecycleLoading}
+            startIcon={
+              lifecycleLoading ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : null
+            }
+            autoFocus
+          >
+            {lifecycleAction === "activate" ? "Phát hành" : "Thu hồi"}
+          </Button>
+        </DialogActions>
       </Dialog>
+
+      {/* PDF Viewer — unified with PDFQuickViewModal */}
+      <PDFQuickViewModal
+        open={!!selectedPdf}
+        onClose={handleClosePdfViewer}
+        file={selectedPdf}
+      />
 
       {/* Create Version Dialog */}
       <CreateVersionDialog

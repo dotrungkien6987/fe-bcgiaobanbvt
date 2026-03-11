@@ -56,12 +56,6 @@ const quanlychatluongAdmin = {
           url: "/quytrinh-iso/create",
         },
         {
-          id: "quytrinh-phanphoi",
-          title: "🎯 Quản lý phân phối",
-          type: "item",
-          url: "/quytrinh-iso/phan-phoi",
-        },
-        {
           id: "quytrinh-khoa-iso",
           title: "⚙️ Quản lý khoa ISO",
           type: "item",

@@ -44,7 +44,7 @@ function DatLichKhamFilters({
   };
 
   return (
-    <Box sx={{ mb: 2 }}>
+    <Box sx={{ mb: 1 }}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Stack
           direction="row"
@@ -72,7 +72,7 @@ function DatLichKhamFilters({
             variant="contained"
             startIcon={<SearchIcon />}
             onClick={onSearch}
-            size="medium"
+            size="small"
           >
             Tìm kiếm
           </Button>
@@ -84,7 +84,7 @@ function DatLichKhamFilters({
               onFromDateChange(dayjs().startOf("month"));
               onToDateChange(dayjs().endOf("month"));
             }}
-            size="medium"
+            size="small"
           >
             Làm mới
           </Button>

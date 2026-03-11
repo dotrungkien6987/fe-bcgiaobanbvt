@@ -15,8 +15,9 @@ import {
   ListItemText,
   ListItemIcon,
   Divider,
-  Breadcrumbs,
-  Link,
+  useMediaQuery,
+  useTheme,
+  alpha,
 } from "@mui/material";
 import {
   DocumentText,
@@ -27,7 +28,6 @@ import {
   Clock,
   Building,
   ArrowRight2,
-  Home2,
   Send2,
   ReceiveSquare2,
   Setting2,
@@ -35,15 +35,15 @@ import {
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/vi";
-import MainCard from "../../components/MainCard";
 import { getQuyTrinhISOStatistics } from "./quyTrinhISOSlice";
 import useAuth from "../../hooks/useAuth";
 import NetworkError from "./components/NetworkError";
+import ISOPageShell from "./components/ISOPageShell";
 
 dayjs.extend(relativeTime);
 dayjs.locale("vi");
 
-// Stat Card Component with gradient
+// Stat Card Component
 function StatCard({ title, value, icon, color = "primary", subtitle }) {
   const colorMap = {
     primary: { light: "#e3f2fd", main: "#1976d2", dark: "#1565c0" },
@@ -57,11 +57,14 @@ function StatCard({ title, value, icon, color = "primary", subtitle }) {
     <Card
       sx={{
         height: "100%",
-        background: `linear-gradient(135deg, ${colors.light} 0%, ${colors.light} 100%)`,
-        border: 1,
-        borderColor: colors.main,
-        transition: "transform 0.2s",
-        "&:hover": { transform: "translateY(-2px)" },
+        background: `linear-gradient(135deg, ${colors.light} 0%, white 100%)`,
+        borderLeft: `4px solid ${colors.main}`,
+        border: `1px solid ${colors.main}`,
+        transition: "all 0.2s ease",
+        "&:hover": {
+          transform: "translateY(-4px)",
+          boxShadow: 8,
+        },
       }}
     >
       <CardContent>
@@ -118,52 +121,58 @@ function DepartmentBarChart({ data, onItemClick }) {
   const maxCount = Math.max(...data.map((d) => d.count), 1);
 
   return (
-    <Stack spacing={2}>
-      {data.map((item, index) => (
-        <Box
-          key={index}
-          sx={{
-            cursor: "pointer",
-            p: 1.5,
-            borderRadius: 1,
-            "&:hover": { bgcolor: "action.hover" },
-          }}
-          onClick={() => onItemClick?.(item)}
-        >
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ mb: 0.5 }}
-          >
-            <Typography
-              variant="body2"
-              fontWeight={500}
-              noWrap
-              sx={{ flex: 1 }}
-            >
-              {item.TenKhoa || "Không xác định"}
-            </Typography>
-            <Typography variant="body2" fontWeight={700} color="primary.main">
-              {item.count}
-            </Typography>
-          </Stack>
-          <LinearProgress
-            variant="determinate"
-            value={(item.count / maxCount) * 100}
+    <Box sx={{ maxHeight: 350, overflow: "auto" }}>
+      <Stack spacing={1}>
+        {data.map((item, index) => (
+          <Box
+            key={index}
             sx={{
-              height: 8,
-              borderRadius: 4,
-              bgcolor: "grey.200",
-              "& .MuiLinearProgress-bar": {
-                borderRadius: 4,
-                bgcolor: "primary.main",
+              cursor: "pointer",
+              p: 1.5,
+              borderRadius: 1,
+              transition: "all 0.2s ease",
+              "&:hover": {
+                bgcolor: (t) => alpha(t.palette.primary.main, 0.06),
+                transform: "translateX(4px)",
               },
             }}
-          />
-        </Box>
-      ))}
-    </Stack>
+            onClick={() => onItemClick?.(item)}
+          >
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ mb: 0.5 }}
+            >
+              <Typography
+                variant="body2"
+                fontWeight={500}
+                noWrap
+                sx={{ flex: 1 }}
+              >
+                {item.TenKhoa || "Không xác định"}
+              </Typography>
+              <Typography variant="body2" fontWeight={700} color="primary.main">
+                {item.count}
+              </Typography>
+            </Stack>
+            <LinearProgress
+              variant="determinate"
+              value={(item.count / maxCount) * 100}
+              sx={{
+                height: 8,
+                borderRadius: 4,
+                bgcolor: "grey.200",
+                "& .MuiLinearProgress-bar": {
+                  borderRadius: 4,
+                  bgcolor: "primary.main",
+                },
+              }}
+            />
+          </Box>
+        ))}
+      </Stack>
+    </Box>
   );
 }
 
@@ -184,7 +193,13 @@ function RecentDocsList({ documents, onItemClick }) {
           <ListItem
             button
             onClick={() => onItemClick?.(doc)}
-            sx={{ px: 0, py: 1 }}
+            sx={{
+              px: 1,
+              py: 1,
+              borderRadius: 1,
+              transition: "all 0.15s ease",
+              "&:hover": { bgcolor: "action.hover" },
+            }}
           >
             <ListItemIcon sx={{ minWidth: 36 }}>
               <DocumentText size={20} color="#1976d2" />
@@ -214,6 +229,8 @@ function QuyTrinhISODashboard() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { statistics, isLoading, error } = useSelector(
     (state) => state.quyTrinhISO,
   );
@@ -252,90 +269,62 @@ function QuyTrinhISODashboard() {
     navigate(`/quytrinh-iso/${doc._id}`);
   };
 
-  // Handle error state
-  if (error && !isLoading) {
-    return (
-      <>
-        <Breadcrumbs sx={{ mb: 2 }}>
-          <Link
-            underline="hover"
-            color="inherit"
-            href="/"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate("/");
-            }}
-            sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-          >
-            <Home2 size={16} />
-            Trang chủ
-          </Link>
-          <Typography color="text.primary" fontWeight={500}>
-            Dashboard Quy Trình ISO
-          </Typography>
-        </Breadcrumbs>
-        <MainCard title="Dashboard Quy Trình ISO">
-          <NetworkError message={error} onRetry={fetchData} />
-        </MainCard>
-      </>
-    );
-  }
-
   return (
-    <>
-      {/* Breadcrumb */}
-      <Breadcrumbs sx={{ mb: 2 }}>
-        <Link
-          underline="hover"
-          color="inherit"
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate("/");
-          }}
-          sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-        >
-          <Home2 size={16} />
-          Trang chủ
-        </Link>
-        <Typography color="text.secondary">Quản lý chất lượng</Typography>
-        <Typography color="text.primary" fontWeight={500}>
-          Tổng quan
-        </Typography>
-      </Breadcrumbs>
-
-      <MainCard
-        title={
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Chart21 size={24} color="#1976d2" />
-            <span>Tổng Quan Quản Lý Quy Trình ISO</span>
-          </Stack>
-        }
-        secondary={
-          <Stack direction="row" spacing={1}>
+    <ISOPageShell
+      title="Tổng Quan ISO"
+      subtitle="Quản lý quy trình nghiệp vụ tiêu chuẩn ISO"
+      breadcrumbs={[
+        { label: "Trang chủ", to: "/" },
+        { label: "Quy trình ISO", to: "/quytrinh-iso" },
+        { label: "Tổng quan" },
+      ]}
+      headerActions={
+        <Stack direction="row" spacing={1}>
+          <Button
+            startIcon={<Eye size={18} />}
+            variant="outlined"
+            size={isMobile ? "small" : "medium"}
+            onClick={() => navigate("/quytrinh-iso")}
+            sx={{
+              color: "white",
+              borderColor: "rgba(255,255,255,0.5)",
+              "&:hover": {
+                borderColor: "white",
+                bgcolor: "rgba(255,255,255,0.1)",
+              },
+            }}
+          >
+            {!isMobile && "Danh sách"}
+          </Button>
+          {isQLCL && (
             <Button
-              startIcon={<Eye size={18} />}
-              variant="outlined"
-              onClick={() => navigate("/quytrinh-iso")}
+              startIcon={<Add size={18} />}
+              variant="contained"
+              size={isMobile ? "small" : "medium"}
+              onClick={() => navigate("/quytrinh-iso/create")}
+              sx={{
+                bgcolor: "rgba(255,255,255,0.2)",
+                color: "white",
+                border: "1px solid rgba(255,255,255,0.4)",
+                "&:hover": { bgcolor: "rgba(255,255,255,0.3)" },
+              }}
             >
-              Xem danh sách
+              {!isMobile ? "Thêm quy trình" : "Thêm"}
             </Button>
-            {isQLCL && (
-              <Button
-                startIcon={<Add size={18} />}
-                variant="contained"
-                onClick={() => navigate("/quytrinh-iso/create")}
-              >
-                Thêm quy trình
-              </Button>
-            )}
-          </Stack>
-        }
-      >
-        <Stack spacing={3}>
-          {/* Statistics Grid */}
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={3}>
+          )}
+        </Stack>
+      }
+    >
+      {/* Handle error state */}
+      {error && !isLoading ? (
+        <Box sx={{ py: 4 }}>
+          <NetworkError message={error} onRetry={fetchData} />
+        </Box>
+      ) : (
+        <Stack spacing={3} sx={{ pt: 1 }}>
+          {/* Statistics Grid — 2x2 on mobile, 4 columns on desktop */}
+          <Grid container spacing={2}>
+            <Grid item xs={6} md={3}>
               <StatCard
                 title="Tổng Số Tài Liệu"
                 value={stats.total}
@@ -344,7 +333,7 @@ function QuyTrinhISODashboard() {
                 subtitle="Tất cả phiên bản"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={6} md={3}>
               <StatCard
                 title="Quy Trình Riêng Biệt"
                 value={stats.uniqueProcesses}
@@ -353,16 +342,16 @@ function QuyTrinhISODashboard() {
                 subtitle="Mã quy trình duy nhất"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={6} md={3}>
               <StatCard
                 title="File PDF"
                 value={stats.totalPDF}
                 icon={<DocumentDownload size={28} color="white" />}
-                color="error"
+                color="primary"
                 subtitle="Tổng file PDF"
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={6} md={3}>
               <StatCard
                 title="Biểu Mẫu Word"
                 value={stats.totalWord}
@@ -377,8 +366,17 @@ function QuyTrinhISODashboard() {
           <Grid container spacing={3}>
             {/* Department Bar Chart */}
             <Grid item xs={12} md={7}>
-              <Card variant="outlined" sx={{ height: "100%" }}>
-                <CardContent>
+              <Card
+                variant="outlined"
+                sx={{
+                  height: { md: 450 },
+                  maxHeight: { xs: 400, md: 450 },
+                  borderRadius: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <CardContent sx={{ flex: 1, overflow: "auto" }}>
                   <Stack
                     direction="row"
                     alignItems="center"
@@ -411,8 +409,17 @@ function QuyTrinhISODashboard() {
 
             {/* Recent Documents */}
             <Grid item xs={12} md={5}>
-              <Card variant="outlined" sx={{ height: "100%" }}>
-                <CardContent>
+              <Card
+                variant="outlined"
+                sx={{
+                  height: { md: 450 },
+                  maxHeight: { xs: 400, md: 450 },
+                  borderRadius: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <CardContent sx={{ flex: 1, overflow: "auto" }}>
                   <Stack
                     direction="row"
                     alignItems="center"
@@ -435,7 +442,7 @@ function QuyTrinhISODashboard() {
           </Grid>
 
           {/* Quick Actions */}
-          <Card variant="outlined">
+          <Card variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent>
               <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
                 Thao Tác Nhanh
@@ -449,7 +456,14 @@ function QuyTrinhISODashboard() {
                     size="large"
                     startIcon={<Eye size={20} />}
                     onClick={() => navigate("/quytrinh-iso")}
-                    sx={{ py: 2 }}
+                    sx={{
+                      py: 2,
+                      transition: "all 0.2s",
+                      "&:hover": {
+                        transform: "translateY(-2px)",
+                        boxShadow: 2,
+                      },
+                    }}
                   >
                     Xem Tất Cả Quy Trình
                   </Button>
@@ -463,7 +477,14 @@ function QuyTrinhISODashboard() {
                         size="large"
                         startIcon={<Add size={20} />}
                         onClick={() => navigate("/quytrinh-iso/create")}
-                        sx={{ py: 2 }}
+                        sx={{
+                          py: 2,
+                          transition: "all 0.2s",
+                          "&:hover": {
+                            transform: "translateY(-2px)",
+                            boxShadow: 2,
+                          },
+                        }}
                       >
                         Thêm Quy Trình Mới
                       </Button>
@@ -475,8 +496,15 @@ function QuyTrinhISODashboard() {
                         fullWidth
                         size="large"
                         startIcon={<Setting2 size={20} />}
-                        onClick={() => navigate("/quytrinh-iso/phan-phoi")}
-                        sx={{ py: 2 }}
+                        onClick={() => navigate("/quytrinh-iso")}
+                        sx={{
+                          py: 2,
+                          transition: "all 0.2s",
+                          "&:hover": {
+                            transform: "translateY(-2px)",
+                            boxShadow: 4,
+                          },
+                        }}
                       >
                         Quản Lý Phân Phối
                       </Button>
@@ -492,7 +520,14 @@ function QuyTrinhISODashboard() {
                         color="success"
                         startIcon={<ReceiveSquare2 size={20} />}
                         onClick={() => navigate("/quytrinh-iso/duoc-phan-phoi")}
-                        sx={{ py: 2 }}
+                        sx={{
+                          py: 2,
+                          transition: "all 0.2s",
+                          "&:hover": {
+                            transform: "translateY(-2px)",
+                            boxShadow: 2,
+                          },
+                        }}
                       >
                         QT Được Phân Phối
                       </Button>
@@ -505,7 +540,14 @@ function QuyTrinhISODashboard() {
                         color="warning"
                         startIcon={<Send2 size={20} />}
                         onClick={() => navigate("/quytrinh-iso/khoa-xay-dung")}
-                        sx={{ py: 2 }}
+                        sx={{
+                          py: 2,
+                          transition: "all 0.2s",
+                          "&:hover": {
+                            transform: "translateY(-2px)",
+                            boxShadow: 2,
+                          },
+                        }}
                       >
                         QT Khoa Xây Dựng
                       </Button>
@@ -516,8 +558,8 @@ function QuyTrinhISODashboard() {
             </CardContent>
           </Card>
         </Stack>
-      </MainCard>
-    </>
+      )}
+    </ISOPageShell>
   );
 }
 

@@ -18,46 +18,414 @@ import {
   CircularProgress,
   Paper,
   IconButton,
-  Tooltip,
   Chip,
-  Badge,
   Alert,
+  Checkbox,
+  SwipeableDrawer,
   alpha,
   useTheme,
   useMediaQuery,
 } from "@mui/material";
-import {
-  SearchNormal1,
-  ArrowRight2,
-  ArrowLeft2,
-  ArrowUp,
-  ArrowDown,
-  CloseCircle,
-  Maximize4,
-  MinusSquare,
-  Add,
-  Minus,
-} from "iconsax-react";
+import { SearchNormal1, CloseCircle, Add, Building } from "iconsax-react";
 import { useSelector, useDispatch } from "react-redux";
 import { updateDistribution } from "../quyTrinhISOSlice";
 import { getISOKhoa } from "../../Daotao/Khoa/khoaSlice";
 
+// ─── Sub-component: AddDepartmentsDialog ─────────────────────────
+// Bottom sheet (mobile) / Dialog (desktop) cho phep tich chon nhieu khoa
+function AddDepartmentsDialog({
+  open,
+  onClose,
+  availableKhoa,
+  loading,
+  onAddMultiple,
+  isMobile,
+}) {
+  const theme = useTheme();
+  const [pendingIds, setPendingIds] = useState([]);
+  const [search, setSearch] = useState("");
+
+  // Reset on open
+  useEffect(() => {
+    if (open) {
+      setPendingIds([]);
+      setSearch("");
+    }
+  }, [open]);
+
+  const filtered = useMemo(() => {
+    if (!search) return availableKhoa;
+    const q = search.toLowerCase();
+    return availableKhoa.filter(
+      (k) =>
+        k.TenKhoa.toLowerCase().includes(q) ||
+        k.MaKhoa?.toLowerCase().includes(q),
+    );
+  }, [availableKhoa, search]);
+
+  const togglePending = (id) => {
+    setPendingIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  const handleConfirm = () => {
+    onAddMultiple(pendingIds);
+    onClose();
+  };
+
+  const handleSelectAll = () => {
+    setPendingIds(filtered.map((k) => k._id));
+  };
+
+  const handleClearAll = () => {
+    setPendingIds([]);
+  };
+
+  const iOS =
+    typeof navigator !== "undefined" &&
+    /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  const content = (
+    <Box
+      sx={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}
+    >
+      {/* Header with search */}
+      <Box
+        sx={{
+          p: 2,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          bgcolor: alpha(theme.palette.success.main, 0.04),
+        }}
+      >
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={1.5}
+        >
+          <Typography variant="subtitle1" fontWeight={600}>
+            Chọn khoa để thêm
+          </Typography>
+          <Chip
+            label={`${pendingIds.length} đã chọn`}
+            size="small"
+            color={pendingIds.length > 0 ? "success" : "default"}
+          />
+        </Stack>
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Tìm khoa..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchNormal1 size={16} />
+              </InputAdornment>
+            ),
+            endAdornment: search && (
+              <InputAdornment position="end">
+                <IconButton size="small" onClick={() => setSearch("")}>
+                  <CloseCircle size={16} />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+
+      {/* Select All / Clear All row */}
+      {filtered.length > 0 && (
+        <Box
+          sx={{
+            px: 2,
+            py: 1,
+            borderBottom: `1px solid ${theme.palette.divider}`,
+          }}
+        >
+          <Stack direction="row" spacing={1}>
+            <Button
+              size="small"
+              onClick={handleSelectAll}
+              disabled={loading}
+              sx={{ textTransform: "none", fontSize: "0.8rem" }}
+            >
+              Chọn tất cả ({filtered.length})
+            </Button>
+            {pendingIds.length > 0 && (
+              <Button
+                size="small"
+                color="error"
+                onClick={handleClearAll}
+                disabled={loading}
+                sx={{ textTransform: "none", fontSize: "0.8rem" }}
+              >
+                Bỏ chọn
+              </Button>
+            )}
+          </Stack>
+        </Box>
+      )}
+
+      {/* Checkbox List */}
+      <Box sx={{ flex: 1, overflow: "auto", p: 1, minHeight: 0 }}>
+        {filtered.length === 0 ? (
+          <Box textAlign="center" py={4}>
+            <Building
+              size={40}
+              color={theme.palette.grey[400]}
+              variant="Bulk"
+            />
+            <Typography variant="body2" color="text.secondary" mt={1}>
+              {search
+                ? "Không tìm thấy khoa phù hợp"
+                : "Không còn khoa nào để thêm"}
+            </Typography>
+          </Box>
+        ) : (
+          <List disablePadding>
+            {filtered.map((khoa) => {
+              const checked = pendingIds.includes(khoa._id);
+              return (
+                <ListItem key={khoa._id} disablePadding sx={{ mb: 0.5 }}>
+                  <ListItemButton
+                    onClick={() => togglePending(khoa._id)}
+                    disabled={loading}
+                    sx={{
+                      borderRadius: 1,
+                      border: "1px solid",
+                      borderColor: checked
+                        ? theme.palette.success.main
+                        : theme.palette.divider,
+                      bgcolor: checked
+                        ? alpha(theme.palette.success.main, 0.06)
+                        : "background.paper",
+                      transition: "all 0.15s ease",
+                      py: 0.75,
+                    }}
+                  >
+                    <Checkbox
+                      checked={checked}
+                      color="success"
+                      size="small"
+                      tabIndex={-1}
+                      disableRipple
+                      sx={{ mr: 1, p: 0 }}
+                    />
+                    <ListItemText
+                      primary={
+                        <Typography variant="body2" fontWeight={500}>
+                          {khoa.TenKhoa}
+                        </Typography>
+                      }
+                      secondary={khoa.MaKhoa}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              );
+            })}
+          </List>
+        )}
+      </Box>
+
+      {/* Footer Actions */}
+      <Box
+        sx={{
+          p: 2,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          bgcolor: "background.paper",
+        }}
+      >
+        <Stack direction="row" spacing={1} justifyContent="flex-end">
+          <Button
+            variant="outlined"
+            onClick={onClose}
+            size={isMobile ? "large" : "medium"}
+          >
+            Hủy
+          </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleConfirm}
+            disabled={pendingIds.length === 0}
+            startIcon={<Add size={18} />}
+            size={isMobile ? "large" : "medium"}
+          >
+            Thêm{pendingIds.length > 0 ? ` (${pendingIds.length})` : ""}
+          </Button>
+        </Stack>
+      </Box>
+    </Box>
+  );
+
+  // Mobile: SwipeableDrawer bottom sheet
+  if (isMobile) {
+    return (
+      <SwipeableDrawer
+        anchor="bottom"
+        open={open}
+        onClose={onClose}
+        onOpen={() => {}}
+        disableBackdropTransition={!iOS}
+        disableDiscovery={iOS}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            height: "85vh",
+            display: "flex",
+            flexDirection: "column",
+          },
+        }}
+      >
+        {/* Drag handle */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            pt: 1.5,
+            pb: 0.5,
+          }}
+        >
+          <Box
+            sx={{
+              width: 40,
+              height: 4,
+              bgcolor: "grey.300",
+              borderRadius: 2,
+            }}
+          />
+        </Box>
+        {content}
+      </SwipeableDrawer>
+    );
+  }
+
+  // Desktop: nested Dialog
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <Box sx={{ display: "flex", flexDirection: "column", height: "60vh" }}>
+        {content}
+      </Box>
+    </Dialog>
+  );
+}
+
+// ─── Sub-component: KhoaDistributionCard ─────────────────────────
+// Premium card cho mỗi khoa đã được phân phối
+function KhoaDistributionCard({ khoa, index, onRemove, disabled, theme, alpha: alphafn }) {
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        p: 2,
+        pt: 3,
+        borderRadius: 3,
+        border: "1px solid",
+        borderColor: alphafn(theme.palette.primary.main, 0.2),
+        borderLeftWidth: "4px",
+        borderLeftColor: theme.palette.primary.main,
+        background: `linear-gradient(135deg, ${alphafn(theme.palette.primary.main, 0.07)} 0%, ${theme.palette.background.paper} 60%)`,
+        overflow: "hidden",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+        transition: "all 0.2s ease",
+        "&:hover": {
+          borderColor: alphafn(theme.palette.primary.main, 0.4),
+          borderLeftColor: theme.palette.primary.main,
+          boxShadow: `0 6px 18px ${alphafn(theme.palette.primary.main, 0.18)}`,
+          transform: "translateY(-2px)",
+        },
+      }}
+    >
+      {/* Watermark icon */}
+      <Box sx={{
+        position: "absolute", right: -8, bottom: -8,
+        opacity: 0.05, pointerEvents: "none",
+      }}>
+        <Building size={64} color={theme.palette.primary.main} variant="Bulk" />
+      </Box>
+
+      {/* STT badge — góc trên trái */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 8,
+          left: 8,
+          width: 22,
+          height: 22,
+          borderRadius: "50%",
+          bgcolor: "primary.main",
+          color: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "0.7rem",
+          fontWeight: 700,
+          lineHeight: 1,
+          boxShadow: `0 2px 6px ${alphafn(theme.palette.primary.main, 0.4)}`,
+        }}
+      >
+        {index + 1}
+      </Box>
+
+      {/* Remove button — góc trên phải */}
+      <IconButton
+        size="small"
+        onClick={() => onRemove(khoa._id)}
+        disabled={disabled}
+        sx={{
+          position: "absolute",
+          top: 4,
+          right: 4,
+          color: "error.main",
+          opacity: 0.5,
+          transition: "opacity 0.15s, background 0.15s",
+          "&:hover": {
+            opacity: 1,
+            bgcolor: alphafn(theme.palette.error.main, 0.08),
+          },
+        }}
+      >
+        <CloseCircle size={16} />
+      </IconButton>
+
+      {/* Content */}
+      <Stack spacing={0.75} sx={{ mt: 0.5 }}>
+        <Typography
+          variant="body2"
+          fontWeight={600}
+          sx={{ pr: 2.5, lineHeight: 1.4 }}
+        >
+          {khoa.TenKhoa}
+        </Typography>
+        <Chip
+          label={khoa.MaKhoa}
+          size="small"
+          sx={{
+            alignSelf: "flex-start",
+            height: 20,
+            fontSize: "0.7rem",
+            bgcolor: alphafn(theme.palette.primary.main, 0.1),
+            color: theme.palette.primary.dark,
+            "& .MuiChip-label": { px: 1 },
+          }}
+        />
+      </Stack>
+    </Box>
+  );
+}
+
+// ─── Main Component: DistributionDialogV2 ────────────────────────
 /**
- * DistributionDialogV2 - Dialog phân phối quy trình với Split Panel UI
- *
- * Features:
- * - Split panel: Available (trái) vs Selected (phải)
- * - Fullscreen mode
- * - Transfer buttons với badge count
- * - Search trong cả 2 panel
- * - Visual feedback rõ ràng
- * - Quick stats bar
- * - Hover effects & animations
+ * DistributionDialogV2 - Dialog phan phoi quy trinh
  *
  * Props:
  * - open: boolean
  * - onClose: () => void
- * - quyTrinh: object - Quy trình đang chỉnh sửa
+ * - quyTrinh: object
  */
 function DistributionDialogV2({ open, onClose, quyTrinh }) {
   const theme = useTheme();
@@ -69,11 +437,9 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
   );
   const { distributionLoading } = useSelector((state) => state.quyTrinhISO);
 
-  const [searchAvailable, setSearchAvailable] = useState("");
   const [searchSelected, setSearchSelected] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
-  const [fullscreen, setFullscreen] = useState(true);
-  const [hoveredItem, setHoveredItem] = useState(null);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   // Fetch ISO khoa on mount
   useEffect(() => {
@@ -89,34 +455,25 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
     }
   }, [open, quyTrinh]);
 
-  // Reset on close
+  // Reset search on close
   useEffect(() => {
     if (!open) {
-      setSearchAvailable("");
       setSearchSelected("");
-      setFullscreen(false);
     }
   }, [open]);
 
-  // Loại bỏ khoa xây dựng
+  // Loai bo khoa xay dung
   const khoaXayDungId = quyTrinh?.KhoaXayDungID?._id || quyTrinh?.KhoaXayDungID;
   const validKhoa = useMemo(() => {
     return (allKhoa || []).filter((k) => k._id !== khoaXayDungId);
   }, [allKhoa, khoaXayDungId]);
 
-  // Available khoa (chưa chọn)
+  // Available khoa (chua chon)
   const availableKhoa = useMemo(() => {
-    return validKhoa
-      .filter((k) => !selectedIds.includes(k._id))
-      .filter((k) =>
-        searchAvailable
-          ? k.TenKhoa.toLowerCase().includes(searchAvailable.toLowerCase()) ||
-            k.MaKhoa?.toLowerCase().includes(searchAvailable.toLowerCase())
-          : true,
-      );
-  }, [validKhoa, selectedIds, searchAvailable]);
+    return validKhoa.filter((k) => !selectedIds.includes(k._id));
+  }, [validKhoa, selectedIds]);
 
-  // Selected khoa (đã chọn)
+  // Selected khoa (da chon) + search filter
   const selectedKhoa = useMemo(() => {
     return validKhoa
       .filter((k) => selectedIds.includes(k._id))
@@ -128,26 +485,12 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
       );
   }, [validKhoa, selectedIds, searchSelected]);
 
-  // Add single khoa
-  const handleAdd = (khoaId) => {
-    setSelectedIds((prev) => [...prev, khoaId]);
-  };
-
-  // Remove single khoa
   const handleRemove = (khoaId) => {
     setSelectedIds((prev) => prev.filter((id) => id !== khoaId));
   };
 
-  // Add all filtered available
-  const handleAddAll = () => {
-    const newIds = availableKhoa.map((k) => k._id);
-    setSelectedIds((prev) => [...new Set([...prev, ...newIds])]);
-  };
-
-  // Remove all filtered selected
-  const handleRemoveAll = () => {
-    const removeIds = selectedKhoa.map((k) => k._id);
-    setSelectedIds((prev) => prev.filter((id) => !removeIds.includes(id)));
+  const handleAddMultiple = (ids) => {
+    setSelectedIds((prev) => [...new Set([...prev, ...ids])]);
   };
 
   const handleSave = async () => {
@@ -156,184 +499,22 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
   };
 
   const loading = khoaLoading || distributionLoading;
-
-  // Panel renderer
-  const renderPanel = (
-    title,
-    khoas,
-    searchValue,
-    setSearchValue,
-    isSelected,
-  ) => (
-    <Paper
-      elevation={0}
-      sx={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        minHeight: isMobile ? "auto" : "auto",
-        border: `2px solid ${
-          isSelected ? theme.palette.success.main : theme.palette.grey[300]
-        }`,
-        borderRadius: 2,
-        overflow: "hidden",
-        bgcolor: isSelected
-          ? alpha(theme.palette.success.main, 0.02)
-          : "background.paper",
-      }}
-    >
-      {/* Panel Header */}
-      <Box
-        sx={{
-          p: isMobile ? 1 : 2,
-          bgcolor: isSelected
-            ? alpha(theme.palette.success.main, 0.1)
-            : alpha(theme.palette.grey[500], 0.05),
-          borderBottom: `1px solid ${theme.palette.divider}`,
-        }}
-      >
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={1.5}
-        >
-          <Typography variant="subtitle1" fontWeight={600}>
-            {title}
-          </Typography>
-          <Chip
-            label={khoas.length}
-            size="small"
-            color={isSelected ? "success" : "default"}
-            sx={{ fontWeight: "bold", minWidth: 40 }}
-          />
-        </Stack>
-
-        {/* Search */}
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="Tìm kiếm..."
-          value={searchValue}
-          onChange={(e) => setSearchValue(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchNormal1 size={16} />
-              </InputAdornment>
-            ),
-            endAdornment: searchValue && (
-              <InputAdornment position="end">
-                <IconButton size="small" onClick={() => setSearchValue("")}>
-                  <CloseCircle size={16} />
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
-
-      {/* Panel Content */}
-      <Box
-        sx={{
-          flex: 1,
-          overflow: "auto",
-          p: 1,
-          minHeight: 0,
-        }}
-      >
-        {loading ? (
-          <Box display="flex" justifyContent="center" py={4}>
-            <CircularProgress size={32} />
-          </Box>
-        ) : khoas.length === 0 ? (
-          <Box
-            display="flex"
-            flexDirection="column"
-            alignItems="center"
-            justifyContent="center"
-            py={4}
-            px={2}
-          >
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              textAlign="center"
-            >
-              {searchValue
-                ? "Không tìm thấy khoa phù hợp"
-                : isSelected
-                  ? "Chưa chọn khoa nào"
-                  : "Không còn khoa nào"}
-            </Typography>
-          </Box>
-        ) : (
-          <List disablePadding>
-            {khoas.map((khoa) => (
-              <ListItem key={khoa._id} disablePadding sx={{ mb: 0.5 }}>
-                <ListItemButton
-                  onClick={() =>
-                    isSelected ? handleRemove(khoa._id) : handleAdd(khoa._id)
-                  }
-                  onMouseEnter={() => setHoveredItem(khoa._id)}
-                  onMouseLeave={() => setHoveredItem(null)}
-                  disabled={loading}
-                  sx={{
-                    borderRadius: 1,
-                    border: `1px solid ${theme.palette.divider}`,
-                    bgcolor:
-                      hoveredItem === khoa._id
-                        ? alpha(
-                            isSelected
-                              ? theme.palette.error.main
-                              : theme.palette.success.main,
-                            0.08,
-                          )
-                        : "background.paper",
-                    transition: "all 0.2s",
-                    "&:hover": {
-                      transform: "translateX(4px)",
-                      boxShadow: 1,
-                    },
-                  }}
-                >
-                  <ListItemText
-                    primary={
-                      <Typography variant="body2" fontWeight={500}>
-                        {khoa.TenKhoa}
-                      </Typography>
-                    }
-                    secondary={khoa.MaKhoa}
-                  />
-                  <IconButton
-                    size="small"
-                    sx={{
-                      opacity: hoveredItem === khoa._id ? 1 : 0,
-                      transition: "opacity 0.2s",
-                      color: isSelected ? "error.main" : "success.main",
-                    }}
-                  >
-                    {isSelected ? <Minus size={16} /> : <Add size={16} />}
-                  </IconButton>
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        )}
-      </Box>
-    </Paper>
-  );
+  const isNotActive = quyTrinh?.TrangThai !== "ACTIVE";
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth={fullscreen ? false : "lg"}
       fullWidth
-      fullScreen={fullscreen}
+      fullScreen
       PaperProps={{
         sx: {
-          height: fullscreen ? "100vh" : isMobile ? "90vh" : "80vh",
+          // Trên desktop: giới hạn chiều rộng nhưng vẫn full screen chiều cao
+          maxWidth: { md: "90vw" },
+          margin: { md: "auto" },
+          borderRadius: { md: 2 },
+          height: { md: "92vh" },
+          alignSelf: { md: "center" },
         },
       }}
     >
@@ -341,46 +522,32 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
         sx={{
           borderBottom: `1px solid ${theme.palette.divider}`,
           bgcolor: alpha(theme.palette.primary.main, 0.05),
+          py: isMobile ? 1.5 : 2,
         }}
       >
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="flex-start"
-        >
-          <Box flex={1}>
-            <Typography variant="h6" fontWeight={600} mb={0.5}>
-              🎯 Phân Phối Quy Trình
-            </Typography>
-            <Typography variant="body2" color="text.secondary" fontWeight={500}>
-              {quyTrinh?.MaQuyTrinh} v{quyTrinh?.PhienBan}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {quyTrinh?.TenQuyTrinh}
-            </Typography>
-            <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
-              <Chip
-                label={`Khoa xây dựng: ${quyTrinh?.KhoaXayDungID?.TenKhoa || "N/A"}`}
-                size="small"
-                variant="outlined"
-              />
-              <Chip
-                label={`Tổng: ${validKhoa.length} khoa`}
-                size="small"
-                color="info"
-              />
-            </Stack>
-          </Box>
-          <Tooltip title={fullscreen ? "Thu nhỏ" : "Toàn màn hình"}>
-            <IconButton
+        <Box>
+          <Typography variant="h6" fontWeight={600} mb={0.5}>
+            Phân Phối Quy Trình
+          </Typography>
+          <Typography variant="body2" color="text.secondary" fontWeight={500}>
+            {quyTrinh?.MaQuyTrinh} v{quyTrinh?.PhienBan}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {quyTrinh?.TenQuyTrinh}
+          </Typography>
+          <Stack direction="row" spacing={1} mt={1} flexWrap="wrap" useFlexGap>
+            <Chip
+              label={`Khoa xây dựng: ${quyTrinh?.KhoaXayDungID?.TenKhoa || "N/A"}`}
               size="small"
-              onClick={() => setFullscreen(!fullscreen)}
-              sx={{ ml: 1 }}
-            >
-              {fullscreen ? <MinusSquare size={20} /> : <Maximize4 size={20} />}
-            </IconButton>
-          </Tooltip>
-        </Stack>
+              variant="outlined"
+            />
+            <Chip
+              label={`Tổng: ${validKhoa.length} khoa`}
+              size="small"
+              color="info"
+            />
+          </Stack>
+        </Box>
       </DialogTitle>
 
       <DialogContent
@@ -391,6 +558,23 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
           flex: 1,
         }}
       >
+        {/* Not-ACTIVE Warning */}
+        {isNotActive && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <Typography variant="body2" fontWeight={500}>
+              Không thể chỉnh sửa phân phối
+            </Typography>
+            <Typography variant="caption">
+              Quy trình phải ở trạng thái <strong>Đang hiệu lực</strong> mới
+              có thể phân phối. Hiện tại:{" "}
+              <strong>
+                {quyTrinh?.TrangThai === "DRAFT" ? "Nháp" : "Đã thu hồi"}
+              </strong>
+              .
+            </Typography>
+          </Alert>
+        )}
+
         {/* Empty State Alert - No ISO Khoa */}
         {!khoaLoading && (!allKhoa || allKhoa.length === 0) && (
           <Alert severity="warning" sx={{ mb: 2 }}>
@@ -409,7 +593,7 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
           variant="outlined"
           sx={{
             p: isMobile ? 1 : 2,
-            mb: isMobile ? 1.5 : 3,
+            mb: 2,
             bgcolor: alpha(theme.palette.info.main, 0.03),
             borderColor: theme.palette.info.main,
           }}
@@ -453,156 +637,102 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
           </Stack>
         </Paper>
 
-        {/* Split Panel */}
-        <Stack
-          direction={isMobile ? "column" : "row"}
-          spacing={isMobile ? 1 : 2}
-          sx={{ flex: 1, overflow: isMobile ? "auto" : "hidden" }}
-        >
-          {/* On mobile: Selected panel first, on desktop: Available panel first */}
-          {isMobile ? (
-            <>
-              {/* Selected Panel - shown first on mobile */}
-              {renderPanel(
-                "✅ Khoa Được Phân Phối",
-                selectedKhoa,
-                searchSelected,
-                setSearchSelected,
-                true,
-              )}
-
-              {/* Transfer Buttons */}
-              <Stack
-                direction="row"
-                spacing={1}
-                justifyContent="center"
-                alignItems="center"
-              >
-                <Tooltip title="Thêm tất cả">
-                  <span>
-                    <IconButton
-                      onClick={handleAddAll}
-                      disabled={loading || availableKhoa.length === 0}
-                      color="success"
-                      sx={{
-                        bgcolor: alpha(theme.palette.success.main, 0.1),
-                        "&:hover": {
-                          bgcolor: alpha(theme.palette.success.main, 0.2),
-                        },
-                      }}
-                    >
-                      <Badge
-                        badgeContent={availableKhoa.length}
-                        color="success"
-                      >
-                        <ArrowDown size={24} />
-                      </Badge>
-                    </IconButton>
-                  </span>
-                </Tooltip>
-                <Tooltip title="Xóa tất cả">
-                  <span>
-                    <IconButton
-                      onClick={handleRemoveAll}
-                      disabled={loading || selectedKhoa.length === 0}
-                      color="error"
-                      sx={{
-                        bgcolor: alpha(theme.palette.error.main, 0.1),
-                        "&:hover": {
-                          bgcolor: alpha(theme.palette.error.main, 0.2),
-                        },
-                      }}
-                    >
-                      <Badge badgeContent={selectedKhoa.length} color="error">
-                        <ArrowUp size={24} />
-                      </Badge>
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              </Stack>
-
-              {/* Available Panel - shown last on mobile */}
-              {renderPanel(
-                "📋 Khoa Có Sẵn",
-                availableKhoa,
-                searchAvailable,
-                setSearchAvailable,
-                false,
-              )}
-            </>
-          ) : (
-            <>
-              {/* Desktop layout: Available -> Transfer -> Selected */}
-              {renderPanel(
-                "📋 Khoa Có Sẵn",
-                availableKhoa,
-                searchAvailable,
-                setSearchAvailable,
-                false,
-              )}
-
-              {/* Transfer Buttons */}
-              <Stack
-                direction="column"
-                spacing={1}
-                justifyContent="center"
-                alignItems="center"
-                sx={{ py: 2 }}
-              >
-                <Tooltip title="Thêm tất cả">
-                  <span>
-                    <IconButton
-                      onClick={handleAddAll}
-                      disabled={loading || availableKhoa.length === 0}
-                      color="success"
-                      sx={{
-                        bgcolor: alpha(theme.palette.success.main, 0.1),
-                        "&:hover": {
-                          bgcolor: alpha(theme.palette.success.main, 0.2),
-                        },
-                      }}
-                    >
-                      <Badge
-                        badgeContent={availableKhoa.length}
-                        color="success"
-                      >
-                        <ArrowRight2 size={24} />
-                      </Badge>
-                    </IconButton>
-                  </span>
-                </Tooltip>
-                <Tooltip title="Xóa tất cả">
-                  <span>
-                    <IconButton
-                      onClick={handleRemoveAll}
-                      disabled={loading || selectedKhoa.length === 0}
-                      color="error"
-                      sx={{
-                        bgcolor: alpha(theme.palette.error.main, 0.1),
-                        "&:hover": {
-                          bgcolor: alpha(theme.palette.error.main, 0.2),
-                        },
-                      }}
-                    >
-                      <Badge badgeContent={selectedKhoa.length} color="error">
-                        <ArrowLeft2 size={24} />
-                      </Badge>
-                    </IconButton>
-                  </span>
-                </Tooltip>
-              </Stack>
-
-              {/* Selected Panel */}
-              {renderPanel(
-                "✅ Khoa Được Phân Phối",
-                selectedKhoa,
-                searchSelected,
-                setSearchSelected,
-                true,
-              )}
-            </>
-          )}
+        {/* Action Row: Search + Add Button */}
+        <Stack direction="row" spacing={1} sx={{ mb: 2 }} alignItems="center">
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Tìm khoa đã phân phối..."
+            value={searchSelected}
+            onChange={(e) => setSearchSelected(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchNormal1 size={16} />
+                </InputAdornment>
+              ),
+              endAdornment: searchSelected && (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    onClick={() => setSearchSelected("")}
+                  >
+                    <CloseCircle size={16} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<Add size={18} />}
+            onClick={() => setAddDialogOpen(true)}
+            disabled={loading || availableKhoa.length === 0 || isNotActive}
+            sx={{
+              whiteSpace: "nowrap",
+              minWidth: "auto",
+              px: isMobile ? 2 : 3,
+              py: 1,
+            }}
+          >
+            Thêm khoa
+          </Button>
         </Stack>
+
+        {/* Selected Departments — 2-column grid */}
+        <Box sx={{ flex: 1, overflow: "auto", minHeight: 0 }}>
+          {loading ? (
+            <Box display="flex" justifyContent="center" py={4}>
+              <CircularProgress size={32} />
+            </Box>
+          ) : selectedKhoa.length === 0 ? (
+            <Box sx={{ textAlign: "center", py: 6, px: 2 }}>
+              <Building
+                size={48}
+                color={theme.palette.grey[400]}
+                variant="Bulk"
+              />
+              <Typography variant="body1" color="text.secondary" mt={2} mb={1}>
+                {searchSelected
+                  ? "Không tìm thấy khoa phù hợp"
+                  : "Chưa chọn khoa nào"}
+              </Typography>
+              {!searchSelected && availableKhoa.length > 0 && !isNotActive && (
+                <Button
+                  variant="outlined"
+                  color="success"
+                  startIcon={<Add size={18} />}
+                  onClick={() => setAddDialogOpen(true)}
+                  sx={{ mt: 1 }}
+                >
+                  Thêm khoa ngay
+                </Button>
+              )}
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+                gap: 1.5,
+                p: 0.5,
+              }}
+            >
+              {selectedKhoa.map((khoa, index) => (
+                <KhoaDistributionCard
+                  key={khoa._id}
+                  khoa={khoa}
+                  index={index}
+                  onRemove={handleRemove}
+                  disabled={loading || isNotActive}
+                  theme={theme}
+                  alpha={alpha}
+                />
+              ))}
+            </Box>
+          )}
+        </Box>
       </DialogContent>
 
       <DialogActions
@@ -631,7 +761,7 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
             <Button
               variant="contained"
               onClick={handleSave}
-              disabled={loading}
+              disabled={loading || isNotActive}
               startIcon={
                 loading ? <CircularProgress size={16} color="inherit" /> : null
               }
@@ -641,6 +771,16 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
           </Stack>
         </Stack>
       </DialogActions>
+
+      {/* Add Departments Sub-Dialog */}
+      <AddDepartmentsDialog
+        open={addDialogOpen}
+        onClose={() => setAddDialogOpen(false)}
+        availableKhoa={availableKhoa}
+        loading={loading}
+        onAddMultiple={handleAddMultiple}
+        isMobile={isMobile}
+      />
     </Dialog>
   );
 }

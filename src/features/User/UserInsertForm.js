@@ -68,6 +68,8 @@ import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import BusinessCenterIcon from "@mui/icons-material/BusinessCenter";
+import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
+import ComputerIcon from "@mui/icons-material/Computer";
 import MedicalInformationIcon from "@mui/icons-material/MedicalInformation";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 
@@ -87,7 +89,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
     NhanVienUserCurrent,
   } = useSelector((state) => state.user);
   const { nhanviens } = useSelector(
-    (state) => state.nhanvien || { nhanviens: [] }
+    (state) => state.nhanvien || { nhanviens: [] },
   );
 
   const dispatch = useDispatch();
@@ -169,7 +171,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
   const handleDashboardPermissionChange = (permission) => {
     if (dashboardPermissions.includes(permission)) {
       setDashboardPermissions(
-        dashboardPermissions.filter((p) => p !== permission)
+        dashboardPermissions.filter((p) => p !== permission),
       );
     } else {
       setDashboardPermissions([...dashboardPermissions, permission]);
@@ -332,6 +334,16 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
         color: "success",
         icon: <VpnKeyIcon fontSize="small" />,
       },
+      qlcl: {
+        label: "Quản lý chất lượng",
+        color: "secondary",
+        icon: <VerifiedUserIcon fontSize="small" />,
+      },
+      cntt: {
+        label: "Công nghệ thông tin",
+        color: "default",
+        icon: <ComputerIcon fontSize="small" />,
+      },
     };
 
     const config = quyenConfig[quyen] || quyenConfig.nomal;
@@ -488,6 +500,8 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                           "manager",
                           "daotao",
                           "noibo",
+                          "qlcl",
+                          "cntt",
                         ]}
                         value={valueQuyen || "nomal"}
                         onChange={(event, newValue) => {
@@ -602,7 +616,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                             align="center"
                             sx={{
                               fontWeight: dashboardPermissions.includes(
-                                option.value
+                                option.value,
                               )
                                 ? 600
                                 : 400,
@@ -615,7 +629,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                           </Typography>
                           <Checkbox
                             checked={dashboardPermissions.includes(
-                              option.value
+                              option.value,
                             )}
                             onChange={() =>
                               handleDashboardPermissionChange(option.value)
@@ -642,7 +656,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                     {dashboardPermissions.length > 0 ? (
                       dashboardPermissions.map((permission) => {
                         const option = dashboardOptions.find(
-                          (opt) => opt.value === permission
+                          (opt) => opt.value === permission,
                         );
                         return (
                           <Chip

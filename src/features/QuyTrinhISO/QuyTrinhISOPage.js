@@ -11,6 +11,7 @@ import {
   InputAdornment,
   Menu,
   MenuItem,
+  Paper,
   Stack,
   Table,
   TableBody,
@@ -27,13 +28,12 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  Autocomplete,
-  Breadcrumbs,
-  Link,
+  Alert,
   Skeleton,
   Fab,
   useMediaQuery,
   useTheme,
+  alpha,
 } from "@mui/material";
 import {
   Add,
@@ -44,15 +44,20 @@ import {
   More,
   DocumentDownload,
   DocumentText1,
-  Home2,
   FolderOpen,
 } from "iconsax-react";
 import dayjs from "dayjs";
 import useAuth from "../../hooks/useAuth";
-import MainCard from "../../components/MainCard";
 import { getQuyTrinhISOList, deleteQuyTrinhISO } from "./quyTrinhISOSlice";
 import { getISOKhoa } from "../Daotao/Khoa/khoaSlice";
 import NetworkError from "./components/NetworkError";
+import ISOPageShell from "./components/ISOPageShell";
+import ISOFilterBar from "./components/ISOFilterBar";
+import ISOStatusChip from "./components/ISOStatusChip";
+import { DistributionCount } from "./components/DistributionChips";
+import DistributionDialogV2 from "./components/DistributionDialogV2";
+import PDFQuickViewModal from "./components/PDFQuickViewModal";
+import apiService from "../../app/apiService";
 
 function QuyTrinhISOPage() {
   const dispatch = useDispatch();
@@ -65,15 +70,38 @@ function QuyTrinhISOPage() {
   const { items, total, page, size, isLoading, error } = useSelector(
     (state) => state.quyTrinhISO,
   );
-  const { khoaList } = useSelector((state) => state.khoa);
+  const { ISOKhoa: khoaList } = useSelector((state) => state.khoa);
 
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [selectedKhoa, setSelectedKhoa] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedTrangThai, setSelectedTrangThai] = useState("");
+  const [editDialog, setEditDialog] = useState({
+    open: false,
+    quyTrinh: null,
+  });
+  const [pdfModal, setPdfModal] = useState({ open: false, file: null });
 
   const isQLCL = ["qlcl", "admin", "superadmin"].includes(user?.PhanQuyen);
+
+  // Column count for colSpan
+  const colCount = isQLCL ? 10 : 7;
+
+  // Build common params helper
+  const buildParams = useCallback(
+    (overrides = {}) => ({
+      page,
+      size,
+      search: search || undefined,
+      KhoaXayDungID: selectedKhoa?._id || undefined,
+      TrangThai: selectedTrangThai || undefined,
+      ...(isQLCL ? { includeDistribution: true } : {}),
+      ...overrides,
+    }),
+    [page, size, search, selectedKhoa, selectedTrangThai, isQLCL],
+  );
 
   // Fetch ISO Khoa list for filter
   useEffect(() => {
@@ -90,14 +118,8 @@ function QuyTrinhISOPage() {
   }, [searchParams, khoaList]);
 
   const fetchData = useCallback(() => {
-    const params = {
-      page,
-      size,
-      search: search || undefined,
-      KhoaXayDungID: selectedKhoa?._id || undefined,
-    };
-    dispatch(getQuyTrinhISOList(params));
-  }, [dispatch, page, size, search, selectedKhoa]);
+    dispatch(getQuyTrinhISOList(buildParams()));
+  }, [dispatch, buildParams]);
 
   useEffect(() => {
     fetchData();
@@ -109,58 +131,41 @@ function QuyTrinhISOPage() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    dispatch(
-      getQuyTrinhISOList({
-        page: 1,
-        size,
-        search: search || undefined,
-        KhoaXayDungID: selectedKhoa?._id || undefined,
-      }),
-    );
+    dispatch(getQuyTrinhISOList(buildParams({ page: 1 })));
   };
 
   const handleKhoaChange = (_, newValue) => {
     setSelectedKhoa(newValue);
-    // Update URL
     if (newValue) {
       searchParams.set("KhoaXayDungID", newValue._id);
     } else {
       searchParams.delete("KhoaXayDungID");
     }
     setSearchParams(searchParams);
-    // Fetch with new filter
     dispatch(
-      getQuyTrinhISOList({
-        page: 1,
-        size,
-        search: search || undefined,
-        KhoaXayDungID: newValue?._id || undefined,
-      }),
+      getQuyTrinhISOList(
+        buildParams({ page: 1, KhoaXayDungID: newValue?._id || undefined }),
+      ),
     );
   };
 
+  const handleTrangThaiChange = (_, newValue) => {
+    setSelectedTrangThai(newValue ?? "");
+  };
+
   const handlePageChange = (_, newPage) => {
-    dispatch(
-      getQuyTrinhISOList({
-        page: newPage + 1,
-        size,
-        search: search || undefined,
-        KhoaXayDungID: selectedKhoa?._id || undefined,
-      }),
-    );
+    dispatch(getQuyTrinhISOList(buildParams({ page: newPage + 1 })));
   };
 
   const handleRowsPerPageChange = (e) => {
     dispatch(
-      getQuyTrinhISOList({
-        page: 1,
-        size: parseInt(e.target.value, 10),
-        search: search || undefined,
-        KhoaXayDungID: selectedKhoa?._id || undefined,
-      }),
+      getQuyTrinhISOList(
+        buildParams({ page: 1, size: parseInt(e.target.value, 10) }),
+      ),
     );
   };
 
+  // Context menu handlers (non-QLCL)
   const handleMenuClick = (event, item) => {
     setAnchorEl(event.currentTarget);
     setSelectedItem(item);
@@ -172,16 +177,7 @@ function QuyTrinhISOPage() {
   };
 
   const handleView = () => {
-    if (selectedItem) {
-      navigate(`/quytrinh-iso/${selectedItem._id}`);
-    }
-    handleMenuClose();
-  };
-
-  const handleEdit = () => {
-    if (selectedItem) {
-      navigate(`/quytrinh-iso/${selectedItem._id}/edit`);
-    }
+    if (selectedItem) navigate(`/quytrinh-iso/${selectedItem._id}`);
     handleMenuClose();
   };
 
@@ -203,14 +199,41 @@ function QuyTrinhISOPage() {
     setSelectedItem(null);
   };
 
-  // Error state component
+  // Distribution dialog handlers
+  const handleEditDistribution = (item) => {
+    setEditDialog({ open: true, quyTrinh: item });
+  };
+
+  const handleCloseEditDialog = () => {
+    setEditDialog({ open: false, quyTrinh: null });
+    fetchData();
+  };
+
+  // PDF quick view handler
+  const handleOpenPDF = async (quyTrinhId) => {
+    try {
+      const res = await apiService.get(`/quytrinhiso/${quyTrinhId}`);
+      const pdfFile = res.data?.data?.files?.pdf?.[0];
+      if (pdfFile) {
+        setPdfModal({ open: true, file: pdfFile });
+      }
+    } catch (err) {
+      console.error("Error fetching PDF:", err);
+    }
+  };
+
+  const handleClosePDF = () => {
+    setPdfModal({ open: false, file: null });
+  };
+
+  // ── Sub-components ──────────────────────────────────────────
+
   const ErrorState = () => (
     <Box sx={{ py: 4 }}>
       <NetworkError message={error} onRetry={fetchData} />
     </Box>
   );
 
-  // Empty state component
   const EmptyState = () => (
     <Box
       sx={{
@@ -244,7 +267,6 @@ function QuyTrinhISOPage() {
     </Box>
   );
 
-  // Loading skeleton
   const LoadingSkeleton = () => (
     <>
       {[1, 2, 3, 4, 5].map((i) => (
@@ -253,29 +275,38 @@ function QuyTrinhISOPage() {
             <Skeleton width={80} />
           </TableCell>
           <TableCell>
-            <Skeleton width={200} />
+            <Skeleton width="80%" />
           </TableCell>
           <TableCell align="center">
             <Skeleton width={50} />
           </TableCell>
+          {isQLCL && (
+            <TableCell align="center">
+              <Skeleton width={70} />
+            </TableCell>
+          )}
           <TableCell>
             <Skeleton width={120} />
           </TableCell>
           <TableCell align="center">
             <Skeleton width={80} />
           </TableCell>
+          {isQLCL && (
+            <TableCell align="center">
+              <Skeleton width={120} />
+            </TableCell>
+          )}
           <TableCell align="center">
             <Skeleton width={80} />
           </TableCell>
           <TableCell align="center">
-            <Skeleton width={30} />
+            <Skeleton width={isQLCL ? 140 : 30} />
           </TableCell>
         </TableRow>
       ))}
     </>
   );
 
-  // Mobile Card Loading Skeleton
   const MobileLoadingSkeleton = () => (
     <Stack spacing={2}>
       {[1, 2, 3, 4].map((i) => (
@@ -295,13 +326,18 @@ function QuyTrinhISOPage() {
     </Stack>
   );
 
-  // Mobile Card Component
   const MobileCard = ({ item }) => (
     <Card
       variant="outlined"
       sx={{
         cursor: "pointer",
-        "&:hover": { borderColor: "primary.main", bgcolor: "action.hover" },
+        transition: "all 0.2s ease",
+        "&:hover": {
+          borderColor: "primary.main",
+          bgcolor: "action.hover",
+          transform: "translateY(-2px)",
+          boxShadow: 4,
+        },
       }}
       onClick={() => navigate(`/quytrinh-iso/${item._id}`)}
     >
@@ -316,12 +352,15 @@ function QuyTrinhISOPage() {
             <Typography fontWeight={600} color="primary.main">
               {item.MaQuyTrinh}
             </Typography>
-            <Chip
-              label={`v${item.PhienBan}`}
-              size="small"
-              color="primary"
-              variant="outlined"
-            />
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <Chip
+                label={`v${item.PhienBan}`}
+                size="small"
+                color="primary"
+                variant="outlined"
+              />
+              {isQLCL && <ISOStatusChip status={item.TrangThai} />}
+            </Stack>
           </Stack>
 
           {/* Title */}
@@ -337,6 +376,16 @@ function QuyTrinhISOPage() {
           >
             {item.TenQuyTrinh}
           </Typography>
+
+          {/* Distribution (QLCL only) */}
+          {isQLCL && (
+            <Box onClick={(e) => e.stopPropagation()}>
+              <DistributionCount
+                count={item.KhoaPhanPhoi?.length || 0}
+                onClick={() => handleEditDistribution(item)}
+              />
+            </Box>
+          )}
 
           {/* Meta info */}
           <Stack
@@ -391,26 +440,43 @@ function QuyTrinhISOPage() {
               justifyContent="flex-end"
               sx={{ mt: 0.5 }}
             >
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/quytrinh-iso/${item._id}/edit`);
-                }}
-              >
-                <Edit size={16} />
-              </IconButton>
-              <IconButton
-                size="small"
-                color="error"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedItem(item);
-                  setDeleteDialogOpen(true);
-                }}
-              >
-                <Trash size={16} />
-              </IconButton>
+              {item._fileCounts?.pdf > 0 && (
+                <Tooltip title="Xem PDF">
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenPDF(item._id);
+                    }}
+                  >
+                    <DocumentText1 size={16} />
+                  </IconButton>
+                </Tooltip>
+              )}
+              <Tooltip title="Chỉnh sửa">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/quytrinh-iso/${item._id}/edit`);
+                  }}
+                >
+                  <Edit size={16} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Xóa">
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedItem(item);
+                    setDeleteDialogOpen(true);
+                  }}
+                >
+                  <Trash size={16} />
+                </IconButton>
+              </Tooltip>
             </Stack>
           )}
         </Stack>
@@ -418,329 +484,448 @@ function QuyTrinhISOPage() {
     </Card>
   );
 
+  // ── Header search slot ──
+
+  const searchSlot = (
+    <Box component="form" onSubmit={handleSearchSubmit}>
+      <TextField
+        fullWidth
+        placeholder="Tìm kiếm tên hoặc mã quy trình..."
+        size="small"
+        value={search}
+        onChange={handleSearchChange}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchNormal1 size={18} />
+            </InputAdornment>
+          ),
+        }}
+        sx={{
+          bgcolor: "white",
+          borderRadius: 2,
+          "& .MuiOutlinedInput-root": {
+            "& fieldset": { borderColor: "transparent" },
+          },
+        }}
+      />
+    </Box>
+  );
+
+  // ── Table header cell style ──
+  const thSx = {
+    bgcolor: (t) => alpha(t.palette.primary.main, 0.04),
+    fontWeight: 700,
+    fontSize: "0.8rem",
+    whiteSpace: "nowrap",
+    borderBottom: "2px solid",
+    borderBottomColor: "primary.main",
+  };
+
   return (
     <>
-      {/* Breadcrumb */}
-      <Breadcrumbs sx={{ mb: 2 }}>
-        <Link
-          underline="hover"
-          color="inherit"
-          href="/"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate("/");
-          }}
-          sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
-        >
-          <Home2 size={16} />
-          Trang chủ
-        </Link>
-        <Typography color="text.secondary">Quản lý chất lượng</Typography>
-        <Typography color="text.primary" fontWeight={500}>
-          Danh sách quy trình
-        </Typography>
-      </Breadcrumbs>
-
-      <MainCard title="Danh Sách Quy Trình ISO">
-        <Stack spacing={3}>
-          {/* Search & Filter Bar */}
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            justifyContent="space-between"
-            alignItems={{ xs: "stretch", sm: "center" }}
-            spacing={2}
-          >
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={2}
-              sx={{ flexGrow: 1 }}
+      <ISOPageShell
+        title="Danh Sách Quy Trình ISO"
+        subtitle={total > 0 ? `${total} quy trình` : "Quản lý quy trình ISO"}
+        breadcrumbs={[
+          { label: "Trang chủ", to: "/" },
+          { label: "Quy trình ISO" },
+        ]}
+        maxWidth={false}
+        headerActions={
+          isQLCL && !isMobile ? (
+            <Button
+              variant="contained"
+              startIcon={<Add size={18} />}
+              onClick={() => navigate("/quytrinh-iso/create")}
+              sx={{
+                bgcolor: "rgba(255,255,255,0.18)",
+                backdropFilter: "blur(4px)",
+                border: "1px solid rgba(255,255,255,0.3)",
+                color: "white",
+                fontWeight: 600,
+                "&:hover": { bgcolor: "rgba(255,255,255,0.28)" },
+              }}
             >
-              <Box
-                component="form"
-                onSubmit={handleSearchSubmit}
-                sx={{ flexGrow: 1, maxWidth: 350 }}
-              >
-                <TextField
-                  fullWidth
-                  size="small"
-                  placeholder="Tìm kiếm tên/mã quy trình..."
-                  value={search}
-                  onChange={handleSearchChange}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchNormal1 size={18} />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Box>
+              Thêm mới
+            </Button>
+          ) : null
+        }
+        searchSlot={searchSlot}
+        subHeader={
+          <ISOFilterBar
+            showSearch={false}
+            khoa={selectedKhoa}
+            onKhoaChange={handleKhoaChange}
+            khoaOptions={khoaList || []}
+            trangThai={selectedTrangThai}
+            onTrangThaiChange={handleTrangThaiChange}
+            showTrangThai={isQLCL}
+          />
+        }
+      >
+        {/* Mobile Card View */}
+        {isMobile ? (
+          <>
+            {isLoading ? (
+              <MobileLoadingSkeleton />
+            ) : error ? (
+              <ErrorState />
+            ) : items.length === 0 ? (
+              <EmptyState />
+            ) : (
+              <Stack spacing={2}>
+                {items.map((item) => (
+                  <MobileCard key={item._id} item={item} />
+                ))}
+              </Stack>
+            )}
 
-              <Autocomplete
-                size="small"
-                sx={{ minWidth: 200 }}
-                options={khoaList || []}
-                getOptionLabel={(opt) => opt.TenKhoa || ""}
-                value={selectedKhoa}
-                onChange={handleKhoaChange}
-                renderInput={(params) => (
-                  <TextField {...params} placeholder="Lọc theo Khoa..." />
-                )}
-                isOptionEqualToValue={(opt, val) => opt._id === val?._id}
+            {items.length > 0 && (
+              <TablePagination
+                component="div"
+                count={total}
+                page={page - 1}
+                onPageChange={handlePageChange}
+                rowsPerPage={size}
+                onRowsPerPageChange={handleRowsPerPageChange}
+                rowsPerPageOptions={[10, 20, 50]}
+                labelRowsPerPage=""
+                labelDisplayedRows={({ from, to, count }) =>
+                  `${from}-${to} / ${count}`
+                }
               />
-            </Stack>
-
-            {isQLCL && !isMobile && (
-              <Button
-                variant="contained"
-                startIcon={<Add size={18} />}
-                onClick={() => navigate("/quytrinh-iso/create")}
-              >
-                Thêm mới
-              </Button>
             )}
-          </Stack>
-
-          {/* Mobile Card View */}
-          {isMobile ? (
-            <>
-              {isLoading ? (
-                <MobileLoadingSkeleton />
-              ) : error ? (
-                <ErrorState />
-              ) : items.length === 0 ? (
-                <EmptyState />
-              ) : (
-                <Stack spacing={2}>
-                  {items.map((item) => (
-                    <MobileCard key={item._id} item={item} />
-                  ))}
-                </Stack>
-              )}
-
-              {/* Mobile Pagination */}
-              {items.length > 0 && (
-                <TablePagination
-                  component="div"
-                  count={total}
-                  page={page - 1}
-                  onPageChange={handlePageChange}
-                  rowsPerPage={size}
-                  onRowsPerPageChange={handleRowsPerPageChange}
-                  rowsPerPageOptions={[10, 20, 50]}
-                  labelRowsPerPage=""
-                  labelDisplayedRows={({ from, to, count }) =>
-                    `${from}-${to} / ${count}`
-                  }
-                />
-              )}
-            </>
-          ) : (
-            /* Desktop Table View */
-            <Card>
-              <CardContent sx={{ p: 0 }}>
-                <TableContainer>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Mã QT</TableCell>
-                        <TableCell>Tên Quy Trình</TableCell>
-                        <TableCell align="center">Phiên Bản</TableCell>
-                        <TableCell>Khoa Xây Dựng</TableCell>
-                        <TableCell align="center">Ngày Hiệu Lực</TableCell>
-                        <TableCell align="center">Files</TableCell>
-                        <TableCell align="center" width={60}></TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {isLoading ? (
-                        <LoadingSkeleton />
-                      ) : error ? (
-                        <TableRow>
-                          <TableCell colSpan={7}>
-                            <ErrorState />
-                          </TableCell>
-                        </TableRow>
-                      ) : items.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={7}>
-                            <EmptyState />
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        items.map((item) => (
-                          <TableRow
-                            key={item._id}
-                            hover
-                            sx={{ cursor: "pointer" }}
-                            onClick={() =>
-                              navigate(`/quytrinh-iso/${item._id}`)
-                            }
-                          >
-                            <TableCell>
-                              <Typography fontWeight={500}>
-                                {item.MaQuyTrinh}
-                              </Typography>
-                            </TableCell>
-                            <TableCell>
-                              <Typography
-                                sx={{
-                                  maxWidth: 300,
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  whiteSpace: "nowrap",
-                                }}
-                              >
-                                {item.TenQuyTrinh}
-                              </Typography>
-                            </TableCell>
-                            <TableCell align="center">
-                              <Chip
-                                label={`v${item.PhienBan}`}
-                                size="small"
-                                color="primary"
-                                variant="outlined"
-                              />
-                            </TableCell>
-                            <TableCell>
-                              {item.KhoaXayDungID?.TenKhoa || "-"}
-                            </TableCell>
-                            <TableCell align="center">
-                              {dayjs(item.NgayHieuLuc).format("DD/MM/YYYY")}
-                            </TableCell>
-                            <TableCell align="center">
-                              <Stack
-                                direction="row"
-                                spacing={0.5}
-                                justifyContent="center"
-                              >
-                                {item._fileCounts?.pdf > 0 && (
-                                  <Tooltip title="Có file PDF">
-                                    <Chip
-                                      icon={
-                                        <DocumentDownload
-                                          size={14}
-                                          color="#2e7d32"
-                                        />
-                                      }
-                                      label="PDF"
-                                      size="small"
-                                      sx={{
-                                        borderColor: "#2e7d32",
-                                        color: "#2e7d32",
-                                        "& .MuiChip-icon": { color: "#2e7d32" },
-                                      }}
-                                      variant="outlined"
-                                    />
-                                  </Tooltip>
-                                )}
-                                {item._fileCounts?.word > 0 && (
-                                  <Tooltip
-                                    title={`${item._fileCounts.word} file Word`}
-                                  >
-                                    <Chip
-                                      icon={
-                                        <DocumentText1
-                                          size={14}
-                                          color="#ed6c02"
-                                        />
-                                      }
-                                      label={item._fileCounts.word}
-                                      size="small"
-                                      sx={{
-                                        borderColor: "#ed6c02",
-                                        color: "#ed6c02",
-                                        "& .MuiChip-icon": { color: "#ed6c02" },
-                                      }}
-                                      variant="outlined"
-                                    />
-                                  </Tooltip>
-                                )}
-                              </Stack>
-                            </TableCell>
-                            <TableCell
-                              align="center"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <IconButton
-                                size="small"
-                                onClick={(e) => handleMenuClick(e, item)}
-                              >
-                                <More size={18} />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-
-                <TablePagination
-                  component="div"
-                  count={total}
-                  page={page - 1}
-                  onPageChange={handlePageChange}
-                  rowsPerPage={size}
-                  onRowsPerPageChange={handleRowsPerPageChange}
-                  rowsPerPageOptions={[10, 20, 50]}
-                  labelRowsPerPage="Hiển thị:"
-                  labelDisplayedRows={({ from, to, count }) =>
-                    `${from}-${to} của ${count}`
-                  }
-                />
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Action Menu */}
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
+          </>
+        ) : (
+          /* ── Desktop Table View ── */
+          <Paper
+            sx={{
+              borderRadius: 2,
+              overflow: "hidden",
+              boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
+            }}
           >
-            <MenuItem onClick={handleView}>
-              <Eye size={18} style={{ marginRight: 8 }} />
-              Xem chi tiết
-            </MenuItem>
-            {isQLCL && (
-              <MenuItem onClick={handleEdit}>
-                <Edit size={18} style={{ marginRight: 8 }} />
-                Chỉnh sửa
-              </MenuItem>
-            )}
-            {isQLCL && (
-              <MenuItem
-                onClick={handleDeleteClick}
-                sx={{ color: "error.main" }}
-              >
-                <Trash size={18} style={{ marginRight: 8 }} />
-                Xóa
-              </MenuItem>
-            )}
-          </Menu>
+            <TableContainer>
+              <Table stickyHeader size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ ...thSx, width: 120 }}>Mã QT</TableCell>
+                    <TableCell sx={thSx}>Tên Quy Trình</TableCell>
+                    <TableCell align="center" sx={{ ...thSx, width: 90 }}>
+                      Phiên Bản
+                    </TableCell>
+                    {isQLCL && (
+                      <TableCell align="center" sx={{ ...thSx, width: 110 }}>
+                        Trạng thái
+                      </TableCell>
+                    )}
+                    <TableCell sx={{ ...thSx, width: 180 }}>
+                      Khoa Xây Dựng
+                    </TableCell>
+                    <TableCell align="center" sx={{ ...thSx, width: 120 }}>
+                      Ngày Hiệu Lực
+                    </TableCell>
+                    {isQLCL && (
+                      <TableCell align="center" sx={{ ...thSx, width: 200 }}>
+                        Phân Phối
+                      </TableCell>
+                    )}
+                    <TableCell align="center" sx={{ ...thSx, width: 130 }}>
+                      Files
+                    </TableCell>
+                    <TableCell
+                      align="center"
+                      sx={{ ...thSx, width: isQLCL ? 140 : 60 }}
+                    >
+                      {isQLCL ? "Thao tác" : ""}
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {isLoading ? (
+                    <LoadingSkeleton />
+                  ) : error ? (
+                    <TableRow>
+                      <TableCell colSpan={colCount}>
+                        <ErrorState />
+                      </TableCell>
+                    </TableRow>
+                  ) : items.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={colCount}>
+                        <EmptyState />
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    items.map((item) => (
+                      <TableRow
+                        key={item._id}
+                        hover
+                        sx={{
+                          cursor: "pointer",
+                          borderLeft: "4px solid transparent",
+                          transition: "all 0.15s ease",
+                          "&:nth-of-type(even)": {
+                            bgcolor: (t) => alpha(t.palette.grey[500], 0.03),
+                          },
+                          "&:hover": {
+                            borderLeftColor: "primary.main",
+                            bgcolor: (t) => alpha(t.palette.primary.main, 0.04),
+                          },
+                        }}
+                        onClick={() => navigate(`/quytrinh-iso/${item._id}`)}
+                      >
+                        {/* Mã QT */}
+                        <TableCell>
+                          <Typography
+                            fontWeight={600}
+                            color="primary.main"
+                            fontSize="0.85rem"
+                          >
+                            {item.MaQuyTrinh}
+                          </Typography>
+                        </TableCell>
 
-          {/* Delete Confirmation Dialog */}
-          <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
-            <DialogTitle>Xác nhận xóa</DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                Bạn có chắc muốn xóa quy trình{" "}
-                <strong>
-                  {selectedItem?.MaQuyTrinh} - {selectedItem?.TenQuyTrinh}
-                </strong>
-                ? Hành động này không thể hoàn tác.
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleDeleteCancel}>Hủy</Button>
-              <Button onClick={handleDeleteConfirm} color="error" autoFocus>
-                Xóa
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </Stack>
-      </MainCard>
+                        {/* Tên Quy Trình */}
+                        <TableCell>
+                          <Typography
+                            sx={{
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {item.TenQuyTrinh}
+                          </Typography>
+                        </TableCell>
+
+                        {/* Phiên Bản */}
+                        <TableCell align="center">
+                          <Chip
+                            label={`v${item.PhienBan}`}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            sx={{ height: 22, fontSize: "0.75rem" }}
+                          />
+                        </TableCell>
+
+                        {/* Trạng thái (QLCL) */}
+                        {isQLCL && (
+                          <TableCell align="center">
+                            <ISOStatusChip status={item.TrangThai} />
+                          </TableCell>
+                        )}
+
+                        {/* Khoa Xây Dựng */}
+                        <TableCell>
+                          <Typography variant="body2">
+                            {item.KhoaXayDungID?.TenKhoa || "-"}
+                          </Typography>
+                        </TableCell>
+
+                        {/* Ngày Hiệu Lực */}
+                        <TableCell align="center">
+                          <Typography variant="body2">
+                            {dayjs(item.NgayHieuLuc).format("DD/MM/YYYY")}
+                          </Typography>
+                        </TableCell>
+
+                        {/* Phân Phối (QLCL) */}
+                        {isQLCL && (
+                          <TableCell
+                            align="center"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <DistributionCount
+                              count={item.KhoaPhanPhoi?.length || 0}
+                              onClick={() => handleEditDistribution(item)}
+                            />
+                          </TableCell>
+                        )}
+
+                        {/* Files */}
+                        <TableCell align="center">
+                          <Stack
+                            direction="row"
+                            spacing={0.5}
+                            justifyContent="center"
+                          >
+                            {item._fileCounts?.pdf > 0 && (
+                              <Tooltip title="Có file PDF">
+                                <Chip
+                                  label="PDF"
+                                  size="small"
+                                  sx={{
+                                    bgcolor: "#e3f2fd",
+                                    color: "#1565c0",
+                                    fontWeight: 600,
+                                    height: 22,
+                                    fontSize: "0.7rem",
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
+                            {item._fileCounts?.word > 0 && (
+                              <Tooltip
+                                title={`${item._fileCounts.word} file Word`}
+                              >
+                                <Chip
+                                  label={`Word ×${item._fileCounts.word}`}
+                                  size="small"
+                                  sx={{
+                                    bgcolor: "#fff3e0",
+                                    color: "#e65100",
+                                    fontWeight: 600,
+                                    height: 22,
+                                    fontSize: "0.7rem",
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
+                          </Stack>
+                        </TableCell>
+
+                        {/* Thao tác */}
+                        <TableCell
+                          align="center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {isQLCL ? (
+                            <Stack
+                              direction="row"
+                              spacing={0.25}
+                              justifyContent="center"
+                            >
+                              <Tooltip title="Xem chi tiết">
+                                <IconButton
+                                  size="small"
+                                  onClick={() =>
+                                    navigate(`/quytrinh-iso/${item._id}`)
+                                  }
+                                >
+                                  <Eye size={17} />
+                                </IconButton>
+                              </Tooltip>
+                              {item._fileCounts?.pdf > 0 && (
+                                <Tooltip title="Xem PDF nhanh">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleOpenPDF(item._id)}
+                                  >
+                                    <DocumentText1 size={17} />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
+                              <Tooltip title="Chỉnh sửa">
+                                <IconButton
+                                  size="small"
+                                  onClick={() =>
+                                    navigate(`/quytrinh-iso/${item._id}/edit`)
+                                  }
+                                >
+                                  <Edit size={17} />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Xóa">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => {
+                                    setSelectedItem(item);
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                >
+                                  <Trash size={17} />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
+                          ) : (
+                            <IconButton
+                              size="small"
+                              onClick={(e) => handleMenuClick(e, item)}
+                            >
+                              <More size={18} />
+                            </IconButton>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <TablePagination
+              component="div"
+              count={total}
+              page={page - 1}
+              onPageChange={handlePageChange}
+              rowsPerPage={size}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              rowsPerPageOptions={[10, 20, 50]}
+              labelRowsPerPage="Hiển thị:"
+              labelDisplayedRows={({ from, to, count }) =>
+                `${from}-${to} của ${count}`
+              }
+            />
+          </Paper>
+        )}
+      </ISOPageShell>
+
+      {/* Context Menu (non-QLCL only) */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+      >
+        <MenuItem onClick={handleView}>
+          <Eye size={18} style={{ marginRight: 8 }} />
+          Xem chi tiết
+        </MenuItem>
+      </Menu>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
+        <DialogTitle>Xác nhận xóa</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Bạn có chắc muốn xóa quy trình{" "}
+            <strong>
+              {selectedItem?.MaQuyTrinh} - {selectedItem?.TenQuyTrinh}
+            </strong>
+            ? Hành động này không thể hoàn tác.
+          </DialogContentText>
+          {selectedItem?.KhoaPhanPhoi?.length > 0 && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              Quy trình này đang được phân phối cho{" "}
+              <strong>{selectedItem.KhoaPhanPhoi.length} khoa</strong>. Các bản
+              ghi phân phối sẽ bị xóa cùng.
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel}>Hủy</Button>
+          <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+            Xóa
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Distribution Dialog */}
+      <DistributionDialogV2
+        open={editDialog.open}
+        onClose={handleCloseEditDialog}
+        quyTrinh={editDialog.quyTrinh}
+      />
+
+      {/* PDF Quick View Modal */}
+      <PDFQuickViewModal
+        open={pdfModal.open}
+        onClose={handleClosePDF}
+        file={pdfModal.file}
+      />
 
       {/* FAB for mobile */}
       {isQLCL && isMobile && (

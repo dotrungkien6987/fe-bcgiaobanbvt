@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 const initialState = {
   isLoading: false,
   error: null,
+  errorStatus: null,
   items: [],
   total: 0,
   page: 1,
@@ -28,6 +29,7 @@ const slice = createSlice({
     startLoading(state) {
       state.isLoading = true;
       state.error = null;
+      state.errorStatus = null;
     },
     startDistributionLoading(state) {
       state.distributionLoading = true;
@@ -36,7 +38,8 @@ const slice = createSlice({
     hasError(state, action) {
       state.isLoading = false;
       state.distributionLoading = false;
-      state.error = action.payload;
+      state.error = action.payload?.message ?? action.payload;
+      state.errorStatus = action.payload?.status ?? null;
     },
     getListSuccess(state, action) {
       state.isLoading = false;
@@ -48,8 +51,12 @@ const slice = createSlice({
     getDetailSuccess(state, action) {
       state.isLoading = false;
       // Backend returns { quyTrinh, files: { pdf, word }, danhSachKhoaPhanPhoi }
-      const { quyTrinh, files } = action.payload;
+      const { quyTrinh, files, danhSachKhoaPhanPhoi } = action.payload;
       state.currentItem = quyTrinh;
+      // Gắn danhSachKhoaPhanPhoi vào currentItem để CreateVersionDialog có thể dùng
+      if (danhSachKhoaPhanPhoi) {
+        state.currentItem.KhoaPhanPhoi = danhSachKhoaPhanPhoi;
+      }
       state.currentFiles = files || { pdf: [], word: [] };
     },
     getVersionsSuccess(state, action) {
@@ -115,6 +122,23 @@ const slice = createSlice({
         };
       }
     },
+    activateSuccess(state, action) {
+      state.isLoading = false;
+      if (state.currentItem) {
+        state.currentItem.TrangThai = "ACTIVE";
+      }
+      // Update in list if present
+      const idx = state.items.findIndex((it) => it._id === action.payload);
+      if (idx !== -1) state.items[idx].TrangThai = "ACTIVE";
+    },
+    deactivateSuccess(state, action) {
+      state.isLoading = false;
+      if (state.currentItem) {
+        state.currentItem.TrangThai = "INACTIVE";
+      }
+      const idx = state.items.findIndex((it) => it._id === action.payload);
+      if (idx !== -1) state.items[idx].TrangThai = "INACTIVE";
+    },
   },
 });
 
@@ -139,7 +163,7 @@ export const getQuyTrinhISODetail = (id) => async (dispatch) => {
     const res = await apiService.get(`/quytrinhiso/${id}`);
     dispatch(slice.actions.getDetailSuccess(res.data.data));
   } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
+    dispatch(slice.actions.hasError(error));
     toast.error(error.message);
   }
 };
@@ -270,6 +294,36 @@ export const getBuiltByMyDept = (params) => async (dispatch) => {
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
+  }
+};
+
+// ==================== LIFECYCLE THUNKS ====================
+
+export const activateQuyTrinh = (id) => async (dispatch) => {
+  dispatch(slice.actions.startLoading());
+  try {
+    const res = await apiService.put(`/quytrinhiso/${id}/activate`);
+    dispatch(slice.actions.activateSuccess(id));
+    toast.success(res.data.message || "Đã phát hành quy trình");
+    return res.data.data;
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+    throw error;
+  }
+};
+
+export const deactivateQuyTrinh = (id) => async (dispatch) => {
+  dispatch(slice.actions.startLoading());
+  try {
+    const res = await apiService.put(`/quytrinhiso/${id}/deactivate`);
+    dispatch(slice.actions.deactivateSuccess(id));
+    toast.success(res.data.message || "Đã thu hồi quy trình");
+    return res.data.data;
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+    throw error;
   }
 };
 

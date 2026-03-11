@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Tab, Tabs, Typography, Container } from "@mui/material";
+import { Box, Tab, Tabs, Typography, Paper } from "@mui/material";
 import {
   Assessment as AssessmentIcon,
   ListAlt as ListAltIcon,
@@ -25,7 +25,7 @@ import dayjs from "dayjs";
 function TabPanel({ children, value, index, ...other }) {
   return (
     <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
+      {value === index && <Box sx={{ pt: 1 }}>{children}</Box>}
     </div>
   );
 }
@@ -82,6 +82,15 @@ function DatLichKhamDashboard() {
     const soManTinh = Object.keys(danhSachManTinh).length;
     const hopLe = vong1 - soManTinh;
 
+    // Đếm ca trùng ngày (ngày đặt lịch = ngày ĐK khám)
+    const trungNgay = chiTietDatLich.filter(
+      (r) =>
+        r.dangkykhaminitdate &&
+        r.dangkykhamdate &&
+        dayjs(r.dangkykhaminitdate).format("YYYY-MM-DD") ===
+          dayjs(r.dangkykhamdate).format("YYYY-MM-DD"),
+    ).length;
+
     return {
       tongDatLich,
       coKham,
@@ -89,9 +98,10 @@ function DatLichKhamDashboard() {
       vong1,
       soManTinh,
       hopLe,
+      trungNgay,
       tongTien,
     };
-  }, [baoCaoTongHop, danhSachManTinh]);
+  }, [baoCaoTongHop, danhSachManTinh, chiTietDatLich]);
 
   // Click NGT row in Tab1 → switch to Tab2 filtered
   const handleViewNGTDetail = useCallback((nguoigioithieuid) => {
@@ -100,10 +110,23 @@ function DatLichKhamDashboard() {
   }, []);
 
   return (
-    <Container maxWidth="xl" sx={{ py: 2 }}>
-      <Typography variant="h5" fontWeight="bold" gutterBottom>
-        📊 Báo cáo đặt lịch khám qua App
-      </Typography>
+    <Box sx={{ px: 2, py: 1 }}>
+      <Paper
+        elevation={0}
+        sx={{
+          px: 2,
+          py: 1,
+          mb: 1,
+          bgcolor: "primary.lighter",
+          borderRadius: 2,
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="subtitle1" fontWeight="bold" color="primary.dark">
+          📊 Báo cáo đặt lịch khám qua App
+        </Typography>
+      </Paper>
 
       <DatLichKhamFilters
         fromDate={fromDate}
@@ -115,7 +138,7 @@ function DatLichKhamDashboard() {
 
       <DatLichKhamStatistics thongKe={thongKe} loading={loadingTongHop} />
 
-      <Box sx={{ borderBottom: 1, borderColor: "divider", mt: 2 }}>
+      <Box sx={{ borderBottom: 1, borderColor: "divider", mt: 1 }}>
         <Tabs
           value={tabValue}
           onChange={(_, v) => {
@@ -141,6 +164,7 @@ function DatLichKhamDashboard() {
         <BaoCaoTongHopTable
           data={baoCaoTongHop}
           danhSachManTinh={danhSachManTinh}
+          chiTietDatLich={chiTietDatLich}
           loading={loadingTongHop}
           onViewDetail={handleViewNGTDetail}
           fromDate={fromDate}
@@ -154,6 +178,7 @@ function DatLichKhamDashboard() {
           loading={loadingChiTiet}
           filterNGT={filterNGT}
           onClearFilterNGT={() => setFilterNGT(null)}
+          danhSachManTinh={danhSachManTinh}
         />
       </TabPanel>
 
@@ -167,7 +192,7 @@ function DatLichKhamDashboard() {
           onRefresh={handleSearch}
         />
       </TabPanel>
-    </Container>
+    </Box>
   );
 }
 

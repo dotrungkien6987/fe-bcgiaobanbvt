@@ -1,4 +1,5 @@
 import {
+  Box,
   Card,
   CardContent,
   Typography,
@@ -9,6 +10,8 @@ import {
 } from "@mui/material";
 import { Eye, DocumentDownload, Building, Calendar } from "iconsax-react";
 import dayjs from "dayjs";
+import ISOStatusChip from "./ISOStatusChip";
+import { FILE_TYPE } from "../theme/isoTokens";
 
 /**
  * Color schemes for different card states
@@ -16,34 +19,42 @@ import dayjs from "dayjs";
 const CARD_STYLES = {
   new: {
     gradient:
-      "linear-gradient(135deg, rgba(46, 125, 50, 0.08) 0%, rgba(255, 255, 255, 1) 100%)",
+      "linear-gradient(135deg, rgba(46,125,50,0.07) 0%, rgba(255,255,255,1) 100%)",
     border: "#66bb6a",
     accentColor: "#2e7d32",
+    hoverBg: "#1b5e20",
   },
   default: {
     gradient:
-      "linear-gradient(135deg, rgba(25, 118, 210, 0.04) 0%, rgba(255, 255, 255, 1) 100%)",
-    border: "#42a5f5",
+      "linear-gradient(135deg, rgba(21,101,192,0.05) 0%, rgba(255,255,255,1) 100%)",
+    border: "#1976d2",
     accentColor: "#1565c0",
+    hoverBg: "#0d47a1",
   },
 };
 
 /**
  * ISOProcedureCard - Mobile-optimized card for ISO procedure display
  *
- * @param {Object} props
- * @param {Object} props.quyTrinh - Procedure data
- * @param {Function} props.onViewPDF - Callback when "Xem PDF" clicked
- * @param {Function} props.onDownload - Callback when "Tải về" clicked
- * @param {boolean} props.showDistributionDate - Show NgayPhanPhoi (for DistributedToMe)
- * @param {boolean} props.showDistributionCount - Show number of distributed departments
+ * @param {Object}   props
+ * @param {Object}   props.quyTrinh
+ * @param {Function} props.onViewPDF
+ * @param {Function} props.onDownload
+ * @param {Function} [props.onViewDetail]        - Navigate to detail page
+ * @param {boolean}  [props.showDistributionDate]
+ * @param {boolean}  [props.showDistributionCount]
+ * @param {boolean}  [props.showStatus]           - Show TrangThai chip
+ * @param {'standard'|'distribution'|'builtbyme'} [props.variant]
  */
 function ISOProcedureCard({
   quyTrinh,
   onViewPDF,
   onDownload,
+  onViewDetail,
   showDistributionDate = false,
   showDistributionCount = false,
+  showStatus = false,
+  variant = "standard",
 }) {
   const {
     MaQuyTrinh,
@@ -55,6 +66,7 @@ function ISOProcedureCard({
     FilePDF,
     FileWord,
     soKhoaPhanPhoi,
+    TrangThai,
   } = quyTrinh;
 
   const hasFiles = FilePDF || FileWord;
@@ -81,7 +93,7 @@ function ISOProcedureCard({
     <Card
       sx={{
         borderRadius: 2,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
         background: isNew
           ? CARD_STYLES.new.gradient
           : CARD_STYLES.default.gradient,
@@ -89,15 +101,17 @@ function ISOProcedureCard({
         borderLeftColor: isNew
           ? CARD_STYLES.new.border
           : CARD_STYLES.default.border,
+        cursor: onViewDetail ? "pointer" : "default",
         "&:hover": {
-          boxShadow: "0 6px 20px rgba(0,0,0,0.15)",
+          boxShadow: "0 6px 20px rgba(0,0,0,0.13)",
           transform: "translateY(-2px)",
         },
         transition: "all 0.2s ease-in-out",
       }}
+      onClick={onViewDetail ? () => onViewDetail(quyTrinh._id) : undefined}
     >
       <CardContent sx={{ p: 2, "&:last-child": { pb: 2 } }}>
-        {/* Header: Mã + Version + Date/Badge */}
+        {/* Header: Mã + Version + Badges + Date/Status */}
         <Stack
           direction="row"
           justifyContent="space-between"
@@ -106,7 +120,7 @@ function ISOProcedureCard({
         >
           <Stack
             direction="row"
-            spacing={1}
+            spacing={0.75}
             alignItems="center"
             flexWrap="wrap"
           >
@@ -119,55 +133,78 @@ function ISOProcedureCard({
                   : CARD_STYLES.default.accentColor,
               }}
             >
-              📄 {MaQuyTrinh}
+              {MaQuyTrinh}
             </Typography>
             <Chip
               label={`v${PhienBan}`}
               size="small"
               color="default"
               sx={{
-                height: 22,
-                fontSize: "0.75rem",
-                fontWeight: 600,
+                height: 20,
+                fontSize: "0.72rem",
+                fontWeight: 700,
               }}
             />
             {isNew && (
               <Chip
-                label="✨ Mới"
+                label="Mới"
+                size="small"
+                color="success"
+                sx={{ height: 20, fontSize: "0.7rem", fontWeight: 700 }}
+              />
+            )}
+            {/* File type badges */}
+            {FilePDF && (
+              <Chip
+                label="PDF"
                 size="small"
                 sx={{
-                  height: 22,
-                  fontSize: "0.72rem",
-                  fontWeight: 700,
-                  bgcolor: CARD_STYLES.new.border,
-                  color: "white",
-                  "& .MuiChip-label": {
-                    px: 1.5,
-                  },
+                  height: 20,
+                  fontSize: "0.68rem",
+                  bgcolor: FILE_TYPE.pdf.lightBg,
+                  color: FILE_TYPE.pdf.color,
+                  fontWeight: 600,
+                }}
+              />
+            )}
+            {FileWord && (
+              <Chip
+                label="Word"
+                size="small"
+                sx={{
+                  height: 20,
+                  fontSize: "0.68rem",
+                  bgcolor: FILE_TYPE.word.lightBg,
+                  color: FILE_TYPE.word.color,
+                  fontWeight: 600,
                 }}
               />
             )}
           </Stack>
 
-          {/* Date or Distribution Count */}
-          {showDistributionDate && NgayPhanPhoi && (
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              <Calendar size={14} color="#666" />
-              <Typography variant="caption" color="text.secondary">
-                {dayjs(NgayPhanPhoi).format("DD/MM/YYYY")}
-              </Typography>
-            </Stack>
-          )}
-
-          {showDistributionCount && soKhoaPhanPhoi > 0 && (
-            <Chip
-              label={`${soKhoaPhanPhoi} khoa`}
-              size="small"
-              variant="outlined"
-              color="info"
-              sx={{ height: 22, fontSize: "0.7rem" }}
-            />
-          )}
+          {/* Right side: status / date / distribution count */}
+          <Box sx={{ flexShrink: 0, ml: 1 }}>
+            {showStatus && TrangThai && (
+              <ISOStatusChip status={TrangThai} size="small" />
+            )}
+            {showDistributionDate && NgayPhanPhoi && (
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <Calendar size={13} color="#888" />
+                <Typography variant="caption" color="text.secondary">
+                  {dayjs(NgayPhanPhoi).format("DD/MM/YYYY")}
+                </Typography>
+              </Stack>
+            )}
+            {showDistributionCount && soKhoaPhanPhoi > 0 && (
+              <Chip
+                label={`${soKhoaPhanPhoi} khoa`}
+                size="small"
+                variant="outlined"
+                color="info"
+                sx={{ height: 20, fontSize: "0.68rem" }}
+              />
+            )}
+          </Box>
         </Stack>
 
         {/* Title */}
@@ -186,14 +223,18 @@ function ISOProcedureCard({
           {TenQuyTrinh}
         </Typography>
 
-        {/* Department */}
+        {/* Department + file size */}
         <Stack direction="row" spacing={0.5} alignItems="center" mb={2}>
-          <Building size={14} color="#666" />
-          <Typography variant="body2" color="text.secondary">
+          <Building size={13} color="#888" />
+          <Typography variant="body2" color="text.secondary" noWrap>
             {KhoaXayDungID?.TenKhoa || "Không xác định"}
           </Typography>
           {FilePDF && (
-            <Typography variant="caption" color="text.disabled" sx={{ ml: 1 }}>
+            <Typography
+              variant="caption"
+              color="text.disabled"
+              sx={{ ml: 0.5, flexShrink: 0 }}
+            >
               • {formatSize(FilePDF.KichThuoc)}
             </Typography>
           )}
@@ -205,8 +246,11 @@ function ISOProcedureCard({
         <Stack direction="row" spacing={1.5}>
           <Button
             variant="contained"
-            startIcon={<Eye size={18} />}
-            onClick={handleViewPDF}
+            startIcon={<Eye size={17} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewPDF();
+            }}
             disabled={!FilePDF}
             sx={{
               flex: 1,
@@ -215,12 +259,12 @@ function ISOProcedureCard({
               textTransform: "none",
               borderRadius: 2,
               bgcolor: isNew
-                ? CARD_STYLES.new.border
-                : CARD_STYLES.default.border,
+                ? CARD_STYLES.new.accentColor
+                : CARD_STYLES.default.accentColor,
               "&:hover": {
                 bgcolor: isNew
-                  ? CARD_STYLES.new.accentColor
-                  : CARD_STYLES.default.accentColor,
+                  ? CARD_STYLES.new.hoverBg
+                  : CARD_STYLES.default.hoverBg,
               },
             }}
           >
@@ -229,8 +273,11 @@ function ISOProcedureCard({
           <Button
             variant="outlined"
             color="inherit"
-            startIcon={<DocumentDownload size={18} />}
-            onClick={handleDownload}
+            startIcon={<DocumentDownload size={17} />}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDownload();
+            }}
             disabled={!hasFiles}
             sx={{
               flex: 1,

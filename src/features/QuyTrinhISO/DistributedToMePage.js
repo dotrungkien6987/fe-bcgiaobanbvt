@@ -35,6 +35,8 @@ import { getISOKhoa } from "../Daotao/Khoa/khoaSlice";
 import PDFQuickViewModal from "./components/PDFQuickViewModal";
 import ISOProcedureCard from "./components/ISOProcedureCard";
 import DownloadBottomSheet from "./components/DownloadBottomSheet";
+import ISOPageShell from "./components/ISOPageShell";
+import ISOFilterBar from "./components/ISOFilterBar";
 import useAuth from "../../hooks/useAuth";
 import dayjs from "dayjs";
 import apiService from "../../app/apiService";
@@ -176,187 +178,72 @@ function DistributedToMePage() {
   ).size;
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "secondary.lighter",
-        pb: { xs: 10, md: 0 },
-      }}
-    >
-      {/* Gradient Header */}
-      <Box
-        sx={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          pt: 2,
-          pb: 3,
-          px: 2,
-        }}
-      >
-        <Container maxWidth="xl">
-          <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-            <IconButton
-              onClick={() => navigate("/quytrinh-iso")}
-              sx={{
-                color: "white",
-                bgcolor: "rgba(255, 255, 255, 0.15)",
-                "&:hover": { bgcolor: "rgba(255, 255, 255, 0.25)" },
-              }}
-            >
-              <ArrowLeft size={20} />
-            </IconButton>
-            <Box flex={1}>
-              <Typography
-                variant="h6"
-                fontWeight={700}
-                color="white"
-                sx={{ fontSize: isMobile ? "1.1rem" : "1.5rem" }}
-              >
-                📥 QT ISO Được Phân Phối
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "0.8rem" }}
-              >
-                Khoa: <strong>{userKhoaName}</strong>
-              </Typography>
-            </Box>
-          </Stack>
-
-          {/* Integrated Search */}
-          <TextField
-            fullWidth
-            placeholder="Tìm mã hoặc tên quy trình..."
-            size="small"
-            value={search}
-            onChange={handleSearch}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchNormal1 size={18} />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              bgcolor: "white",
-              borderRadius: 2,
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "transparent" },
-              },
-            }}
-          />
-        </Container>
-      </Box>
-
-      {/* Stats Bar - Mobile Only */}
-      {isMobile && (
-        <Box
-          sx={{
-            bgcolor: "background.paper",
-            py: 2,
-            mb: 1,
-            borderTop: "1px solid",
-            borderBottom: "1px solid",
-            borderColor: "divider",
+    <ISOPageShell
+      title="QT ISO Được Phân Phối"
+      subtitle={`Khoa: ${userKhoaName}`}
+      breadcrumbs={[
+        { label: "Trang chủ", to: "/" },
+        { label: "Quy trình ISO", to: "/quytrinh-iso" },
+        { label: "Được phân phối" },
+      ]}
+      searchSlot={
+        <TextField
+          fullWidth
+          placeholder="Tìm mã hoặc tên quy trình..."
+          size="small"
+          value={search}
+          onChange={handleSearch}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchNormal1 size={18} />
+              </InputAdornment>
+            ),
           }}
-        >
-          <Box sx={{ px: 2 }}>
-            <Stack direction="row" spacing={2} justifyContent="space-around">
+          sx={{
+            bgcolor: "white",
+            borderRadius: 2,
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": { borderColor: "transparent" },
+            },
+          }}
+        />
+      }
+      subHeader={
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            alignItems={{ sm: "center" }}
+            justifyContent="space-between"
+          >
+            {/* Stats strip */}
+            <Stack direction="row" spacing={3}>
               <Box textAlign="center">
-                <Typography variant="h6" fontWeight={700} color="primary.main">
-                  {totalCount}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Tổng số
-                </Typography>
+                <Typography variant="h6" fontWeight={700} color="primary.main">{totalCount}</Typography>
+                <Typography variant="caption" color="text.secondary">Tổng số</Typography>
               </Box>
               <Box textAlign="center">
-                <Typography
-                  variant="h6"
-                  fontWeight={700}
-                  sx={{ color: "success.main" }}
-                >
-                  {newCount}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Mới (30d)
-                </Typography>
+                <Typography variant="h6" fontWeight={700} sx={{ color: "success.main" }}>{newCount}</Typography>
+                <Typography variant="caption" color="text.secondary">Mới (30d)</Typography>
               </Box>
               <Box textAlign="center">
-                <Typography
-                  variant="h6"
-                  fontWeight={700}
-                  sx={{ color: "info.main" }}
-                >
-                  {uniqueKhoaCount}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Khoa
-                </Typography>
+                <Typography variant="h6" fontWeight={700} sx={{ color: "info.main" }}>{uniqueKhoaCount}</Typography>
+                <Typography variant="caption" color="text.secondary">Khoa</Typography>
               </Box>
             </Stack>
-          </Box>
+            {/* Khoa filter */}
+            <ISOFilterBar
+              khoa={khoaFilter}
+              onKhoaChange={(val) => { setKhoaFilter(val); setPage(1); }}
+              khoaOptions={allKhoa || []}
+              showSearch={false}
+              showTrangThai={false}
+            />
+          </Stack>
         </Box>
-      )}
-
-      {/* Filters - Desktop */}
-      {!isMobile && (
-        <Container maxWidth="xl" sx={{ mt: 3 }}>
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <FormControl size="small" sx={{ minWidth: 200 }}>
-                  <InputLabel>Khoa xây dựng</InputLabel>
-                  <Select
-                    value={khoaFilter}
-                    onChange={handleKhoaFilter}
-                    label="Khoa xây dựng"
-                  >
-                    <MenuItem value="">Tất cả</MenuItem>
-                    {(allKhoa || []).map((khoa) => (
-                      <MenuItem key={khoa._id} value={khoa._id}>
-                        {khoa.TenKhoa}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Container>
-      )}
-
-      {/* Mobile Filter - Below Stats */}
-      {isMobile && (
-        <Box
-          sx={{
-            bgcolor: "background.paper",
-            py: 2,
-            mb: 1,
-            borderTop: "1px solid",
-            borderBottom: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <Box sx={{ px: 2 }}>
-            <FormControl size="small" fullWidth>
-              <InputLabel>Khoa xây dựng</InputLabel>
-              <Select
-                value={khoaFilter}
-                onChange={handleKhoaFilter}
-                label="Khoa xây dựng"
-                sx={{ bgcolor: "white" }}
-              >
-                <MenuItem value="">Tất cả</MenuItem>
-                {(allKhoa || []).map((khoa) => (
-                  <MenuItem key={khoa._id} value={khoa._id}>
-                    {khoa.TenKhoa}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-        </Box>
-      )}
+      }
+    >
 
       {/* Content Section */}
       <Box sx={{ px: { xs: 0, md: 3 }, maxWidth: "lg", mx: "auto" }}>
@@ -405,18 +292,16 @@ function DistributedToMePage() {
             </Stack>
           </Box>
         ) : (
-          /* Desktop: Table */
-          <Container maxWidth="xl" sx={{ px: 3 }}>
-            <TableContainer component={Paper}>
-              <Table>
+          <TableContainer component={Paper}>
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Mã QT</TableCell>
-                    <TableCell>Tên Quy Trình</TableCell>
-                    <TableCell>Phiên bản</TableCell>
-                    <TableCell>Khoa Xây Dựng</TableCell>
-                    <TableCell>Ngày Phân Phối</TableCell>
-                    <TableCell align="center">Thao tác</TableCell>
+                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Mã QT</TableCell>
+                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Tên Quy Trình</TableCell>
+                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Phiên bản</TableCell>
+                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Khoa Xây Dựng</TableCell>
+                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Ngày Phân Phối</TableCell>
+                    <TableCell align="center" sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Thao tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -517,10 +402,9 @@ function DistributedToMePage() {
                 </TableBody>
               </Table>
             </TableContainer>
-          </Container>
         )}
 
-        {/* Pagination */}
+        {/* Pagination */}}
         {distributionPagination.totalPages > 1 && (
           <Box display="flex" justifyContent="center" mt={3}>
             <Pagination
@@ -548,7 +432,7 @@ function DistributedToMePage() {
         fileWord={downloadSheet.quyTrinh?.FileWord}
         quyTrinhName={downloadSheet.quyTrinh?.TenQuyTrinh || ""}
       />
-    </Box>
+    </ISOPageShell>
   );
 }
 

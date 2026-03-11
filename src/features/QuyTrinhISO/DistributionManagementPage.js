@@ -39,6 +39,8 @@ import { getISOKhoa } from "../Daotao/Khoa/khoaSlice";
 import DistributionDialogV2 from "./components/DistributionDialogV2";
 import DistributionChips from "./components/DistributionChips";
 import PDFQuickViewModal from "./components/PDFQuickViewModal";
+import ISOPageShell from "./components/ISOPageShell";
+import ISOFilterBar from "./components/ISOFilterBar";
 import useAuth from "../../hooks/useAuth";
 
 function DistributionManagementPage() {
@@ -142,71 +144,46 @@ function DistributionManagementPage() {
   }
 
   return (
-    <Container maxWidth="xl" sx={{ py: 3 }}>
-      {/* Header */}
-      <Stack direction="row" alignItems="center" spacing={2} mb={3}>
-        <IconButton onClick={() => navigate("/quytrinh-iso")}>
-          <ArrowLeft />
-        </IconButton>
-        <Box>
-          <Typography variant="h4">
-            🎯 Quản Lý Phân Phối Quy Trình ISO
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Quản lý phân phối quy trình cho các khoa/phòng ban
-          </Typography>
-        </Box>
-      </Stack>
-
-      {/* Filters */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            <TextField
-              placeholder="Tìm mã/tên quy trình..."
-              size="small"
-              value={search}
-              onChange={handleSearch}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchNormal1 size={18} />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ minWidth: 300 }}
-            />
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <InputLabel>Khoa xây dựng</InputLabel>
-              <Select
-                value={khoaFilter}
-                onChange={handleKhoaFilter}
-                label="Khoa xây dựng"
-              >
-                <MenuItem value="">Tất cả</MenuItem>
-                {(allKhoa || []).map((khoa) => (
-                  <MenuItem key={khoa._id} value={khoa._id}>
-                    {khoa.TenKhoa}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Stack>
-        </CardContent>
-      </Card>
-
+    <ISOPageShell
+      title="Quản Lý Phân Phối Quy Trình ISO"
+      subtitle="Quản lý phân phối quy trình cho các khoa/phòng ban"
+      breadcrumbs={[
+        { label: "Trang chủ", to: "/" },
+        { label: "Quy trình ISO", to: "/quytrinh-iso" },
+        { label: "Phân phối" },
+      ]}
+      subHeader={
+        <ISOFilterBar
+          search={search}
+          onSearchChange={handleSearch}
+          khoa={khoaFilter}
+          onKhoaChange={(val) => {
+            setKhoaFilter(val);
+            setPage(1);
+          }}
+          khoaOptions={allKhoa || []}
+          showTrangThai={false}
+        />
+      }
+    >
       {/* Table */}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell>Mã QT</TableCell>
-              <TableCell>Tên Quy Trình</TableCell>
-              <TableCell>Phiên bản</TableCell>
-              <TableCell>Khoa Xây Dựng</TableCell>
-              <TableCell align="center">Phân Phối</TableCell>
-              <TableCell align="center">Files</TableCell>
-              <TableCell align="center">Thao tác</TableCell>
+            <TableRow sx={{ bgcolor: "grey.50" }}>
+              <TableCell sx={{ fontWeight: 700 }}>Mã QT</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Tên Quy Trình</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Phiên bản</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Khoa Xây Dựng</TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>
+                Phân Phối
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>
+                Files
+              </TableCell>
+              <TableCell align="center" sx={{ fontWeight: 700 }}>
+                Thao tác
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -264,16 +241,24 @@ function DistributionManagementPage() {
                     >
                       {qt._fileCounts?.pdf > 0 && (
                         <Chip
-                          label={`📄 ${qt._fileCounts.pdf}`}
+                          label={`${qt._fileCounts.pdf} PDF`}
                           size="small"
-                          variant="outlined"
+                          sx={{
+                            bgcolor: "#e3f2fd",
+                            color: "#1565c0",
+                            fontWeight: 600,
+                          }}
                         />
                       )}
                       {qt._fileCounts?.word > 0 && (
                         <Chip
-                          label={`📝 ${qt._fileCounts.word}`}
+                          label={`${qt._fileCounts.word} Word`}
                           size="small"
-                          variant="outlined"
+                          sx={{
+                            bgcolor: "#fff3e0",
+                            color: "#e65100",
+                            fontWeight: 600,
+                          }}
                         />
                       )}
                     </Stack>
@@ -345,7 +330,7 @@ function DistributionManagementPage() {
         onClose={() => setPdfModal({ open: false, file: null })}
         file={pdfModal.file}
       />
-    </Container>
+    </ISOPageShell>
   );
 }
 

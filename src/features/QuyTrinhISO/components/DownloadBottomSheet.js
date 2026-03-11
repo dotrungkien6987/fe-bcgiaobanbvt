@@ -130,6 +130,7 @@ function DownloadBottomSheet({
               borderRadius: 2,
               mb: 0.5,
               py: 1.5,
+              minHeight: 72,
             }}
           >
             <ListItemIcon>
@@ -156,7 +157,21 @@ function DownloadBottomSheet({
                   </Typography>
                 </Stack>
               }
-              secondary="Tài liệu chính thức"
+              secondary={
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{
+                    display: "block",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    maxWidth: 220,
+                  }}
+                >
+                  {filePDF.TenGoc || filePDF.TenFile || "Tài liệu chính thức"}
+                </Typography>
+              }
             />
           </ListItemButton>
         )}
@@ -168,6 +183,7 @@ function DownloadBottomSheet({
             sx={{
               borderRadius: 2,
               py: 1.5,
+              minHeight: 72,
             }}
           >
             <ListItemIcon>
@@ -194,7 +210,21 @@ function DownloadBottomSheet({
                   </Typography>
                 </Stack>
               }
-              secondary="File nguồn để chỉnh sửa"
+              secondary={
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{
+                    display: "block",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    maxWidth: 220,
+                  }}
+                >
+                  {fileWord.TenGoc || fileWord.TenFile || "File nguồn để chỉnh sửa"}
+                </Typography>
+              }
             />
           </ListItemButton>
         )}

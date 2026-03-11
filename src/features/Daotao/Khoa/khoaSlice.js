@@ -131,17 +131,38 @@ export const updateOneKhoa = (khoa) => async (dispatch) => {
   }
 };
 
-export const bulkUpdateISO = (khoaIds, isISORelevant) => async (dispatch) => {
-  dispatch(slice.actions.startLoading());
+export const bulkUpdateISO =
+  (khoaIds, isISORelevant, cascade = false) =>
+  async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await apiService.put("/khoa/bulk-update-iso", {
+        khoaIds,
+        isISORelevant,
+        cascade,
+      });
+      dispatch(slice.actions.bulkUpdateISOSuccess(response.data.data.khoas));
+      toast.success(response.data.message || "Cập nhật hàng loạt thành công");
+    } catch (error) {
+      dispatch(slice.actions.hasError(error.message));
+      toast.error(error.message);
+    }
+  };
+
+/**
+ * Check how many distribution records exist for a list of khoas
+ * Used before unconfiguring khoas to show cascade warning
+ * Returns { affected: [{khoaId, TenKhoa, MaKhoa, soTaiLieu}], total }
+ */
+export const checkISODistributions = (khoaIds) => async () => {
   try {
-    const response = await apiService.put("/khoa/bulk-update-iso", {
-      khoaIds,
-      isISORelevant,
-    });
-    dispatch(slice.actions.bulkUpdateISOSuccess(response.data.data.khoas));
-    toast.success(response.data.message || "Cập nhật hàng loạt thành công");
+    const params = khoaIds.join(",");
+    const response = await apiService.get(
+      `/khoa/iso/check-distributions?khoaIds=${params}`,
+    );
+    return response.data.data;
   } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
+    return { affected: [], total: 0 };
   }
 };

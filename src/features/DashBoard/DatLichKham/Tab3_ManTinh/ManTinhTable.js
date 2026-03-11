@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useCallback } from "react";
-import { useDispatch } from "react-redux";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Table,
   TableBody,
@@ -28,12 +28,19 @@ import {
   DialogContent,
   DialogActions,
   Alert,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import {
   Search as SearchIcon,
   CheckCircle as CheckIcon,
   Cancel as CancelIcon,
   History as HistoryIcon,
+  BiotechOutlined as BiotechIcon,
+  TuneOutlined as TuneIcon,
+  PlayArrowOutlined as PlayIcon,
+  ArrowDropDown as ArrowDropDownIcon,
+  DateRange as DateRangeIcon,
 } from "@mui/icons-material";
 import dayjs from "dayjs";
 import {
@@ -42,8 +49,15 @@ import {
   batchCreateManTinh,
   batchDeleteManTinh,
   fetchDanhSachManTinh,
+  fetchMaBenhManTinh,
+  fetchCongThucManTinh,
+  selectMaBenhManTinhSet,
+  selectCongThucManTinhActive,
 } from "../datLichKhamSlice";
 import LichSuKhamDialog from "../Tab2_ChiTiet/LichSuKhamDialog";
+import MaBenhManTinhDialog from "./MaBenhManTinhDialog";
+import CongThucManTinhDialog from "./CongThucManTinhDialog";
+import KetQuaCongThucDialog from "./KetQuaCongThucDialog";
 
 function formatVND(num) {
   if (num == null) return "0";
@@ -71,8 +85,11 @@ function ManTinhTable({
   onRefresh,
 }) {
   const dispatch = useDispatch();
+  const chronicCodeSet = useSelector(selectMaBenhManTinhSet);
+  const activeCongThuc = useSelector(selectCongThucManTinhActive);
 
   const [filter, setFilter] = useState("all"); // all | marked | unmarked
+  const [filterTrungNgay, setFilterTrungNgay] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
@@ -87,6 +104,19 @@ function ManTinhTable({
 
   // Batch confirm dialog
   const [batchDialog, setBatchDialog] = useState(null); // { action: 'mark'|'unmark', count }
+
+  // Formula engine dialog states
+  const [maBenhDialogOpen, setMaBenhDialogOpen] = useState(false);
+  const [congThucDialogOpen, setCongThucDialogOpen] = useState(false);
+  const [ketQuaDialogOpen, setKetQuaDialogOpen] = useState(false);
+  const [selectedCongThuc, setSelectedCongThuc] = useState(null);
+  const [formulaMenuAnchor, setFormulaMenuAnchor] = useState(null);
+
+  // Load master data for formula engine
+  useEffect(() => {
+    dispatch(fetchMaBenhManTinh());
+    dispatch(fetchCongThucManTinh());
+  }, [dispatch]);
 
   // Only show Vòng 1 data: status === 1 AND tong_tien > 0
   const vong1Data = useMemo(() => {
@@ -111,6 +141,17 @@ function ManTinhTable({
     if (filter === "marked") result = result.filter((r) => r.isManTinh);
     if (filter === "unmarked") result = result.filter((r) => !r.isManTinh);
 
+    // Filter trùng ngày
+    if (filterTrungNgay) {
+      result = result.filter(
+        (r) =>
+          r.dangkykhaminitdate &&
+          r.dangkykhamdate &&
+          dayjs(r.dangkykhaminitdate).format("YYYY-MM-DD") ===
+            dayjs(r.dangkykhamdate).format("YYYY-MM-DD"),
+      );
+    }
+
     if (search.trim()) {
       const s = search.toLowerCase();
       result = result.filter(
@@ -122,7 +163,7 @@ function ManTinhTable({
       );
     }
     return result;
-  }, [vong1Data, filter, search]);
+  }, [vong1Data, filter, filterTrungNgay, search]);
 
   // Sort
   const sortedData = useMemo(() => {
@@ -263,6 +304,19 @@ function ManTinhTable({
     setOrderBy(col);
   };
 
+  // Run formula from CongThucManTinhDialog
+  const handleRunFormula = useCallback((congThuc) => {
+    setSelectedCongThuc(congThuc);
+    setCongThucDialogOpen(false);
+    setKetQuaDialogOpen(true);
+  }, []);
+
+  // After formula results done
+  const handleKetQuaDone = useCallback(() => {
+    setKetQuaDialogOpen(false);
+    setSelectedCongThuc(null);
+  }, []);
+
   // Stats
   const stats = useMemo(() => {
     const total = vong1Data.length;
@@ -294,14 +348,15 @@ function ManTinhTable({
       >
         <Stack direction="row" spacing={1} alignItems="center">
           <Typography variant="body2">
-            Vòng 1: <strong>{stats.total}</strong> | Đã ĐD:{" "}
+            Có khám phát sinh tiền: <strong>{stats.total}</strong> | Đã đánh
+            dấu:{" "}
             <Chip
               label={stats.marked}
               size="small"
               color="secondary"
               sx={{ mx: 0.5 }}
             />{" "}
-            | Chưa ĐD: <strong>{stats.unmarked}</strong>
+            | Chưa đánh dấu: <strong>{stats.unmarked}</strong>
           </Typography>
           <ToggleButtonGroup
             value={filter}
@@ -315,12 +370,89 @@ function ManTinhTable({
             size="small"
           >
             <ToggleButton value="all">Tất cả</ToggleButton>
-            <ToggleButton value="marked">Đã ĐD</ToggleButton>
-            <ToggleButton value="unmarked">Chưa ĐD</ToggleButton>
+            <ToggleButton value="marked">Đã đánh dấu</ToggleButton>
+            <ToggleButton value="unmarked">Chưa đánh dấu</ToggleButton>
           </ToggleButtonGroup>
+          <Chip
+            icon={<DateRangeIcon />}
+            label="Trùng ngày"
+            size="small"
+            clickable
+            color={filterTrungNgay ? "warning" : "default"}
+            variant={filterTrungNgay ? "filled" : "outlined"}
+            onClick={() => {
+              setFilterTrungNgay((prev) => !prev);
+              setPage(0);
+            }}
+          />
         </Stack>
 
         <Stack direction="row" spacing={1} alignItems="center">
+          <Tooltip title="Danh sách mã bệnh mãn tính (ICD)">
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<BiotechIcon />}
+              onClick={() => setMaBenhDialogOpen(true)}
+            >
+              Mã bệnh mãn tính
+            </Button>
+          </Tooltip>
+          <Tooltip title="Cấu hình & chạy công thức phát hiện mãn tính">
+            <Button
+              size="small"
+              variant="outlined"
+              color="primary"
+              startIcon={<TuneIcon />}
+              onClick={() => setCongThucDialogOpen(true)}
+            >
+              Công thức
+            </Button>
+          </Tooltip>
+          {activeCongThuc.length === 1 && (
+            <Tooltip title={`Chạy công thức: ${activeCongThuc[0].tenCongThuc}`}>
+              <Button
+                size="small"
+                variant="contained"
+                color="secondary"
+                startIcon={<PlayIcon />}
+                onClick={() => handleRunFormula(activeCongThuc[0])}
+              >
+                Lọc mãn tính
+              </Button>
+            </Tooltip>
+          )}
+          {activeCongThuc.length > 1 && (
+            <>
+              <Button
+                size="small"
+                variant="contained"
+                color="secondary"
+                startIcon={<PlayIcon />}
+                endIcon={<ArrowDropDownIcon />}
+                onClick={(e) => setFormulaMenuAnchor(e.currentTarget)}
+              >
+                Lọc mãn tính ({activeCongThuc.length})
+              </Button>
+              <Menu
+                anchorEl={formulaMenuAnchor}
+                open={Boolean(formulaMenuAnchor)}
+                onClose={() => setFormulaMenuAnchor(null)}
+              >
+                {activeCongThuc.map((ct) => (
+                  <MenuItem
+                    key={ct._id}
+                    onClick={() => {
+                      handleRunFormula(ct);
+                      setFormulaMenuAnchor(null);
+                    }}
+                  >
+                    {ct.tenCongThuc}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </>
+          )}
           <TextField
             size="small"
             placeholder="Tìm BN, NGT, chẩn đoán..."
@@ -355,7 +487,7 @@ function ManTinhTable({
               onClick={handleBatchMark}
               startIcon={<CheckIcon />}
             >
-              Đánh dấu MT
+              Đánh dấu mãn tính
             </Button>
             <Button
               size="small"
@@ -370,7 +502,7 @@ function ManTinhTable({
         </Alert>
       )}
 
-      <TableContainer sx={{ maxHeight: 600 }}>
+      <TableContainer sx={{ maxHeight: "calc(100vh - 340px)" }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
@@ -389,13 +521,28 @@ function ManTinhTable({
               <TableCell align="center" sx={{ fontWeight: "bold", width: 50 }}>
                 STT
               </TableCell>
-              <TableCell sx={{ fontWeight: "bold", width: 100 }}>
+              <TableCell sx={{ fontWeight: "bold", width: 80 }}>
+                Mã BN
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold", width: 80 }}>
+                Mã BN cũ
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold", width: 95 }}>
+                <TableSortLabel
+                  active={orderBy === "dangkykhaminitdate"}
+                  direction={orderBy === "dangkykhaminitdate" ? order : "asc"}
+                  onClick={() => handleSort("dangkykhaminitdate")}
+                >
+                  Ngày đặt lịch
+                </TableSortLabel>
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold", width: 95 }}>
                 <TableSortLabel
                   active={orderBy === "dangkykhamdate"}
                   direction={orderBy === "dangkykhamdate" ? order : "asc"}
                   onClick={() => handleSort("dangkykhamdate")}
                 >
-                  Ngày ĐL
+                  Ngày ĐK khám
                 </TableSortLabel>
               </TableCell>
               <TableCell sx={{ fontWeight: "bold", width: 160 }}>
@@ -410,6 +557,12 @@ function ManTinhTable({
               <TableCell sx={{ fontWeight: "bold", width: 140 }}>NGT</TableCell>
               <TableCell sx={{ fontWeight: "bold", width: 200 }}>
                 Chẩn đoán
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold", width: 130 }}>
+                Khoa khám
+              </TableCell>
+              <TableCell sx={{ fontWeight: "bold", width: 130 }}>
+                Phòng khám
               </TableCell>
               <TableCell align="center" sx={{ fontWeight: "bold", width: 90 }}>
                 <TableSortLabel
@@ -440,9 +593,9 @@ function ManTinhTable({
           <TableBody>
             {paginatedData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={15} align="center" sx={{ py: 4 }}>
                   <Typography color="text.secondary">
-                    Không có dữ liệu Vòng 1
+                    Không có dữ liệu có khám phát sinh tiền
                   </Typography>
                 </TableCell>
               </TableRow>
@@ -462,6 +615,13 @@ function ManTinhTable({
                   </TableCell>
                   <TableCell align="center">
                     {page * rowsPerPage + idx + 1}
+                  </TableCell>
+                  <TableCell>{row.patientid || "—"}</TableCell>
+                  <TableCell>{row.patientid_old || "—"}</TableCell>
+                  <TableCell>
+                    {row.dangkykhaminitdate
+                      ? dayjs(row.dangkykhaminitdate).format("DD/MM/YYYY")
+                      : ""}
                   </TableCell>
                   <TableCell>
                     {row.dangkykhamdate
@@ -498,6 +658,8 @@ function ManTinhTable({
                       </Typography>
                     </Stack>
                   </TableCell>
+                  <TableCell>{row.vp_departmentgroupname || "—"}</TableCell>
+                  <TableCell>{row.vp_departmentname || "—"}</TableCell>
                   <TableCell align="center">
                     <Stack
                       direction="row"
@@ -666,6 +828,26 @@ function ManTinhTable({
         open={Boolean(lichSuPatient)}
         onClose={() => setLichSuPatient(null)}
         patient={lichSuPatient}
+      />
+
+      {/* Formula engine dialogs */}
+      <MaBenhManTinhDialog
+        open={maBenhDialogOpen}
+        onClose={() => setMaBenhDialogOpen(false)}
+      />
+      <CongThucManTinhDialog
+        open={congThucDialogOpen}
+        onClose={() => setCongThucDialogOpen(false)}
+        onRunFormula={handleRunFormula}
+      />
+      <KetQuaCongThucDialog
+        open={ketQuaDialogOpen}
+        onClose={() => setKetQuaDialogOpen(false)}
+        congThuc={selectedCongThuc}
+        vong1Data={filteredData}
+        chronicCodeSet={chronicCodeSet}
+        danhSachManTinh={danhSachManTinh}
+        onDone={handleKetQuaDone}
       />
     </Paper>
   );

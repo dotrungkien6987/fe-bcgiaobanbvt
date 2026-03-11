@@ -35,7 +35,7 @@ apiService.interceptors.response.use(
       error.response?.data?.errors?.message || // Nested error format
       error.message || // Axios error message
       "Đã có lỗi xảy ra"; // Fallback message
-    return Promise.reject({ message });
+    return Promise.reject({ message, status: error.response?.status });
   }
 );
 

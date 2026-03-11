@@ -12,20 +12,21 @@ import { quanlychatluongAdmin, quanlychatluongUser } from "./quanlychatluong";
 
 import newfeature from "./NoiBo/newfeature";
 // Thêm thuộc tính roles cho từng menu item
-// Note: User.PhanQuyen có 6 giá trị: "admin", "daotao", "nomal", "manager", "noibo", "qlcl"
-nghiencuukhoahocs.roles = [
+// Note: User.PhanQuyen có 7 giá trị: "admin", "daotao", "nomal", "manager", "noibo", "qlcl", "cntt"
+nghiencuukhoahocs.roles = ["admin", "daotao", "nomal", "manager", "noibo"]; // Không bao gồm qlcl, cntt
+daotaos.roles = ["admin", "daotao"];
+baocao.roles = ["admin", "daotao", "manager"];
+hethong.roles = ["admin", "daotao"];
+newfeature.roles = ["admin", "noibo"];
+quanlycongviec.roles = [
   "admin",
   "daotao",
   "nomal",
   "manager",
   "noibo",
   "qlcl",
+  "cntt",
 ]; // Tất cả đều thấy
-daotaos.roles = ["admin", "daotao"];
-baocao.roles = ["admin", "daotao", "manager"];
-hethong.roles = ["admin", "daotao"];
-newfeature.roles = ["admin", "noibo"];
-quanlycongviec.roles = ["admin", "daotao", "nomal", "manager", "noibo", "qlcl"]; // Tất cả đều thấy
 admin.roles = ["admin"]; // Chỉ admin mới thấy
 lichtruc.roles = ["admin", "daotao", "nomal", "manager", "noibo", "qlcl"]; // Tất cả đều thấy
 notification.roles = ["admin", "daotao", "nomal", "manager", "noibo", "qlcl"]; // Tất cả đều thấy

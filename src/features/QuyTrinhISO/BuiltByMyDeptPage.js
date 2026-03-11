@@ -31,6 +31,7 @@ import DistributionChips from "./components/DistributionChips";
 import PDFQuickViewModal from "./components/PDFQuickViewModal";
 import ISOProcedureCard from "./components/ISOProcedureCard";
 import DownloadBottomSheet from "./components/DownloadBottomSheet";
+import ISOPageShell from "./components/ISOPageShell";
 import useAuth from "../../hooks/useAuth";
 import apiService from "../../app/apiService";
 import dayjs from "dayjs";
@@ -166,128 +167,56 @@ function BuiltByMyDeptPage() {
   }).length;
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        bgcolor: "secondary.lighter",
-        pb: { xs: 10, md: 0 },
-      }}
-    >
-      {/* Gradient Header */}
-      <Box
-        sx={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          pt: 2,
-          pb: 3,
-          px: 2,
-        }}
-      >
-        <Container maxWidth="xl">
-          <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-            <IconButton
-              onClick={() => navigate("/quytrinh-iso")}
-              sx={{
-                color: "white",
-                bgcolor: "rgba(255, 255, 255, 0.15)",
-                "&:hover": { bgcolor: "rgba(255, 255, 255, 0.25)" },
-              }}
-            >
-              <ArrowLeft size={20} />
-            </IconButton>
-            <Box flex={1}>
-              <Typography
-                variant="h6"
-                fontWeight={700}
-                color="white"
-                sx={{ fontSize: isMobile ? "1.1rem" : "1.5rem" }}
-              >
-                🏗️ QT ISO Khoa Xây Dựng
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "0.8rem" }}
-              >
-                Quy trình của: <strong>{userKhoaName}</strong>
-              </Typography>
+    <ISOPageShell
+      title="QT ISO Khoa Xây Dựng"
+      subtitle={`Quy trình của: ${userKhoaName}`}
+      breadcrumbs={[
+        { label: "Trang chủ", to: "/" },
+        { label: "Quy trình ISO", to: "/quytrinh-iso" },
+        { label: "Khoa xây dựng" },
+      ]}
+      searchSlot={
+        <TextField
+          fullWidth
+          placeholder="Tìm mã hoặc tên quy trình..."
+          size="small"
+          value={search}
+          onChange={handleSearch}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchNormal1 size={18} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            bgcolor: "white",
+            borderRadius: 2,
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": { borderColor: "transparent" },
+            },
+          }}
+        />
+      }
+      subHeader={
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Stack direction="row" spacing={4} justifyContent="space-around">
+            <Box textAlign="center">
+              <Typography variant="h6" fontWeight={700} color="primary.main">{totalCount}</Typography>
+              <Typography variant="caption" color="text.secondary">Tổng QT</Typography>
+            </Box>
+            <Box textAlign="center">
+              <Typography variant="h6" fontWeight={700} sx={{ color: "info.main" }}>{totalDistributions}</Typography>
+              <Typography variant="caption" color="text.secondary">Phân phối</Typography>
+            </Box>
+            <Box textAlign="center">
+              <Typography variant="h6" fontWeight={700} sx={{ color: "success.main" }}>{newCount}</Typography>
+              <Typography variant="caption" color="text.secondary">Mới (30d)</Typography>
             </Box>
           </Stack>
-
-          {/* Integrated Search */}
-          <TextField
-            fullWidth
-            placeholder="Tìm mã hoặc tên quy trình..."
-            size="small"
-            value={search}
-            onChange={handleSearch}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchNormal1 size={18} />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              bgcolor: "white",
-              borderRadius: 2,
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": { borderColor: "transparent" },
-              },
-            }}
-          />
-        </Container>
-      </Box>
-
-      {/* Stats Bar - Mobile Only */}
-      {isMobile && (
-        <Box
-          sx={{
-            bgcolor: "background.paper",
-            py: 2,
-            mb: 1,
-            borderTop: "1px solid",
-            borderBottom: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <Box sx={{ px: 2 }}>
-            <Stack direction="row" spacing={2} justifyContent="space-around">
-              <Box textAlign="center">
-                <Typography variant="h6" fontWeight={700} color="primary.main">
-                  {totalCount}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Tổng QT
-                </Typography>
-              </Box>
-              <Box textAlign="center">
-                <Typography
-                  variant="h6"
-                  fontWeight={700}
-                  sx={{ color: "info.main" }}
-                >
-                  {totalDistributions}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Phân phối
-                </Typography>
-              </Box>
-              <Box textAlign="center">
-                <Typography
-                  variant="h6"
-                  fontWeight={700}
-                  sx={{ color: "success.main" }}
-                >
-                  {newCount}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Mới (30d)
-                </Typography>
-              </Box>
-            </Stack>
-          </Box>
         </Box>
-      )}
-
+      }
+    >
       {/* Content Section */}
       <Box sx={{ px: { xs: 0, md: 3 }, maxWidth: "lg", mx: "auto" }}>
         {/* Mobile: Card List */}
@@ -316,11 +245,25 @@ function BuiltByMyDeptPage() {
                   </Card>
                 ))
               ) : builtByMyDept.length === 0 ? (
-                <Paper sx={{ p: 4, textAlign: "center" }}>
-                  <Typography color="text.secondary">
-                    Khoa của bạn chưa xây dựng quy trình nào
+                <Box
+                  sx={{
+                    py: 8,
+                    textAlign: "center",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 2,
+                  }}
+                >
+                  <DocumentText1 size={64} color="#9e9e9e" variant="Bulk" />
+                  <Typography variant="h6" color="text.secondary">
+                    Chưa có quy trình nào
                   </Typography>
-                </Paper>
+                  <Typography variant="body2" color="text.secondary">
+                    {userKhoaName} chưa xây dựng quy trình ISO nào. Liên hệ QLCL
+                    để được hướng dẫn.
+                  </Typography>
+                </Box>
               ) : (
                 builtByMyDept.map((qt) => (
                   <ISOProcedureCard
@@ -335,17 +278,15 @@ function BuiltByMyDeptPage() {
             </Stack>
           </Box>
         ) : (
-          /* Desktop: Table */
-          <Container maxWidth="xl" sx={{ px: 3 }}>
-            <TableContainer component={Paper}>
-              <Table>
+          <TableContainer component={Paper}>
+              <Table stickyHeader>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Mã QT</TableCell>
-                    <TableCell>Tên Quy Trình</TableCell>
-                    <TableCell>Phiên bản</TableCell>
-                    <TableCell align="center">Phân Phối Cho</TableCell>
-                    <TableCell align="center">Thao tác</TableCell>
+                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Mã QT</TableCell>
+                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Tên Quy Trình</TableCell>
+                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Phiên bản</TableCell>
+                    <TableCell align="center" sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Phân Phối Cho</TableCell>
+                    <TableCell align="center" sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Thao tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -362,14 +303,45 @@ function BuiltByMyDeptPage() {
                   ) : builtByMyDept.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} align="center">
-                        <Typography color="text.secondary" py={4}>
-                          Khoa của bạn chưa xây dựng quy trình nào
-                        </Typography>
+                        <Box
+                          sx={{
+                            py: 6,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 1.5,
+                          }}
+                        >
+                          <DocumentText1
+                            size={52}
+                            color="#9e9e9e"
+                            variant="Bulk"
+                          />
+                          <Typography variant="h6" color="text.secondary">
+                            Chưa có quy trình nào
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {userKhoaName} chưa xây dựng quy trình ISO nào.
+                          </Typography>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ) : (
                     builtByMyDept.map((qt) => (
-                      <TableRow key={qt._id} hover>
+                      <TableRow
+                        key={qt._id}
+                        hover
+                        sx={{
+                          borderLeft: "4px solid transparent",
+                          transition: "all 0.2s",
+                          cursor: "pointer",
+                          "&:hover": {
+                            borderLeftColor: "primary.main",
+                            bgcolor: "primary.50",
+                          },
+                        }}
+                        onClick={() => handleViewDetail(qt._id)}
+                      >
                         <TableCell>
                           <Typography fontWeight="bold">
                             {qt.MaQuyTrinh}
@@ -430,10 +402,9 @@ function BuiltByMyDeptPage() {
                 </TableBody>
               </Table>
             </TableContainer>
-          </Container>
         )}
 
-        {/* Pagination */}
+        {/* Pagination */}}
         {distributionPagination.totalPages > 1 && (
           <Box display="flex" justifyContent="center" mt={3}>
             <Pagination
@@ -461,7 +432,7 @@ function BuiltByMyDeptPage() {
         fileWord={downloadSheet.quyTrinh?.FileWord}
         quyTrinhName={downloadSheet.quyTrinh?.TenQuyTrinh || ""}
       />
-    </Box>
+    </ISOPageShell>
   );
 }
 

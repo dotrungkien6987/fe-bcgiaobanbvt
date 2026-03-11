@@ -15,6 +15,14 @@ const initialState = {
   danhSachManTinh: {},
   loadingManTinh: false,
 
+  // Mã bệnh mãn tính (danh sách ICD codes)
+  danhSachMaBenhManTinh: [],
+  loadingMaBenh: false,
+
+  // Công thức lọc mãn tính
+  congThucManTinh: [],
+  loadingCongThuc: false,
+
   error: null,
 };
 
@@ -34,10 +42,20 @@ const slice = createSlice({
       state.loadingManTinh = true;
       state.error = null;
     },
+    startLoadingMaBenh(state) {
+      state.loadingMaBenh = true;
+      state.error = null;
+    },
+    startLoadingCongThuc(state) {
+      state.loadingCongThuc = true;
+      state.error = null;
+    },
     hasError(state, action) {
       state.loadingTongHop = false;
       state.loadingChiTiet = false;
       state.loadingManTinh = false;
+      state.loadingMaBenh = false;
+      state.loadingCongThuc = false;
       state.error = action.payload;
     },
 
@@ -83,6 +101,52 @@ const slice = createSlice({
       state.loadingManTinh = false;
       const ids = action.payload;
       ids.forEach((id) => delete state.danhSachManTinh[id]);
+    },
+
+    // ── Mã bệnh mãn tính ──
+    getMaBenhSuccess(state, action) {
+      state.loadingMaBenh = false;
+      state.danhSachMaBenhManTinh = action.payload;
+    },
+    addMaBenhSuccess(state, action) {
+      state.loadingMaBenh = false;
+      state.danhSachMaBenhManTinh.push(action.payload);
+    },
+    updateMaBenhSuccess(state, action) {
+      state.loadingMaBenh = false;
+      const idx = state.danhSachMaBenhManTinh.findIndex(
+        (m) => m._id === action.payload._id,
+      );
+      if (idx >= 0) state.danhSachMaBenhManTinh[idx] = action.payload;
+    },
+    removeMaBenhSuccess(state, action) {
+      state.loadingMaBenh = false;
+      state.danhSachMaBenhManTinh = state.danhSachMaBenhManTinh.filter(
+        (m) => m._id !== action.payload,
+      );
+    },
+
+    // ── Công thức mãn tính ──
+    getCongThucSuccess(state, action) {
+      state.loadingCongThuc = false;
+      state.congThucManTinh = action.payload;
+    },
+    addCongThucSuccess(state, action) {
+      state.loadingCongThuc = false;
+      state.congThucManTinh.push(action.payload);
+    },
+    updateCongThucSuccess(state, action) {
+      state.loadingCongThuc = false;
+      const idx = state.congThucManTinh.findIndex(
+        (c) => c._id === action.payload._id,
+      );
+      if (idx >= 0) state.congThucManTinh[idx] = action.payload;
+    },
+    removeCongThucSuccess(state, action) {
+      state.loadingCongThuc = false;
+      state.congThucManTinh = state.congThucManTinh.filter(
+        (c) => c._id !== action.payload,
+      );
     },
 
     resetDatLichKham() {
@@ -171,7 +235,7 @@ export const fetchAllData =
       dispatch(slice.actions.getTongHopSuccess(tongHopRes.data.data));
       dispatch(slice.actions.getChiTietSuccess(chiTietRes.data.data));
 
-      // Extract dangkykhamids vòng 1 (có khám + có tiền) → fetch mãn tính
+      // Extract dangkykhamids có khám phát sinh tiền (có khám + có tiền) → fetch mãn tính
       const vong1Ids = chiTietRes.data.data
         .filter((r) => r.dangkykhamstatus === 1 && Number(r.tong_tien) > 0)
         .map((r) => r.dangkykhamid);
@@ -259,6 +323,130 @@ export const batchDeleteManTinh = (dangkykhamids) => async (dispatch) => {
 };
 
 // ═══════════════════════════════════════
+// THUNKS — Mã bệnh mãn tính
+// ═══════════════════════════════════════
+
+export const fetchMaBenhManTinh = () => async (dispatch) => {
+  dispatch(slice.actions.startLoadingMaBenh());
+  try {
+    const res = await apiService.get("/his/mabenh-mantinh");
+    dispatch(slice.actions.getMaBenhSuccess(res.data.data.docs));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+export const createMaBenhManTinh = (data) => async (dispatch) => {
+  dispatch(slice.actions.startLoadingMaBenh());
+  try {
+    const res = await apiService.post("/his/mabenh-mantinh", data);
+    dispatch(slice.actions.addMaBenhSuccess(res.data.data));
+    toast.success("Thêm mã bệnh thành công");
+    return true;
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+    return false;
+  }
+};
+
+export const updateMaBenhManTinh = (id, data) => async (dispatch) => {
+  dispatch(slice.actions.startLoadingMaBenh());
+  try {
+    const res = await apiService.put(`/his/mabenh-mantinh/${id}`, data);
+    dispatch(slice.actions.updateMaBenhSuccess(res.data.data));
+    toast.success("Cập nhật mã bệnh thành công");
+    return true;
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+    return false;
+  }
+};
+
+export const deleteMaBenhManTinh = (id) => async (dispatch) => {
+  dispatch(slice.actions.startLoadingMaBenh());
+  try {
+    await apiService.delete(`/his/mabenh-mantinh/${id}`);
+    dispatch(slice.actions.removeMaBenhSuccess(id));
+    toast.success("Xóa mã bệnh thành công");
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+export const batchCreateMaBenhManTinh = (items) => async (dispatch) => {
+  dispatch(slice.actions.startLoadingMaBenh());
+  try {
+    await apiService.post("/his/mabenh-mantinh/batch", { items });
+    toast.success(`Import ${items.length} mã bệnh thành công`);
+    dispatch(fetchMaBenhManTinh()); // re-fetch to sync
+    return true;
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+    return false;
+  }
+};
+
+// ═══════════════════════════════════════
+// THUNKS — Công thức mãn tính
+// ═══════════════════════════════════════
+
+export const fetchCongThucManTinh = () => async (dispatch) => {
+  dispatch(slice.actions.startLoadingCongThuc());
+  try {
+    const res = await apiService.get("/his/congthuc-mantinh");
+    dispatch(slice.actions.getCongThucSuccess(res.data.data));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+export const createCongThucManTinh = (data) => async (dispatch) => {
+  dispatch(slice.actions.startLoadingCongThuc());
+  try {
+    const res = await apiService.post("/his/congthuc-mantinh", data);
+    dispatch(slice.actions.addCongThucSuccess(res.data.data));
+    toast.success("Tạo công thức thành công");
+    return true;
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+    return false;
+  }
+};
+
+export const updateCongThucManTinh = (id, data) => async (dispatch) => {
+  dispatch(slice.actions.startLoadingCongThuc());
+  try {
+    const res = await apiService.put(`/his/congthuc-mantinh/${id}`, data);
+    dispatch(slice.actions.updateCongThucSuccess(res.data.data));
+    toast.success("Cập nhật công thức thành công");
+    return true;
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+    return false;
+  }
+};
+
+export const deleteCongThucManTinh = (id) => async (dispatch) => {
+  dispatch(slice.actions.startLoadingCongThuc());
+  try {
+    await apiService.delete(`/his/congthuc-mantinh/${id}`);
+    dispatch(slice.actions.removeCongThucSuccess(id));
+    toast.success("Xóa công thức thành công");
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+// ═══════════════════════════════════════
 // SELECTORS
 // ═══════════════════════════════════════
 
@@ -270,3 +458,26 @@ export const selectLoadingTongHop = (state) => state.datLichKham.loadingTongHop;
 export const selectLoadingChiTiet = (state) => state.datLichKham.loadingChiTiet;
 export const selectLoadingManTinh = (state) => state.datLichKham.loadingManTinh;
 export const selectError = (state) => state.datLichKham.error;
+
+// Mã bệnh mãn tính
+export const selectDanhSachMaBenhManTinh = (state) =>
+  state.datLichKham.danhSachMaBenhManTinh;
+export const selectLoadingMaBenh = (state) => state.datLichKham.loadingMaBenh;
+export const selectMaBenhManTinhSet = (state) =>
+  new Set(
+    (state.datLichKham.danhSachMaBenhManTinh || [])
+      .filter((m) => m.isActive !== false)
+      .map((m) => m.maBenh?.toUpperCase()),
+  );
+
+// Công thức mãn tính
+export const selectCongThucManTinh = (state) =>
+  state.datLichKham.congThucManTinh;
+export const selectLoadingCongThuc = (state) =>
+  state.datLichKham.loadingCongThuc;
+export const selectCongThucManTinhActive = (state) =>
+  (state.datLichKham.congThucManTinh || []).filter((c) => c.isActive);
+
+// Set of dangkykhamids đã đánh dấu mãn tính (for quick lookup)
+export const selectManTinhDangKyKhamIds = (state) =>
+  new Set(Object.keys(state.datLichKham.danhSachManTinh || {}).map(Number));

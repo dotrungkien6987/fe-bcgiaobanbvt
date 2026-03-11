@@ -20,12 +20,14 @@ import {
   Chip,
   Button,
   Alert,
+  Divider,
 } from "@mui/material";
 import {
   Search as SearchIcon,
   History as HistoryIcon,
   Close as CloseIcon,
   FileDownload as ExportIcon,
+  DateRange as DateRangeIcon,
 } from "@mui/icons-material";
 import dayjs from "dayjs";
 import * as XLSX from "xlsx";
@@ -34,6 +36,18 @@ import LichSuKhamDialog from "./LichSuKhamDialog";
 function formatVND(num) {
   if (num == null) return "0";
   return Number(num).toLocaleString("vi-VN");
+}
+
+function parseLichSu(lichsu_kham) {
+  if (!lichsu_kham) return [];
+  if (typeof lichsu_kham === "string") {
+    try {
+      return JSON.parse(lichsu_kham);
+    } catch {
+      return [];
+    }
+  }
+  return Array.isArray(lichsu_kham) ? lichsu_kham : [];
 }
 
 function getStatusChip(status, tongTien) {
@@ -59,7 +73,10 @@ function getStatusChip(status, tongTien) {
 
 const COLUMNS = [
   { id: "stt", label: "STT", align: "center", width: 50 },
-  { id: "dangkykhamdate", label: "Ngày ĐL", width: 100 },
+  { id: "patientid", label: "Mã BN", width: 80 },
+  { id: "patientid_old", label: "Mã BN cũ", width: 80 },
+  { id: "dangkykhaminitdate", label: "Ngày đặt lịch", width: 100 },
+  { id: "dangkykhamdate", label: "Ngày ĐK khám", width: 100 },
   { id: "patientname", label: "Bệnh nhân", width: 160 },
   { id: "birthday", label: "Ngày sinh", width: 90 },
   { id: "ten_ngt", label: "NGT", width: 140 },
@@ -67,8 +84,10 @@ const COLUMNS = [
   { id: "status", label: "Trạng thái", align: "center", width: 130 },
   { id: "chandoanravien", label: "Chẩn đoán", width: 200 },
   { id: "vp_departmentgroupname", label: "Khoa khám", width: 130 },
+  { id: "vp_departmentname", label: "Phòng khám", width: 130 },
   { id: "tong_tien", label: "Tổng tiền", align: "right", width: 110 },
-  { id: "lichsu", label: "LS Khám", align: "center", width: 70 },
+  { id: "mantinh", label: "Mãn tính", align: "center", width: 80 },
+  { id: "lichsu", label: "LS Khám", align: "center", width: 100 },
 ];
 
 function descendingComparator(a, b, orderBy) {
@@ -90,6 +109,7 @@ function ChiTietDatLichTable({
   loading = false,
   filterNGT,
   onClearFilterNGT,
+  danhSachManTinh = {},
 }) {
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("dangkykhamdate");
@@ -97,6 +117,9 @@ function ChiTietDatLichTable({
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [search, setSearch] = useState("");
   const [lichSuPatient, setLichSuPatient] = useState(null);
+  const [filterTrungNgay, setFilterTrungNgay] = useState(false);
+  const [filterTrangThai, setFilterTrangThai] = useState("");
+  const [filterManTinh, setFilterManTinh] = useState("");
 
   // Filter by NGT (from Tab1 click) and text search
   const filteredData = useMemo(() => {
@@ -105,6 +128,37 @@ function ChiTietDatLichTable({
     // Filter by specific NGT
     if (filterNGT) {
       result = result.filter((r) => r.nguoigioithieuid === filterNGT);
+    }
+
+    // Filter trùng ngày
+    if (filterTrungNgay) {
+      result = result.filter(
+        (r) =>
+          r.dangkykhaminitdate &&
+          r.dangkykhamdate &&
+          dayjs(r.dangkykhaminitdate).format("YYYY-MM-DD") ===
+            dayjs(r.dangkykhamdate).format("YYYY-MM-DD"),
+      );
+    }
+
+    // Filter trạng thái
+    if (filterTrangThai === "co_kham_co_tien") {
+      result = result.filter(
+        (r) => r.dangkykhamstatus === 1 && Number(r.tong_tien) > 0,
+      );
+    } else if (filterTrangThai === "co_kham_0dong") {
+      result = result.filter(
+        (r) => r.dangkykhamstatus === 1 && Number(r.tong_tien) === 0,
+      );
+    } else if (filterTrangThai === "khong_kham") {
+      result = result.filter((r) => r.dangkykhamstatus !== 1);
+    }
+
+    // Filter mãn tính
+    if (filterManTinh === "mantinh") {
+      result = result.filter((r) => danhSachManTinh[r.dangkykhamid]);
+    } else if (filterManTinh === "khong_mantinh") {
+      result = result.filter((r) => !danhSachManTinh[r.dangkykhamid]);
     }
 
     // Text search
@@ -116,11 +170,21 @@ function ChiTietDatLichTable({
           (r.ten_ngt || "").toLowerCase().includes(s) ||
           (r.chandoanravien || "").toLowerCase().includes(s) ||
           (r.hosobenhancode || "").includes(s) ||
-          (r.ma_ngt || "").toLowerCase().includes(s),
+          (r.ma_ngt || "").toLowerCase().includes(s) ||
+          String(r.patientid || "").includes(s) ||
+          String(r.patientid_old || "").includes(s),
       );
     }
     return result;
-  }, [data, filterNGT, search]);
+  }, [
+    data,
+    filterNGT,
+    filterTrungNgay,
+    filterTrangThai,
+    filterManTinh,
+    danhSachManTinh,
+    search,
+  ]);
 
   // Sort
   const sortedData = useMemo(
@@ -151,7 +215,12 @@ function ChiTietDatLichTable({
   const handleExport = () => {
     const exportData = filteredData.map((r, i) => ({
       STT: i + 1,
-      "Ngày ĐL": r.dangkykhamdate
+      "Mã BN": r.patientid || "",
+      "Mã BN cũ": r.patientid_old || "",
+      "Ngày đặt lịch": r.dangkykhaminitdate
+        ? dayjs(r.dangkykhaminitdate).format("DD/MM/YYYY")
+        : "",
+      "Ngày ĐK khám": r.dangkykhamdate
         ? dayjs(r.dangkykhamdate).format("DD/MM/YYYY")
         : "",
       "Bệnh nhân": r.patientname,
@@ -164,7 +233,9 @@ function ChiTietDatLichTable({
       "Chẩn đoán": r.chandoanravien,
       "Mã ICD": r.chandoanravien_code,
       "Khoa khám": r.vp_departmentgroupname,
+      "Phòng khám": r.vp_departmentname,
       "Tổng tiền": Number(r.tong_tien || 0),
+      "Mãn tính": danhSachManTinh[r.dangkykhamid] ? "Có" : "",
     }));
 
     const wb = XLSX.utils.book_new();
@@ -205,10 +276,46 @@ function ChiTietDatLichTable({
         </Alert>
       )}
 
+      {/* Active filters banner */}
+      {(filterTrungNgay || filterTrangThai || filterManTinh) && (
+        <Alert
+          severity="warning"
+          sx={{ borderRadius: 0 }}
+          action={
+            <Button
+              size="small"
+              startIcon={<CloseIcon />}
+              onClick={() => {
+                setFilterTrungNgay(false);
+                setFilterTrangThai("");
+                setFilterManTinh("");
+              }}
+            >
+              Xóa bộ lọc
+            </Button>
+          }
+        >
+          Bộ lọc:{" "}
+          {[
+            filterTrungNgay && "Trùng ngày",
+            filterTrangThai === "co_kham_co_tien" && "Có khám + tiền",
+            filterTrangThai === "co_kham_0dong" && "Có khám, 0₫",
+            filterTrangThai === "khong_kham" && "Không khám",
+            filterManTinh === "mantinh" && "Mãn tính",
+            filterManTinh === "khong_mantinh" && "Chưa mãn tính",
+          ]
+            .filter(Boolean)
+            .join(" • ")}{" "}
+          — <strong>{filteredData.length}</strong> bản ghi
+        </Alert>
+      )}
+
       <Stack
         direction="row"
-        justifyContent="space-between"
         alignItems="center"
+        spacing={0.5}
+        flexWrap="wrap"
+        useFlexGap
         sx={{ px: 2, pt: 1.5 }}
       >
         <TextField
@@ -226,8 +333,97 @@ function ChiTietDatLichTable({
               </InputAdornment>
             ),
           }}
-          sx={{ width: 320 }}
+          sx={{ width: 280 }}
         />
+
+        <Divider orientation="vertical" flexItem />
+
+        <Chip
+          icon={<DateRangeIcon />}
+          label="Trùng ngày"
+          size="small"
+          clickable
+          color={filterTrungNgay ? "warning" : "default"}
+          variant={filterTrungNgay ? "filled" : "outlined"}
+          onClick={() => {
+            setFilterTrungNgay((prev) => !prev);
+            setPage(0);
+          }}
+        />
+
+        <Divider orientation="vertical" flexItem />
+
+        <Chip
+          label="Có khám + tiền"
+          size="small"
+          clickable
+          color={filterTrangThai === "co_kham_co_tien" ? "success" : "default"}
+          variant={
+            filterTrangThai === "co_kham_co_tien" ? "filled" : "outlined"
+          }
+          onClick={() => {
+            setFilterTrangThai((prev) =>
+              prev === "co_kham_co_tien" ? "" : "co_kham_co_tien",
+            );
+            setPage(0);
+          }}
+        />
+        <Chip
+          label="Có khám, 0₫"
+          size="small"
+          clickable
+          color={filterTrangThai === "co_kham_0dong" ? "warning" : "default"}
+          variant={filterTrangThai === "co_kham_0dong" ? "filled" : "outlined"}
+          onClick={() => {
+            setFilterTrangThai((prev) =>
+              prev === "co_kham_0dong" ? "" : "co_kham_0dong",
+            );
+            setPage(0);
+          }}
+        />
+        <Chip
+          label="Không khám"
+          size="small"
+          clickable
+          color={filterTrangThai === "khong_kham" ? "error" : "default"}
+          variant={filterTrangThai === "khong_kham" ? "filled" : "outlined"}
+          onClick={() => {
+            setFilterTrangThai((prev) =>
+              prev === "khong_kham" ? "" : "khong_kham",
+            );
+            setPage(0);
+          }}
+        />
+
+        <Divider orientation="vertical" flexItem />
+
+        <Chip
+          label="Mãn tính"
+          size="small"
+          clickable
+          color={filterManTinh === "mantinh" ? "secondary" : "default"}
+          variant={filterManTinh === "mantinh" ? "filled" : "outlined"}
+          onClick={() => {
+            setFilterManTinh((prev) => (prev === "mantinh" ? "" : "mantinh"));
+            setPage(0);
+          }}
+        />
+        <Chip
+          label="Chưa mãn tính"
+          size="small"
+          clickable
+          color={filterManTinh === "khong_mantinh" ? "info" : "default"}
+          variant={filterManTinh === "khong_mantinh" ? "filled" : "outlined"}
+          onClick={() => {
+            setFilterManTinh((prev) =>
+              prev === "khong_mantinh" ? "" : "khong_mantinh",
+            );
+            setPage(0);
+          }}
+        />
+
+        <Box sx={{ flex: 1 }} />
+
         <Tooltip title="Xuất Excel">
           <IconButton color="success" onClick={handleExport}>
             <ExportIcon />
@@ -235,7 +431,7 @@ function ChiTietDatLichTable({
         </Tooltip>
       </Stack>
 
-      <TableContainer sx={{ maxHeight: 600 }}>
+      <TableContainer sx={{ maxHeight: "calc(100vh - 340px)" }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
@@ -249,7 +445,9 @@ function ChiTietDatLichTable({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {col.id !== "stt" && col.id !== "lichsu" ? (
+                  {col.id !== "stt" &&
+                  col.id !== "lichsu" &&
+                  col.id !== "mantinh" ? (
                     <TableSortLabel
                       active={orderBy === col.id}
                       direction={orderBy === col.id ? order : "asc"}
@@ -295,6 +493,13 @@ function ChiTietDatLichTable({
                     <TableCell align="center">
                       {page * rowsPerPage + idx + 1}
                     </TableCell>
+                    <TableCell>{row.patientid || "—"}</TableCell>
+                    <TableCell>{row.patientid_old || "—"}</TableCell>
+                    <TableCell>
+                      {row.dangkykhaminitdate
+                        ? dayjs(row.dangkykhaminitdate).format("DD/MM/YYYY")
+                        : ""}
+                    </TableCell>
                     <TableCell>
                       {row.dangkykhamdate
                         ? dayjs(row.dangkykhamdate).format("DD/MM/YYYY")
@@ -333,23 +538,49 @@ function ChiTietDatLichTable({
                       </Stack>
                     </TableCell>
                     <TableCell>{row.vp_departmentgroupname || "—"}</TableCell>
+                    <TableCell>{row.vp_departmentname || "—"}</TableCell>
                     <TableCell align="right">
                       {formatVND(row.tong_tien)} ₫
                     </TableCell>
                     <TableCell align="center">
-                      {row.lichsu_kham ? (
-                        <Tooltip title="Xem lịch sử khám">
-                          <IconButton
-                            size="small"
-                            color="info"
-                            onClick={() => setLichSuPatient(row)}
-                          >
-                            <HistoryIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                      {danhSachManTinh[row.dangkykhamid] ? (
+                        <Chip label="Mãn tính" size="small" color="secondary" />
                       ) : (
                         "—"
                       )}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Stack
+                        direction="row"
+                        spacing={0.5}
+                        justifyContent="center"
+                        alignItems="center"
+                      >
+                        <Chip
+                          label={`${parseLichSu(row.lichsu_kham).length} lần`}
+                          size="small"
+                          color={
+                            parseLichSu(row.lichsu_kham).length >= 3
+                              ? "warning"
+                              : "default"
+                          }
+                          variant={
+                            parseLichSu(row.lichsu_kham).length >= 3
+                              ? "filled"
+                              : "outlined"
+                          }
+                        />
+                        {row.lichsu_kham && (
+                          <Tooltip title="Xem lịch sử">
+                            <IconButton
+                              size="small"
+                              onClick={() => setLichSuPatient(row)}
+                            >
+                              <HistoryIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 );

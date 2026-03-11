@@ -27,6 +27,14 @@ import {
 import dayjs from "dayjs";
 import * as XLSX from "xlsx";
 
+function isTrungNgay(row) {
+  if (!row.dangkykhaminitdate || !row.dangkykhamdate) return false;
+  return (
+    dayjs(row.dangkykhaminitdate).format("YYYY-MM-DD") ===
+    dayjs(row.dangkykhamdate).format("YYYY-MM-DD")
+  );
+}
+
 function formatVND(num) {
   if (num == null) return "0";
   return Number(num).toLocaleString("vi-VN");
@@ -41,9 +49,10 @@ const COLUMNS = [
   { id: "tong_dat_lich", label: "Tổng ĐL", align: "right", width: 80 },
   { id: "co_kham", label: "Có khám", align: "right", width: 80 },
   { id: "khong_kham", label: "Không khám", align: "right", width: 90 },
-  { id: "co_kham_co_tien", label: "Vòng 1", align: "right", width: 80 },
+  { id: "co_kham_co_tien", label: "CK có tiền", align: "right", width: 90 },
   { id: "so_man_tinh", label: "Mãn tính", align: "right", width: 80 },
   { id: "hop_le", label: "Hợp lệ", align: "right", width: 80 },
+  { id: "trung_ngay", label: "Trùng ngày", align: "right", width: 90 },
   { id: "tong_tien", label: "Tổng tiền", align: "right", width: 120 },
   { id: "actions", label: "", width: 50 },
 ];
@@ -65,18 +74,19 @@ function getComparator(order, orderBy) {
 function BaoCaoTongHopTable({
   data = [],
   danhSachManTinh = {},
+  chiTietDatLich = [],
   loading = false,
   onViewDetail,
   fromDate,
   toDate,
 }) {
-  const [order, setOrder] = useState("desc");
-  const [orderBy, setOrderBy] = useState("co_kham");
+  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("departmentgroupname");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [search, setSearch] = useState("");
 
-  // Enrich data with mãn tính count per NGT
+  // Enrich data with mãn tính count + trùng ngày count per NGT
   const enrichedData = useMemo(() => {
     // Group mãn tính by nguoigioithieuid
     const manTinhByNGT = {};
@@ -87,15 +97,25 @@ function BaoCaoTongHopTable({
       }
     });
 
+    // Group trùng ngày by nguoigioithieuid
+    const trungNgayByNGT = {};
+    chiTietDatLich.forEach((r) => {
+      if (isTrungNgay(r) && r.nguoigioithieuid) {
+        trungNgayByNGT[r.nguoigioithieuid] =
+          (trungNgayByNGT[r.nguoigioithieuid] || 0) + 1;
+      }
+    });
+
     return data.map((row) => {
       const soManTinh = manTinhByNGT[row.nguoigioithieuid] || 0;
       return {
         ...row,
         so_man_tinh: soManTinh,
         hop_le: Number(row.co_kham_co_tien || 0) - soManTinh,
+        trung_ngay: trungNgayByNGT[row.nguoigioithieuid] || 0,
       };
     });
-  }, [data, danhSachManTinh]);
+  }, [data, danhSachManTinh, chiTietDatLich]);
 
   // Filter by search
   const filteredData = useMemo(() => {
@@ -132,6 +152,7 @@ function BaoCaoTongHopTable({
       co_kham_co_tien: 0,
       so_man_tinh: 0,
       hop_le: 0,
+      trung_ngay: 0,
       tong_tien: 0,
     };
     filteredData.forEach((r) => {
@@ -141,6 +162,7 @@ function BaoCaoTongHopTable({
       t.co_kham_co_tien += Number(r.co_kham_co_tien || 0);
       t.so_man_tinh += Number(r.so_man_tinh || 0);
       t.hop_le += Number(r.hop_le || 0);
+      t.trung_ngay += Number(r.trung_ngay || 0);
       t.tong_tien += Number(r.tong_tien || 0);
     });
     return t;
@@ -162,9 +184,10 @@ function BaoCaoTongHopTable({
       "Tổng ĐL": Number(r.tong_dat_lich || 0),
       "Có khám": Number(r.co_kham || 0),
       "Không khám": Number(r.khong_kham || 0),
-      "Vòng 1": Number(r.co_kham_co_tien || 0),
+      "Có khám phát sinh tiền": Number(r.co_kham_co_tien || 0),
       "Mãn tính": r.so_man_tinh,
       "Hợp lệ": r.hop_le,
+      "Trùng ngày": r.trung_ngay,
       "Tổng tiền": Number(r.tong_tien || 0),
     }));
     // Add totals row
@@ -177,9 +200,10 @@ function BaoCaoTongHopTable({
       "Tổng ĐL": totals.tong_dat_lich,
       "Có khám": totals.co_kham,
       "Không khám": totals.khong_kham,
-      "Vòng 1": totals.co_kham_co_tien,
+      "Có khám phát sinh tiền": totals.co_kham_co_tien,
       "Mãn tính": totals.so_man_tinh,
       "Hợp lệ": totals.hop_le,
+      "Trùng ngày": totals.trung_ngay,
       "Tổng tiền": totals.tong_tien,
     });
 
@@ -232,7 +256,7 @@ function BaoCaoTongHopTable({
         </Tooltip>
       </Stack>
 
-      <TableContainer sx={{ maxHeight: 600 }}>
+      <TableContainer sx={{ maxHeight: "calc(100vh - 340px)" }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
@@ -324,6 +348,17 @@ function BaoCaoTongHopTable({
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
+                    {row.trung_ngay > 0 ? (
+                      <Chip
+                        label={row.trung_ngay}
+                        size="small"
+                        color="warning"
+                      />
+                    ) : (
+                      "0"
+                    )}
+                  </TableCell>
+                  <TableCell align="right">
                     {formatVND(row.tong_tien)} ₫
                   </TableCell>
                   <TableCell>
@@ -370,6 +405,9 @@ function BaoCaoTongHopTable({
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
                   {formatVND(totals.hop_le)}
+                </TableCell>
+                <TableCell align="right" sx={{ fontWeight: "bold" }}>
+                  {formatVND(totals.trung_ngay)}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
                   {formatVND(totals.tong_tien)} ₫

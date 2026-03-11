@@ -64,10 +64,10 @@ const GREY = {
 };
 
 function ThemeProvider({ children }) {
-  const {darkMode} = useSelector((state)=>state.mytheme)
-  useEffect(()=>{
-    console.log("mode",darkMode)
-  },[darkMode])
+  const { darkMode } = useSelector((state) => state.mytheme);
+  useEffect(() => {
+    console.log("mode", darkMode);
+  }, [darkMode]);
   const themeOptionsLight = {
     palette: {
       primary: PRIMARY,
@@ -86,65 +86,40 @@ function ThemeProvider({ children }) {
         hoverOpacity: 0.08,
         disabledOpacity: 0.48,
       },
-      
     },
     shape: { borderRadius: 8 },
     components: {
       MuiButton: {
         styleOverrides: {
-          root: { // Áp dụng cho tất cả các trạng thái của Button
-            color: 'white', // Đặt màu văn bản mặc định
+          root: {
+            textTransform: "none",
           },
-          primary: { // Áp dụng cho Button khi có prop color="primary"
-            color: PRIMARY.contrastText, // Sử dụng màu từ đối tượng PRIMARY
+          contained: {
+            color: "white",
           },
-          secondary: { // Áp dụng cho Button khi có prop color="secondary"
-            color: SECONDARY.contrastText, // Sử dụng màu từ đối tượng SECONDARY
-          },
-          // ... bạn cũng có thể thêm các trạng thái khác như "hover", "disabled", etc.
         },
       },
     },
   };
   const themeOptionsDark = {
     palette: {
-      // primary: PRIMARY,
-      // secondary: SECONDARY,
-      // success: SUCCESS,
-      // text: { primary: GREY[900], secondary: GREY[700], disabled: GREY[600] },
-      // // text: { primary: GREY[800], secondary: GREY[600], disabled: GREY[500] },
-      // background: { paper: "#fff", default: "#fff", neutral: GREY[200] },
-      // action: {
-      //   active: GREY[600],
-      //   hover: GREY[500_8],
-      //   selected: GREY[500_16],
-      //   disabled: GREY[500_80],
-      //   disabledBackground: GREY[500_24],
-      //   focus: GREY[500_24],
-      //   hoverOpacity: 0.08,
-      //   disabledOpacity: 0.48,
-      // },
-      mode: 'dark'
+      mode: "dark",
     },
     shape: { borderRadius: 8 },
     components: {
       MuiButton: {
         styleOverrides: {
-          root: { // Áp dụng cho tất cả các trạng thái của Button
-            color: 'white', // Đặt màu văn bản mặc định
+          root: {
+            textTransform: "none",
           },
-          primary: { // Áp dụng cho Button khi có prop color="primary"
-            color: PRIMARY.contrastText, // Sử dụng màu từ đối tượng PRIMARY
+          contained: {
+            color: "white",
           },
-          secondary: { // Áp dụng cho Button khi có prop color="secondary"
-            color: SECONDARY.contrastText, // Sử dụng màu từ đối tượng SECONDARY
-          },
-          // ... bạn cũng có thể thêm các trạng thái khác như "hover", "disabled", etc.
         },
       },
     },
   };
-  const theme = createTheme(darkMode?themeOptionsDark:themeOptionsLight);
+  const theme = createTheme(darkMode ? themeOptionsDark : themeOptionsLight);
   // theme.components = customizeComponents(theme);
   return (
     <MUIThemeProvider theme={theme}>
