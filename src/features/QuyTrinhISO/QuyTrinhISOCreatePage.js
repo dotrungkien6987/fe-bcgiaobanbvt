@@ -78,7 +78,23 @@ function QuyTrinhISOCreatePage() {
     defaultValues,
   });
 
-  const { handleSubmit, reset } = methods;
+  const {
+    handleSubmit,
+    reset,
+    formState: { isDirty },
+  } = methods;
+
+  // Warn about unsaved changes on page unload
+  useEffect(() => {
+    const handler = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   const onSubmit = async (data) => {
     try {
@@ -147,7 +163,12 @@ function QuyTrinhISOCreatePage() {
                     name="MaQuyTrinh"
                     label="Mã Quy Trình *"
                     placeholder="VD: QT-001"
-                    inputProps={{ style: { textTransform: "uppercase" } }}
+                    inputProps={{
+                      style: { textTransform: "uppercase" },
+                      onInput: (e) => {
+                        e.target.value = e.target.value.toUpperCase();
+                      },
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={4}>

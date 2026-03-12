@@ -72,7 +72,11 @@ function DatLichKhamDashboard() {
       0,
     );
     const vong1 = baoCaoTongHop.reduce(
-      (s, r) => s + Number(r.co_kham_co_tien || 0),
+      (s, r) => s + Number(r.dichvu_ge_100k || 0),
+      0,
+    );
+    const dichvuLt100k = baoCaoTongHop.reduce(
+      (s, r) => s + Number(r.dichvu_lt_100k || 0),
       0,
     );
     const tongTien = baoCaoTongHop.reduce(
@@ -96,6 +100,7 @@ function DatLichKhamDashboard() {
       coKham,
       khongKham,
       vong1,
+      dichvuLt100k,
       soManTinh,
       hopLe,
       trungNgay,
@@ -179,6 +184,8 @@ function DatLichKhamDashboard() {
           filterNGT={filterNGT}
           onClearFilterNGT={() => setFilterNGT(null)}
           danhSachManTinh={danhSachManTinh}
+          fromDate={fromDate}
+          toDate={toDate}
         />
       </TabPanel>
 

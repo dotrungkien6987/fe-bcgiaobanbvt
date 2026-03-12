@@ -108,7 +108,23 @@ function QuyTrinhISOEditPage() {
     },
   });
 
-  const { handleSubmit, reset } = methods;
+  const {
+    handleSubmit,
+    reset,
+    formState: { isDirty },
+  } = methods;
+
+  // Warn about unsaved changes on page unload
+  useEffect(() => {
+    const handler = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   // Fetch data
   useEffect(() => {
@@ -150,9 +166,13 @@ function QuyTrinhISOEditPage() {
         GhiChu: data.GhiChu || "",
       };
 
-      await dispatch(updateQuyTrinhISO(id, submitData));
+      await dispatch(updateQuyTrinhISO(id, submitData, currentItem?.updatedAt));
     } catch (error) {
       console.error("Update error:", error);
+      // Auto-refresh on version conflict
+      if (error?.response?.status === 409) {
+        dispatch(getQuyTrinhISODetail(id));
+      }
     } finally {
       setSubmitLoading(false);
     }
@@ -259,7 +279,12 @@ function QuyTrinhISOEditPage() {
                   <FTextField
                     name="MaQuyTrinh"
                     label="Mã Quy Trình *"
-                    inputProps={{ style: { textTransform: "uppercase" } }}
+                    inputProps={{
+                      style: { textTransform: "uppercase" },
+                      onInput: (e) => {
+                        e.target.value = e.target.value.toUpperCase();
+                      },
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6} md={4}>

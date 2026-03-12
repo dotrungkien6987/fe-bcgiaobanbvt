@@ -30,7 +30,7 @@ import {
   DateRange as DateRangeIcon,
 } from "@mui/icons-material";
 import dayjs from "dayjs";
-import * as XLSX from "xlsx";
+import { exportChiTietExcel } from "../utils/exportChiTietExcel";
 import LichSuKhamDialog from "./LichSuKhamDialog";
 
 function formatVND(num) {
@@ -110,6 +110,8 @@ function ChiTietDatLichTable({
   filterNGT,
   onClearFilterNGT,
   danhSachManTinh = {},
+  fromDate,
+  toDate,
 }) {
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("dangkykhamdate");
@@ -213,35 +215,12 @@ function ChiTietDatLichTable({
   };
 
   const handleExport = () => {
-    const exportData = filteredData.map((r, i) => ({
-      STT: i + 1,
-      "Mã BN": r.patientid || "",
-      "Mã BN cũ": r.patientid_old || "",
-      "Ngày đặt lịch": r.dangkykhaminitdate
-        ? dayjs(r.dangkykhaminitdate).format("DD/MM/YYYY")
-        : "",
-      "Ngày ĐK khám": r.dangkykhamdate
-        ? dayjs(r.dangkykhamdate).format("DD/MM/YYYY")
-        : "",
-      "Bệnh nhân": r.patientname,
-      "Ngày sinh": r.birthday ? dayjs(r.birthday).format("DD/MM/YYYY") : "",
-      "Giới tính": r.gioitinhname,
-      NGT: r.ten_ngt,
-      "Khoa NGT": r.ngt_departmentgroupname,
-      "Trạng thái": r.dangkykhamstatus === 1 ? "Có khám" : "Không khám",
-      "Mã HSBA": r.hosobenhancode,
-      "Chẩn đoán": r.chandoanravien,
-      "Mã ICD": r.chandoanravien_code,
-      "Khoa khám": r.vp_departmentgroupname,
-      "Phòng khám": r.vp_departmentname,
-      "Tổng tiền": Number(r.tong_tien || 0),
-      "Mãn tính": danhSachManTinh[r.dangkykhamid] ? "Có" : "",
-    }));
-
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    XLSX.utils.book_append_sheet(wb, ws, "ChiTiet");
-    XLSX.writeFile(wb, `BaoCao_DatLich_ChiTiet.xlsx`);
+    exportChiTietExcel({
+      data: filteredData,
+      danhSachManTinh,
+      fromDate,
+      toDate,
+    });
   };
 
   if (loading) {

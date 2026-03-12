@@ -118,10 +118,12 @@ function ManTinhTable({
     dispatch(fetchCongThucManTinh());
   }, [dispatch]);
 
-  // Only show Vòng 1 data: status === 1 AND tong_tien > 0
+  // Only show Dịch vụ >= 100K: status === 1 AND tong_tien_dichvu >= 100000
   const vong1Data = useMemo(() => {
     return chiTietData
-      .filter((r) => r.dangkykhamstatus === 1 && Number(r.tong_tien) > 0)
+      .filter(
+        (r) => r.dangkykhamstatus === 1 && Number(r.tong_tien_dichvu) >= 100000,
+      )
       .map((r) => {
         const ls = parseLichSu(r.lichsu_kham);
         const isManTinh = Boolean(danhSachManTinh[r.dangkykhamid]);

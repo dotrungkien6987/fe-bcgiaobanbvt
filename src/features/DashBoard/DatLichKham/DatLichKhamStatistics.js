@@ -33,10 +33,17 @@ const CARDS = [
   },
   {
     key: "vong1",
-    label: "Có khám phát sinh tiền",
+    label: "Dịch vụ >= 100K",
     icon: CheckCircleIcon,
     color: "#ed6c02",
     bg: "#fff3e0",
+  },
+  {
+    key: "dichvuLt100k",
+    label: "Dịch vụ < 100K",
+    icon: CheckCircleIcon,
+    color: "#ef5350",
+    bg: "#ffebee",
   },
   {
     key: "soManTinh",

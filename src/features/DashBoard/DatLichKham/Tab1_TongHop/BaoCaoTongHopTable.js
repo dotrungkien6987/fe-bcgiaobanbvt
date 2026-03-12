@@ -25,7 +25,7 @@ import {
   FileDownload as ExportIcon,
 } from "@mui/icons-material";
 import dayjs from "dayjs";
-import * as XLSX from "xlsx";
+import { exportTongHopExcel } from "../utils/exportTongHopExcel";
 
 function isTrungNgay(row) {
   if (!row.dangkykhaminitdate || !row.dangkykhamdate) return false;
@@ -50,6 +50,8 @@ const COLUMNS = [
   { id: "co_kham", label: "Có khám", align: "right", width: 80 },
   { id: "khong_kham", label: "Không khám", align: "right", width: 90 },
   { id: "co_kham_co_tien", label: "CK có tiền", align: "right", width: 90 },
+  { id: "dichvu_ge_100k", label: "DV >= 100K", align: "right", width: 90 },
+  { id: "dichvu_lt_100k", label: "DV < 100K", align: "right", width: 90 },
   { id: "so_man_tinh", label: "Mãn tính", align: "right", width: 80 },
   { id: "hop_le", label: "Hợp lệ", align: "right", width: 80 },
   { id: "trung_ngay", label: "Trùng ngày", align: "right", width: 90 },
@@ -111,7 +113,7 @@ function BaoCaoTongHopTable({
       return {
         ...row,
         so_man_tinh: soManTinh,
-        hop_le: Number(row.co_kham_co_tien || 0) - soManTinh,
+        hop_le: Number(row.dichvu_ge_100k || 0) - soManTinh,
         trung_ngay: trungNgayByNGT[row.nguoigioithieuid] || 0,
       };
     });
@@ -150,6 +152,8 @@ function BaoCaoTongHopTable({
       co_kham: 0,
       khong_kham: 0,
       co_kham_co_tien: 0,
+      dichvu_ge_100k: 0,
+      dichvu_lt_100k: 0,
       so_man_tinh: 0,
       hop_le: 0,
       trung_ngay: 0,
@@ -160,6 +164,8 @@ function BaoCaoTongHopTable({
       t.co_kham += Number(r.co_kham || 0);
       t.khong_kham += Number(r.khong_kham || 0);
       t.co_kham_co_tien += Number(r.co_kham_co_tien || 0);
+      t.dichvu_ge_100k += Number(r.dichvu_ge_100k || 0);
+      t.dichvu_lt_100k += Number(r.dichvu_lt_100k || 0);
       t.so_man_tinh += Number(r.so_man_tinh || 0);
       t.hop_le += Number(r.hop_le || 0);
       t.trung_ngay += Number(r.trung_ngay || 0);
@@ -175,43 +181,7 @@ function BaoCaoTongHopTable({
   };
 
   const handleExport = () => {
-    const exportData = filteredData.map((r, i) => ({
-      STT: i + 1,
-      "Mã NGT": r.ma_ngt,
-      "Tên NGT": r.ten_ngt,
-      "Điện thoại": r.dien_thoai,
-      Khoa: r.departmentgroupname,
-      "Tổng ĐL": Number(r.tong_dat_lich || 0),
-      "Có khám": Number(r.co_kham || 0),
-      "Không khám": Number(r.khong_kham || 0),
-      "Có khám phát sinh tiền": Number(r.co_kham_co_tien || 0),
-      "Mãn tính": r.so_man_tinh,
-      "Hợp lệ": r.hop_le,
-      "Trùng ngày": r.trung_ngay,
-      "Tổng tiền": Number(r.tong_tien || 0),
-    }));
-    // Add totals row
-    exportData.push({
-      STT: "",
-      "Mã NGT": "",
-      "Tên NGT": "TỔNG CỘNG",
-      "Điện thoại": "",
-      Khoa: "",
-      "Tổng ĐL": totals.tong_dat_lich,
-      "Có khám": totals.co_kham,
-      "Không khám": totals.khong_kham,
-      "Có khám phát sinh tiền": totals.co_kham_co_tien,
-      "Mãn tính": totals.so_man_tinh,
-      "Hợp lệ": totals.hop_le,
-      "Trùng ngày": totals.trung_ngay,
-      "Tổng tiền": totals.tong_tien,
-    });
-
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    XLSX.utils.book_append_sheet(wb, ws, "TongHop");
-    const period = `${dayjs(fromDate).format("DDMMYYYY")}_${dayjs(toDate).format("DDMMYYYY")}`;
-    XLSX.writeFile(wb, `BaoCao_DatLich_TongHop_${period}.xlsx`);
+    exportTongHopExcel({ data: filteredData, fromDate, toDate });
   };
 
   if (loading) {
@@ -329,6 +299,12 @@ function BaoCaoTongHopTable({
                     />
                   </TableCell>
                   <TableCell align="right">
+                    {formatVND(row.dichvu_ge_100k)}
+                  </TableCell>
+                  <TableCell align="right">
+                    {formatVND(row.dichvu_lt_100k)}
+                  </TableCell>
+                  <TableCell align="right">
                     {row.so_man_tinh > 0 ? (
                       <Chip
                         label={row.so_man_tinh}
@@ -399,6 +375,12 @@ function BaoCaoTongHopTable({
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
                   {formatVND(totals.co_kham_co_tien)}
+                </TableCell>
+                <TableCell align="right" sx={{ fontWeight: "bold" }}>
+                  {formatVND(totals.dichvu_ge_100k)}
+                </TableCell>
+                <TableCell align="right" sx={{ fontWeight: "bold" }}>
+                  {formatVND(totals.dichvu_lt_100k)}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
                   {formatVND(totals.so_man_tinh)}

@@ -271,6 +271,7 @@ function AddDepartmentsDialog({
         onOpen={() => {}}
         disableBackdropTransition={!iOS}
         disableDiscovery={iOS}
+        sx={{ zIndex: 1500 }}
         PaperProps={{
           sx: {
             borderTopLeftRadius: 16,
@@ -306,7 +307,13 @@ function AddDepartmentsDialog({
 
   // Desktop: nested Dialog
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      sx={{ zIndex: 1500 }}
+    >
       <Box sx={{ display: "flex", flexDirection: "column", height: "60vh" }}>
         {content}
       </Box>
@@ -316,7 +323,14 @@ function AddDepartmentsDialog({
 
 // ─── Sub-component: KhoaDistributionCard ─────────────────────────
 // Premium card cho mỗi khoa đã được phân phối
-function KhoaDistributionCard({ khoa, index, onRemove, disabled, theme, alpha: alphafn }) {
+function KhoaDistributionCard({
+  khoa,
+  index,
+  onRemove,
+  disabled,
+  theme,
+  alpha: alphafn,
+}) {
   return (
     <Box
       sx={{
@@ -341,10 +355,15 @@ function KhoaDistributionCard({ khoa, index, onRemove, disabled, theme, alpha: a
       }}
     >
       {/* Watermark icon */}
-      <Box sx={{
-        position: "absolute", right: -8, bottom: -8,
-        opacity: 0.05, pointerEvents: "none",
-      }}>
+      <Box
+        sx={{
+          position: "absolute",
+          right: -8,
+          bottom: -8,
+          opacity: 0.05,
+          pointerEvents: "none",
+        }}
+      >
         <Building size={64} color={theme.palette.primary.main} variant="Bulk" />
       </Box>
 
@@ -440,6 +459,8 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
   const [searchSelected, setSearchSelected] = useState("");
   const [selectedIds, setSelectedIds] = useState([]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [initialIds, setInitialIds] = useState([]);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Fetch ISO khoa on mount
   useEffect(() => {
@@ -451,7 +472,9 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
   // Initialize selected IDs from quyTrinh
   useEffect(() => {
     if (open && quyTrinh?.KhoaPhanPhoi) {
-      setSelectedIds(quyTrinh.KhoaPhanPhoi.map((k) => k._id));
+      const ids = quyTrinh.KhoaPhanPhoi.map((k) => k._id);
+      setSelectedIds(ids);
+      setInitialIds(ids);
     }
   }, [open, quyTrinh]);
 
@@ -493,10 +516,28 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
     setSelectedIds((prev) => [...new Set([...prev, ...ids])]);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmSave = async () => {
+    setConfirmOpen(false);
     await dispatch(updateDistribution(quyTrinh._id, selectedIds));
     onClose();
   };
+
+  // Compute changes for confirmation dialog
+  const removedKhoa = useMemo(() => {
+    return validKhoa.filter(
+      (k) => initialIds.includes(k._id) && !selectedIds.includes(k._id),
+    );
+  }, [validKhoa, initialIds, selectedIds]);
+
+  const addedKhoa = useMemo(() => {
+    return validKhoa.filter(
+      (k) => !initialIds.includes(k._id) && selectedIds.includes(k._id),
+    );
+  }, [validKhoa, initialIds, selectedIds]);
 
   const loading = khoaLoading || distributionLoading;
   const isNotActive = quyTrinh?.TrangThai !== "ACTIVE";
@@ -565,8 +606,8 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
               Không thể chỉnh sửa phân phối
             </Typography>
             <Typography variant="caption">
-              Quy trình phải ở trạng thái <strong>Đang hiệu lực</strong> mới
-              có thể phân phối. Hiện tại:{" "}
+              Quy trình phải ở trạng thái <strong>Đang hiệu lực</strong> mới có
+              thể phân phối. Hiện tại:{" "}
               <strong>
                 {quyTrinh?.TrangThai === "DRAFT" ? "Nháp" : "Đã thu hồi"}
               </strong>
@@ -781,6 +822,49 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
         onAddMultiple={handleAddMultiple}
         isMobile={isMobile}
       />
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Xác nhận cập nhật phân phối</DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 1 }}>
+            Cập nhật phân phối cho <b>{selectedIds.length}</b> khoa.
+          </Typography>
+          {addedKhoa.length > 0 && (
+            <Alert severity="info" sx={{ mb: 1 }}>
+              <b>Thêm {addedKhoa.length} khoa:</b>{" "}
+              {addedKhoa.map((k) => k.TenKhoa).join(", ")}
+            </Alert>
+          )}
+          {removedKhoa.length > 0 && (
+            <Alert severity="warning" sx={{ mb: 1 }}>
+              <b>Gỡ {removedKhoa.length} khoa:</b>{" "}
+              {removedKhoa.map((k) => k.TenKhoa).join(", ")}. Các khoa này sẽ
+              không còn truy cập quy trình.
+            </Alert>
+          )}
+          {addedKhoa.length === 0 && removedKhoa.length === 0 && (
+            <Typography variant="body2" color="text.secondary">
+              Không có thay đổi nào.
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)}>Hủy</Button>
+          <Button
+            variant="contained"
+            onClick={handleConfirmSave}
+            disabled={addedKhoa.length === 0 && removedKhoa.length === 0}
+          >
+            Xác nhận
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Dialog>
   );
 }

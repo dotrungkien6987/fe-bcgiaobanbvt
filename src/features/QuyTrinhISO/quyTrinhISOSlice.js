@@ -202,10 +202,12 @@ export const createQuyTrinhISO = (data) => async (dispatch) => {
   }
 };
 
-export const updateQuyTrinhISO = (id, data) => async (dispatch) => {
+export const updateQuyTrinhISO = (id, data, updatedAt) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    const res = await apiService.put(`/quytrinhiso/${id}`, data);
+    const headers = {};
+    if (updatedAt) headers["If-Unmodified-Since"] = updatedAt;
+    const res = await apiService.put(`/quytrinhiso/${id}`, data, { headers });
     dispatch(slice.actions.updateSuccess());
     toast.success(res.data.message);
   } catch (error) {

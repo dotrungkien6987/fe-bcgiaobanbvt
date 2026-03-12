@@ -125,16 +125,8 @@ function BuiltByMyDeptPage() {
   // Legacy: fetch PDF from detail (for table view)
   const handleOpenPDF = async (quyTrinhId) => {
     try {
-      const res = await fetch(
-        `${process.env.REACT_APP_BACKEND_API}/quytrinhiso/${quyTrinhId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        },
-      );
-      const data = await res.json();
-      const pdfFile = data.data?.files?.pdf?.[0];
+      const res = await apiService.get(`/quytrinhiso/${quyTrinhId}`);
+      const pdfFile = res.data?.data?.files?.pdf?.[0];
       if (pdfFile) {
         setPdfModal({ open: true, file: pdfFile });
       }

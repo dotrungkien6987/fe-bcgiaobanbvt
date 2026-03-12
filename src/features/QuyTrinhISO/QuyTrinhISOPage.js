@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -121,8 +121,12 @@ function QuyTrinhISOPage() {
     dispatch(getQuyTrinhISOList(buildParams()));
   }, [dispatch, buildParams]);
 
+  // Debounce search — wait 300ms after user stops typing
   useEffect(() => {
-    fetchData();
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 300);
+    return () => clearTimeout(timer);
   }, [fetchData]);
 
   const handleSearchChange = (e) => {
@@ -209,12 +213,18 @@ function QuyTrinhISOPage() {
     fetchData();
   };
 
-  // PDF quick view handler
+  // PDF quick view handler with cache
+  const pdfCache = useRef({});
   const handleOpenPDF = async (quyTrinhId) => {
+    if (pdfCache.current[quyTrinhId]) {
+      setPdfModal({ open: true, file: pdfCache.current[quyTrinhId] });
+      return;
+    }
     try {
       const res = await apiService.get(`/quytrinhiso/${quyTrinhId}`);
       const pdfFile = res.data?.data?.files?.pdf?.[0];
       if (pdfFile) {
+        pdfCache.current[quyTrinhId] = pdfFile;
         setPdfModal({ open: true, file: pdfFile });
       }
     } catch (err) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -26,6 +26,9 @@ import {
   DialogContentText,
   DialogActions,
   CircularProgress,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
 import {
   ArrowLeft,
@@ -38,6 +41,7 @@ import {
   Clock,
   Category2,
   AddCircle,
+  ArrowDown2,
 } from "iconsax-react";
 import CreateVersionDialog from "./components/CreateVersionDialog";
 import NetworkError from "./components/NetworkError";
@@ -109,6 +113,8 @@ function QuyTrinhISODetailPage() {
   const [createVersionOpen, setCreateVersionOpen] = useState(false);
   const [lifecycleAction, setLifecycleAction] = useState(null); // "activate" | "deactivate"
   const [lifecycleLoading, setLifecycleLoading] = useState(false);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditExpanded, setAuditExpanded] = useState(false);
 
   const isQLCL =
     user?.PhanQuyen === "qlcl" ||
@@ -133,6 +139,21 @@ function QuyTrinhISODetailPage() {
       dispatch(getQuyTrinhISOVersions(currentItem._id));
     }
   }, [currentItem?.MaQuyTrinh, currentItem?._id, dispatch]);
+
+  // Fetch audit logs when accordion is expanded (QLCL only)
+  const fetchAuditLogs = useCallback(async () => {
+    if (!id || !isQLCL) return;
+    try {
+      const res = await apiService.get(`/quytrinhiso/${id}/audit-log`);
+      setAuditLogs(res.data?.data?.logs || []);
+    } catch {
+      setAuditLogs([]);
+    }
+  }, [id, isQLCL]);
+
+  useEffect(() => {
+    if (auditExpanded) fetchAuditLogs();
+  }, [auditExpanded, fetchAuditLogs]);
 
   const handleViewPdf = (file) => {
     setSelectedPdf(file);
@@ -709,6 +730,71 @@ function QuyTrinhISODetailPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Audit Log (QLCL only) */}
+          {isQLCL && (
+            <Accordion
+              expanded={auditExpanded}
+              onChange={(_, expanded) => setAuditExpanded(expanded)}
+              variant="outlined"
+              disableGutters
+            >
+              <AccordionSummary expandIcon={<ArrowDown2 size={18} />}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Clock size={20} color="#9e9e9e" />
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    Nhật Ký Thao Tác
+                  </Typography>
+                </Stack>
+              </AccordionSummary>
+              <AccordionDetails>
+                {auditLogs.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary">
+                    Chưa có nhật ký
+                  </Typography>
+                ) : (
+                  <List dense disablePadding>
+                    {auditLogs.map((log) => (
+                      <ListItem key={log._id} sx={{ px: 0 }}>
+                        <ListItemText
+                          primary={
+                            <Stack
+                              direction="row"
+                              spacing={1}
+                              alignItems="center"
+                            >
+                              <Chip
+                                label={log.HanhDong}
+                                size="small"
+                                color={
+                                  log.HanhDong === "ACTIVATED"
+                                    ? "success"
+                                    : log.HanhDong === "DEACTIVATED"
+                                      ? "warning"
+                                      : log.HanhDong === "DELETED"
+                                        ? "error"
+                                        : "default"
+                                }
+                                sx={{ height: 22, fontSize: "0.7rem" }}
+                              />
+                              <Typography variant="body2">
+                                {log.NguoiThucHienID?.HoTen ||
+                                  log.NguoiThucHienID?.UserName ||
+                                  "N/A"}
+                              </Typography>
+                            </Stack>
+                          }
+                          secondary={dayjs(log.ThoiGian).format(
+                            "DD/MM/YYYY HH:mm:ss",
+                          )}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+              </AccordionDetails>
+            </Accordion>
+          )}
         </Stack>
       </ISOPageShell>
 
@@ -726,8 +812,16 @@ function QuyTrinhISODetailPage() {
           <DialogContentText>
             {lifecycleAction === "activate"
               ? `Phát hành quy trình "${currentItem.TenQuyTrinh}" (v${currentItem.PhienBan})? Các phiên bản khác cùng mã sẽ tự động chuyển sang "Đã thu hồi".`
-              : `Thu hồi quy trình "${currentItem.TenQuyTrinh}" (v${currentItem.PhienBan})? Người dùng sẽ không còn thấy tài liệu này.`}
+              : `Thu hồi quy trình "${currentItem.TenQuyTrinh}" (v${currentItem.PhienBan})?`}
           </DialogContentText>
+          {lifecycleAction === "deactivate" &&
+            currentItem.KhoaPhanPhoi?.length > 0 && (
+              <Alert severity="warning" sx={{ mt: 2 }}>
+                Đang phân phối cho {currentItem.KhoaPhanPhoi.length} khoa:{" "}
+                {currentItem.KhoaPhanPhoi.map((k) => k.TenKhoa).join(", ")}. Các
+                khoa trên sẽ không còn truy cập tài liệu này.
+              </Alert>
+            )}
         </DialogContent>
         <DialogActions>
           <Button

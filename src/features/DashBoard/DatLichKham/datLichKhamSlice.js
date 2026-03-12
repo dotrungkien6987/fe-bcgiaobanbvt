@@ -235,9 +235,12 @@ export const fetchAllData =
       dispatch(slice.actions.getTongHopSuccess(tongHopRes.data.data));
       dispatch(slice.actions.getChiTietSuccess(chiTietRes.data.data));
 
-      // Extract dangkykhamids có khám phát sinh tiền (có khám + có tiền) → fetch mãn tính
+      // Extract dangkykhamids Dịch vụ >= 100K (có khám + tong_tien_dichvu >= 100000) → fetch mãn tính
       const vong1Ids = chiTietRes.data.data
-        .filter((r) => r.dangkykhamstatus === 1 && Number(r.tong_tien) > 0)
+        .filter(
+          (r) =>
+            r.dangkykhamstatus === 1 && Number(r.tong_tien_dichvu) >= 100000,
+        )
         .map((r) => r.dangkykhamid);
 
       if (vong1Ids.length > 0) {
