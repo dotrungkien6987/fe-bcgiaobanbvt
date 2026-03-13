@@ -34,14 +34,14 @@ const GRAND_TOTAL_FILL = {
 // ── Column definitions (maps to export columns) ───────────────────
 const COLUMNS = [
   { header: "STT", key: "stt", width: 6, align: "center" },
-  { header: "Mã NGT", key: "ma_ngt", width: 12, align: "left" },
-  { header: "Tên NGT", key: "ten_ngt", width: 22, align: "left" },
+  { header: "Mã người giới thiệu", key: "ma_ngt", width: 18, align: "left" },
+  { header: "Tên người giới thiệu", key: "ten_ngt", width: 22, align: "left" },
   { header: "Điện thoại", key: "dien_thoai", width: 14, align: "left" },
   { header: "Khoa", key: "departmentgroupname", width: 22, align: "left" },
   {
-    header: "Tổng ĐL",
+    header: "Tổng đặt lịch",
     key: "tong_dat_lich",
-    width: 10,
+    width: 13,
     align: "right",
     numeric: true,
   },
@@ -60,23 +60,23 @@ const COLUMNS = [
     numeric: true,
   },
   {
-    header: "CK có tiền",
+    header: "Có khám có tiền",
     key: "co_kham_co_tien",
-    width: 12,
+    width: 16,
     align: "right",
     numeric: true,
   },
   {
-    header: "DV >= 100K",
+    header: "Dịch vụ >= 100K",
     key: "dichvu_ge_100k",
-    width: 12,
+    width: 16,
     align: "right",
     numeric: true,
   },
   {
-    header: "DV < 100K",
+    header: "Dịch vụ < 100K",
     key: "dichvu_lt_100k",
-    width: 12,
+    width: 15,
     align: "right",
     numeric: true,
   },
@@ -227,11 +227,28 @@ export async function exportTongHopExcel({ data, fromDate, toDate }) {
     groups.get(khoa).push(row);
   });
 
+  // ─── Grand total first ─────────────────────────────────────────
+  const grandSums = sumRows(sorted);
+  addSubtotalRow(
+    ws,
+    `TỔNG CỘNG (${sorted.length} người giới thiệu)`,
+    grandSums,
+    GRAND_TOTAL_FILL,
+  );
+
   // ─── Write data rows with subtotals ────────────────────────────
   let stt = 0;
-  const grandTotalRows = [];
 
   groups.forEach((rows, khoaName) => {
+    // Khoa subtotal before detail rows
+    const sums = sumRows(rows);
+    addSubtotalRow(
+      ws,
+      `Tổng ${khoaName} (${rows.length} người giới thiệu)`,
+      sums,
+      SUBTOTAL_FILL,
+    );
+
     // Data rows for this khoa
     rows.forEach((r) => {
       stt++;
@@ -251,26 +268,7 @@ export async function exportTongHopExcel({ data, fromDate, toDate }) {
         }
       });
     });
-
-    // Subtotal row for this khoa
-    const sums = sumRows(rows);
-    grandTotalRows.push(...rows);
-    addSubtotalRow(
-      ws,
-      `Tổng ${khoaName} (${rows.length} NGT)`,
-      sums,
-      SUBTOTAL_FILL,
-    );
   });
-
-  // ─── Grand total row ───────────────────────────────────────────
-  const grandSums = sumRows(grandTotalRows);
-  addSubtotalRow(
-    ws,
-    `TỔNG CỘNG (${grandTotalRows.length} NGT)`,
-    grandSums,
-    GRAND_TOTAL_FILL,
-  );
 
   // ─── Download ──────────────────────────────────────────────────
   const buffer = await workbook.xlsx.writeBuffer();

@@ -39,27 +39,37 @@ const GRAND_TOTAL_FILL = {
 // ── Column definitions (maps to export columns) ───────────────────
 const COLUMNS = [
   { header: "STT", key: "stt", width: 6, align: "center" },
-  { header: "Mã BN", key: "patientid", width: 10, align: "left" },
-  { header: "Mã BN cũ", key: "patientid_old", width: 10, align: "left" },
+  { header: "Mã bệnh nhân", key: "patientid", width: 14, align: "left" },
+  { header: "Mã bệnh nhân cũ", key: "patientid_old", width: 16, align: "left" },
   {
     header: "Ngày đặt lịch",
     key: "dangkykhaminitdate",
     width: 14,
     align: "center",
   },
-  { header: "Ngày ĐK khám", key: "dangkykhamdate", width: 14, align: "center" },
+  {
+    header: "Ngày đăng ký khám",
+    key: "dangkykhamdate",
+    width: 18,
+    align: "center",
+  },
   { header: "Bệnh nhân", key: "patientname", width: 22, align: "left" },
   { header: "Ngày sinh", key: "birthday", width: 12, align: "center" },
   { header: "Giới tính", key: "gioitinhname", width: 10, align: "center" },
-  { header: "NGT", key: "ten_ngt", width: 18, align: "left" },
+  { header: "Người giới thiệu", key: "ten_ngt", width: 20, align: "left" },
   {
-    header: "Khoa NGT",
+    header: "Khoa người giới thiệu",
     key: "ngt_departmentgroupname",
-    width: 18,
+    width: 22,
     align: "left",
   },
   { header: "Trạng thái", key: "status", width: 14, align: "center" },
-  { header: "Mã HSBA", key: "hosobenhancode", width: 12, align: "left" },
+  {
+    header: "Mã hồ sơ bệnh án",
+    key: "hosobenhancode",
+    width: 18,
+    align: "left",
+  },
   { header: "Chẩn đoán", key: "chandoanravien", width: 28, align: "left" },
   { header: "Mã ICD", key: "chandoanravien_code", width: 10, align: "left" },
   {
@@ -201,17 +211,66 @@ export async function exportChiTietExcel({
     ngtMap.get(ngt).push(row);
   });
 
-  // ─── Write data rows with 2-level subtotals ────────────────────
-  let stt = 0;
+  // ─── Pre-calculate grand total ─────────────────────────────────
   let grandTongTien = 0;
   let grandCount = 0;
+  khoaGroups.forEach((ngtMap) => {
+    ngtMap.forEach((rows) => {
+      grandCount += rows.length;
+      rows.forEach((r) => {
+        grandTongTien += Number(r.tong_tien || 0);
+      });
+    });
+  });
+
+  // ─── Grand total first ─────────────────────────────────────────
+  addSummaryRow(
+    ws,
+    `TỔNG CỘNG: ${grandCount} bệnh nhân, ${khoaGroups.size} khoa`,
+    grandTongTien,
+    grandCount,
+    GRAND_TOTAL_FILL,
+    { ...FONT_BOLD, size: 12 },
+  );
+
+  // ─── Write data rows with 2-level subtotals ────────────────────
+  let stt = 0;
 
   khoaGroups.forEach((ngtMap, khoaName) => {
+    // Pre-calculate khoa total
     let khoaTongTien = 0;
     let khoaCount = 0;
+    ngtMap.forEach((rows) => {
+      khoaCount += rows.length;
+      rows.forEach((r) => {
+        khoaTongTien += Number(r.tong_tien || 0);
+      });
+    });
+
+    // ── Khoa subtotal before detail ───────────────────────────────
+    addSummaryRow(
+      ws,
+      `TỔNG ${khoaName}: ${khoaCount} bệnh nhân, ${ngtMap.size} người giới thiệu`,
+      khoaTongTien,
+      khoaCount,
+      SUBTOTAL_KHOA_FILL,
+      { ...FONT_BOLD, size: 12 },
+    );
 
     ngtMap.forEach((rows, ngtName) => {
-      let ngtTongTien = 0;
+      const ngtTongTien = rows.reduce(
+        (s, r) => s + Number(r.tong_tien || 0),
+        0,
+      );
+
+      // ── NGT subtotal before detail ──────────────────────────────
+      addSummaryRow(
+        ws,
+        `  Tổng ${ngtName}: ${rows.length} bệnh nhân`,
+        ngtTongTien,
+        rows.length,
+        SUBTOTAL_NGT_FILL,
+      );
 
       // Data rows for this NGT
       rows.forEach((r) => {
@@ -222,8 +281,14 @@ export async function exportChiTietExcel({
             return formatDate(r.dangkykhaminitdate);
           if (col.key === "dangkykhamdate") return formatDate(r.dangkykhamdate);
           if (col.key === "birthday") return formatDate(r.birthday);
+          if (col.key === "gioitinhname") {
+            const raw = r.gioitinhname;
+            if (raw === "01" || raw === 1) return "Nam";
+            if (raw === "02" || raw === 2) return "Nữ";
+            return raw || "";
+          }
           if (col.key === "status")
-            return r.dangkykhamstatus === 1 ? "Có khám" : "Không khám";
+            return Number(r.dangkykhamstatus) === 1 ? "Có khám" : "Không khám";
           if (col.key === "tong_tien") return Number(r.tong_tien || 0);
           if (col.key === "mantinh")
             return danhSachManTinh[r.dangkykhamid] ? "Có" : "";
@@ -235,46 +300,9 @@ export async function exportChiTietExcel({
 
         // Number format for Tổng tiền
         dataRow.getCell(TONG_TIEN_IDX + 1).numFmt = "#,##0";
-
-        ngtTongTien += Number(r.tong_tien || 0);
       });
-
-      // ── Subtotal level 2: per NGT ─────────────────────────────
-      addSummaryRow(
-        ws,
-        `Tổng ${ngtName}: ${rows.length} bản ghi`,
-        ngtTongTien,
-        rows.length,
-        SUBTOTAL_NGT_FILL,
-      );
-
-      khoaTongTien += ngtTongTien;
-      khoaCount += rows.length;
     });
-
-    // ── Subtotal level 1: per Khoa ────────────────────────────────
-    addSummaryRow(
-      ws,
-      `TỔNG ${khoaName}: ${khoaCount} bản ghi, ${ngtMap.size} NGT`,
-      khoaTongTien,
-      khoaCount,
-      SUBTOTAL_KHOA_FILL,
-      { ...FONT_BOLD, size: 12 },
-    );
-
-    grandTongTien += khoaTongTien;
-    grandCount += khoaCount;
   });
-
-  // ─── Grand total row ───────────────────────────────────────────
-  addSummaryRow(
-    ws,
-    `TỔNG CỘNG: ${grandCount} bản ghi, ${khoaGroups.size} khoa`,
-    grandTongTien,
-    grandCount,
-    GRAND_TOTAL_FILL,
-    { ...FONT_BOLD, size: 12 },
-  );
 
   // ─── Download ──────────────────────────────────────────────────
   const buffer = await workbook.xlsx.writeBuffer();

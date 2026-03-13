@@ -32,6 +32,7 @@ import {
   Copy,
   DocumentDownload,
   Edit,
+  Send2,
 } from "iconsax-react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -48,6 +49,7 @@ import {
   updateQuyTrinhISO,
   getQuyTrinhISOVersions,
   copyFilesFromVersion,
+  activateQuyTrinh,
 } from "./quyTrinhISOSlice";
 import { getISOKhoa } from "../Daotao/Khoa/khoaSlice";
 
@@ -78,6 +80,7 @@ function QuyTrinhISOEditPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const fromCreate = location.state?.fromCreate === true;
+  const [activateLoading, setActivateLoading] = useState(false);
   const { currentItem, versions, isLoading } = useSelector(
     (state) => state.quyTrinhISO,
   );
@@ -167,6 +170,10 @@ function QuyTrinhISOEditPage() {
       };
 
       await dispatch(updateQuyTrinhISO(id, submitData, currentItem?.updatedAt));
+      if (fromCreate) {
+        navigate("/quytrinh-iso");
+        return;
+      }
     } catch (error) {
       console.error("Update error:", error);
       // Auto-refresh on version conflict
@@ -175,6 +182,16 @@ function QuyTrinhISOEditPage() {
       }
     } finally {
       setSubmitLoading(false);
+    }
+  };
+
+  const handleActivate = async () => {
+    setActivateLoading(true);
+    try {
+      await dispatch(activateQuyTrinh(id));
+      navigate("/quytrinh-iso");
+    } finally {
+      setActivateLoading(false);
     }
   };
 
@@ -232,21 +249,38 @@ function QuyTrinhISOEditPage() {
         { label: "Chỉnh sửa" },
       ]}
       headerActions={
-        <Button
-          variant="outlined"
-          startIcon={<ArrowLeft size={18} />}
-          onClick={() => navigate("/quytrinh-iso")}
-          sx={{
-            color: "white",
-            borderColor: "rgba(255,255,255,0.5)",
-            "&:hover": {
-              borderColor: "white",
-              bgcolor: "rgba(255,255,255,0.1)",
-            },
-          }}
-        >
-          Quay lại
-        </Button>
+        <Stack direction="row" spacing={1} alignItems="center">
+          {currentItem?.TrangThai === "DRAFT" && (
+            <LoadingButton
+              variant="contained"
+              loading={activateLoading}
+              startIcon={<Send2 size={18} />}
+              onClick={handleActivate}
+              sx={{
+                bgcolor: "success.main",
+                color: "white",
+                "&:hover": { bgcolor: "success.dark" },
+              }}
+            >
+              Phát hành ngay
+            </LoadingButton>
+          )}
+          <Button
+            variant="outlined"
+            startIcon={<ArrowLeft size={18} />}
+            onClick={() => navigate("/quytrinh-iso")}
+            sx={{
+              color: "white",
+              borderColor: "rgba(255,255,255,0.5)",
+              "&:hover": {
+                borderColor: "white",
+                bgcolor: "rgba(255,255,255,0.1)",
+              },
+            }}
+          >
+            Quay lại
+          </Button>
+        </Stack>
       }
     >
       <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
@@ -259,11 +293,12 @@ function QuyTrinhISOEditPage() {
               sx={{ borderRadius: 2 }}
             >
               <Typography variant="body2" fontWeight={600}>
-                Bước 2/2 — Tải lên tệp đính kèm
+                Bước 2/3 — Tải lên tệp đính kèm
               </Typography>
               <Typography variant="body2">
                 Quy trình đã tạo thành công. Hãy tải lên file PDF và biểu mẫu
-                Word để hoàn tất.
+                Word, sau đó nhấn <strong>Phát hành ngay</strong> trên thanh
+                tiêu đề để hoàn tất.
               </Typography>
             </Alert>
           )}

@@ -122,7 +122,7 @@ function ManTinhTable({
   const vong1Data = useMemo(() => {
     return chiTietData
       .filter(
-        (r) => r.dangkykhamstatus === 1 && Number(r.tong_tien_dichvu) >= 100000,
+        (r) => Number(r.dangkykhamstatus) === 1 && Number(r.tong_tien_dichvu) >= 100000,
       )
       .map((r) => {
         const ls = parseLichSu(r.lichsu_kham);

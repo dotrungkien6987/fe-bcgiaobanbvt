@@ -34,6 +34,7 @@ import {
   useMediaQuery,
   useTheme,
   alpha,
+  CircularProgress,
 } from "@mui/material";
 import {
   Add,
@@ -45,10 +46,15 @@ import {
   DocumentDownload,
   DocumentText1,
   FolderOpen,
+  Send2,
 } from "iconsax-react";
 import dayjs from "dayjs";
 import useAuth from "../../hooks/useAuth";
-import { getQuyTrinhISOList, deleteQuyTrinhISO } from "./quyTrinhISOSlice";
+import {
+  getQuyTrinhISOList,
+  deleteQuyTrinhISO,
+  activateQuyTrinh,
+} from "./quyTrinhISOSlice";
 import { getISOKhoa } from "../Daotao/Khoa/khoaSlice";
 import NetworkError from "./components/NetworkError";
 import ISOPageShell from "./components/ISOPageShell";
@@ -74,6 +80,7 @@ function QuyTrinhISOPage() {
 
   const [search, setSearch] = useState(searchParams.get("search") || "");
   const [selectedKhoa, setSelectedKhoa] = useState(null);
+  const [selectedKhoaPhanPhoi, setSelectedKhoaPhanPhoi] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -83,6 +90,8 @@ function QuyTrinhISOPage() {
     quyTrinh: null,
   });
   const [pdfModal, setPdfModal] = useState({ open: false, file: null });
+  const [activateItem, setActivateItem] = useState(null);
+  const [activateLoading, setActivateLoading] = useState(false);
 
   const isQLCL = ["qlcl", "admin", "superadmin"].includes(user?.PhanQuyen);
 
@@ -96,11 +105,20 @@ function QuyTrinhISOPage() {
       size,
       search: search || undefined,
       KhoaXayDungID: selectedKhoa?._id || undefined,
+      KhoaPhanPhoiID: selectedKhoaPhanPhoi?._id || undefined,
       TrangThai: selectedTrangThai || undefined,
       ...(isQLCL ? { includeDistribution: true } : {}),
       ...overrides,
     }),
-    [page, size, search, selectedKhoa, selectedTrangThai, isQLCL],
+    [
+      page,
+      size,
+      search,
+      selectedKhoa,
+      selectedKhoaPhanPhoi,
+      selectedTrangThai,
+      isQLCL,
+    ],
   );
 
   // Fetch ISO Khoa list for filter
@@ -157,6 +175,10 @@ function QuyTrinhISOPage() {
     setSelectedTrangThai(newValue ?? "");
   };
 
+  const handleKhoaPhanPhoiChange = (_, newValue) => {
+    setSelectedKhoaPhanPhoi(newValue);
+  };
+
   const handlePageChange = (_, newPage) => {
     dispatch(getQuyTrinhISOList(buildParams({ page: newPage + 1 })));
   };
@@ -211,6 +233,18 @@ function QuyTrinhISOPage() {
   const handleCloseEditDialog = () => {
     setEditDialog({ open: false, quyTrinh: null });
     fetchData();
+  };
+
+  const handleActivateConfirm = async () => {
+    if (!activateItem) return;
+    setActivateLoading(true);
+    try {
+      await dispatch(activateQuyTrinh(activateItem._id));
+      setActivateItem(null);
+      fetchData();
+    } finally {
+      setActivateLoading(false);
+    }
   };
 
   // PDF quick view handler with cache
@@ -463,6 +497,20 @@ function QuyTrinhISOPage() {
                   </IconButton>
                 </Tooltip>
               )}
+              {item.TrangThai === "DRAFT" && (
+                <Tooltip title="Phát hành">
+                  <IconButton
+                    size="small"
+                    color="success"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActivateItem(item);
+                    }}
+                  >
+                    <Send2 size={16} />
+                  </IconButton>
+                </Tooltip>
+              )}
               <Tooltip title="Chỉnh sửa">
                 <IconButton
                   size="small"
@@ -568,6 +616,10 @@ function QuyTrinhISOPage() {
             khoa={selectedKhoa}
             onKhoaChange={handleKhoaChange}
             khoaOptions={khoaList || []}
+            khoaPhanPhoi={selectedKhoaPhanPhoi}
+            onKhoaPhanPhoiChange={handleKhoaPhanPhoiChange}
+            khoaPhanPhoiOptions={khoaList || []}
+            showKhoaPhanPhoi={isQLCL}
             trangThai={selectedTrangThai}
             onTrangThaiChange={handleTrangThaiChange}
             showTrangThai={isQLCL}
@@ -828,6 +880,17 @@ function QuyTrinhISOPage() {
                                   </IconButton>
                                 </Tooltip>
                               )}
+                              {item.TrangThai === "DRAFT" && (
+                                <Tooltip title="Phát hành">
+                                  <IconButton
+                                    size="small"
+                                    color="success"
+                                    onClick={() => setActivateItem(item)}
+                                  >
+                                    <Send2 size={17} />
+                                  </IconButton>
+                                </Tooltip>
+                              )}
                               <Tooltip title="Chỉnh sửa">
                                 <IconButton
                                   size="small"
@@ -895,6 +958,48 @@ function QuyTrinhISOPage() {
           Xem chi tiết
         </MenuItem>
       </Menu>
+
+      {/* Activate Confirmation Dialog */}
+      <Dialog
+        open={!!activateItem}
+        onClose={() => !activateLoading && setActivateItem(null)}
+      >
+        <DialogTitle>Xác nhận phát hành</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Phát hành quy trình{" "}
+            <strong>
+              {activateItem?.MaQuyTrinh} v{activateItem?.PhienBan}
+            </strong>
+            ? Quy trình sẽ chuyển sang trạng thái ACTIVE và có thể phân phối cho
+            các khoa.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setActivateItem(null)}
+            disabled={activateLoading}
+          >
+            Hủy
+          </Button>
+          <Button
+            onClick={handleActivateConfirm}
+            color="success"
+            variant="contained"
+            disabled={activateLoading}
+            startIcon={
+              activateLoading ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : (
+                <Send2 size={16} />
+              )
+            }
+            autoFocus
+          >
+            Phát hành
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>

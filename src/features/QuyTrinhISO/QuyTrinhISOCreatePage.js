@@ -195,12 +195,7 @@ function QuyTrinhISOCreatePage() {
                     name="KhoaXayDungID"
                     label="Khoa Xây Dựng *"
                     options={khoaList}
-                    getOptionLabel={(option) =>
-                      option?.TenKhoa || option?.MaKhoa || ""
-                    }
-                    isOptionEqualToValue={(option, value) =>
-                      option?._id === value?._id
-                    }
+                    displayField="TenKhoa"
                   />
                 </Grid>
 

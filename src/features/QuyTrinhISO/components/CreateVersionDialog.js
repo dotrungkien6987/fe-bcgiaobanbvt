@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import dayjs from "dayjs";
 import {
   Dialog,
   DialogTitle,
@@ -8,8 +9,6 @@ import {
   DialogActions,
   Button,
   TextField,
-  FormControlLabel,
-  Checkbox,
   Stack,
   Typography,
   Alert,
@@ -31,7 +30,7 @@ function CreateVersionDialog({ currentItem, open, onClose }) {
   const navigate = useNavigate();
 
   const [newVersion, setNewVersion] = useState("");
-  const [copyFiles, setCopyFiles] = useState(true);
+  const [ngayHieuLuc, setNgayHieuLuc] = useState(dayjs().format("YYYY-MM-DD"));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -47,7 +46,7 @@ function CreateVersionDialog({ currentItem, open, onClose }) {
     } else {
       setNewVersion(`${currentVer}.1`);
     }
-    setCopyFiles(true);
+    setNgayHieuLuc(dayjs().format("YYYY-MM-DD"));
     setError("");
   };
 
@@ -58,8 +57,10 @@ function CreateVersionDialog({ currentItem, open, onClose }) {
     }
 
     // Validate version format
-    if (!/^[\d]+\.[\d]+$/.test(newVersion.trim())) {
-      setError("Phiên bản phải có định dạng X.Y (ví dụ: 2.0, 1.5)");
+    if (!/^[A-Za-z0-9._-]+$/.test(newVersion.trim())) {
+      setError(
+        "Phiên bản không hợp lệ. Chỉ dùng chữ, số, dấu chấm, gạch ngang (ví dụ: 2.0, 1.5, v2)",
+      );
       return;
     }
 
@@ -80,12 +81,10 @@ function CreateVersionDialog({ currentItem, open, onClose }) {
         PhienBan: newVersion.trim(),
         KhoaXayDungID:
           currentItem.KhoaXayDungID?._id || currentItem.KhoaXayDungID,
-        NgayHieuLuc: new Date().toISOString(),
+        NgayHieuLuc: dayjs(ngayHieuLuc).toISOString(),
         GhiChu: `Tạo từ phiên bản ${currentItem.PhienBan}`,
         KhoaPhanPhoi:
-          currentItem.KhoaPhanPhoi?.map(
-            (kp) => kp.KhoaID?._id || kp.KhoaID || kp,
-          ) || [],
+          currentItem.KhoaPhanPhoi?.map((kp) => kp?._id || kp) || [],
       };
 
       const created = await dispatch(createQuyTrinhISO(newData));
@@ -94,23 +93,25 @@ function CreateVersionDialog({ currentItem, open, onClose }) {
         throw new Error("Không thể tạo phiên bản mới");
       }
 
-      // Step 2: Copy files if requested
-      if (copyFiles) {
-        try {
-          await dispatch(
-            copyFilesFromVersion(created._id, currentItem._id, null),
-          );
-        } catch (copyError) {
-          console.error("Copy files error:", copyError);
-          toast.warning("Tạo phiên bản thành công nhưng không copy được file");
-        }
+      // Copy biểu mẫu Word (bỏ qua PDF - phiên bản mới cần upload PDF riêng)
+      try {
+        await dispatch(
+          copyFilesFromVersion(created._id, currentItem._id, "fileword"),
+        );
+      } catch (copyError) {
+        console.error("Copy Word files error:", copyError);
+        toast.warning(
+          "Tạo phiên bản thành công nhưng không copy được biểu mẫu Word",
+        );
       }
 
       toast.success(`Đã tạo phiên bản ${newVersion} thành công`);
       onClose();
 
-      // Navigate to edit page of new version
-      navigate(`/quytrinh-iso/${created._id}/edit`);
+      // Navigate to edit page of new version (fromCreate triggers banner + redirect-after-save)
+      navigate(`/quytrinh-iso/${created._id}/edit`, {
+        state: { fromCreate: true },
+      });
     } catch (err) {
       setError(err.message || "Có lỗi xảy ra khi tạo phiên bản mới");
     } finally {
@@ -170,19 +171,19 @@ function CreateVersionDialog({ currentItem, open, onClose }) {
             placeholder="Ví dụ: 2.0"
             fullWidth
             disabled={loading}
-            helperText="Định dạng: X.Y (ví dụ: 2.0, 1.5)"
+            helperText="Định dạng: X.Y (ví dụ: 2.0, 1.5) hoặc tùy chỉnh (v2, 2.0.1)"
             autoFocus
           />
 
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={copyFiles}
-                onChange={(e) => setCopyFiles(e.target.checked)}
-                disabled={loading}
-              />
-            }
-            label={`Copy biểu mẫu từ phiên bản ${currentItem?.PhienBan}`}
+          <TextField
+            label="Ngày hiệu lực *"
+            type="date"
+            value={ngayHieuLuc}
+            onChange={(e) => setNgayHieuLuc(e.target.value)}
+            fullWidth
+            disabled={loading}
+            InputLabelProps={{ shrink: true }}
+            helperText="Ngày phiên bản này bắt đầu có hiệu lực"
           />
 
           <Alert severity="info" icon={false}>

@@ -19,13 +19,17 @@ import { SearchNormal1 } from "iconsax-react";
  * @param {string}   props.search              - Giá trị ô tìm kiếm
  * @param {Function} props.onSearchChange      - (e) => void
  * @param {Function} [props.onSearchSubmit]    - (e) => void — xử lý Enter
- * @param {Object}   [props.khoa]              - Khoa đang chọn {_id, TenKhoa}
+ * @param {Object}   [props.khoa]              - Khoa xây dựng đang chọn {_id, TenKhoa}
  * @param {Function} [props.onKhoaChange]      - (_, newVal) => void
  * @param {Array}    [props.khoaOptions]       - [{_id, TenKhoa}]
+ * @param {Object}   [props.khoaPhanPhoi]      - Khoa nhận phân phối đang chọn {_id, TenKhoa}
+ * @param {Function} [props.onKhoaPhanPhoiChange] - (_, newVal) => void
+ * @param {Array}    [props.khoaPhanPhoiOptions]   - [{_id, TenKhoa}]
  * @param {string}   [props.trangThai]         - '' | 'ACTIVE' | 'DRAFT' | 'INACTIVE'
  * @param {Function} [props.onTrangThaiChange] - (_, newVal) => void
  * @param {boolean}  [props.showTrangThai]     - Hiện filter trạng thái (default true)
- * @param {boolean}  [props.showKhoa]          - Hiện filter khoa (default true)
+ * @param {boolean}  [props.showKhoa]          - Hiện filter khoa xây dựng (default true)
+ * @param {boolean}  [props.showKhoaPhanPhoi]  - Hiện filter khoa nhận phân phối (default false)
  * @param {boolean}  [props.showSearch]        - Hiện ô tìm kiếm (default true)
  * @param {string}   [props.searchPlaceholder]
  */
@@ -36,10 +40,14 @@ function ISOFilterBar({
   khoa = null,
   onKhoaChange,
   khoaOptions = [],
+  khoaPhanPhoi = null,
+  onKhoaPhanPhoiChange,
+  khoaPhanPhoiOptions = [],
   trangThai = "",
   onTrangThaiChange,
   showTrangThai = true,
   showKhoa = true,
+  showKhoaPhanPhoi = false,
   showSearch = true,
   searchPlaceholder = "Tìm mã hoặc tên quy trình...",
 }) {
@@ -79,7 +87,7 @@ function ISOFilterBar({
           </Box>
         )}
 
-        {/* Khoa filter */}
+        {/* Khoa xây dựng filter */}
         {showKhoa && onKhoaChange && (
           <Autocomplete
             size="small"
@@ -90,7 +98,28 @@ function ISOFilterBar({
             isOptionEqualToValue={(o, v) => o._id === v._id}
             sx={{ width: { xs: "100%", sm: 220 } }}
             renderInput={(params) => (
-              <TextField {...params} placeholder="Tất cả khoa" />
+              <TextField {...params} placeholder="Khoa xây dựng" />
+            )}
+            renderOption={(props, option) => (
+              <li {...props} key={option._id}>
+                <Typography variant="body2">{option.TenKhoa}</Typography>
+              </li>
+            )}
+          />
+        )}
+
+        {/* Khoa nhận phân phối filter */}
+        {showKhoaPhanPhoi && onKhoaPhanPhoiChange && (
+          <Autocomplete
+            size="small"
+            options={khoaPhanPhoiOptions}
+            value={khoaPhanPhoi}
+            onChange={onKhoaPhanPhoiChange}
+            getOptionLabel={(o) => o.TenKhoa || ""}
+            isOptionEqualToValue={(o, v) => o._id === v._id}
+            sx={{ width: { xs: "100%", sm: 220 } }}
+            renderInput={(params) => (
+              <TextField {...params} placeholder="Khoa nhận phân phối" />
             )}
             renderOption={(props, option) => (
               <li {...props} key={option._id}>

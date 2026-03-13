@@ -477,7 +477,7 @@ function QuyTrinhISODetailPage() {
                         <ListItemText
                           primary={
                             <Typography variant="subtitle1" fontWeight={600}>
-                              {file.TenFile}
+                              {file.TenGoc || file.TenFile}
                             </Typography>
                           }
                           secondary={
@@ -606,7 +606,7 @@ function QuyTrinhISODetailPage() {
                         <ListItemText
                           primary={
                             <Typography variant="subtitle1" fontWeight={600}>
-                              {file.TenFile}
+                              {file.TenGoc || file.TenFile}
                             </Typography>
                           }
                           secondary={

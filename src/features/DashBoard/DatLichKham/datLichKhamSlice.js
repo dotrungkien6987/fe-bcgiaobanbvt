@@ -239,7 +239,7 @@ export const fetchAllData =
       const vong1Ids = chiTietRes.data.data
         .filter(
           (r) =>
-            r.dangkykhamstatus === 1 && Number(r.tong_tien_dichvu) >= 100000,
+            Number(r.dangkykhamstatus) === 1 && Number(r.tong_tien_dichvu) >= 100000,
         )
         .map((r) => r.dangkykhamid);
 
