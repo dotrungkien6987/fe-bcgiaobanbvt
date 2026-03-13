@@ -294,18 +294,56 @@ export function evaluatePipeline(pipeline, variables) {
 
 /**
  * Tạo chuỗi diễn giải pipeline (không cần data)
+ * Format dạng numbered list, mỗi bước 1 dòng, dễ đọc
  */
 export function pipelineToText(pipeline) {
   if (!Array.isArray(pipeline) || pipeline.length === 0) return "";
 
   const sorted = [...pipeline].sort((a, b) => a.thuTu - b.thuTu);
   return sorted
-    .map((step) => {
-      const typeLabel = step.loaiStep === "loc" ? "Lọc" : "Loại trừ";
-      const condText = formulaToText(step.dieuKien);
-      return `[${typeLabel}] ${step.tenStep || ""}: ${condText}`;
+    .map((step, idx) => {
+      const typeLabel =
+        step.loaiStep === "loc" ? "Lọc (giữ lại)" : "Loại trừ (loại bỏ)";
+      const stepName = step.tenStep ? ` — ${step.tenStep}` : "";
+      const condText = formulaToTextIndented(step.dieuKien, 1);
+      return `Bước ${idx + 1}: ${typeLabel}${stepName}\n${condText}`;
     })
-    .join(" → ");
+    .join("\n\n");
+}
+
+/**
+ * Diễn giải cây điều kiện với indent, hiển thị rõ cấu trúc VÀ/HOẶC
+ */
+function formulaToTextIndented(node, level = 0) {
+  if (!node) return "";
+  const indent = "  ".repeat(level);
+
+  if (node.loai === "AND" || node.loai === "OR") {
+    const connector = node.loai === "AND" ? "VÀ" : "HOẶC";
+    const children = node.children || [];
+    if (children.length === 0) return "";
+    if (children.length === 1) return formulaToTextIndented(children[0], level);
+    return children
+      .map((child, i) => {
+        const prefix = i === 0 ? `${indent}• ` : `${indent}${connector} `;
+        const childText = formulaToTextIndented(child, level + 1);
+        // If child is a group, show connector label then children on new lines
+        if (child.loai === "AND" || child.loai === "OR") {
+          const groupLabel = child.loai === "AND" ? "(tất cả)" : "(một trong)";
+          return `${prefix}${groupLabel}\n${childText}`;
+        }
+        return `${prefix}${childText.trimStart()}`;
+      })
+      .join("\n");
+  }
+
+  if (node.loai === "dieu_kien") {
+    const varLabel = getVariableLabel(node.bienSo);
+    const opSymbol = getOperatorSymbol(node.toanTu);
+    return `${indent}${varLabel} ${opSymbol} ${formatGiaTri(node.giaTri)}`;
+  }
+
+  return "";
 }
 
 export const STEP_TYPE_LABELS = {

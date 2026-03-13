@@ -203,14 +203,44 @@ export async function exportChiTietExcel({
   const metricHopLe = metricDvGe100k - metricManTinh;
 
   const METRICS = [
-    { label: "Tổng đặt lịch", value: metricTongDL, color: "1976D2", bg: "E3F2FD" },
+    {
+      label: "Tổng đặt lịch",
+      value: metricTongDL,
+      color: "1976D2",
+      bg: "E3F2FD",
+    },
     { label: "Có khám", value: metricCoKham, color: "2E7D32", bg: "E8F5E9" },
-    { label: "Không khám", value: metricKhongKham, color: "D32F2F", bg: "FFEBEE" },
-    { label: "DV ≥ 100K", value: metricDvGe100k, color: "ED6C02", bg: "FFF3E0" },
-    { label: "DV < 100K", value: metricDvLt100k, color: "EF5350", bg: "FFEBEE" },
+    {
+      label: "Không khám",
+      value: metricKhongKham,
+      color: "D32F2F",
+      bg: "FFEBEE",
+    },
+    {
+      label: "DV ≥ 100K",
+      value: metricDvGe100k,
+      color: "ED6C02",
+      bg: "FFF3E0",
+    },
+    {
+      label: "DV < 100K",
+      value: metricDvLt100k,
+      color: "EF5350",
+      bg: "FFEBEE",
+    },
     { label: "Khám 0Đ", value: metricKham0d, color: "757575", bg: "F5F5F5" },
-    { label: "Mãn tính", value: metricManTinh, color: "9C27B0", bg: "F3E5F5" },
-    { label: "Hợp lệ", value: metricHopLe, color: "0288D1", bg: "E1F5FE" },
+    {
+      label: "Mãn tính (≥100K)",
+      value: metricManTinh,
+      color: "9C27B0",
+      bg: "F3E5F5",
+    },
+    {
+      label: "Hợp lệ (≥100K − MT)",
+      value: metricHopLe,
+      color: "0288D1",
+      bg: "E1F5FE",
+    },
   ];
 
   // Each metric takes 2 columns (merge). 8 metrics = 16 columns, fits in 18-col sheet.
@@ -378,8 +408,7 @@ export async function exportChiTietExcel({
         }
 
         // Row is invalid if: không khám, DV < 100K, 0Đ, or mãn tính
-        const isInvalid =
-          st !== 1 || dv < 100000 || isManTinh;
+        const isInvalid = st !== 1 || dv < 100000 || isManTinh;
 
         const rowValues = COLUMNS.map((col) => {
           if (col.key === "stt") return stt;

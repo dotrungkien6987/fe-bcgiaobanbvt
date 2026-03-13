@@ -308,7 +308,7 @@ function DistributedToMePage() {
                 <TableHead>
                   <TableRow>
                     {[
-                      { label: "Mã QT", width: 120 },
+                      { label: "Mã QT" },
                       { label: "Tên Quy Trình" },
                       { label: "Phiên bản", width: 90, align: "center" },
                       { label: "Khoa Xây Dựng", width: 180 },
@@ -390,7 +390,7 @@ function DistributedToMePage() {
                         }}
                         onClick={() => handleViewDetail(qt._id)}
                       >
-                        <TableCell>
+                        <TableCell sx={{ whiteSpace: "nowrap" }}>
                           <Stack
                             direction="row"
                             alignItems="center"

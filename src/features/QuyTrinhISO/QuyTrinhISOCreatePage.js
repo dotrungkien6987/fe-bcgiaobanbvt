@@ -34,8 +34,7 @@ const quyTrinhSchema = Yup.object().shape({
     .max(500, "Tối đa 500 ký tự"),
   MaQuyTrinh: Yup.string()
     .required("Mã quy trình không được để trống")
-    .max(50, "Tối đa 50 ký tự")
-    .matches(/^[A-Z0-9-]+$/i, "Chỉ chứa chữ, số và dấu gạch ngang"),
+    .max(50, "Tối đa 50 ký tự"),
   PhienBan: Yup.string()
     .required("Phiên bản không được để trống")
     .max(10, "Tối đa 10 ký tự"),

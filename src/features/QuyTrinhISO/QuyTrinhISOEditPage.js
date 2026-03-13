@@ -458,7 +458,7 @@ function QuyTrinhISOEditPage() {
                 </Box>
                 <Box flex={1}>
                   <Typography variant="h6" fontWeight={600} color="primary">
-                    Biểu Mẫu Đi Kèm (Word)
+                    Biểu Mẫu Đi Kèm (Word / Excel)
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Các biểu mẫu, mẫu đơn, checklist hỗ trợ thực hiện quy trình
@@ -481,16 +481,16 @@ function QuyTrinhISOEditPage() {
               <Divider sx={{ mb: 2 }} />
 
               <Alert severity="warning" sx={{ mb: 2 }}>
-                Đây là các tài liệu bổ trợ giúp thực thi quy trình (ví dụ: biểu
-                mẫu báo cáo, phiếu kiểm tra, mẫu đơn yêu cầu...). Có thể upload
-                nhiều file.
+                Các tài liệu bổ trợ giúp thực thi quy trình (biểu mẫu báo cáo,
+                phiếu kiểm tra, mẫu đơn...). Hỗ trợ Word (.doc, .docx) và Excel
+                (.xls, .xlsx). Có thể upload nhiều file.
               </Alert>
 
               <AttachmentSection
                 ownerType="quytrinhiso"
                 ownerId={id}
                 field="FileWord"
-                accept=".doc,.docx"
+                accept=".doc,.docx,.xls,.xlsx"
               />
             </CardContent>
           </Card>

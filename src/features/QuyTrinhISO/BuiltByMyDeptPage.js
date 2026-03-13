@@ -302,7 +302,7 @@ function BuiltByMyDeptPage() {
                 <TableHead>
                   <TableRow>
                     {[
-                      { label: "Mã QT", width: 120 },
+                      { label: "Mã QT" },
                       { label: "Tên Quy Trình" },
                       { label: "Phiên bản", width: 90, align: "center" },
                       { label: "Phân Phối Cho", width: 200, align: "center" },
@@ -383,11 +383,12 @@ function BuiltByMyDeptPage() {
                         }}
                         onClick={() => handleViewDetail(qt._id)}
                       >
-                        <TableCell>
+                        <TableCell sx={{ whiteSpace: "nowrap" }}>
                           <Typography
                             fontWeight={600}
                             color="primary.main"
                             fontSize="0.85rem"
+                            noWrap
                           >
                             {qt.MaQuyTrinh}
                           </Typography>

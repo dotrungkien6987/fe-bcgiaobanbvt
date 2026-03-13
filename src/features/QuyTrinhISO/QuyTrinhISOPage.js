@@ -672,7 +672,9 @@ function QuyTrinhISOPage() {
               <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ ...thSx, width: 120 }}>Mã QT</TableCell>
+                    <TableCell sx={{ ...thSx, whiteSpace: "nowrap" }}>
+                      Mã QT
+                    </TableCell>
                     <TableCell sx={thSx}>Tên Quy Trình</TableCell>
                     <TableCell align="center" sx={{ ...thSx, width: 90 }}>
                       Phiên Bản
@@ -739,11 +741,12 @@ function QuyTrinhISOPage() {
                         onClick={() => navigate(`/quytrinh-iso/${item._id}`)}
                       >
                         {/* Mã QT */}
-                        <TableCell>
+                        <TableCell sx={{ whiteSpace: "nowrap" }}>
                           <Typography
                             fontWeight={600}
                             color="primary.main"
                             fontSize="0.85rem"
+                            noWrap
                           >
                             {item.MaQuyTrinh}
                           </Typography>

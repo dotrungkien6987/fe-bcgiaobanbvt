@@ -43,7 +43,10 @@ import {
   Close as CloseIcon,
   InfoOutlined as InfoIcon,
   AccountTree as TreeIcon,
+  ExpandMore as ExpandMoreIcon,
+  HelpOutline as HelpIcon,
 } from "@mui/icons-material";
+import Collapse from "@mui/material/Collapse";
 import { VARIABLE_DEFINITIONS } from "../utils/formulaVariables";
 import {
   OPERATOR_DEFINITIONS,
@@ -73,6 +76,100 @@ const VARIABLE_GROUPS = [
   { key: "dsMT_kemTheo", label: "DS mãn tính — CĐ kèm theo" },
   { key: "dsMT_ketHop", label: "DS mãn tính — Kết hợp" },
 ];
+
+// ─── Quick Guide Panel ───────────────────────────────────────
+
+function QuickGuidePanel() {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <Paper variant="outlined" sx={{ overflow: "hidden" }}>
+      <Box
+        onClick={() => setExpanded((prev) => !prev)}
+        sx={{
+          px: 1.5,
+          py: 1,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          cursor: "pointer",
+          bgcolor: "grey.100",
+          "&:hover": { bgcolor: "grey.200" },
+        }}
+      >
+        <HelpIcon fontSize="small" color="info" />
+        <Typography variant="subtitle2" sx={{ flex: 1 }}>
+          Hướng dẫn nhanh: Cách xây dựng công thức
+        </Typography>
+        <ExpandMoreIcon
+          sx={{
+            transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform 0.2s",
+          }}
+        />
+      </Box>
+      <Collapse in={expanded}>
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
+            Pipeline là gì?
+          </Typography>
+          <Typography
+            variant="caption"
+            component="div"
+            sx={{ mb: 1.5, lineHeight: 1.8 }}
+          >
+            Công thức gồm nhiều <b>bước</b> nối tiếp nhau. Mỗi bệnh nhân sẽ đi
+            qua từng bước theo thứ tự. Nếu bị loại ở bước nào thì dừng, không
+            xét tiếp.
+          </Typography>
+
+          <Stack direction="row" spacing={2} sx={{ mb: 1.5 }}>
+            <Box sx={{ flex: 1 }}>
+              <Chip label="Lọc" size="small" color="primary" sx={{ mb: 0.5 }} />
+              <Typography
+                variant="caption"
+                component="div"
+                sx={{ lineHeight: 1.7 }}
+              >
+                <b>Giữ lại</b> bệnh nhân thỏa điều kiện.
+                <br />
+                VD: Số lần khám ≥ 3
+              </Typography>
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Chip
+                label="Loại trừ"
+                size="small"
+                color="error"
+                sx={{ mb: 0.5 }}
+              />
+              <Typography
+                variant="caption"
+                component="div"
+                sx={{ lineHeight: 1.7 }}
+              >
+                <b>Loại bỏ</b> bệnh nhân khớp điều kiện.
+                <br />
+                VD: Có mã Z76 → loại
+              </Typography>
+            </Box>
+          </Stack>
+
+          <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 600 }}>
+            VÀ / HOẶC
+          </Typography>
+          <Typography
+            variant="caption"
+            component="div"
+            sx={{ lineHeight: 1.8 }}
+          >
+            <b>VÀ</b> = tất cả điều kiện phải đúng &nbsp;|&nbsp; <b>HOẶC</b> =
+            chỉ cần 1 điều kiện đúng
+          </Typography>
+        </Box>
+      </Collapse>
+    </Paper>
+  );
+}
 
 // ─── Condition editor (leaf node) ────────────────────────────
 
@@ -695,14 +792,14 @@ function PipelineTreeOverview({ pipeline }) {
     <Stack spacing={1.5}>
       {pipeline.map((step, idx) => {
         const info = STEP_TYPE_LABELS[step.loaiStep] || STEP_TYPE_LABELS.loc;
+        const isLoaiTru = step.loaiStep === "loaiTru";
         return (
           <Paper key={idx} variant="outlined" sx={{ overflow: "hidden" }}>
             <Box
               sx={{
                 px: 1.5,
                 py: 0.75,
-                bgcolor:
-                  step.loaiStep === "loaiTru" ? "error.50" : "primary.50",
+                bgcolor: isLoaiTru ? "error.50" : "primary.50",
                 borderBottom: "1px solid",
                 borderColor: "divider",
                 display: "flex",
@@ -727,12 +824,38 @@ function PipelineTreeOverview({ pipeline }) {
                 </Typography>
               )}
             </Box>
+            <Typography
+              variant="caption"
+              sx={{
+                display: "block",
+                px: 1.5,
+                py: 0.5,
+                bgcolor: isLoaiTru ? "#fff5f5" : "#f0f7ff",
+                color: isLoaiTru ? "error.main" : "primary.main",
+                fontStyle: "italic",
+                borderBottom: "1px dashed",
+                borderColor: "divider",
+              }}
+            >
+              {isLoaiTru
+                ? "→ Bệnh nhân sẽ bị LOẠI nếu khớp điều kiện bên dưới"
+                : "→ Bệnh nhân chỉ được giữ lại nếu thỏa điều kiện bên dưới"}
+            </Typography>
             <Box sx={{ p: 1 }}>
               <ConditionTreeView dieuKien={step.dieuKien} />
             </Box>
           </Paper>
         );
       })}
+
+      {pipeline.length > 1 && (
+        <Alert severity="info" variant="outlined" sx={{ py: 0.5 }}>
+          <Typography variant="caption">
+            Bệnh nhân đi qua từng bước theo thứ tự. Nếu bị loại ở bước nào thì
+            dừng, không xét các bước sau.
+          </Typography>
+        </Alert>
+      )}
     </Stack>
   );
 }
@@ -1008,6 +1131,9 @@ function CongThucManTinhDialog({ open, onClose, onRunFormula }) {
                   sx={{ flex: 1 }}
                 />
               </Stack>
+
+              {/* Quick Guide */}
+              <QuickGuidePanel />
 
               <Divider>
                 <Chip label="Pipeline" size="small" />
