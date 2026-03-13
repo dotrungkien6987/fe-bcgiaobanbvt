@@ -2,14 +2,11 @@ import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
-  Container,
-  Typography,
   Box,
   Stack,
   TextField,
   InputAdornment,
   Card,
-  CardContent,
   Table,
   TableBody,
   TableCell,
@@ -22,14 +19,12 @@ import {
   Pagination,
   Chip,
   Skeleton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
+  Typography,
   useMediaQuery,
   useTheme,
+  alpha,
 } from "@mui/material";
-import { SearchNormal1, Eye, DocumentText1, ArrowLeft } from "iconsax-react";
+import { SearchNormal1, Eye, DocumentText1 } from "iconsax-react";
 import { getDistributedToMe } from "./quyTrinhISOSlice";
 import { getISOKhoa } from "../Daotao/Khoa/khoaSlice";
 import PDFQuickViewModal from "./components/PDFQuickViewModal";
@@ -53,7 +48,7 @@ function DistributedToMePage() {
   const { ISOKhoa: allKhoa } = useSelector((state) => state.khoa);
 
   const [search, setSearch] = useState("");
-  const [khoaFilter, setKhoaFilter] = useState("");
+  const [khoaFilter, setKhoaFilter] = useState(null);
   const [page, setPage] = useState(1);
   const [pdfModal, setPdfModal] = useState({ open: false, file: null });
   const [downloadSheet, setDownloadSheet] = useState({
@@ -66,7 +61,7 @@ function DistributedToMePage() {
       getDistributedToMe({
         page,
         search: search || undefined,
-        khoaXayDungId: khoaFilter || undefined,
+        khoaXayDungId: khoaFilter?._id || undefined,
       }),
     );
   }, [dispatch, page, search, khoaFilter]);
@@ -83,11 +78,6 @@ function DistributedToMePage() {
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
-    setPage(1);
-  };
-
-  const handleKhoaFilter = (e) => {
-    setKhoaFilter(e.target.value);
     setPage(1);
   };
 
@@ -166,7 +156,7 @@ function DistributedToMePage() {
     return dayjs().diff(distributionDate, "day") <= 30;
   }).length;
   const uniqueKhoaCount = new Set(
-    distributedToMe.map((qt) => qt.KhoaXayDung?._id),
+    distributedToMe.map((qt) => qt.KhoaXayDungID?._id),
   ).size;
 
   return (
@@ -212,22 +202,45 @@ function DistributedToMePage() {
             {/* Stats strip */}
             <Stack direction="row" spacing={3}>
               <Box textAlign="center">
-                <Typography variant="h6" fontWeight={700} color="primary.main">{totalCount}</Typography>
-                <Typography variant="caption" color="text.secondary">Tổng số</Typography>
+                <Typography variant="h6" fontWeight={700} color="primary.main">
+                  {totalCount}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Tổng số
+                </Typography>
               </Box>
               <Box textAlign="center">
-                <Typography variant="h6" fontWeight={700} sx={{ color: "success.main" }}>{newCount}</Typography>
-                <Typography variant="caption" color="text.secondary">Mới (30d)</Typography>
+                <Typography
+                  variant="h6"
+                  fontWeight={700}
+                  sx={{ color: "success.main" }}
+                >
+                  {newCount}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Mới (30d)
+                </Typography>
               </Box>
               <Box textAlign="center">
-                <Typography variant="h6" fontWeight={700} sx={{ color: "info.main" }}>{uniqueKhoaCount}</Typography>
-                <Typography variant="caption" color="text.secondary">Khoa</Typography>
+                <Typography
+                  variant="h6"
+                  fontWeight={700}
+                  sx={{ color: "info.main" }}
+                >
+                  {uniqueKhoaCount}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Khoa
+                </Typography>
               </Box>
             </Stack>
             {/* Khoa filter */}
             <ISOFilterBar
               khoa={khoaFilter}
-              onKhoaChange={(val) => { setKhoaFilter(val); setPage(1); }}
+              onKhoaChange={(_, newVal) => {
+                setKhoaFilter(newVal);
+                setPage(1);
+              }}
               khoaOptions={allKhoa || []}
               showSearch={false}
               showTrangThai={false}
@@ -236,7 +249,6 @@ function DistributedToMePage() {
         </Box>
       }
     >
-
       {/* Content Section */}
       <Box sx={{ px: { xs: 0, md: 3 }, maxWidth: "lg", mx: "auto" }}>
         {/* Mobile: Card List */}
@@ -284,23 +296,49 @@ function DistributedToMePage() {
             </Stack>
           </Box>
         ) : (
-          <TableContainer component={Paper}>
-              <Table stickyHeader>
+          <Paper
+            sx={{
+              borderRadius: 2,
+              overflow: "hidden",
+              boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
+            }}
+          >
+            <TableContainer>
+              <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Mã QT</TableCell>
-                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Tên Quy Trình</TableCell>
-                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Phiên bản</TableCell>
-                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Khoa Xây Dựng</TableCell>
-                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Ngày Phân Phối</TableCell>
-                    <TableCell align="center" sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Thao tác</TableCell>
+                    {[
+                      { label: "Mã QT", width: 120 },
+                      { label: "Tên Quy Trình" },
+                      { label: "Phiên bản", width: 90, align: "center" },
+                      { label: "Khoa Xây Dựng", width: 180 },
+                      { label: "Ngày Phân Phối", width: 120, align: "center" },
+                      { label: "Files", width: 130, align: "center" },
+                      { label: "Thao tác", width: 100, align: "center" },
+                    ].map((col) => (
+                      <TableCell
+                        key={col.label}
+                        align={col.align || "left"}
+                        sx={{
+                          bgcolor: (t) => alpha(t.palette.primary.main, 0.04),
+                          fontWeight: 700,
+                          fontSize: "0.8rem",
+                          whiteSpace: "nowrap",
+                          borderBottom: "2px solid",
+                          borderBottomColor: "primary.main",
+                          ...(col.width && { width: col.width }),
+                        }}
+                      >
+                        {col.label}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {distributionLoading ? (
                     [...Array(5)].map((_, i) => (
                       <TableRow key={i}>
-                        {[...Array(6)].map((_, j) => (
+                        {[...Array(7)].map((_, j) => (
                           <TableCell key={j}>
                             <Skeleton />
                           </TableCell>
@@ -309,22 +347,60 @@ function DistributedToMePage() {
                     ))
                   ) : distributedToMe.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} align="center">
-                        <Typography color="text.secondary" py={4}>
-                          Chưa có quy trình nào được phân phối cho khoa của bạn
-                        </Typography>
+                      <TableCell colSpan={7} align="center">
+                        <Box
+                          sx={{
+                            py: 6,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 1.5,
+                          }}
+                        >
+                          <DocumentText1
+                            size={52}
+                            color="#9e9e9e"
+                            variant="Bulk"
+                          />
+                          <Typography variant="h6" color="text.secondary">
+                            Chưa có quy trình nào
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Khoa của bạn chưa được phân phối quy trình ISO nào.
+                          </Typography>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    distributedToMe.map((qt) => (
-                      <TableRow key={qt._id} hover>
+                    distributedToMe.map((qt, idx) => (
+                      <TableRow
+                        key={qt._id}
+                        hover
+                        sx={{
+                          cursor: "pointer",
+                          borderLeft: "4px solid transparent",
+                          transition: "all 0.15s ease",
+                          ...(idx % 2 === 1 && {
+                            bgcolor: (t) => alpha(t.palette.grey[500], 0.03),
+                          }),
+                          "&:hover": {
+                            borderLeftColor: "primary.main",
+                            bgcolor: (t) => alpha(t.palette.primary.main, 0.04),
+                          },
+                        }}
+                        onClick={() => handleViewDetail(qt._id)}
+                      >
                         <TableCell>
                           <Stack
                             direction="row"
                             alignItems="center"
                             spacing={1}
                           >
-                            <Typography fontWeight="bold">
+                            <Typography
+                              fontWeight={600}
+                              color="primary.main"
+                              fontSize="0.85rem"
+                            >
                               {qt.MaQuyTrinh}
                             </Typography>
                             {qt.isNew && (
@@ -340,7 +416,6 @@ function DistributedToMePage() {
                         <TableCell>
                           <Typography
                             sx={{
-                              maxWidth: 300,
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
@@ -349,16 +424,26 @@ function DistributedToMePage() {
                             {qt.TenQuyTrinh}
                           </Typography>
                         </TableCell>
-                        <TableCell>
-                          <Chip label={`v${qt.PhienBan}`} size="small" />
+                        <TableCell align="center">
+                          <Chip
+                            label={`v${qt.PhienBan}`}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            sx={{ height: 22, fontSize: "0.75rem" }}
+                          />
                         </TableCell>
                         <TableCell>
-                          {qt.KhoaXayDungID?.TenKhoa || "N/A"}
+                          <Typography variant="body2">
+                            {qt.KhoaXayDungID?.TenKhoa || "N/A"}
+                          </Typography>
                         </TableCell>
-                        <TableCell>
-                          {qt.NgayPhanPhoi
-                            ? dayjs(qt.NgayPhanPhoi).format("DD/MM/YYYY")
-                            : "N/A"}
+                        <TableCell align="center">
+                          <Typography variant="body2">
+                            {qt.NgayPhanPhoi
+                              ? dayjs(qt.NgayPhanPhoi).format("DD/MM/YYYY")
+                              : "N/A"}
+                          </Typography>
                         </TableCell>
                         <TableCell align="center">
                           <Stack
@@ -366,10 +451,51 @@ function DistributedToMePage() {
                             spacing={0.5}
                             justifyContent="center"
                           >
+                            {qt.FilePDF && (
+                              <Tooltip title="Có file PDF">
+                                <Chip
+                                  label="PDF"
+                                  size="small"
+                                  sx={{
+                                    bgcolor: "#e3f2fd",
+                                    color: "#1565c0",
+                                    fontWeight: 600,
+                                    height: 22,
+                                    fontSize: "0.7rem",
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
+                            {qt.FileWord && (
+                              <Tooltip title="Có file Word">
+                                <Chip
+                                  label="Word"
+                                  size="small"
+                                  sx={{
+                                    bgcolor: "#fff3e0",
+                                    color: "#e65100",
+                                    fontWeight: 600,
+                                    height: 22,
+                                    fontSize: "0.7rem",
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
+                          </Stack>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Stack
+                            direction="row"
+                            spacing={0.25}
+                            justifyContent="center"
+                          >
                             <Tooltip title="Xem chi tiết">
                               <IconButton
                                 size="small"
-                                onClick={() => handleViewDetail(qt._id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewDetail(qt._id);
+                                }}
                               >
                                 <Eye size={18} />
                               </IconButton>
@@ -377,11 +503,12 @@ function DistributedToMePage() {
                             <Tooltip title="Xem PDF">
                               <IconButton
                                 size="small"
-                                onClick={() =>
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   qt.FilePDF
                                     ? handleViewPDFFromCard(qt.FilePDF)
-                                    : handleOpenPDF(qt._id)
-                                }
+                                    : handleOpenPDF(qt._id);
+                                }}
                               >
                                 <DocumentText1 size={18} />
                               </IconButton>
@@ -394,9 +521,10 @@ function DistributedToMePage() {
                 </TableBody>
               </Table>
             </TableContainer>
+          </Paper>
         )}
 
-        {/* Pagination */}}
+        {/* Pagination */}
         {distributionPagination.totalPages > 1 && (
           <Box display="flex" justifyContent="center" mt={3}>
             <Pagination

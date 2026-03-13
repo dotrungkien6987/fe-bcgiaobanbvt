@@ -2,13 +2,11 @@ import { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
-  Container,
-  Typography,
   Box,
+  Card,
   Stack,
   TextField,
   InputAdornment,
-  Card,
   Table,
   TableBody,
   TableCell,
@@ -21,10 +19,12 @@ import {
   Pagination,
   Chip,
   Skeleton,
+  Typography,
   useMediaQuery,
   useTheme,
+  alpha,
 } from "@mui/material";
-import { SearchNormal1, Eye, DocumentText1, ArrowLeft } from "iconsax-react";
+import { SearchNormal1, Eye, DocumentText1 } from "iconsax-react";
 import { getBuiltByMyDept } from "./quyTrinhISOSlice";
 import { getISOKhoa } from "../Daotao/Khoa/khoaSlice";
 import DistributionChips from "./components/DistributionChips";
@@ -150,7 +150,7 @@ function BuiltByMyDeptPage() {
   // Calculate stats
   const totalCount = builtByMyDept.length;
   const totalDistributions = builtByMyDept.reduce(
-    (sum, qt) => sum + (qt.distributionCount || 0),
+    (sum, qt) => sum + (qt.KhoaPhanPhoi?.length || 0),
     0,
   );
   const newCount = builtByMyDept.filter((qt) => {
@@ -194,16 +194,36 @@ function BuiltByMyDeptPage() {
         <Box sx={{ px: 2, py: 1.5 }}>
           <Stack direction="row" spacing={4} justifyContent="space-around">
             <Box textAlign="center">
-              <Typography variant="h6" fontWeight={700} color="primary.main">{totalCount}</Typography>
-              <Typography variant="caption" color="text.secondary">Tổng QT</Typography>
+              <Typography variant="h6" fontWeight={700} color="primary.main">
+                {totalCount}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Tổng QT
+              </Typography>
             </Box>
             <Box textAlign="center">
-              <Typography variant="h6" fontWeight={700} sx={{ color: "info.main" }}>{totalDistributions}</Typography>
-              <Typography variant="caption" color="text.secondary">Phân phối</Typography>
+              <Typography
+                variant="h6"
+                fontWeight={700}
+                sx={{ color: "info.main" }}
+              >
+                {totalDistributions}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Phân phối
+              </Typography>
             </Box>
             <Box textAlign="center">
-              <Typography variant="h6" fontWeight={700} sx={{ color: "success.main" }}>{newCount}</Typography>
-              <Typography variant="caption" color="text.secondary">Mới (30d)</Typography>
+              <Typography
+                variant="h6"
+                fontWeight={700}
+                sx={{ color: "success.main" }}
+              >
+                {newCount}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Mới (30d)
+              </Typography>
             </Box>
           </Stack>
         </Box>
@@ -270,22 +290,48 @@ function BuiltByMyDeptPage() {
             </Stack>
           </Box>
         ) : (
-          <TableContainer component={Paper}>
-              <Table stickyHeader>
+          <Paper
+            sx={{
+              borderRadius: 2,
+              overflow: "hidden",
+              boxShadow: "0 2px 16px rgba(0,0,0,0.08)",
+            }}
+          >
+            <TableContainer>
+              <Table stickyHeader size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Mã QT</TableCell>
-                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Tên Quy Trình</TableCell>
-                    <TableCell sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Phiên bản</TableCell>
-                    <TableCell align="center" sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Phân Phối Cho</TableCell>
-                    <TableCell align="center" sx={{ bgcolor: "grey.50", fontWeight: 700 }}>Thao tác</TableCell>
+                    {[
+                      { label: "Mã QT", width: 120 },
+                      { label: "Tên Quy Trình" },
+                      { label: "Phiên bản", width: 90, align: "center" },
+                      { label: "Phân Phối Cho", width: 200, align: "center" },
+                      { label: "Files", width: 130, align: "center" },
+                      { label: "Thao tác", width: 100, align: "center" },
+                    ].map((col) => (
+                      <TableCell
+                        key={col.label}
+                        align={col.align || "left"}
+                        sx={{
+                          bgcolor: (t) => alpha(t.palette.primary.main, 0.04),
+                          fontWeight: 700,
+                          fontSize: "0.8rem",
+                          whiteSpace: "nowrap",
+                          borderBottom: "2px solid",
+                          borderBottomColor: "primary.main",
+                          ...(col.width && { width: col.width }),
+                        }}
+                      >
+                        {col.label}
+                      </TableCell>
+                    ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {distributionLoading ? (
                     [...Array(5)].map((_, i) => (
                       <TableRow key={i}>
-                        {[...Array(5)].map((_, j) => (
+                        {[...Array(6)].map((_, j) => (
                           <TableCell key={j}>
                             <Skeleton />
                           </TableCell>
@@ -294,7 +340,7 @@ function BuiltByMyDeptPage() {
                     ))
                   ) : builtByMyDept.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} align="center">
+                      <TableCell colSpan={6} align="center">
                         <Box
                           sx={{
                             py: 6,
@@ -319,30 +365,36 @@ function BuiltByMyDeptPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    builtByMyDept.map((qt) => (
+                    builtByMyDept.map((qt, idx) => (
                       <TableRow
                         key={qt._id}
                         hover
                         sx={{
-                          borderLeft: "4px solid transparent",
-                          transition: "all 0.2s",
                           cursor: "pointer",
+                          borderLeft: "4px solid transparent",
+                          transition: "all 0.15s ease",
+                          ...(idx % 2 === 1 && {
+                            bgcolor: (t) => alpha(t.palette.grey[500], 0.03),
+                          }),
                           "&:hover": {
                             borderLeftColor: "primary.main",
-                            bgcolor: "primary.50",
+                            bgcolor: (t) => alpha(t.palette.primary.main, 0.04),
                           },
                         }}
                         onClick={() => handleViewDetail(qt._id)}
                       >
                         <TableCell>
-                          <Typography fontWeight="bold">
+                          <Typography
+                            fontWeight={600}
+                            color="primary.main"
+                            fontSize="0.85rem"
+                          >
                             {qt.MaQuyTrinh}
                           </Typography>
                         </TableCell>
                         <TableCell>
                           <Typography
                             sx={{
-                              maxWidth: 300,
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                               whiteSpace: "nowrap",
@@ -351,8 +403,14 @@ function BuiltByMyDeptPage() {
                             {qt.TenQuyTrinh}
                           </Typography>
                         </TableCell>
-                        <TableCell>
-                          <Chip label={`v${qt.PhienBan}`} size="small" />
+                        <TableCell align="center">
+                          <Chip
+                            label={`v${qt.PhienBan}`}
+                            size="small"
+                            color="primary"
+                            variant="outlined"
+                            sx={{ height: 22, fontSize: "0.75rem" }}
+                          />
                         </TableCell>
                         <TableCell align="center">
                           <DistributionChips
@@ -366,10 +424,51 @@ function BuiltByMyDeptPage() {
                             spacing={0.5}
                             justifyContent="center"
                           >
+                            {qt.FilePDF && (
+                              <Tooltip title="Có file PDF">
+                                <Chip
+                                  label="PDF"
+                                  size="small"
+                                  sx={{
+                                    bgcolor: "#e3f2fd",
+                                    color: "#1565c0",
+                                    fontWeight: 600,
+                                    height: 22,
+                                    fontSize: "0.7rem",
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
+                            {qt.FileWord && (
+                              <Tooltip title="Có file Word">
+                                <Chip
+                                  label="Word"
+                                  size="small"
+                                  sx={{
+                                    bgcolor: "#fff3e0",
+                                    color: "#e65100",
+                                    fontWeight: 600,
+                                    height: 22,
+                                    fontSize: "0.7rem",
+                                  }}
+                                />
+                              </Tooltip>
+                            )}
+                          </Stack>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Stack
+                            direction="row"
+                            spacing={0.25}
+                            justifyContent="center"
+                          >
                             <Tooltip title="Xem chi tiết">
                               <IconButton
                                 size="small"
-                                onClick={() => handleViewDetail(qt._id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewDetail(qt._id);
+                                }}
                               >
                                 <Eye size={18} />
                               </IconButton>
@@ -377,11 +476,12 @@ function BuiltByMyDeptPage() {
                             <Tooltip title="Xem PDF">
                               <IconButton
                                 size="small"
-                                onClick={() =>
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   qt.FilePDF
                                     ? handleViewPDFFromCard(qt.FilePDF)
-                                    : handleOpenPDF(qt._id)
-                                }
+                                    : handleOpenPDF(qt._id);
+                                }}
                               >
                                 <DocumentText1 size={18} />
                               </IconButton>
@@ -394,9 +494,10 @@ function BuiltByMyDeptPage() {
                 </TableBody>
               </Table>
             </TableContainer>
+          </Paper>
         )}
 
-        {/* Pagination */}}
+        {/* Pagination */}
         {distributionPagination.totalPages > 1 && (
           <Box display="flex" justifyContent="center" mt={3}>
             <Pagination

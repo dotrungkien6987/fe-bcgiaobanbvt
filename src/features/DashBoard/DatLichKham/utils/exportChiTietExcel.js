@@ -35,6 +35,11 @@ const GRAND_TOTAL_FILL = {
   pattern: "solid",
   fgColor: { argb: "BDBDBD" },
 };
+const INVALID_ROW_FILL = {
+  type: "pattern",
+  pattern: "solid",
+  fgColor: { argb: "FFEBEE" }, // red tint for invalid rows
+};
 
 // ── Column definitions (maps to export columns) ───────────────────
 const COLUMNS = [
@@ -63,7 +68,7 @@ const COLUMNS = [
     width: 22,
     align: "left",
   },
-  { header: "Trạng thái", key: "status", width: 14, align: "center" },
+  { header: "Trạng thái", key: "status", width: 22, align: "center" },
   {
     header: "Mã hồ sơ bệnh án",
     key: "hosobenhancode",
@@ -172,7 +177,87 @@ export async function exportChiTietExcel({
   // ─── Row 2: Spacer ─────────────────────────────────────────────
   ws.addRow([]);
 
-  // ─── Row 3: Header ─────────────────────────────────────────────
+  // ─── Metrics: compute stats from data ──────────────────────────
+  const metricTongDL = data.length;
+  let metricCoKham = 0;
+  let metricKhongKham = 0;
+  let metricDvGe100k = 0;
+  let metricDvLt100k = 0;
+  let metricKham0d = 0;
+  let metricManTinh = 0;
+  data.forEach((r) => {
+    const st = Number(r.dangkykhamstatus);
+    const tt = Number(r.tong_tien || 0);
+    const dv = Number(r.tong_tien_dichvu || 0);
+    const isManTinh = !!danhSachManTinh[r.dangkykhamid];
+    if (st === 1) {
+      metricCoKham++;
+      if (dv >= 100000) metricDvGe100k++;
+      else if (tt > 0) metricDvLt100k++;
+      else metricKham0d++;
+    } else {
+      metricKhongKham++;
+    }
+    if (isManTinh) metricManTinh++;
+  });
+  const metricHopLe = metricDvGe100k - metricManTinh;
+
+  const METRICS = [
+    { label: "Tổng đặt lịch", value: metricTongDL, color: "1976D2", bg: "E3F2FD" },
+    { label: "Có khám", value: metricCoKham, color: "2E7D32", bg: "E8F5E9" },
+    { label: "Không khám", value: metricKhongKham, color: "D32F2F", bg: "FFEBEE" },
+    { label: "DV ≥ 100K", value: metricDvGe100k, color: "ED6C02", bg: "FFF3E0" },
+    { label: "DV < 100K", value: metricDvLt100k, color: "EF5350", bg: "FFEBEE" },
+    { label: "Khám 0Đ", value: metricKham0d, color: "757575", bg: "F5F5F5" },
+    { label: "Mãn tính", value: metricManTinh, color: "9C27B0", bg: "F3E5F5" },
+    { label: "Hợp lệ", value: metricHopLe, color: "0288D1", bg: "E1F5FE" },
+  ];
+
+  // Each metric takes 2 columns (merge). 8 metrics = 16 columns, fits in 18-col sheet.
+  const COLS_PER_METRIC = 2;
+
+  // Row 3: metric labels
+  const labelRow = ws.addRow([]);
+  labelRow.height = 18;
+  METRICS.forEach((m, i) => {
+    const startCol = i * COLS_PER_METRIC + 1;
+    const endCol = startCol + COLS_PER_METRIC - 1;
+    const cell = labelRow.getCell(startCol);
+    cell.value = m.label;
+    cell.font = { ...FONT_BOLD, size: 10, color: { argb: m.color } };
+    cell.alignment = ALIGN_CENTER;
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: m.bg } };
+    // Fill second cell with same bg
+    const cell2 = labelRow.getCell(endCol);
+    cell2.fill = { type: "pattern", pattern: "solid", fgColor: { argb: m.bg } };
+    if (endCol > startCol) {
+      ws.mergeCells(labelRow.number, startCol, labelRow.number, endCol);
+    }
+  });
+
+  // Row 4: metric values
+  const valueRow = ws.addRow([]);
+  valueRow.height = 24;
+  METRICS.forEach((m, i) => {
+    const startCol = i * COLS_PER_METRIC + 1;
+    const endCol = startCol + COLS_PER_METRIC - 1;
+    const cell = valueRow.getCell(startCol);
+    cell.value = m.value;
+    cell.font = { ...FONT_BOLD, size: 14, color: { argb: m.color } };
+    cell.alignment = ALIGN_CENTER;
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: m.bg } };
+    cell.numFmt = "#,##0";
+    const cell2 = valueRow.getCell(endCol);
+    cell2.fill = { type: "pattern", pattern: "solid", fgColor: { argb: m.bg } };
+    if (endCol > startCol) {
+      ws.mergeCells(valueRow.number, startCol, valueRow.number, endCol);
+    }
+  });
+
+  // Row 5: Spacer after metrics
+  ws.addRow([]);
+
+  // ─── Header row ────────────────────────────────────────────────
   const headerValues = COLUMNS.map((c) => c.header);
   const headerRow = ws.addRow(headerValues);
   headerRow.eachCell((cell) => {
@@ -275,6 +360,27 @@ export async function exportChiTietExcel({
       // Data rows for this NGT
       rows.forEach((r) => {
         stt++;
+        const st = Number(r.dangkykhamstatus);
+        const tt = Number(r.tong_tien || 0);
+        const dv = Number(r.tong_tien_dichvu || 0);
+        const isManTinh = !!danhSachManTinh[r.dangkykhamid];
+
+        // Determine detailed status text
+        let statusText;
+        if (st !== 1) {
+          statusText = "Không khám";
+        } else if (dv >= 100000) {
+          statusText = "Có khám - DV ≥ 100K";
+        } else if (tt > 0) {
+          statusText = "Có khám - DV < 100K";
+        } else {
+          statusText = "Có khám - 0Đ";
+        }
+
+        // Row is invalid if: không khám, DV < 100K, 0Đ, or mãn tính
+        const isInvalid =
+          st !== 1 || dv < 100000 || isManTinh;
+
         const rowValues = COLUMNS.map((col) => {
           if (col.key === "stt") return stt;
           if (col.key === "dangkykhaminitdate")
@@ -287,11 +393,9 @@ export async function exportChiTietExcel({
             if (raw === "02" || raw === 2) return "Nữ";
             return raw || "";
           }
-          if (col.key === "status")
-            return Number(r.dangkykhamstatus) === 1 ? "Có khám" : "Không khám";
-          if (col.key === "tong_tien") return Number(r.tong_tien || 0);
-          if (col.key === "mantinh")
-            return danhSachManTinh[r.dangkykhamid] ? "Có" : "";
+          if (col.key === "status") return statusText;
+          if (col.key === "tong_tien") return tt;
+          if (col.key === "mantinh") return isManTinh ? "Có" : "";
           return r[col.key] || "";
         });
         const dataRow = ws.addRow(rowValues);
@@ -300,6 +404,14 @@ export async function exportChiTietExcel({
 
         // Number format for Tổng tiền
         dataRow.getCell(TONG_TIEN_IDX + 1).numFmt = "#,##0";
+
+        // Highlight invalid rows with red tint
+        if (isInvalid) {
+          dataRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+            if (colNumber > TOTAL_COL_COUNT) return;
+            cell.fill = INVALID_ROW_FILL;
+          });
+        }
       });
     });
   });

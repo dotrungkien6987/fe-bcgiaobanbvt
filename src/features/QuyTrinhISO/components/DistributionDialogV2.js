@@ -485,11 +485,9 @@ function DistributionDialogV2({ open, onClose, quyTrinh }) {
     }
   }, [open]);
 
-  // Loai bo khoa xay dung
-  const khoaXayDungId = quyTrinh?.KhoaXayDungID?._id || quyTrinh?.KhoaXayDungID;
   const validKhoa = useMemo(() => {
-    return (allKhoa || []).filter((k) => k._id !== khoaXayDungId);
-  }, [allKhoa, khoaXayDungId]);
+    return allKhoa || [];
+  }, [allKhoa]);
 
   // Available khoa (chua chon)
   const availableKhoa = useMemo(() => {
