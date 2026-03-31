@@ -83,12 +83,14 @@ const COLUMNS = [
   { id: "ngt_departmentgroupname", label: "Khoa NGT", width: 130 },
   { id: "status", label: "Trạng thái", align: "center", width: 130 },
   { id: "chandoanravien", label: "Chẩn đoán", width: 200 },
+  { id: "makemtheo", label: "Mã kèm theo", width: 120 },
   { id: "vp_departmentgroupname", label: "Khoa khám", width: 130 },
   { id: "vp_departmentname", label: "Phòng khám", width: 130 },
   { id: "tong_tien", label: "Tổng tiền", align: "right", width: 110 },
   { id: "tong_tien_dichvu", label: "Tiền DV", align: "right", width: 110 },
   { id: "mantinh", label: "Mãn tính", align: "center", width: 80 },
   { id: "lichsu", label: "LS Khám", align: "center", width: 100 },
+  { id: "ghichu", label: "Ghi chú", width: 200 },
 ];
 
 function descendingComparator(a, b, orderBy) {
@@ -568,6 +570,22 @@ function ChiTietDatLichTable({
                         </Typography>
                       </Stack>
                     </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          maxWidth: 120,
+                          display: "block",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          fontFamily: "monospace",
+                        }}
+                        title={row.chandoanravien_kemtheo_code || ""}
+                      >
+                        {row.chandoanravien_kemtheo_code || "—"}
+                      </Typography>
+                    </TableCell>
                     <TableCell>{row.vp_departmentgroupname || "—"}</TableCell>
                     <TableCell>{row.vp_departmentname || "—"}</TableCell>
                     <TableCell align="right">
@@ -615,6 +633,21 @@ function ChiTietDatLichTable({
                           </Tooltip>
                         )}
                       </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          maxWidth: 200,
+                          display: "block",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                        title={danhSachManTinh[row.dangkykhamid]?.ghiChu || ""}
+                      >
+                        {danhSachManTinh[row.dangkykhamid]?.ghiChu || "—"}
+                      </Typography>
                     </TableCell>
                   </TableRow>
                 );

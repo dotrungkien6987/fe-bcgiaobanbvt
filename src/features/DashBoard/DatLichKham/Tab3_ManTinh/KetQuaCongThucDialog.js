@@ -1,5 +1,7 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +30,7 @@ import {
   CheckCircle as CheckIcon,
   Close as CloseIcon,
   History as HistoryIcon,
+  FileDownload as FileDownloadIcon,
 } from "@mui/icons-material";
 import dayjs from "dayjs";
 import { computeVariables } from "../utils/formulaVariables";
@@ -152,7 +155,27 @@ function KetQuaCongThucDialog({
       patientid_old: r.patientid_old,
       vienphiid: r.vienphiid,
       nguoigioithieuid: r.nguoigioithieuid,
-      ghiChu: `[Công thức: ${congThuc.tenCongThuc}] ${(r.stepResults || []).map((sr) => `[${sr.tenStep || sr.loaiStep}] ${sr.explanations.join(", ")}`).join(" → ")}`,
+      ghiChu: (() => {
+        const stepNote = (r.stepResults || [])
+          .map((sr, si) => `[${sr.tenStep || `B${si + 1}`}] ${sr.explanations.join(", ")}`)
+          .join(" → ");
+        const maxCount = r.variables?.maxLanXuatHienBenhManTinhTrongDS || 0;
+        let chronicNote = "";
+        if (maxCount > 0 && r.variables?.maBenhManTinhTrongDS) {
+          const parts = r.variables.maBenhManTinhTrongDS.split(", ");
+          for (const part of parts) {
+            const match = part.match(/^(.+?) \((\d+) lần\)$/);
+            if (match && parseInt(match[2], 10) === maxCount) {
+              chronicNote = ` | Mã ${match[1]} là mãn tính xuất hiện ${maxCount} lần`;
+              break;
+            }
+          }
+          if (!chronicNote) {
+            chronicNote = ` | ${r.variables.maBenhManTinhTrongDS}`;
+          }
+        }
+        return `[Công thức: ${congThuc.tenCongThuc}] ${stepNote}${chronicNote}`;
+      })(),
 
       snapshot: {
         patientname: r.patientname,
@@ -175,6 +198,94 @@ function KetQuaCongThucDialog({
       onClose();
     }
   }, [results, selected, congThuc, vong1Data, dispatch, onDone, onClose]);
+
+  // ─── Xuất Excel ───────────────────────────────────────────────
+  const handleExportExcel = useCallback(async () => {
+    const workbook = new ExcelJS.Workbook();
+    const ws = workbook.addWorksheet("KetQua");
+
+    // Header style
+    const headerFill = { type: "pattern", pattern: "solid", fgColor: { argb: "1939B7" } };
+    const headerFont = { name: "Times New Roman", size: 11, bold: true, color: { argb: "FFFFFF" } };
+    const thinBorder = { top: { style: "thin" }, left: { style: "thin" }, bottom: { style: "thin" }, right: { style: "thin" } };
+
+    // Columns
+    const cols = [
+      { header: "STT", key: "stt", width: 6 },
+      { header: "Mã BN", key: "patientid", width: 14 },
+      { header: "Bệnh nhân", key: "patientname", width: 22 },
+      { header: "Khoa khám", key: "khoa", width: 18 },
+      { header: "Phòng khám", key: "phong", width: 18 },
+      { header: "SL khám", key: "slKham", width: 8 },
+      { header: "Mã bệnh chính", key: "maChinh", width: 12 },
+      { header: "Mã MT", key: "maMT", width: 24 },
+      { header: "Diễn giải", key: "dienGiai", width: 40 },
+      { header: "LS Khám", key: "lsKham", width: 10 },
+      { header: "Trạng thái", key: "trangThai", width: 18 },
+      { header: "Ghi chú", key: "ghiChu", width: 45 },
+    ];
+
+    ws.columns = cols;
+    cols.forEach((col) => {
+      ws.getColumn(cols.indexOf(col) + 1).width = col.width;
+    });
+
+    // Header row
+    const headerRow = ws.addRow(cols.map((c) => c.header));
+    headerRow.eachCell((cell) => {
+      cell.fill = headerFill;
+      cell.font = headerFont;
+      cell.border = thinBorder;
+      cell.alignment = { horizontal: "center", vertical: "middle" };
+    });
+
+    // Data rows
+    results.forEach((r, idx) => {
+      const soLanKhamHienTai = r.variables?.soLanKham || 0;
+      const maxCount = r.variables?.maxLanXuatHienBenhManTinhTrongDS || 0;
+      let ghiChu = "";
+      if (maxCount > 0 && r.variables?.maBenhManTinhTrongDS) {
+        const parts = r.variables.maBenhManTinhTrongDS.split(", ");
+        for (const part of parts) {
+          const match = part.match(/^(.+?) \((\d+) lần\)$/);
+          if (match && parseInt(match[2], 10) === maxCount) {
+            ghiChu = `Mã ${match[1]} là mãn tính xuất hiện ${maxCount} lần`;
+            break;
+          }
+        }
+        if (!ghiChu) ghiChu = r.variables.maBenhManTinhTrongDS;
+      }
+      const dienGiai = (r.stepResults || [])
+        .map((sr, si) => `[${sr.tenStep || `B${si + 1}`}] ${sr.explanations.join(", ")}`)
+        .join("; ");
+
+      const row = ws.addRow({
+        stt: idx + 1,
+        patientid: r.patientid_old || "",
+        patientname: r.patientname || "",
+        khoa: r.vp_departmentgroupname || "",
+        phong: r.vp_departmentname || "",
+        slKham: soLanKhamHienTai,
+        maChinh: r.variables?.maBenhTrung_maxCode || r.chandoanravien_code || "",
+        maMT: r.variables?.maBenhManTinhTrongDS || "",
+        dienGiai,
+        lsKham: soLanKhamHienTai,
+        trangThai: r.isAlreadyMarked ? "Đã đánh dấu" : "Chưa đánh dấu",
+        ghiChu,
+      });
+
+      row.eachCell((cell) => {
+        cell.border = thinBorder;
+        cell.font = { name: "Times New Roman", size: 11 };
+      });
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    saveAs(blob, `KetQua_CongThuc_${congThuc.tenCongThuc}_${dayjs().format("DDMMYYYY_HHmmss")}.xlsx`);
+  }, [results, congThuc]);
 
   return (
     <Dialog open={open} onClose={onClose} fullScreen>
@@ -300,6 +411,9 @@ function KetQuaCongThucDialog({
                   <TableCell sx={{ fontWeight: "bold", width: 120 }}>
                     Mã bệnh chính
                   </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", width: 130 }} align="center">
+                    Mã MT
+                  </TableCell>
                   <TableCell sx={{ fontWeight: "bold" }}>Diễn giải</TableCell>
                   <TableCell
                     sx={{ fontWeight: "bold", width: 100 }}
@@ -312,6 +426,9 @@ function KetQuaCongThucDialog({
                     align="center"
                   >
                     Trạng thái
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: "bold", minWidth: 200 }}>
+                    Ghi chú
                   </TableCell>
                 </TableRow>
               </TableHead>
@@ -375,6 +492,16 @@ function KetQuaCongThucDialog({
                         ) : (
                           "—"
                         )}
+                      </TableCell>
+                      <TableCell align="center">
+                        {row.variables?.maBenhManTinhTrongDS ? (
+                          <Chip
+                            label={row.variables.maBenhManTinhTrongDS}
+                            size="small"
+                            color="secondary"
+                            variant="outlined"
+                          />
+                        ) : "—"}
                       </TableCell>
                       <TableCell>
                         <Stack spacing={0.5}>
@@ -447,6 +574,22 @@ function KetQuaCongThucDialog({
                           />
                         )}
                       </TableCell>
+                      <TableCell>
+                        {(() => {
+                          const maxCount = row.variables?.maxLanXuatHienBenhManTinhTrongDS || 0;
+                          if (maxCount > 0 && row.variables?.maBenhManTinhTrongDS) {
+                            const parts = row.variables.maBenhManTinhTrongDS.split(", ");
+                            for (const part of parts) {
+                              const match = part.match(/^(.+?) \((\d+) lần\)$/);
+                              if (match && parseInt(match[2], 10) === maxCount) {
+                                return `Mã ${match[1]} là mãn tính xuất hiện ${maxCount} lần`;
+                              }
+                            }
+                            return row.variables.maBenhManTinhTrongDS;
+                          }
+                          return "—";
+                        })()}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -475,6 +618,24 @@ function KetQuaCongThucDialog({
       </DialogContent>
 
       <DialogActions>
+        <Button
+          startIcon={<HistoryIcon />}
+          onClick={() => {
+            // TODO: lịch sử đánh dấu
+          }}
+          size="small"
+        >
+          LS đánh dấu
+        </Button>
+        <Button
+          variant="contained"
+          startIcon={<FileDownloadIcon />}
+          onClick={handleExportExcel}
+          disabled={results.length === 0}
+          size="small"
+        >
+          Xuất Excel
+        </Button>
         <Button onClick={onClose}>Đóng</Button>
       </DialogActions>
 

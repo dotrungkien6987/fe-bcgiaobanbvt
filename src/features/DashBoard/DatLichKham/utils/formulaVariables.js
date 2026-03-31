@@ -50,6 +50,14 @@ export const VARIABLE_DEFINITIONS = [
     viDu: "E11 (ĐTĐ type 2) ∈ DS mãn tính → true;  J18 (viêm phổi) ∉ DS → false",
     nhom: "hienTai",
   },
+  {
+    id: "maBenhManTinhTrongDS",
+    label: "Mã MT hiện tại + số lần trong lịch sử",
+    type: "string",
+    moTa: "Các mã ICD (CĐ chính + kèm) của lần khám hiện tại thuộc DS mãn tính, kèm số lần xuất hiện trong lịch sử. Nếu không có → chuỗi rỗng",
+    viDu: "DS: E11,E14. Mã hiện tại: [E11,E14,I10] → E11×4, E14×4 → 'E11 (4 lần), E14 (4 lần)'",
+    nhom: "hienTai",
+  },
   // ─── Nhóm: CĐ chính + DS mãn tính (lịch sử) ─────────────
   {
     id: "coMaBenhManTinh",
@@ -107,6 +115,14 @@ export const VARIABLE_DEFINITIONS = [
     type: "number",
     moTa: "Gộp CĐ chính + CĐ kèm theo, mỗi lần khám chỉ count tối đa 1 cho mỗi mã. Đếm xem mã nào xuất hiện ở nhiều lần khám nhất",
     viDu: "E11(ln1chính,ln2kèm,ln3chính), K29(ln4chính), I10(ln2kèm,ln5kèm) ∈ DS → = 3",
+    nhom: "dsMT_ketHop",
+  },
+  {
+    id: "maxLanXuatHienBenhManTinhTrongDS",
+    label: "Số lần xuất hiện — max của mã thuộc DS mãn tính",
+    type: "number",
+    moTa: "Lấy các mã bệnh (CĐ chính + kèm) của lần khám hiện tại ∈ DS mãn tính. Đếm tổng số lần xuất hiện của mỗi mã trong toàn bộ lịch sử (mỗi lần khám count tối đa 1 cho mỗi mã), trả về giá trị lớn nhất",
+    viDu: "DS mãn tính: E11, E14. Mã hiện tại: [E11,E14,I10] → lọc [E11,E14]. E11×4, E14×4, I10×2 → = 4",
     nhom: "dsMT_ketHop",
   },
   // ─── Nhóm: CĐ kèm theo + DS mãn tính (lịch sử) ──────────
@@ -195,6 +211,7 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
   const currentPrimaryCode = (patient?.chandoanravien_code || "")
     .toUpperCase()
     .trim();
+  const kemTheoCodesCurrentVisit = parseKemTheoCodes(patient?.chandoanravien_kemtheo_code);
 
   // ─── Đếm tần suất mã ICD chính ───────────────────────────
   const icdCount = {};
@@ -274,10 +291,14 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
   // ─── Biến mã bệnh MT trùng nhau ──────────────────────────
   let maxLanTrungMaBenhManTinh_Chinh = 0;
   let maxLanTrungMaBenhManTinh_BatKy = 0;
+  let maxLanXuatHienBenhManTinhTrongDS = 0;
 
   // ─── Biến DS mãn tính — kết hợp ───────────────────────────
   let coMaBenhManTinh_BatKy = false;
   let soLanMaBenhManTinh_BatKy = 0;
+
+  // ─── Biến mã MT hiện tại trong DS ────────────────────────
+  let maBenhManTinhTrongDS = "";
 
   // ─── Biến đa bệnh mãn tính ────────────────────────────────
   const distinctChronicPrimaryCodes = new Set();
@@ -325,6 +346,25 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
       }
     });
 
+    // maBenhManTinhTrongDS: mã hiện tại ∈ DS, kèm số lần xuất hiện trong lịch sử
+    const chronicCodesCurrent = [];
+    if (currentPrimaryCode && chronicCodeSet.has(currentPrimaryCode)) {
+      chronicCodesCurrent.push(currentPrimaryCode);
+    }
+    kemTheoCodesCurrentVisit
+      .filter((c) => chronicCodeSet.has(c))
+      .forEach((c) => {
+        if (!chronicCodesCurrent.includes(c)) chronicCodesCurrent.push(c);
+      });
+
+    if (chronicCodesCurrent.length > 0) {
+      const parts = chronicCodesCurrent.map((code) => {
+        const count = batKyMtCount[code] || 0;
+        return `${code} (${count} lần)`;
+      });
+      maBenhManTinhTrongDS = parts.join(", ");
+    }
+
     // maxLanTrungMaBenhManTinh_Chinh: mã MT theo CĐ chính xuất hiện nhiều nhất
     Object.values(chinhMtCount).forEach((count) => {
       if (count > maxLanTrungMaBenhManTinh_Chinh) {
@@ -338,6 +378,37 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
         maxLanTrungMaBenhManTinh_BatKy = count;
       }
     });
+
+    // maxLanXuatHienBenhManTinhTrongDS:
+    // 1. Lấy mã bệnh hiện tại (CĐ chính + kèm), lọc ∈ DS mãn tính
+    // 2. Đếm số lần xuất hiện của mỗi mã đó trong toàn bộ lịch sử
+    // 3. Trả về max
+    const currentVisitChronicCodes = new Set();
+    if (currentPrimaryCode && chronicCodeSet.has(currentPrimaryCode)) {
+      currentVisitChronicCodes.add(currentPrimaryCode);
+    }
+    kemTheoCodesCurrentVisit.forEach((c) => {
+      if (chronicCodeSet.has(c)) currentVisitChronicCodes.add(c);
+    });
+
+    if (currentVisitChronicCodes.size > 0) {
+      const historyCount = {};
+      lichSu.forEach((visit) => {
+        const histPrimary = (visit.chandoanravien_code || "").toUpperCase().trim();
+        const histKemTheo = parseKemTheoCodes(visit.chandoanravien_kemtheo_code);
+        const histAll = new Set([histPrimary, ...histKemTheo]);
+        currentVisitChronicCodes.forEach((code) => {
+          if (histAll.has(code)) {
+            historyCount[code] = (historyCount[code] || 0) + 1;
+          }
+        });
+      });
+      Object.values(historyCount).forEach((count) => {
+        if (count > maxLanXuatHienBenhManTinhTrongDS) {
+          maxLanXuatHienBenhManTinhTrongDS = count;
+        }
+      });
+    }
 
     // Đếm liên tục CĐ chính thuộc DS MT từ lần gần nhất
     for (let i = 0; i < lichSu.length; i++) {
@@ -366,6 +437,7 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
     // Lần khám hiện tại
     maBenhChinhMoi,
     maBenhChinhHienTai_TrongDSManTinh,
+    maBenhManTinhTrongDS,
     // DS mãn tính — CĐ chính
     coMaBenhManTinh,
     soLanMaBenhManTinh,
@@ -381,5 +453,6 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
     soLanMaBenhManTinh_BatKy,
     tiLeMaBenhManTinh_BatKy,
     maxLanTrungMaBenhManTinh_BatKy,
+    maxLanXuatHienBenhManTinhTrongDS,
   };
 }

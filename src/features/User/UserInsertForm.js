@@ -135,6 +135,16 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
       label: "Số thứ tự bệnh nhân",
       icon: <MedicalInformationIcon />,
     },
+    {
+      value: "BQBA",
+      label: "Bình quân bệnh án",
+      icon: <MedicalInformationIcon />,
+    },
+    {
+      value: "DICHVUTRUNG",
+      label: "Dịch vụ trùng",
+      icon: <MedicalInformationIcon />,
+    },
   ];
 
   const theme = useTheme();

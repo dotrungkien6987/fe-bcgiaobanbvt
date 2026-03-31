@@ -77,6 +77,7 @@ const COLUMNS = [
   },
   { header: "Chẩn đoán", key: "chandoanravien", width: 28, align: "left" },
   { header: "Mã ICD", key: "chandoanravien_code", width: 10, align: "left" },
+  { header: "Mã kèm theo", key: "makemtheo", width: 14, align: "left" },
   {
     header: "Khoa khám",
     key: "vp_departmentgroupname",
@@ -92,6 +93,7 @@ const COLUMNS = [
     numeric: true,
   },
   { header: "Mãn tính", key: "mantinh", width: 10, align: "center" },
+  { header: "Ghi chú", key: "ghichu", width: 40, align: "left" },
 ];
 
 const TOTAL_COL_COUNT = COLUMNS.length;
@@ -123,7 +125,7 @@ function addSummaryRow(ws, label, tongTien, count, fill, fontOverride) {
   const values = new Array(TOTAL_COL_COUNT).fill("");
   values[0] = label;
   values[TONG_TIEN_IDX] = tongTien;
-  values[TOTAL_COL_COUNT - 1] = ""; // Mãn tính col — leave empty
+  values[TOTAL_COL_COUNT - 1] = ""; // Ghi chú col — leave empty
 
   const row = ws.addRow(values);
   const rowNum = row.number;
@@ -425,6 +427,8 @@ export async function exportChiTietExcel({
           if (col.key === "status") return statusText;
           if (col.key === "tong_tien") return tt;
           if (col.key === "mantinh") return isManTinh ? "Có" : "";
+          if (col.key === "makemtheo") return r.chandoanravien_kemtheo_code || "";
+          if (col.key === "ghichu") return danhSachManTinh[r.dangkykhamid]?.ghiChu || "";
           return r[col.key] || "";
         });
         const dataRow = ws.addRow(rowValues);
