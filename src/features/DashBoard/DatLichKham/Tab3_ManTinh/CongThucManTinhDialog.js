@@ -98,7 +98,7 @@ function QuickGuidePanel() {
       >
         <HelpIcon fontSize="small" color="info" />
         <Typography variant="subtitle2" sx={{ flex: 1 }}>
-          Hướng dẫn nhanh: Cách xây dựng công thức
+          Hướng dẫn: Cách xây dựng công thức lọc
         </Typography>
         <ExpandMoreIcon
           sx={{
@@ -108,63 +108,167 @@ function QuickGuidePanel() {
         />
       </Box>
       <Collapse in={expanded}>
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
-            Pipeline là gì?
-          </Typography>
-          <Typography
-            variant="caption"
-            component="div"
-            sx={{ mb: 1.5, lineHeight: 1.8 }}
-          >
-            Công thức gồm nhiều <b>bước</b> nối tiếp nhau. Mỗi bệnh nhân sẽ đi
-            qua từng bước theo thứ tự. Nếu bị loại ở bước nào thì dừng, không
-            xét tiếp.
+        <Box sx={{ px: 2, py: 2 }}>
+
+          {/* ── Sơ đồ luồng Pipeline ── */}
+          <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 700, color: "text.primary" }}>
+            1. Công thức hoạt động như dây chuyền lọc từng bước
           </Typography>
 
-          <Stack direction="row" spacing={2} sx={{ mb: 1.5 }}>
-            <Box sx={{ flex: 1 }}>
-              <Chip label="Lọc" size="small" color="primary" sx={{ mb: 0.5 }} />
-              <Typography
-                variant="caption"
-                component="div"
-                sx={{ lineHeight: 1.7 }}
-              >
-                <b>Giữ lại</b> bệnh nhân thỏa điều kiện.
-                <br />
-                VD: Số lần khám ≥ 3
+          {/* Flow diagram */}
+          <Paper variant="outlined" sx={{ p: 1.5, mb: 2, bgcolor: "grey.50", overflow: "hidden" }}>
+            <Stack direction="row" spacing={0.5} alignItems="center" justifyContent="center" flexWrap="wrap" useFlexGap>
+              {[
+                { label: "BN đặt lịch", bg: "grey.100", color: "default" },
+                { label: "Bước 1", bg: "primary.100", color: "primary" },
+                { label: "Bước 2", bg: "primary.100", color: "primary" },
+                { label: "Bước 3", bg: "error.50", color: "error" },
+                { label: "Kết quả", bg: "success.50", color: "success" },
+              ].map((item, idx, arr) => (
+                <React.Fragment key={idx}>
+                  <Chip
+                    label={item.label}
+                    size="small"
+                    color={item.color}
+                    sx={{ bgcolor: item.bg, fontWeight: idx === 0 || idx === arr.length - 1 ? 700 : 400 }}
+                  />
+                  {idx < arr.length - 1 && (
+                    <ArrowIcon fontSize="small" sx={{ color: "text.disabled" }} />
+                  )}
+                </React.Fragment>
+              ))}
+            </Stack>
+            <Typography variant="caption" color="text.secondary" sx={{ display: "block", textAlign: "center", mt: 0.5 }}>
+              BN đi qua từng bước theo thứ tự. Bị loại ở bước nào → <b>dừng ngay</b>, không xét tiếp.
+            </Typography>
+          </Paper>
+
+          {/* ── 2 loại bước ── */}
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+            2. Hai loại bước trong công thức
+          </Typography>
+
+          <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+            <Paper
+              variant="outlined"
+              sx={{ flex: 1, p: 1.5, borderColor: "primary.main", borderWidth: 2 }}
+            >
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
+                <Chip label="Bước Lọc" size="small" color="primary" sx={{ fontWeight: 700 }} />
+                <Typography variant="caption" color="primary.main">✓ GIỮ LẠI</Typography>
+              </Stack>
+              <Typography variant="caption" component="div" sx={{ lineHeight: 1.7, color: "text.secondary" }}>
+                Bệnh nhân phải <b>thỏa mãn</b> điều kiện bên trong mới được qua bước tiếp theo.
               </Typography>
-            </Box>
-            <Box sx={{ flex: 1 }}>
-              <Chip
-                label="Loại trừ"
-                size="small"
-                color="error"
-                sx={{ mb: 0.5 }}
-              />
-              <Typography
-                variant="caption"
-                component="div"
-                sx={{ lineHeight: 1.7 }}
-              >
-                <b>Loại bỏ</b> bệnh nhân khớp điều kiện.
-                <br />
-                VD: Có mã Z76 → loại
+              <Box sx={{ mt: 1, p: 1, bgcolor: "primary.50", borderRadius: 1, border: "1px dashed", borderColor: "primary.light" }}>
+                <Typography variant="caption" sx={{ fontFamily: "monospace", fontSize: "0.75rem" }}>
+                  <b>Ví dụ:</b> soLanKham ≥ 2
+                  <br />→ Giữ lại BN khám từ 2 lần trở lên
+                  <br />→ Loại BN khám 1 lần
+                </Typography>
+              </Box>
+            </Paper>
+
+            <Paper
+              variant="outlined"
+              sx={{ flex: 1, p: 1.5, borderColor: "error.main", borderWidth: 2 }}
+            >
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
+                <Chip label="Bước Loại trừ" size="small" color="error" sx={{ fontWeight: 700 }} />
+                <Typography variant="caption" color="error.main">✗ LOẠI BỎ</Typography>
+              </Stack>
+              <Typography variant="caption" component="div" sx={{ lineHeight: 1.7, color: "text.secondary" }}>
+                Bệnh nhân nào <b>khớp</b> điều kiện bên trong sẽ bị <b>loại bỏ</b> khỏi danh sách.
               </Typography>
-            </Box>
+              <Box sx={{ mt: 1, p: 1, bgcolor: "error.50", borderRadius: 1, border: "1px dashed", borderColor: "error.light" }}>
+                <Typography variant="caption" sx={{ fontFamily: "monospace", fontSize: "0.75rem" }}>
+                  <b>Ví dụ:</b> maBenhChinhMoi == true
+                  <br />→ Loại BN có mã bệnh hoàn toàn mới
+                  <br />→ Giữ BN có mã đã từng gặp
+                </Typography>
+              </Box>
+            </Paper>
           </Stack>
 
-          <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 600 }}>
-            VÀ / HOẶC
+          {/* ── VÀ / HOẶC ── */}
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+            3. Kết hợp nhiều điều kiện với VÀ / HOẶC
           </Typography>
-          <Typography
-            variant="caption"
-            component="div"
-            sx={{ lineHeight: 1.8 }}
-          >
-            <b>VÀ</b> = tất cả điều kiện phải đúng &nbsp;|&nbsp; <b>HOẶC</b> =
-            chỉ cần 1 điều kiện đúng
+
+          <Paper variant="outlined" sx={{ p: 1.5, mb: 2, bgcolor: "grey.50" }}>
+            <Stack direction="row" spacing={3}>
+              <Box>
+                <Chip label="VÀ" size="small" color="primary" sx={{ fontWeight: 700, mb: 0.5 }} />
+                <Typography variant="caption" component="div" sx={{ lineHeight: 1.7 }}>
+                  <b>Tất cả</b> điều kiện phải đúng
+                  <br />→ Giống "đủ cả" (AND)
+                  <br />
+                  <br /><b>Ví dụ:</b> soLanKham ≥ 2 <b style={{color:"#1976d2"}}>VÀ</b> tiLeMaBenhManTinh ≥ 50
+                  <br />→ BN phải thỏa <b>cả 2</b> mới qua
+                </Typography>
+              </Box>
+              <Divider orientation="vertical" flexItem />
+              <Box>
+                <Chip label="HOẶC" size="small" color="warning" sx={{ fontWeight: 700, mb: 0.5 }} />
+                <Typography variant="caption" component="div" sx={{ lineHeight: 1.7 }}>
+                  Chỉ cần <b>1</b> điều kiện đúng là đủ
+                  <br />→ Giống "ít nhất 1 trong số" (OR)
+                  <br />
+                  <br /><b>Ví dụ:</b> soLanKham ≥ 2 <b style={{color:"#ed6c02"}}>HOẶC</b> tiLeMaBenhManTinh ≥ 50
+                  <br />→ BN khám ≥2 lần <b>HOẶC</b> ≥50% có mã MT → qua
+                </Typography>
+              </Box>
+            </Stack>
+          </Paper>
+
+          {/* ── Ví dụ thực tế ── */}
+          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
+            4. Ví dụ thực tế: Công thức phát hiện BN mãn tính
           </Typography>
+
+          <Paper variant="outlined" sx={{ p: 1.5, bgcolor: "grey.50" }}>
+            <Stack spacing={1}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Chip label="Bước 1" size="small" color="primary" />
+                <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                  Lọc — Tần suất tối thiểu
+                </Typography>
+              </Stack>
+              <Typography variant="caption" sx={{ pl: 4.5, fontFamily: "monospace", fontSize: "0.75rem", color: "text.secondary" }}>
+                soLanKham ≥ 2
+              </Typography>
+              <Typography variant="caption" sx={{ pl: 4.5, fontSize: "0.72rem", color: "text.disabled" }}>
+                → Loại BN chỉ khám 1 lần (chưa đủ tần suất)
+              </Typography>
+
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Chip label="Bước 2" size="small" color="primary" />
+                <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                  Lọc — Dấu hiệu mãn tính
+                </Typography>
+              </Stack>
+              <Typography variant="caption" sx={{ pl: 4.5, fontFamily: "monospace", fontSize: "0.75rem", color: "text.secondary" }}>
+                soLanMaBenhManTinh ≥ 1 <span style={{color:"#ed6c02"}}>HOẶC</span> tiLeMaBenhManTinh ≥ 50 <span style={{color:"#ed6c02"}}>HOẶC</span> soLanLienTucMaBenhManTinh ≥ 2
+              </Typography>
+              <Typography variant="caption" sx={{ pl: 4.5, fontSize: "0.72rem", color: "text.disabled" }}>
+                → Giữ lại BN có ít nhất 1 dấu hiệu mãn tính
+              </Typography>
+
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Chip label="Bước 3" size="small" color="error" />
+                <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                  Loại trừ — Tín hiệu yếu
+                </Typography>
+              </Stack>
+              <Typography variant="caption" sx={{ pl: 4.5, fontFamily: "monospace", fontSize: "0.75rem", color: "text.secondary" }}>
+                maBenhChinhMoi == true <span style={{color:"#1976d2"}}>VÀ</span> soLanMaBenhManTinh_BatKy ≤ 1
+              </Typography>
+              <Typography variant="caption" sx={{ pl: 4.5, fontSize: "0.72rem", color: "text.disabled" }}>
+                → Loại BN mã bệnh hoàn toàn mới + chưa từng có mã MT → có thể là bệnh mới, chưa chắc mãn tính
+              </Typography>
+            </Stack>
+          </Paper>
+
         </Box>
       </Collapse>
     </Paper>
@@ -727,58 +831,128 @@ function StepArrow({ onAddStep }) {
 
 // ─── Variable reference dialog ──────────────────────────────
 
-function VariableReferenceDialog({ open, onClose }) {
+// ── Helper: ví dụ block ──────────────────────────────────────
+function ViDuBlock({ viDu }) {
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
+    <Paper
+      component="pre"
+      sx={{
+        bgcolor: "grey.50",
+        p: 0.75,
+        pl: 1.5,
+        borderRadius: 1,
+        border: "1px solid",
+        borderColor: "divider",
+        fontSize: "0.72rem",
+        fontFamily: "monospace",
+        whiteSpace: "pre-wrap",
+        mb: 0,
+        overflow: "hidden",
+      }}
+    >
+      <Typography
+        component="span"
+        variant="caption"
+        sx={{ fontFamily: "inherit", fontSize: "inherit" }}
+      >
+        <Box component="span" sx={{ color: "text.disabled", fontWeight: 600 }}>
+          VD:{" "}
+        </Box>
+        {viDu}
+      </Typography>
+    </Paper>
+  );
+}
+
+// ── Helper: 1 card biến số ──────────────────────────────────
+function VariableCard({ variable, stt, viDu }) {
+  return (
+    <Paper variant="outlined" sx={{ mb: 1, p: 1.5 }}>
+      {/* Row 1: STT + type badge + label */}
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+        <Typography
+          variant="caption"
+          sx={{
+            fontWeight: 700,
+            fontSize: "0.7rem",
+            minWidth: 24,
+            height: 20,
+            lineHeight: "20px",
+            textAlign: "center",
+            bgcolor: "grey.200",
+            borderRadius: "4px",
+            px: 0.5,
+            flexShrink: 0,
+          }}
         >
-          <Typography variant="h6">
-            Danh sách biến số ({VARIABLE_DEFINITIONS.length} biến)
-          </Typography>
+          {stt}
+        </Typography>
+        <Chip
+          label={variable.type === "boolean" ? "Có/Không" : "Số"}
+          size="small"
+          color={variable.type === "boolean" ? "info" : "default"}
+          sx={{ fontWeight: 600, fontSize: "0.65rem", flexShrink: 0 }}
+        />
+        <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>
+          {variable.label}
+        </Typography>
+      </Stack>
+      {/* Row 2: mô tả */}
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ display: "block", mb: 0.75, pl: 8.5 }}
+      >
+        {variable.moTa}
+      </Typography>
+      {/* Row 3: ví dụ */}
+      {viDu ? <ViDuBlock viDu={viDu} /> : null}
+    </Paper>
+  );
+}
+
+function VariableReferenceDialog({ open, onClose }) {
+  // Build flat list of { group, variable, stt } — no IIFE, no nested JSX
+  let sttCounter = 0;
+  const flatItems = [];
+  VARIABLE_GROUPS.forEach((group) => {
+    const vars = VARIABLE_DEFINITIONS.filter((v) => v.nhom === group.key);
+    vars.forEach((variable) => {
+      sttCounter++;
+      flatItems.push({ group, variable, stt: sttCounter });
+    });
+  });
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography variant="h6">Danh sách biến số</Typography>
+            <Chip label={`${VARIABLE_DEFINITIONS.length} biến`} size="small" color="primary" />
+          </Stack>
           <IconButton size="small" onClick={onClose}>
             <CloseIcon />
           </IconButton>
         </Stack>
       </DialogTitle>
-      <DialogContent dividers>
-        {VARIABLE_GROUPS.map((group) => {
-          const vars = VARIABLE_DEFINITIONS.filter((v) => v.nhom === group.key);
-          if (!vars.length) return null;
-          return (
-            <Box key={group.key} sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="primary" sx={{ mb: 0.5 }}>
-                {group.label}
-              </Typography>
-              {vars.map((v) => (
-                <Stack
-                  key={v.id}
-                  direction="row"
-                  spacing={1}
-                  alignItems="baseline"
-                  sx={{ pl: 1, py: 0.25 }}
-                >
-                  <Chip
-                    label={v.type === "boolean" ? "Có/Không" : "Số"}
-                    size="small"
-                    color={v.type === "boolean" ? "info" : "default"}
-                    variant="outlined"
-                    sx={{ fontSize: "0.65rem", minWidth: 70 }}
-                  />
-                  <Typography variant="body2" fontWeight={500}>
-                    {v.label}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    — {v.moTa}
-                  </Typography>
-                </Stack>
-              ))}
-            </Box>
-          );
-        })}
+      <DialogContent dividers sx={{ overflow: "auto", maxHeight: "80vh" }}>
+        <Stack spacing={3}>
+          {VARIABLE_GROUPS.map((group) => {
+            const groupItems = flatItems.filter((item) => item.group === group);
+            if (groupItems.length === 0) return null;
+            return (
+              <Box key={group.key}>
+                <Typography variant="subtitle2" color="primary" sx={{ mb: 1, fontWeight: 700 }}>
+                  {group.label}
+                </Typography>
+                {groupItems.map((item) => (
+                  <VariableCard key={item.variable.id} variable={item.variable} stt={item.stt} viDu={item.variable.viDu} />
+                ))}
+              </Box>
+            );
+          })}
+        </Stack>
       </DialogContent>
     </Dialog>
   );

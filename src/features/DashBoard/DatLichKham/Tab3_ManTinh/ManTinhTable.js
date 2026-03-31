@@ -47,6 +47,7 @@ import {
   createManTinh,
   deleteManTinh,
   batchCreateManTinh,
+  batchCreateManTinhChunked,
   batchDeleteManTinh,
   fetchDanhSachManTinh,
   fetchMaBenhManTinh,
@@ -285,8 +286,8 @@ function ManTinhTable({
             dangkykhamdate: r.dangkykhamdate,
           },
         }));
-      const ok = await dispatch(batchCreateManTinh(items));
-      if (ok) {
+      const ok = await dispatch(batchCreateManTinhChunked(items));
+      if (ok !== false) {
         // Re-fetch mantinh list to sync state
         const allVong1Ids = vong1Data.map((r) => r.dangkykhamid);
         dispatch(fetchDanhSachManTinh(allVong1Ids));

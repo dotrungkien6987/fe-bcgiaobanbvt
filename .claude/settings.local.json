@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat /d/project/webBV/fe-bcgiaobanbvt/docs/UNIFIED_PLAN_2026/*.md)",
+      "Bash(python3 -c \":*)",
+      "Bash(node -e \":*)",
+      "Bash(node -e \"var fs=require\\(''fs''\\);var p=''d:/project/webBV/fe-bcgiaobanbvt/src/features/DashBoard/DatLichKham/Tab3_ManTinh/CongThucManTinhDialog.js'';var l=fs.readFileSync\\(p,''utf8''\\).split\\(''\\\\n''\\);for\\(var i=927;i<955;i++\\){console.log\\(\\(i+1\\)+'': ''+JSON.stringify\\(l[i]\\)\\);}\")",
+      "Bash(npm run:*)",
+      "Bash(npx react-scripts:*)",
+      "Bash(node -e \"var fs=require\\(''fs''\\);var p=''d:/project/webBV/fe-bcgiaobanbvt/src/features/DashBoard/DatLichKham/Tab3_ManTinh/CongThucManTinhDialog.js'';var l=fs.readFileSync\\(p,''utf8''\\).split\\(''\\\\n''\\);for\\(var i=856;i<954;i++\\){console.log\\(\\(i+1\\)+'':|''+l[i]+''|''\\);}\")",
+      "Bash(node -e \"var fs=require\\(''fs''\\);var p=''d:/project/webBV/fe-bcgiaobanbvt/src/features/DashBoard/DatLichKham/Tab3_ManTinh/CongThucManTinhDialog.js'';var l=fs.readFileSync\\(p,''utf8''\\).split\\(''\\\\n''\\);for\\(var i=905;i<915;i++\\){console.log\\(\\(i+1\\)+'':|''+l[i]+''|''\\);}\")"
+    ]
+  }
+}

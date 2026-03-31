@@ -13,109 +13,142 @@ export const VARIABLE_DEFINITIONS = [
     id: "soLanKham",
     label: "Số lần khám trong năm",
     type: "number",
-    moTa: "Tổng số lần khám trong 1 năm gần nhất",
+    moTa: "Tổng số lần khám trong 1 năm gần nhất (đếm từ lịch sử khám)",
+    viDu: "BN khám 5 lần → soLanKham = 5",
     nhom: "chung",
   },
   {
     id: "maBenhTrung_max",
     label: "Số lần mã bệnh chính trùng nhiều nhất",
     type: "number",
-    moTa: "Mã ICD chẩn đoán chính xuất hiện nhiều nhất — đếm số lần",
+    moTa: "Đếm số lần xuất hiện (ở CĐ chính) của mã ICD được lặp lại nhiều nhất. Mỗi lần khám chỉ tính 1 cho mỗi mã",
+    viDu: "E11×3, K29×1, I10×2 → maBenhTrung_max = 3 (của E11)",
     nhom: "chung",
   },
   {
     id: "soLanLienTuc",
-    label: "Số lần liên tục cùng mã bệnh chính (gần nhất)",
+    label: "Số lần liên tục cùng mã CĐ chính (từ gần nhất)",
     type: "number",
-    moTa: "Từ lần khám gần nhất, đếm liên tục cùng 1 mã ICD chẩn đoán chính",
+    moTa: "Từ lần khám gần nhất, đếm số lần liên tiếp có cùng mã ICD CĐ chính. Gặp mã khác → dừng đếm",
+    viDu: "Lần 1:E11, Lần 2:E11, Lần 3:E11, Lần 4:K29 → soLanLienTuc = 3",
     nhom: "chung",
   },
   // ─── Nhóm: Lần khám hiện tại ─────────────────────────────
   {
     id: "maBenhChinhMoi",
-    label: "Mã bệnh chính lần này là MỚI",
+    label: "Mã CĐ chính lần này là MỚI",
     type: "boolean",
-    moTa: "Mã CĐ chính lần khám hiện tại chưa từng xuất hiện trong lịch sử (cả CĐ chính + kèm theo)",
+    moTa: "Mã CĐ chính của lần khám hiện tại CHƯA TỪNG xuất hiện ở bất kỳ lần khám nào trong lịch sử (cả CĐ chính lẫn CĐ kèm theo)",
+    viDu: "Lần 5 khám với E11, trước đó chưa từng có E11 → true (E11 là mới)",
     nhom: "hienTai",
   },
   {
     id: "maBenhChinhHienTai_TrongDSManTinh",
-    label: "Mã bệnh chính lần này thuộc DS mãn tính",
+    label: "Mã CĐ chính lần này thuộc DS mãn tính",
     type: "boolean",
-    moTa: "Mã CĐ chính lần khám hiện tại có nằm trong danh sách mã bệnh mãn tính",
+    moTa: "Mã ICD CĐ chính của lần khám hiện tại có nằm trong danh sách mã bệnh mãn tính đã cấu hình hay không",
+    viDu: "E11 (ĐTĐ type 2) ∈ DS mãn tính → true;  J18 (viêm phổi) ∉ DS → false",
     nhom: "hienTai",
   },
   // ─── Nhóm: CĐ chính + DS mãn tính (lịch sử) ─────────────
   {
     id: "coMaBenhManTinh",
-    label: "Có mã bệnh chính thuộc DS mãn tính (lịch sử)",
+    label: "Có mã CĐ chính thuộc DS mãn tính",
     type: "boolean",
-    moTa: "Bất kỳ lần khám nào có mã ICD chẩn đoán chính thuộc DS mãn tính",
+    moTa: "Bất kỳ lần khám nào trong lịch sử có mã ICD CĐ chính nằm trong DS mãn tính",
+    viDu: "Lần 2 CĐ chính = E11 (∈ DS) → true",
     nhom: "dsMT_chinh",
   },
   {
     id: "soLanMaBenhManTinh",
-    label: "Số lần có mã bệnh chính thuộc DS mãn tính",
+    label: "Số lần CĐ chính thuộc DS mãn tính",
     type: "number",
-    moTa: "Đếm số lần khám mà mã ICD chẩn đoán chính thuộc DS mãn tính",
+    moTa: "Đếm số lần khám mà mã ICD CĐ chính nằm trong DS mãn tính",
+    viDu: "Lần 2:E11, Lần 3:E11, Lần 5:E11 ∈ DS → soLanMaBenhManTinh = 3",
     nhom: "dsMT_chinh",
   },
   {
     id: "tiLeMaBenhManTinh",
-    label: "Tỷ lệ % mã bệnh chính thuộc DS mãn tính",
+    label: "Tỷ lệ % CĐ chính thuộc DS mãn tính",
     type: "number",
-    moTa: "(Số lần mã bệnh chính MT / Tổng lần khám) × 100",
+    moTa: "(Số lần CĐ chính ∈ DS / Tổng lần khám) × 100",
+    viDu: "3/5 lần có E11 ∈ DS → tiLeMaBenhManTinh = 60",
     nhom: "dsMT_chinh",
   },
   {
     id: "soLanLienTucMaBenhManTinh",
-    label: "Số lần liên tục gần nhất CĐ chính thuộc DS mãn tính",
+    label: "Số lần liên tục CĐ chính ∈ DS mãn tính (từ gần nhất)",
     type: "number",
-    moTa: "Từ lần khám gần nhất, đếm liên tục có mã ICD CĐ chính thuộc DS",
+    moTa: "Từ lần khám gần nhất, đếm liên tiếp mã CĐ chính ∈ DS mãn tính. Gặp mã không thuộc DS → dừng",
+    viDu: "Lần 4:E11(∈DS), Lần 3:E11(∈DS), Lần 2:E11(∈DS), Lần 1:K29 → = 3",
     nhom: "dsMT_chinh",
   },
   {
     id: "soMaBenhManTinhKhacNhau",
-    label: "Số mã bệnh chính mãn tính khác nhau",
+    label: "Số mã CĐ chính mãn tính KHÁC NHAU",
     type: "number",
-    moTa: "Đếm số mã ICD CĐ chính KHÁC NHAU thuộc DS mãn tính (tín hiệu đa bệnh)",
+    moTa: "Đếm số mã ICD CĐ chính distinct thuộc DS mãn tính. Dùng phát hiện BN đa bệnh mãn tính",
+    viDu: "E11(∈DS)×3, I10(∈DS)×2, K29×1 → soMaBenhManTinhKhacNhau = 2 (E11, I10)",
     nhom: "dsMT_chinh",
+  },
+  // ─── Nhóm: Mã bệnh mãn tính TRÙNG NHAU (CĐ chính) ──────
+  {
+    id: "maxLanTrungMaBenhManTinh_Chinh",
+    label: "Mã CĐ chính trùng nhau — max lần xuất hiện",
+    type: "number",
+    moTa: "Số lần xuất hiện nhiều nhất của MỘT mã ICD ở CĐ chính. Mỗi lần khám chỉ count tối đa 1 cho mỗi mã",
+    viDu: "E11×3(ln1,ln3,ln5), K29×1, I10×2(ln2,ln4) ∈ DS → = 3",
+    nhom: "dsMT_chinh",
+  },
+  // ─── Nhóm: Mã bệnh mãn tính TRÙNG NHAU (tất cả CĐ) ─────
+  {
+    id: "maxLanTrungMaBenhManTinh_BatKy",
+    label: "Mã BẤT KỲ (chính/kèm) trùng nhau — max lần xuất hiện",
+    type: "number",
+    moTa: "Gộp CĐ chính + CĐ kèm theo, mỗi lần khám chỉ count tối đa 1 cho mỗi mã. Đếm xem mã nào xuất hiện ở nhiều lần khám nhất",
+    viDu: "E11(ln1chính,ln2kèm,ln3chính), K29(ln4chính), I10(ln2kèm,ln5kèm) ∈ DS → = 3",
+    nhom: "dsMT_ketHop",
   },
   // ─── Nhóm: CĐ kèm theo + DS mãn tính (lịch sử) ──────────
   {
     id: "coMaBenhManTinh_KemTheo",
-    label: "Có mã bệnh kèm theo thuộc DS mãn tính (lịch sử)",
+    label: "Có mã CĐ kèm theo thuộc DS mãn tính",
     type: "boolean",
-    moTa: "Bất kỳ lần khám nào có mã ICD chẩn đoán kèm theo thuộc DS mãn tính",
+    moTa: "Bất kỳ lần khám nào trong lịch sử có ít nhất 1 mã ICD CĐ kèm theo nằm trong DS mãn tính",
+    viDu: "Lần 2 có I10 ở CĐ kèm theo, I10 ∈ DS mãn tính → true",
     nhom: "dsMT_kemTheo",
   },
   {
     id: "soLanMaBenhManTinh_KemTheo",
-    label: "Số lần có mã bệnh kèm theo thuộc DS mãn tính",
+    label: "Số lần CĐ kèm theo thuộc DS mãn tính",
     type: "number",
-    moTa: "Đếm số lần khám mà ít nhất 1 mã ICD kèm theo thuộc DS mãn tính",
+    moTa: "Đếm số lần khám mà ít nhất 1 mã ICD CĐ kèm theo nằm trong DS mãn tính",
+    viDu: "Ln2(I10), Ln4(I10) ∈ DS → soLanMaBenhManTinh_KemTheo = 2",
     nhom: "dsMT_kemTheo",
   },
   // ─── Nhóm: Kết hợp (CĐ chính + kèm theo) + DS mãn tính ──
   {
     id: "coMaBenhManTinh_BatKy",
-    label: "Có mã bệnh BẤT KỲ thuộc DS mãn tính (lịch sử)",
+    label: "Có mã BẤT KỲ (chính/kèm) thuộc DS mãn tính",
     type: "boolean",
-    moTa: "Bất kỳ lần khám nào, CĐ chính HOẶC kèm theo có mã thuộc DS mãn tính",
+    moTa: "Bất kỳ lần khám nào trong lịch sử, CĐ chính HOẶC CĐ kèm theo chứa mã thuộc DS mãn tính",
+    viDu: "Ln2 có E11(chính) ∈ DS → true",
     nhom: "dsMT_ketHop",
   },
   {
     id: "soLanMaBenhManTinh_BatKy",
-    label: "Số lần có mã bệnh BẤT KỲ thuộc DS mãn tính",
+    label: "Số lần CĐ chính HOẶC kèm theo thuộc DS mãn tính",
     type: "number",
-    moTa: "Đếm lần khám mà CĐ chính hoặc kèm theo chứa mã thuộc DS mãn tính",
+    moTa: "Đếm số lần khám mà CĐ chính hoặc CĐ kèm theo chứa ít nhất 1 mã ∈ DS mãn tính",
+    viDu: "Ln1(E11), Ln2(E11+I10), Ln3(E11), Ln4(I10), Ln5(E11+I10) ∈ DS → = 5",
     nhom: "dsMT_ketHop",
   },
   {
     id: "tiLeMaBenhManTinh_BatKy",
-    label: "Tỷ lệ % có mã bệnh BẤT KỲ thuộc DS mãn tính",
+    label: "Tỷ lệ % CĐ chính HOẶC kèm theo ∈ DS mãn tính",
     type: "number",
-    moTa: "(Lần khám CĐ chính hoặc kèm theo thuộc DS MT / Tổng) × 100",
+    moTa: "(Số lần khám có mã ∈ DS / Tổng lần khám) × 100. Tính cả CĐ chính và kèm theo",
+    viDu: "5/5 lần có E11 hoặc I10 ∈ DS → tiLeMaBenhManTinh_BatKy = 100",
     nhom: "dsMT_ketHop",
   },
 ];
@@ -238,6 +271,10 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
   let coMaBenhManTinh_KemTheo = false;
   let soLanMaBenhManTinh_KemTheo = 0;
 
+  // ─── Biến mã bệnh MT trùng nhau ──────────────────────────
+  let maxLanTrungMaBenhManTinh_Chinh = 0;
+  let maxLanTrungMaBenhManTinh_BatKy = 0;
+
   // ─── Biến DS mãn tính — kết hợp ───────────────────────────
   let coMaBenhManTinh_BatKy = false;
   let soLanMaBenhManTinh_BatKy = 0;
@@ -246,6 +283,11 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
   const distinctChronicPrimaryCodes = new Set();
 
   if (chronicCodeSet.size > 0) {
+    // Đếm tần suất mã MT theo CĐ chính (mỗi lần khám chỉ count 1 cho mỗi mã)
+    const chinhMtCount = {};
+    // Đếm tần suất mã MT gộp (CĐ chính + kèm theo, mỗi lần khám chỉ count 1 cho mỗi mã)
+    const batKyMtCount = {};
+
     lichSu.forEach((visit) => {
       const primaryCode = (visit.chandoanravien_code || "")
         .toUpperCase()
@@ -260,6 +302,7 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
         coMaBenhManTinh = true;
         soLanMaBenhManTinh++;
         distinctChronicPrimaryCodes.add(primaryCode);
+        chinhMtCount[primaryCode] = (chinhMtCount[primaryCode] || 0) + 1;
       }
       // CĐ kèm theo
       if (kemTheoMatch) {
@@ -270,6 +313,29 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
       if (primaryMatch || kemTheoMatch) {
         coMaBenhManTinh_BatKy = true;
         soLanMaBenhManTinh_BatKy++;
+        // Đếm: gộp CĐ chính + kèm theo, mỗi mã chỉ count 1 mỗi lần khám
+        const allCodesInVisit = new Set();
+        if (primaryMatch) allCodesInVisit.add(primaryCode);
+        kemTheoCodes
+          .filter((c) => chronicCodeSet.has(c))
+          .forEach((c) => allCodesInVisit.add(c));
+        allCodesInVisit.forEach((c) => {
+          batKyMtCount[c] = (batKyMtCount[c] || 0) + 1;
+        });
+      }
+    });
+
+    // maxLanTrungMaBenhManTinh_Chinh: mã MT theo CĐ chính xuất hiện nhiều nhất
+    Object.values(chinhMtCount).forEach((count) => {
+      if (count > maxLanTrungMaBenhManTinh_Chinh) {
+        maxLanTrungMaBenhManTinh_Chinh = count;
+      }
+    });
+
+    // maxLanTrungMaBenhManTinh_BatKy: mã MT gộp (chính + kèm) xuất hiện nhiều nhất
+    Object.values(batKyMtCount).forEach((count) => {
+      if (count > maxLanTrungMaBenhManTinh_BatKy) {
+        maxLanTrungMaBenhManTinh_BatKy = count;
       }
     });
 
@@ -306,6 +372,7 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
     tiLeMaBenhManTinh,
     soLanLienTucMaBenhManTinh,
     soMaBenhManTinhKhacNhau,
+    maxLanTrungMaBenhManTinh_Chinh,
     // DS mãn tính — CĐ kèm theo
     coMaBenhManTinh_KemTheo,
     soLanMaBenhManTinh_KemTheo,
@@ -313,5 +380,6 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
     coMaBenhManTinh_BatKy,
     soLanMaBenhManTinh_BatKy,
     tiLeMaBenhManTinh_BatKy,
+    maxLanTrungMaBenhManTinh_BatKy,
   };
 }

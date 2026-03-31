@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import {
   Dialog,
@@ -22,6 +22,7 @@ import {
   AppBar,
   Toolbar,
   IconButton,
+  TablePagination,
 } from "@mui/material";
 import {
   CheckCircle as CheckIcon,
@@ -36,7 +37,7 @@ import {
   pipelineToText,
   STEP_TYPE_LABELS,
 } from "../utils/formulaEvaluator";
-import { batchCreateManTinh, fetchDanhSachManTinh } from "../datLichKhamSlice";
+import { batchCreateManTinhChunked, fetchDanhSachManTinh } from "../datLichKhamSlice";
 import LichSuKhamDialog from "../Tab2_ChiTiet/LichSuKhamDialog";
 
 function parseLichSu(lichsu_kham) {
@@ -75,6 +76,8 @@ function KetQuaCongThucDialog({
   const [selected, setSelected] = useState(new Set());
   const [saving, setSaving] = useState(false);
   const [lichSuPatient, setLichSuPatient] = useState(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(100);
 
   // Evaluate pipeline on all patients
   const results = useMemo(() => {
@@ -100,16 +103,25 @@ function KetQuaCongThucDialog({
       .filter((r) => r.matched);
   }, [congThuc, vong1Data, chronicCodeSet, danhSachManTinh]);
 
-  // Auto-select unmark patients on results change
-  useMemo(() => {
+  // Auto-select unmark patients on results change — dùng useEffect vì là side effect
+  useEffect(() => {
     const newSet = new Set(
-      results.filter((r) => !r.isAlreadyMarked).map((r) => r.dangkykhamid),
+      results
+        .filter((r) => !r.isAlreadyMarked)
+        .map((r) => r.dangkykhamid),
     );
     setSelected(newSet);
+    setPage(0); // Reset về trang đầu mỗi khi results thay đổi
   }, [results]);
 
   const unmarkedResults = results.filter((r) => !r.isAlreadyMarked);
   const alreadyMarkedCount = results.filter((r) => r.isAlreadyMarked).length;
+
+  // Paginated rows cho bảng
+  const paginatedRows = useMemo(
+    () => results.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    [results, page, rowsPerPage],
+  );
 
   const handleToggle = useCallback((id) => {
     setSelected((prev) => {
@@ -152,10 +164,10 @@ function KetQuaCongThucDialog({
       },
     }));
 
-    const ok = await dispatch(batchCreateManTinh(items));
+    const ok = await dispatch(batchCreateManTinhChunked(items));
     setSaving(false);
 
-    if (ok) {
+    if (ok !== false) {
       // Re-fetch to sync
       const allIds = vong1Data.map((r) => r.dangkykhamid);
       dispatch(fetchDanhSachManTinh(allIds));
@@ -194,29 +206,30 @@ function KetQuaCongThucDialog({
         </Toolbar>
       </AppBar>
 
-      <DialogContent dividers>
-        {saving && <LinearProgress sx={{ mb: 1 }} />}
+      <DialogContent dividers sx={{ display: "flex", flexDirection: "column", p: 0, overflow: "hidden" }}>
+        <Box sx={{ px: 2, pt: 1, pb: 1 }}>
+          {saving && <LinearProgress sx={{ mb: 1 }} />}
 
-        {/* Pipeline description */}
-        <Typography
-          variant="caption"
-          sx={{
-            bgcolor: "grey.100",
-            p: 0.5,
-            borderRadius: 0.5,
-            mb: 1,
-            display: "block",
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {congThuc ? pipelineToText(ensurePipeline(congThuc)) : ""}
-        </Typography>
+          {/* Pipeline description */}
+          <Typography
+            variant="caption"
+            sx={{
+              bgcolor: "grey.100",
+              p: 0.5,
+              borderRadius: 0.5,
+              mb: 1,
+              display: "block",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {congThuc ? pipelineToText(ensurePipeline(congThuc)) : ""}
+          </Typography>
 
-        {/* Summary */}
-        <Alert
-          severity={results.length > 0 ? "success" : "info"}
-          sx={{ mb: 2 }}
-        >
+          {/* Summary */}
+          <Alert
+            severity={results.length > 0 ? "success" : "info"}
+            sx={{ mb: 0 }}
+          >
           <Typography variant="body2">
             Tìm thấy <strong>{results.length}</strong> bệnh nhân khớp công thức
             {alreadyMarkedCount > 0 && (
@@ -235,15 +248,17 @@ function KetQuaCongThucDialog({
             )}
           </Typography>
         </Alert>
+        </Box>
 
         {results.length === 0 ? (
-          <Box textAlign="center" py={4}>
+          <Box textAlign="center" py={4} sx={{ flex: 1 }}>
             <Typography color="text.secondary">
               Không tìm thấy bệnh nhân nào khớp công thức.
             </Typography>
           </Box>
         ) : (
-          <TableContainer sx={{ maxHeight: "calc(100vh - 380px)" }}>
+          <>
+          <TableContainer sx={{ flex: 1, minHeight: 0 }}>
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
@@ -301,149 +316,161 @@ function KetQuaCongThucDialog({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {results.map((row, idx) => (
-                  <TableRow
-                    key={row.dangkykhamid}
-                    hover
-                    sx={
-                      row.isAlreadyMarked
-                        ? { bgcolor: "#f3e5f5", opacity: 0.7 }
-                        : {}
-                    }
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={selected.has(row.dangkykhamid)}
-                        onChange={() => handleToggle(row.dangkykhamid)}
-                        disabled={row.isAlreadyMarked}
-                      />
-                    </TableCell>
-                    <TableCell>{idx + 1}</TableCell>
-                    <TableCell>{row.patientid_old || "—"}</TableCell>
-                    <TableCell>
-                      <Box>
-                        <Typography variant="body2" fontWeight={500}>
-                          {row.patientname}
-                        </Typography>
-                        {row.birthday && (
-                          <Typography variant="caption" color="text.secondary">
-                            {dayjs(row.birthday).format("DD/MM/YYYY")}
+                {paginatedRows.map((row, idx) => {
+                  // Dùng soLanKham từ variables đã tính sẵn — tránh parseLichSu redundant
+                  const soLanKhamHienTai = row.variables?.soLanKham || 0;
+                  return (
+                    <TableRow
+                      key={row.dangkykhamid}
+                      hover
+                      sx={
+                        row.isAlreadyMarked
+                          ? { bgcolor: "#f3e5f5", opacity: 0.7 }
+                          : {}
+                      }
+                    >
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={selected.has(row.dangkykhamid)}
+                          onChange={() => handleToggle(row.dangkykhamid)}
+                          disabled={row.isAlreadyMarked}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {page * rowsPerPage + idx + 1}
+                      </TableCell>
+                      <TableCell>{row.patientid_old || "—"}</TableCell>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="body2" fontWeight={500}>
+                            {row.patientname}
                           </Typography>
+                          {row.birthday && (
+                            <Typography variant="caption" color="text.secondary">
+                              {dayjs(row.birthday).format("DD/MM/YYYY")}
+                            </Typography>
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell>{row.vp_departmentgroupname || "—"}</TableCell>
+                      <TableCell>{row.vp_departmentname || "—"}</TableCell>
+                      <TableCell align="center">
+                        <Chip
+                          label={soLanKhamHienTai}
+                          size="small"
+                          color={soLanKhamHienTai >= 3 ? "warning" : "default"}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {row.variables?.maBenhTrung_maxCode ? (
+                          <Tooltip
+                            title={`${row.variables.maBenhTrung_maxCode} × ${row.variables.maBenhTrung_max} lần`}
+                          >
+                            <Chip
+                              label={row.variables.maBenhTrung_maxCode}
+                              size="small"
+                              variant="outlined"
+                            />
+                          </Tooltip>
+                        ) : (
+                          "—"
                         )}
-                      </Box>
-                    </TableCell>
-                    <TableCell>{row.vp_departmentgroupname || "—"}</TableCell>
-                    <TableCell>{row.vp_departmentname || "—"}</TableCell>
-                    <TableCell align="center">
-                      <Chip
-                        label={row.variables?.soLanKham || 0}
-                        size="small"
-                        color={
-                          (row.variables?.soLanKham || 0) >= 3
-                            ? "warning"
-                            : "default"
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {row.variables?.maBenhTrung_maxCode ? (
-                        <Tooltip
-                          title={`${row.variables.maBenhTrung_maxCode} × ${row.variables.maBenhTrung_max} lần`}
+                      </TableCell>
+                      <TableCell>
+                        <Stack spacing={0.5}>
+                          {(row.stepResults || []).map((sr, si) => (
+                            <Box key={si}>
+                              <Chip
+                                label={`${sr.tenStep || `B${si + 1}`} (${STEP_TYPE_LABELS[sr.loaiStep]?.label || sr.loaiStep})`}
+                                size="small"
+                                color={sr.matched ? "success" : "default"}
+                                variant="outlined"
+                                sx={{ mb: 0.25, fontSize: "0.65rem" }}
+                              />
+                              {sr.explanations.map((exp, i) => (
+                                <Typography
+                                  key={i}
+                                  variant="caption"
+                                  sx={{
+                                    display: "block",
+                                    pl: 1,
+                                    color: exp.includes("✓")
+                                      ? "success.dark"
+                                      : "error.dark",
+                                  }}
+                                >
+                                  {exp}
+                                </Typography>
+                              ))}
+                            </Box>
+                          ))}
+                        </Stack>
+                      </TableCell>
+                      <TableCell align="center">
+                        <Stack
+                          direction="row"
+                          spacing={0.5}
+                          justifyContent="center"
+                          alignItems="center"
                         >
                           <Chip
-                            label={row.variables.maBenhTrung_maxCode}
+                            label={`${soLanKhamHienTai} lần`}
                             size="small"
+                            color={soLanKhamHienTai >= 3 ? "warning" : "default"}
+                            variant={soLanKhamHienTai >= 3 ? "filled" : "outlined"}
+                          />
+                          {row.lichsu_kham && (
+                            <Tooltip title="Xem lịch sử">
+                              <IconButton
+                                size="small"
+                                onClick={() => setLichSuPatient(row)}
+                              >
+                                <HistoryIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Stack>
+                      </TableCell>
+                      <TableCell align="center">
+                        {row.isAlreadyMarked ? (
+                          <Chip
+                            label="Đã đánh dấu"
+                            size="small"
+                            color="secondary"
+                          />
+                        ) : (
+                          <Chip
+                            label="Chưa đánh dấu"
+                            size="small"
+                            color="info"
                             variant="outlined"
                           />
-                        </Tooltip>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Stack spacing={0.5}>
-                        {(row.stepResults || []).map((sr, si) => (
-                          <Box key={si}>
-                            <Chip
-                              label={`${sr.tenStep || `B${si + 1}`} (${STEP_TYPE_LABELS[sr.loaiStep]?.label || sr.loaiStep})`}
-                              size="small"
-                              color={sr.matched ? "success" : "default"}
-                              variant="outlined"
-                              sx={{ mb: 0.25, fontSize: "0.65rem" }}
-                            />
-                            {sr.explanations.map((exp, i) => (
-                              <Typography
-                                key={i}
-                                variant="caption"
-                                sx={{
-                                  display: "block",
-                                  pl: 1,
-                                  color: exp.includes("✓")
-                                    ? "success.dark"
-                                    : "error.dark",
-                                }}
-                              >
-                                {exp}
-                              </Typography>
-                            ))}
-                          </Box>
-                        ))}
-                      </Stack>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Stack
-                        direction="row"
-                        spacing={0.5}
-                        justifyContent="center"
-                        alignItems="center"
-                      >
-                        <Chip
-                          label={`${parseLichSu(row.lichsu_kham).length} lần`}
-                          size="small"
-                          color={
-                            parseLichSu(row.lichsu_kham).length >= 3
-                              ? "warning"
-                              : "default"
-                          }
-                          variant={
-                            parseLichSu(row.lichsu_kham).length >= 3
-                              ? "filled"
-                              : "outlined"
-                          }
-                        />
-                        {row.lichsu_kham && (
-                          <Tooltip title="Xem lịch sử">
-                            <IconButton
-                              size="small"
-                              onClick={() => setLichSuPatient(row)}
-                            >
-                              <HistoryIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
                         )}
-                      </Stack>
-                    </TableCell>
-                    <TableCell align="center">
-                      {row.isAlreadyMarked ? (
-                        <Chip
-                          label="Đã đánh dấu"
-                          size="small"
-                          color="secondary"
-                        />
-                      ) : (
-                        <Chip
-                          label="Chưa đánh dấu"
-                          size="small"
-                          color="info"
-                          variant="outlined"
-                        />
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>
+
+          <TablePagination
+            component="div"
+            count={results.length}
+            page={page}
+            onPageChange={(_, p) => setPage(p)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(e) => {
+              setRowsPerPage(parseInt(e.target.value, 10));
+              setPage(0);
+            }}
+            rowsPerPageOptions={[50, 100, 200, 500]}
+            labelRowsPerPage="Dòng/trang"
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}-${to} / ${count}`
+            }
+          />
+          </>
         )}
       </DialogContent>
 

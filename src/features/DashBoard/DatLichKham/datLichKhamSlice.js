@@ -292,7 +292,8 @@ export const deleteManTinh = (dangkykhamid) => async (dispatch) => {
 };
 
 /**
- * Batch đánh dấu mãn tính
+ * Batch đánh dấu mãn tính — tự động chia chunk nếu vượt giới hạn body
+ * Mỗi chunk tối đa 1500 bản ghi (~500KB < 1MB body limit)
  */
 export const batchCreateManTinh = (items) => async (dispatch) => {
   dispatch(slice.actions.startLoadingManTinh());
@@ -307,6 +308,50 @@ export const batchCreateManTinh = (items) => async (dispatch) => {
     return false;
   }
 };
+
+/**
+ * Batch đánh dấu mãn tính — chia chunk tự động cho payload lớn
+ * Chunk mỗi 1500 items → mỗi request ~500KB, an toàn dưới 1MB body limit
+ */
+export const batchCreateManTinhChunked =
+  (items) => async (dispatch) => {
+    const CHUNK_SIZE = 1500;
+    const total = items.length;
+    const chunks = [];
+
+    for (let i = 0; i < total; i += CHUNK_SIZE) {
+      chunks.push(items.slice(i, i + CHUNK_SIZE));
+    }
+
+    let totalImported = 0;
+    let totalFailed = 0;
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      try {
+        const res = await apiService.post("/his/datlichkham/mantinh/batch", {
+          items: chunk,
+        });
+        totalImported += res.data?.data?.totalImported ?? chunk.length;
+        totalFailed += res.data?.data?.totalSkipped ?? 0;
+      } catch (error) {
+        totalFailed += chunk.length;
+        toast.error(
+          `Lỗi khi gửi chunk ${i + 1}/${chunks.length}: ${error.message}`,
+        );
+      }
+    }
+
+    if (chunks.length > 1) {
+      toast.success(
+        `Đánh dấu ${totalImported}/${total} bản ghi thành công (${chunks.length} lượt gửi)`,
+      );
+    } else {
+      toast.success(`Đánh dấu ${totalImported} bản ghi thành công`);
+    }
+
+    return { totalImported, totalFailed, chunks: chunks.length };
+  };
 
 /**
  * Batch bỏ đánh dấu
