@@ -50,10 +50,9 @@ const COLUMNS = [
   { id: "co_kham", label: "Có khám", align: "right", width: 80 },
   { id: "khong_kham", label: "Không khám", align: "right", width: 90 },
   { id: "co_kham_co_tien", label: "CK có tiền", align: "right", width: 90 },
-  { id: "dichvu_ge_100k", label: "DV >= 100K", align: "right", width: 90 },
-  { id: "dichvu_lt_100k", label: "DV < 100K", align: "right", width: 90 },
   { id: "so_man_tinh", label: "Mãn tính", align: "right", width: 80 },
   { id: "hop_le", label: "Hợp lệ", align: "right", width: 80 },
+  { id: "hop_le_mt_1_3", label: "Hợp lệ (1/3)", align: "right", width: 90 },
   { id: "trung_ngay", label: "Trùng ngày", align: "right", width: 90 },
   { id: "tong_tien", label: "Tổng tiền", align: "right", width: 120 },
   { id: "actions", label: "", width: 50 },
@@ -113,7 +112,8 @@ function BaoCaoTongHopTable({
       return {
         ...row,
         so_man_tinh: soManTinh,
-        hop_le: Number(row.dichvu_ge_100k || 0) - soManTinh,
+        hop_le: Number(row.co_kham_co_tien || 0) - soManTinh,
+        hop_le_mt_1_3: (Number(row.co_kham_co_tien || 0) - soManTinh) + soManTinh / 3,
         trung_ngay: trungNgayByNGT[row.nguoigioithieuid] || 0,
       };
     });
@@ -152,10 +152,9 @@ function BaoCaoTongHopTable({
       co_kham: 0,
       khong_kham: 0,
       co_kham_co_tien: 0,
-      dichvu_ge_100k: 0,
-      dichvu_lt_100k: 0,
       so_man_tinh: 0,
       hop_le: 0,
+      hop_le_mt_1_3: 0,
       trung_ngay: 0,
       tong_tien: 0,
     };
@@ -164,10 +163,9 @@ function BaoCaoTongHopTable({
       t.co_kham += Number(r.co_kham || 0);
       t.khong_kham += Number(r.khong_kham || 0);
       t.co_kham_co_tien += Number(r.co_kham_co_tien || 0);
-      t.dichvu_ge_100k += Number(r.dichvu_ge_100k || 0);
-      t.dichvu_lt_100k += Number(r.dichvu_lt_100k || 0);
       t.so_man_tinh += Number(r.so_man_tinh || 0);
       t.hop_le += Number(r.hop_le || 0);
+      t.hop_le_mt_1_3 += Number(r.hop_le_mt_1_3 || 0);
       t.trung_ngay += Number(r.trung_ngay || 0);
       t.tong_tien += Number(r.tong_tien || 0);
     });
@@ -299,12 +297,6 @@ function BaoCaoTongHopTable({
                     />
                   </TableCell>
                   <TableCell align="right">
-                    {formatVND(row.dichvu_ge_100k)}
-                  </TableCell>
-                  <TableCell align="right">
-                    {formatVND(row.dichvu_lt_100k)}
-                  </TableCell>
-                  <TableCell align="right">
                     {row.so_man_tinh > 0 ? (
                       <Chip
                         label={row.so_man_tinh}
@@ -321,6 +313,17 @@ function BaoCaoTongHopTable({
                       color={row.hop_le > 0 ? "primary" : "text.secondary"}
                     >
                       {formatVND(row.hop_le)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography
+                      fontWeight="bold"
+                      color={row.hop_le_mt_1_3 > 0 ? "success" : "text.secondary"}
+                    >
+                      {Number(row.hop_le_mt_1_3 || 0).toLocaleString("vi-VN", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
@@ -377,16 +380,16 @@ function BaoCaoTongHopTable({
                   {formatVND(totals.co_kham_co_tien)}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                  {formatVND(totals.dichvu_ge_100k)}
-                </TableCell>
-                <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                  {formatVND(totals.dichvu_lt_100k)}
-                </TableCell>
-                <TableCell align="right" sx={{ fontWeight: "bold" }}>
                   {formatVND(totals.so_man_tinh)}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
                   {formatVND(totals.hop_le)}
+                </TableCell>
+                <TableCell align="right" sx={{ fontWeight: "bold" }}>
+                  {Number(totals.hop_le_mt_1_3 || 0).toLocaleString("vi-VN", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
                   {formatVND(totals.trung_ngay)}

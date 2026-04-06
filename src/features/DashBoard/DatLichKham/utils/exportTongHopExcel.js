@@ -67,20 +67,6 @@ const COLUMNS = [
     numeric: true,
   },
   {
-    header: "Dịch vụ >= 100K",
-    key: "dichvu_ge_100k",
-    width: 16,
-    align: "right",
-    numeric: true,
-  },
-  {
-    header: "Dịch vụ < 100K",
-    key: "dichvu_lt_100k",
-    width: 15,
-    align: "right",
-    numeric: true,
-  },
-  {
     header: "Mãn tính",
     key: "so_man_tinh",
     width: 10,
@@ -88,6 +74,7 @@ const COLUMNS = [
     numeric: true,
   },
   { header: "Hợp lệ", key: "hop_le", width: 10, align: "right", numeric: true },
+  { header: "Hợp lệ (1/3)", key: "hop_le_mt_1_3", width: 12, align: "right", numeric: true },
   {
     header: "Trùng ngày",
     key: "trung_ngay",
@@ -166,7 +153,7 @@ function addSubtotalRow(ws, label, sums, fill) {
   // Number format for numeric cells
   COLUMNS.forEach((col, idx) => {
     if (col.numeric) {
-      row.getCell(idx + 1).numFmt = "#,##0";
+      row.getCell(idx + 1).numFmt = col.key === "hop_le_mt_1_3" ? "#,##0.00" : "#,##0";
     }
   });
 
@@ -264,7 +251,7 @@ export async function exportTongHopExcel({ data, fromDate, toDate }) {
       // Number format for numeric cells
       COLUMNS.forEach((col, idx) => {
         if (col.numeric) {
-          dataRow.getCell(idx + 1).numFmt = "#,##0";
+          dataRow.getCell(idx + 1).numFmt = col.key === "hop_le_mt_1_3" ? "#,##0.00" : "#,##0";
         }
       });
     });

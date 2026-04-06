@@ -183,26 +183,21 @@ export async function exportChiTietExcel({
   const metricTongDL = data.length;
   let metricCoKham = 0;
   let metricKhongKham = 0;
-  let metricDvGe100k = 0;
-  let metricDvLt100k = 0;
   let metricKham0d = 0;
   let metricManTinh = 0;
   data.forEach((r) => {
     const st = Number(r.dangkykhamstatus);
     const tt = Number(r.tong_tien || 0);
-    const dv = Number(r.tong_tien_dichvu || 0);
     const isManTinh = !!danhSachManTinh[r.dangkykhamid];
     if (st === 1) {
       metricCoKham++;
-      if (dv >= 100000) metricDvGe100k++;
-      else if (tt > 0) metricDvLt100k++;
-      else metricKham0d++;
+      if (tt <= 0) metricKham0d++;
     } else {
       metricKhongKham++;
     }
     if (isManTinh) metricManTinh++;
   });
-  const metricHopLe = metricDvGe100k - metricManTinh;
+  const metricHopLe = metricCoKham - metricManTinh;
 
   const METRICS = [
     {
@@ -218,27 +213,15 @@ export async function exportChiTietExcel({
       color: "D32F2F",
       bg: "FFEBEE",
     },
-    {
-      label: "DV ≥ 100K",
-      value: metricDvGe100k,
-      color: "ED6C02",
-      bg: "FFF3E0",
-    },
-    {
-      label: "DV < 100K",
-      value: metricDvLt100k,
-      color: "EF5350",
-      bg: "FFEBEE",
-    },
     { label: "Khám 0Đ", value: metricKham0d, color: "757575", bg: "F5F5F5" },
     {
-      label: "Mãn tính (≥100K)",
+      label: "Mãn tính",
       value: metricManTinh,
       color: "9C27B0",
       bg: "F3E5F5",
     },
     {
-      label: "Hợp lệ (≥100K − MT)",
+      label: "Hợp lệ (CK có tiền − MT)",
       value: metricHopLe,
       color: "0288D1",
       bg: "E1F5FE",
@@ -394,23 +377,20 @@ export async function exportChiTietExcel({
         stt++;
         const st = Number(r.dangkykhamstatus);
         const tt = Number(r.tong_tien || 0);
-        const dv = Number(r.tong_tien_dichvu || 0);
         const isManTinh = !!danhSachManTinh[r.dangkykhamid];
 
         // Determine detailed status text
         let statusText;
         if (st !== 1) {
           statusText = "Không khám";
-        } else if (dv >= 100000) {
-          statusText = "Có khám - DV ≥ 100K";
         } else if (tt > 0) {
-          statusText = "Có khám - DV < 100K";
+          statusText = "Có khám có tiền";
         } else {
-          statusText = "Có khám - 0Đ";
+          statusText = "Khám 0Đ";
         }
 
-        // Row is invalid if: không khám, DV < 100K, 0Đ, or mãn tính
-        const isInvalid = st !== 1 || dv < 100000 || isManTinh;
+        // Row is invalid if: không khám hoặc đã mãn tính
+        const isInvalid = st !== 1 || isManTinh;
 
         const rowValues = COLUMNS.map((col) => {
           if (col.key === "stt") return stt;

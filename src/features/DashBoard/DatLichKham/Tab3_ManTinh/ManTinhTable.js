@@ -119,12 +119,10 @@ function ManTinhTable({
     dispatch(fetchCongThucManTinh());
   }, [dispatch]);
 
-  // Only show Dịch vụ >= 100K: status === 1 AND tong_tien_dichvu >= 100000
+  // Chỉ hiển thị bệnh nhân có khám (status === 1)
   const vong1Data = useMemo(() => {
     return chiTietData
-      .filter(
-        (r) => Number(r.dangkykhamstatus) === 1 && Number(r.tong_tien_dichvu) >= 100000,
-      )
+      .filter((r) => Number(r.dangkykhamstatus) === 1)
       .map((r) => {
         const ls = parseLichSu(r.lichsu_kham);
         const isManTinh = Boolean(danhSachManTinh[r.dangkykhamid]);

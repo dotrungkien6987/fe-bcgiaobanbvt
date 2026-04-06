@@ -33,31 +33,39 @@ const CARDS = [
   },
   {
     key: "vong1",
-    label: "DV ≥ 100K",
+    label: "CK có tiền",
     icon: CheckCircleIcon,
     color: "#ed6c02",
     bg: "#fff3e0",
   },
   {
     key: "dichvuLt100k",
-    label: "DV < 100K",
+    label: "CK 0 đ",
     icon: CheckCircleIcon,
     color: "#ef5350",
     bg: "#ffebee",
   },
   {
     key: "soManTinh",
-    label: "Mãn tính (≥100K)",
+    label: "Mãn tính",
     icon: LoopIcon,
     color: "#9c27b0",
     bg: "#f3e5f5",
   },
   {
     key: "hopLe",
-    label: "Hợp lệ (≥100K − MT)",
+    label: "Hợp lệ (CK có tiền − MT)",
     icon: VerifiedUserIcon,
     color: "#0288d1",
     bg: "#e1f5fe",
+  },
+  {
+    key: "hopLeMt13",
+    label: "Hợp lệ (1/3)",
+    icon: VerifiedUserIcon,
+    color: "#2e7d32",
+    bg: "#e8f5e9",
+    decimal: true,
   },
   {
     key: "trungNgay",
@@ -109,7 +117,12 @@ function DatLichKhamStatistics({ thongKe = {}, loading = false }) {
                     <Skeleton width={60} height={32} />
                   ) : (
                     <Typography variant="h5" fontWeight="bold" color={c.color}>
-                      {formatVND(thongKe[c.key] || 0)}
+                      {c.decimal
+                        ? Number(thongKe[c.key] || 0).toLocaleString("vi-VN", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })
+                        : formatVND(thongKe[c.key] || 0)}
                     </Typography>
                   )}
                 </CardContent>

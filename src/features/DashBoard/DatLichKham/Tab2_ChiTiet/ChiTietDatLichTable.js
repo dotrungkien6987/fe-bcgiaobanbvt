@@ -50,22 +50,16 @@ function parseLichSu(lichsu_kham) {
   return Array.isArray(lichsu_kham) ? lichsu_kham : [];
 }
 
-function getStatusChip(status, tongTien, tongTienDichVu) {
+function getStatusChip(status, tongTien) {
   if (Number(status) !== 1) {
     return (
       <Chip label="Không khám" size="small" color="error" variant="outlined" />
     );
   }
-  const dv = Number(tongTienDichVu);
   const tt = Number(tongTien);
-  if (dv >= 100000) {
-    return (
-      <Chip label="DV ≥ 100K" size="small" color="success" variant="filled" />
-    );
-  }
   if (tt > 0) {
     return (
-      <Chip label="DV < 100K" size="small" color="warning" variant="filled" />
+      <Chip label="Có khám có tiền" size="small" color="success" variant="filled" />
     );
   }
   return <Chip label="Khám 0₫" size="small" color="default" variant="filled" />;
@@ -87,7 +81,6 @@ const COLUMNS = [
   { id: "vp_departmentgroupname", label: "Khoa khám", width: 130 },
   { id: "vp_departmentname", label: "Phòng khám", width: 130 },
   { id: "tong_tien", label: "Tổng tiền", align: "right", width: 110 },
-  { id: "tong_tien_dichvu", label: "Tiền DV", align: "right", width: 110 },
   { id: "mantinh", label: "Mãn tính", align: "center", width: 80 },
   { id: "lichsu", label: "LS Khám", align: "center", width: 100 },
   { id: "ghichu", label: "Ghi chú", width: 200 },
@@ -147,25 +140,7 @@ function ChiTietDatLichTable({
     }
 
     // Filter trạng thái khám (phân cấp, loại trừ nhau)
-    if (filterTrangThai === "dv_ge_100k") {
-      result = result.filter(
-        (r) =>
-          Number(r.dangkykhamstatus) === 1 &&
-          Number(r.tong_tien) > 0 &&
-          Number(r.tong_tien_dichvu) >= 100000,
-      );
-    } else if (filterTrangThai === "dv_lt_100k") {
-      result = result.filter(
-        (r) =>
-          Number(r.dangkykhamstatus) === 1 &&
-          Number(r.tong_tien) > 0 &&
-          Number(r.tong_tien_dichvu) < 100000,
-      );
-    } else if (filterTrangThai === "co_kham_co_tien") {
-      result = result.filter(
-        (r) => Number(r.dangkykhamstatus) === 1 && Number(r.tong_tien) > 0,
-      );
-    } else if (filterTrangThai === "co_kham_0dong") {
+    if (filterTrangThai === "co_kham_co_tien") {
       result = result.filter(
         (r) => Number(r.dangkykhamstatus) === 1 && Number(r.tong_tien) <= 0,
       );
@@ -297,8 +272,6 @@ function ChiTietDatLichTable({
             filterTrangThai === "khong_kham" && "Không khám",
             filterTrangThai === "co_kham_0dong" && "Có khám 0₫",
             filterTrangThai === "co_kham_co_tien" && "Có khám + tiền",
-            filterTrangThai === "dv_ge_100k" && "DV ≥ 100K",
-            filterTrangThai === "dv_lt_100k" && "DV < 100K",
             filterManTinh === "mantinh" && "Mãn tính",
             filterManTinh === "khong_mantinh" && "Chưa mãn tính",
           ]
@@ -395,32 +368,6 @@ function ChiTietDatLichTable({
             setPage(0);
           }}
         />
-        <Chip
-          label="DV ≥ 100K"
-          size="small"
-          clickable
-          color={filterTrangThai === "dv_ge_100k" ? "success" : "default"}
-          variant={filterTrangThai === "dv_ge_100k" ? "filled" : "outlined"}
-          onClick={() => {
-            setFilterTrangThai((prev) =>
-              prev === "dv_ge_100k" ? "" : "dv_ge_100k",
-            );
-            setPage(0);
-          }}
-        />
-        <Chip
-          label="DV < 100K"
-          size="small"
-          clickable
-          color={filterTrangThai === "dv_lt_100k" ? "warning" : "default"}
-          variant={filterTrangThai === "dv_lt_100k" ? "filled" : "outlined"}
-          onClick={() => {
-            setFilterTrangThai((prev) =>
-              prev === "dv_lt_100k" ? "" : "dv_lt_100k",
-            );
-            setPage(0);
-          }}
-        />
 
         <Divider orientation="vertical" flexItem />
 
@@ -507,11 +454,9 @@ function ChiTietDatLichTable({
                 const statusColor =
                   Number(row.dangkykhamstatus) !== 1
                     ? "#ffebee"
-                    : Number(row.tong_tien_dichvu) >= 100000
+                    : Number(row.tong_tien) > 0
                       ? "#e8f5e9"
-                      : Number(row.tong_tien) > 0
-                        ? "#fff3e0"
-                        : "#f5f5f5";
+                      : "#f5f5f5";
 
                 return (
                   <TableRow
@@ -545,11 +490,7 @@ function ChiTietDatLichTable({
                     <TableCell>{row.ten_ngt}</TableCell>
                     <TableCell>{row.ngt_departmentgroupname}</TableCell>
                     <TableCell align="center">
-                      {getStatusChip(
-                        row.dangkykhamstatus,
-                        row.tong_tien,
-                        row.tong_tien_dichvu,
-                      )}
+                      {getStatusChip(row.dangkykhamstatus, row.tong_tien)}
                     </TableCell>
                     <TableCell>
                       <Stack>
@@ -590,9 +531,6 @@ function ChiTietDatLichTable({
                     <TableCell>{row.vp_departmentname || "—"}</TableCell>
                     <TableCell align="right">
                       {formatVND(row.tong_tien)} ₫
-                    </TableCell>
-                    <TableCell align="right">
-                      {formatVND(row.tong_tien_dichvu)} ₫
                     </TableCell>
                     <TableCell align="center">
                       {danhSachManTinh[row.dangkykhamid] ? (

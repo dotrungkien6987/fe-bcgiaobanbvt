@@ -72,11 +72,11 @@ function DatLichKhamDashboard() {
       0,
     );
     const vong1 = baoCaoTongHop.reduce(
-      (s, r) => s + Number(r.dichvu_ge_100k || 0),
+      (s, r) => s + Number(r.co_kham_co_tien || 0),
       0,
     );
     const dichvuLt100k = baoCaoTongHop.reduce(
-      (s, r) => s + Number(r.dichvu_lt_100k || 0),
+      (s, r) => s + Number(r.co_kham_khong_tien || 0),
       0,
     );
     const tongTien = baoCaoTongHop.reduce(
@@ -85,6 +85,7 @@ function DatLichKhamDashboard() {
     );
     const soManTinh = Object.keys(danhSachManTinh).length;
     const hopLe = vong1 - soManTinh;
+    const hopLeMt13 = (vong1 - soManTinh) + soManTinh / 3;
 
     // Đếm ca trùng ngày (ngày đặt lịch = ngày ĐK khám)
     const trungNgay = chiTietDatLich.filter(
@@ -103,6 +104,7 @@ function DatLichKhamDashboard() {
       dichvuLt100k,
       soManTinh,
       hopLe,
+      hopLeMt13,
       trungNgay,
       tongTien,
     };
