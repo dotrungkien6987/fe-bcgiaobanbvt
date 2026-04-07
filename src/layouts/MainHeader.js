@@ -10,16 +10,15 @@ import Menu from "@mui/material/Menu";
 import PersonIcon from "@mui/icons-material/Person";
 import useAuth from "../hooks/useAuth";
 import Logo from "../components/form/Logo";
-import { Divider, useMediaQuery, Chip } from "@mui/material";
+import { Divider, useMediaQuery } from "@mui/material";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useTheme } from "@emotion/react";
 import { useState } from "react";
 
 import UserResetPassForm from "../features/User/UserResetPassForm";
-import { useDispatch } from "react-redux";
-import { resetBaoCaoSuCoCurent } from "../features/BaoCaoSuCo/baocaosucoSlice";
 import SwitchDarkMode from "../components/form/SwitchDarkMode";
 import { NotificationBell } from "../features/Notification";
+import VersionInfoDialog from "../components/VersionInfoDialog";
 function MainHeader() {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
@@ -28,8 +27,13 @@ function MainHeader() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const navigate = useNavigate();
   const [openResetPass, setOpenResetPass] = useState(false);
+  const [openVersionDialog, setOpenVersionDialog] = useState(false);
   const handleCloseResetPassForm = () => {
     setOpenResetPass(false);
+  };
+
+  const handleCloseVersionDialog = () => {
+    setOpenVersionDialog(false);
   };
 
   const handleProfileMenuOpen = (event) => {
@@ -51,11 +55,15 @@ function MainHeader() {
       console.error(error);
     }
   };
-  const dispatch = useDispatch();
 
   const handleResetPass = (userId) => {
     setOpenResetPass(true);
     console.log(userId);
+  };
+
+  const handleOpenVersionDialog = () => {
+    handleMenuClose();
+    setOpenVersionDialog(true);
   };
   const renderMenu = (
     <Menu
@@ -189,6 +197,10 @@ function MainHeader() {
         Thay đổi thông tin cá nhân
       </MenuItem>
 
+      <MenuItem onClick={handleOpenVersionDialog} sx={{ mx: 1 }}>
+        Phiên bản
+      </MenuItem>
+
       <MenuItem
         onClick={handleLogout}
         //  component={RouterLink}
@@ -220,18 +232,6 @@ function MainHeader() {
             Bệnh viện đa khoa tỉnh Phú Thọ
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
-          <Chip
-            label={`v${process.env.REACT_APP_VERSION || "0.1.0"}`}
-            size="small"
-            sx={{
-              mr: 1,
-              fontSize: "0.7rem",
-              height: 20,
-              backgroundColor: "rgba(25, 118, 210, 0.1)",
-              color: "primary.main",
-              display: { xs: "none", sm: "flex" },
-            }}
-          />
           <SwitchDarkMode />
           <NotificationBell />
           <Box>
@@ -252,6 +252,10 @@ function MainHeader() {
         open={openResetPass}
         handleClose={handleCloseResetPassForm}
         user={user}
+      />
+      <VersionInfoDialog
+        open={openVersionDialog}
+        onClose={handleCloseVersionDialog}
       />
     </Box>
   );
