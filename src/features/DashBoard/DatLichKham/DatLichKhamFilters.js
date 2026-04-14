@@ -1,5 +1,5 @@
 import React from "react";
-import { Stack, Button, Box, Chip } from "@mui/material";
+import { Stack, Button, Box, Chip, CircularProgress } from "@mui/material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import {
@@ -14,6 +14,7 @@ function DatLichKhamFilters({
   onFromDateChange,
   onToDateChange,
   onSearch,
+  loading = false,
 }) {
   const presets = [
     {
@@ -70,11 +71,18 @@ function DatLichKhamFilters({
 
           <Button
             variant="contained"
-            startIcon={<SearchIcon />}
+            startIcon={
+              loading ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : (
+                <SearchIcon />
+              )
+            }
             onClick={onSearch}
             size="small"
+            disabled={loading}
           >
-            Tìm kiếm
+            {loading ? "Đang tải..." : "Tìm kiếm"}
           </Button>
 
           <Button
@@ -85,6 +93,7 @@ function DatLichKhamFilters({
               onToDateChange(dayjs().endOf("month"));
             }}
             size="small"
+            disabled={loading}
           >
             Làm mới
           </Button>
@@ -101,6 +110,7 @@ function DatLichKhamFilters({
             size="small"
             color="primary"
             clickable
+            disabled={loading}
           />
         ))}
       </Stack>

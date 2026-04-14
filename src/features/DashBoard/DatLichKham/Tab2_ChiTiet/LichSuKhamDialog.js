@@ -185,6 +185,14 @@ function LichSuKhamDialog({ open, onClose, patient }) {
                           variant="filled"
                         />
                       )}
+                      {visit.xutrikhambenhid === 3 && (
+                        <Chip
+                          label="Hẹn khám lại"
+                          size="small"
+                          color="warning"
+                          variant="outlined"
+                        />
+                      )}
                     </Stack>
                     {(visit.departmentgroupname || visit.departmentname) && (
                       <Typography variant="caption" color="text.secondary">
@@ -213,6 +221,11 @@ function LichSuKhamDialog({ open, onClose, patient }) {
                           {visit.chandoanravien_kemtheo_code &&
                             `[${visit.chandoanravien_kemtheo_code}] `}
                           {visit.chandoanravien_kemtheo}
+                        </Typography>
+                      )}
+                      {visit.xutrikhambenhid != null && (
+                        <Typography variant="caption" color="text.secondary">
+                          Xử trí khám bệnh: {visit.xutrikhambenhid}
                         </Typography>
                       )}
                     </Box>

@@ -6,6 +6,7 @@ import {
   Typography,
   Box,
   Skeleton,
+  Tooltip,
 } from "@mui/material";
 import {
   People as PeopleIcon,
@@ -46,6 +47,13 @@ const CARDS = [
     bg: "#ffebee",
   },
   {
+    key: "trungNgay",
+    label: "Đặt trong ngày",
+    icon: DateRangeIcon,
+    color: "#00897b",
+    bg: "#e0f2f1",
+  },
+  {
     key: "soManTinh",
     label: "Mãn tính",
     icon: LoopIcon,
@@ -53,26 +61,28 @@ const CARDS = [
     bg: "#f3e5f5",
   },
   {
+    key: "manTinhDungTuyen",
+    label: "MT đúng tuyến",
+    icon: LoopIcon,
+    color: "#1b5e20",
+    bg: "#e8f5e9",
+    tooltip: "Ca đã đánh dấu mãn tính và mã CSKCB ban đầu bằng 25001.",
+  },
+  {
+    key: "manTinhChuyenTuyen",
+    label: "MT chuyển tuyến",
+    icon: LoopIcon,
+    color: "#e65100",
+    bg: "#fff3e0",
+    tooltip: "Ca đã đánh dấu mãn tính và mã CSKCB ban đầu khác 25001.",
+  },
+  {
     key: "hopLe",
-    label: "Hợp lệ (CK có tiền − MT)",
+    label: "Hợp lệ",
     icon: VerifiedUserIcon,
     color: "#0288d1",
     bg: "#e1f5fe",
-  },
-  {
-    key: "hopLeMt13",
-    label: "Hợp lệ (1/3)",
-    icon: VerifiedUserIcon,
-    color: "#2e7d32",
-    bg: "#e8f5e9",
     decimal: true,
-  },
-  {
-    key: "trungNgay",
-    label: "Trùng ngày",
-    icon: DateRangeIcon,
-    color: "#00897b",
-    bg: "#e0f2f1",
   },
 ];
 
@@ -87,46 +97,55 @@ function DatLichKhamStatistics({ thongKe = {}, loading = false }) {
       <Grid container spacing={2}>
         {CARDS.map((c) => {
           const Icon = c.icon;
+          const cardContent = (
+            <Card
+              sx={{
+                bgcolor: c.bg,
+                borderLeft: `4px solid ${c.color}`,
+                height: "100%",
+                cursor: c.tooltip ? "help" : "default",
+              }}
+              variant="outlined"
+            >
+              <CardContent sx={{ py: 1.5, px: 2, "&:last-child": { pb: 1.5 } }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    mb: 0.5,
+                  }}
+                >
+                  <Icon sx={{ color: c.color, fontSize: 20 }} />
+                  <Typography variant="body2" color="text.secondary">
+                    {c.label}
+                  </Typography>
+                </Box>
+                {loading ? (
+                  <Skeleton width={60} height={32} />
+                ) : (
+                  <Typography variant="h5" fontWeight="bold" color={c.color}>
+                    {c.decimal
+                      ? Number(thongKe[c.key] || 0).toLocaleString("vi-VN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      : formatVND(thongKe[c.key] || 0)}
+                  </Typography>
+                )}
+              </CardContent>
+            </Card>
+          );
+
           return (
             <Grid item xs={6} sm={4} md key={c.key}>
-              <Card
-                sx={{
-                  bgcolor: c.bg,
-                  borderLeft: `4px solid ${c.color}`,
-                  height: "100%",
-                }}
-                variant="outlined"
-              >
-                <CardContent
-                  sx={{ py: 1.5, px: 2, "&:last-child": { pb: 1.5 } }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mb: 0.5,
-                    }}
-                  >
-                    <Icon sx={{ color: c.color, fontSize: 20 }} />
-                    <Typography variant="body2" color="text.secondary">
-                      {c.label}
-                    </Typography>
-                  </Box>
-                  {loading ? (
-                    <Skeleton width={60} height={32} />
-                  ) : (
-                    <Typography variant="h5" fontWeight="bold" color={c.color}>
-                      {c.decimal
-                        ? Number(thongKe[c.key] || 0).toLocaleString("vi-VN", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })
-                        : formatVND(thongKe[c.key] || 0)}
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
+              {c.tooltip ? (
+                <Tooltip title={c.tooltip} arrow placement="top">
+                  {cardContent}
+                </Tooltip>
+              ) : (
+                cardContent
+              )}
             </Grid>
           );
         })}

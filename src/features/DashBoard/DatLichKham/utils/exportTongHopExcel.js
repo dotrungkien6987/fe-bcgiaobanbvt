@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import dayjs from "dayjs";
+import { thirdUnitsToNumber } from "./tongHopMetrics";
 
 // ── Styling constants ──────────────────────────────────────────────
 const FONT = { name: "Times New Roman", size: 11 };
@@ -73,8 +74,21 @@ const COLUMNS = [
     align: "right",
     numeric: true,
   },
-  { header: "Hợp lệ", key: "hop_le", width: 10, align: "right", numeric: true },
-  { header: "Hợp lệ (1/3)", key: "hop_le_mt_1_3", width: 12, align: "right", numeric: true },
+  {
+    header: "Mãn tính đúng tuyến",
+    key: "man_tinh_dung_tuyen",
+    width: 18,
+    align: "right",
+    numeric: true,
+  },
+  {
+    header: "Mãn tính chuyển tuyến",
+    key: "man_tinh_chuyen_tuyen",
+    width: 20,
+    align: "right",
+    numeric: true,
+  },
+  { header: "Hợp lệ", key: "hop_le", width: 12, align: "right", numeric: true },
   {
     header: "Trùng ngày",
     key: "trung_ngay",
@@ -119,9 +133,19 @@ function applyAlignment(row) {
 function sumRows(rows) {
   const sums = {};
   NUMERIC_KEYS.forEach((key) => {
+    if (key === "hop_le") {
+      sums[key] = thirdUnitsToNumber(
+        rows.reduce((s, r) => s + Number(r.hop_le_third_units || 0), 0),
+      );
+      return;
+    }
     sums[key] = rows.reduce((s, r) => s + Number(r[key] || 0), 0);
   });
   return sums;
+}
+
+function isDecimalColumn(key) {
+  return key === "hop_le";
 }
 
 function addSubtotalRow(ws, label, sums, fill) {
@@ -153,7 +177,9 @@ function addSubtotalRow(ws, label, sums, fill) {
   // Number format for numeric cells
   COLUMNS.forEach((col, idx) => {
     if (col.numeric) {
-      row.getCell(idx + 1).numFmt = col.key === "hop_le_mt_1_3" ? "#,##0.00" : "#,##0";
+      row.getCell(idx + 1).numFmt = isDecimalColumn(col.key)
+        ? "#,##0.00"
+        : "#,##0";
     }
   });
 
@@ -251,7 +277,9 @@ export async function exportTongHopExcel({ data, fromDate, toDate }) {
       // Number format for numeric cells
       COLUMNS.forEach((col, idx) => {
         if (col.numeric) {
-          dataRow.getCell(idx + 1).numFmt = col.key === "hop_le_mt_1_3" ? "#,##0.00" : "#,##0";
+          dataRow.getCell(idx + 1).numFmt = isDecimalColumn(col.key)
+            ? "#,##0.00"
+            : "#,##0";
         }
       });
     });

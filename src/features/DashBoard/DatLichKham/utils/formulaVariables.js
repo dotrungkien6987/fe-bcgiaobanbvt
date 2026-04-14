@@ -3,6 +3,8 @@
  * Dùng cho công thức lọc bệnh nhân mãn tính
  */
 
+import { isDungTuyenMacskcbbd, MACSKCBBD_DUNG_TUYEN } from "./constants";
+
 /**
  * Danh sách biến số có thể dùng trong công thức
  * Frontend dùng để render dropdown trong rule builder
@@ -48,6 +50,30 @@ export const VARIABLE_DEFINITIONS = [
     type: "boolean",
     moTa: "Mã ICD CĐ chính của lần khám hiện tại có nằm trong danh sách mã bệnh mãn tính đã cấu hình hay không",
     viDu: "E11 (ĐTĐ type 2) ∈ DS mãn tính → true;  J18 (viêm phổi) ∉ DS → false",
+    nhom: "hienTai",
+  },
+  {
+    id: "maCSKCBBD_25001",
+    label: `Mã CSKCB BĐ = ${MACSKCBBD_DUNG_TUYEN}`,
+    type: "boolean",
+    moTa: `Đúng khi mã cơ sở khám chữa bệnh ban đầu của lượt khám hiện tại bằng ${MACSKCBBD_DUNG_TUYEN}. Theo quy ước nghiệp vụ, ${MACSKCBBD_DUNG_TUYEN} là đúng tuyến; khác ${MACSKCBBD_DUNG_TUYEN} là chuyển tuyến`,
+    viDu: `${MACSKCBBD_DUNG_TUYEN} → true; 79011 → false`,
+    nhom: "hienTai",
+  },
+  {
+    id: "coHenKhamGanNhat",
+    label: "Khám gần nhất có hẹn",
+    type: "boolean",
+    moTa: "Đúng khi lần khám gần nhất trước đợt hiện tại có xử trí hẹn khám lại (xutrikhambenhid = 3)",
+    viDu: "Lần khám gần nhất có xutrikhambenhid = 3 → true; các trường hợp khác → false",
+    nhom: "hienTai",
+  },
+  {
+    id: "soNgayTuLanKhamGanNhat",
+    label: "Thời gian từ ngày khám gần nhất (ngày)",
+    type: "number",
+    moTa: "Số ngày chênh giữa đợt khám hiện tại và lần khám gần nhất trước đó. Nếu chưa có lần khám trước thì biến này không có giá trị",
+    viDu: "Khám hiện tại 10/04, lần khám gần nhất 01/04 → 9",
     nhom: "hienTai",
   },
   {
@@ -211,7 +237,19 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
   const currentPrimaryCode = (patient?.chandoanravien_code || "")
     .toUpperCase()
     .trim();
-  const kemTheoCodesCurrentVisit = parseKemTheoCodes(patient?.chandoanravien_kemtheo_code);
+  const maCSKCBBD_25001 = isDungTuyenMacskcbbd(patient?.macskcbbd);
+  const coHenKhamGanNhat = Boolean(patient?.co_hen_kham_gan_nhat);
+  const soNgayTuLanKhamGanNhatRaw = patient?.so_ngay_tu_lan_kham_gan_nhat;
+  const parsedSoNgayTuLanKhamGanNhat = Number(soNgayTuLanKhamGanNhatRaw);
+  const soNgayTuLanKhamGanNhat =
+    soNgayTuLanKhamGanNhatRaw == null ||
+    soNgayTuLanKhamGanNhatRaw === "" ||
+    Number.isNaN(parsedSoNgayTuLanKhamGanNhat)
+      ? undefined
+      : parsedSoNgayTuLanKhamGanNhat;
+  const kemTheoCodesCurrentVisit = parseKemTheoCodes(
+    patient?.chandoanravien_kemtheo_code,
+  );
 
   // ─── Đếm tần suất mã ICD chính ───────────────────────────
   const icdCount = {};
@@ -394,8 +432,12 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
     if (currentVisitChronicCodes.size > 0) {
       const historyCount = {};
       lichSu.forEach((visit) => {
-        const histPrimary = (visit.chandoanravien_code || "").toUpperCase().trim();
-        const histKemTheo = parseKemTheoCodes(visit.chandoanravien_kemtheo_code);
+        const histPrimary = (visit.chandoanravien_code || "")
+          .toUpperCase()
+          .trim();
+        const histKemTheo = parseKemTheoCodes(
+          visit.chandoanravien_kemtheo_code,
+        );
         const histAll = new Set([histPrimary, ...histKemTheo]);
         currentVisitChronicCodes.forEach((code) => {
           if (histAll.has(code)) {
@@ -437,6 +479,9 @@ export function computeVariables(patient, chronicCodeSet = new Set()) {
     // Lần khám hiện tại
     maBenhChinhMoi,
     maBenhChinhHienTai_TrongDSManTinh,
+    maCSKCBBD_25001,
+    coHenKhamGanNhat,
+    soNgayTuLanKhamGanNhat,
     maBenhManTinhTrongDS,
     // DS mãn tính — CĐ chính
     coMaBenhManTinh,

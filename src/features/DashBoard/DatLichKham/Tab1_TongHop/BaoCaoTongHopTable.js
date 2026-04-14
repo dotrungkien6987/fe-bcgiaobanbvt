@@ -18,6 +18,7 @@ import {
   Box,
   Skeleton,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import {
   Visibility as ViewIcon,
@@ -26,6 +27,11 @@ import {
 } from "@mui/icons-material";
 import dayjs from "dayjs";
 import { exportTongHopExcel } from "../utils/exportTongHopExcel";
+import {
+  buildManTinhClassificationByNGT,
+  calculateHopLeThirdUnits,
+  thirdUnitsToNumber,
+} from "../utils/tongHopMetrics";
 
 function isTrungNgay(row) {
   if (!row.dangkykhaminitdate || !row.dangkykhamdate) return false;
@@ -40,6 +46,13 @@ function formatVND(num) {
   return Number(num).toLocaleString("vi-VN");
 }
 
+function formatDecimal(num) {
+  return Number(num || 0).toLocaleString("vi-VN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 const COLUMNS = [
   { id: "stt", label: "STT", align: "center", width: 50 },
   { id: "ma_ngt", label: "Mã NGT", width: 90 },
@@ -51,8 +64,19 @@ const COLUMNS = [
   { id: "khong_kham", label: "Không khám", align: "right", width: 90 },
   { id: "co_kham_co_tien", label: "CK có tiền", align: "right", width: 90 },
   { id: "so_man_tinh", label: "Mãn tính", align: "right", width: 80 },
-  { id: "hop_le", label: "Hợp lệ", align: "right", width: 80 },
-  { id: "hop_le_mt_1_3", label: "Hợp lệ (1/3)", align: "right", width: 90 },
+  {
+    id: "man_tinh_dung_tuyen",
+    label: "Mãn tính đúng tuyến",
+    align: "right",
+    width: 140,
+  },
+  {
+    id: "man_tinh_chuyen_tuyen",
+    label: "Mãn tính chuyển tuyến",
+    align: "right",
+    width: 150,
+  },
+  { id: "hop_le", label: "Hợp lệ", align: "right", width: 90 },
   { id: "trung_ngay", label: "Trùng ngày", align: "right", width: 90 },
   { id: "tong_tien", label: "Tổng tiền", align: "right", width: 120 },
   { id: "actions", label: "", width: 50 },
@@ -86,16 +110,13 @@ function BaoCaoTongHopTable({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [search, setSearch] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   // Enrich data with mãn tính count + trùng ngày count per NGT
   const enrichedData = useMemo(() => {
-    // Group mãn tính by nguoigioithieuid
-    const manTinhByNGT = {};
-    Object.values(danhSachManTinh).forEach((doc) => {
-      const ngtId = doc.nguoigioithieuid;
-      if (ngtId) {
-        manTinhByNGT[ngtId] = (manTinhByNGT[ngtId] || 0) + 1;
-      }
+    const { byNGT } = buildManTinhClassificationByNGT({
+      danhSachManTinh,
+      chiTietDatLich,
     });
 
     // Group trùng ngày by nguoigioithieuid
@@ -108,12 +129,23 @@ function BaoCaoTongHopTable({
     });
 
     return data.map((row) => {
-      const soManTinh = manTinhByNGT[row.nguoigioithieuid] || 0;
+      const manTinhMetrics = byNGT[String(row.nguoigioithieuid)] ||
+        byNGT[row.nguoigioithieuid] || {
+          so_man_tinh: 0,
+          man_tinh_dung_tuyen: 0,
+          man_tinh_chuyen_tuyen: 0,
+        };
+      const hopLeThirdUnits = calculateHopLeThirdUnits({
+        coKhamCoTien: row.co_kham_co_tien,
+        manTinhDungTuyen: manTinhMetrics.man_tinh_dung_tuyen,
+        manTinhChuyenTuyen: manTinhMetrics.man_tinh_chuyen_tuyen,
+      });
+
       return {
         ...row,
-        so_man_tinh: soManTinh,
-        hop_le: Number(row.co_kham_co_tien || 0) - soManTinh,
-        hop_le_mt_1_3: (Number(row.co_kham_co_tien || 0) - soManTinh) + soManTinh / 3,
+        ...manTinhMetrics,
+        hop_le_third_units: hopLeThirdUnits,
+        hop_le: thirdUnitsToNumber(hopLeThirdUnits),
         trung_ngay: trungNgayByNGT[row.nguoigioithieuid] || 0,
       };
     });
@@ -153,8 +185,10 @@ function BaoCaoTongHopTable({
       khong_kham: 0,
       co_kham_co_tien: 0,
       so_man_tinh: 0,
+      man_tinh_dung_tuyen: 0,
+      man_tinh_chuyen_tuyen: 0,
+      hop_le_third_units: 0,
       hop_le: 0,
-      hop_le_mt_1_3: 0,
       trung_ngay: 0,
       tong_tien: 0,
     };
@@ -164,11 +198,13 @@ function BaoCaoTongHopTable({
       t.khong_kham += Number(r.khong_kham || 0);
       t.co_kham_co_tien += Number(r.co_kham_co_tien || 0);
       t.so_man_tinh += Number(r.so_man_tinh || 0);
-      t.hop_le += Number(r.hop_le || 0);
-      t.hop_le_mt_1_3 += Number(r.hop_le_mt_1_3 || 0);
+      t.man_tinh_dung_tuyen += Number(r.man_tinh_dung_tuyen || 0);
+      t.man_tinh_chuyen_tuyen += Number(r.man_tinh_chuyen_tuyen || 0);
+      t.hop_le_third_units += Number(r.hop_le_third_units || 0);
       t.trung_ngay += Number(r.trung_ngay || 0);
       t.tong_tien += Number(r.tong_tien || 0);
     });
+    t.hop_le = thirdUnitsToNumber(t.hop_le_third_units);
     return t;
   }, [filteredData]);
 
@@ -178,8 +214,13 @@ function BaoCaoTongHopTable({
     setOrderBy(col);
   };
 
-  const handleExport = () => {
-    exportTongHopExcel({ data: filteredData, fromDate, toDate });
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await exportTongHopExcel({ data: filteredData, fromDate, toDate });
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (loading) {
@@ -217,10 +258,20 @@ function BaoCaoTongHopTable({
           }}
           sx={{ width: 300 }}
         />
-        <Tooltip title="Xuất Excel">
-          <IconButton color="success" onClick={handleExport}>
-            <ExportIcon />
-          </IconButton>
+        <Tooltip title={exporting ? "Đang xuất Excel" : "Xuất Excel"}>
+          <span>
+            <IconButton
+              color="success"
+              onClick={handleExport}
+              disabled={exporting}
+            >
+              {exporting ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                <ExportIcon />
+              )}
+            </IconButton>
+          </span>
         </Tooltip>
       </Stack>
 
@@ -308,22 +359,35 @@ function BaoCaoTongHopTable({
                     )}
                   </TableCell>
                   <TableCell align="right">
-                    <Typography
-                      fontWeight="bold"
-                      color={row.hop_le > 0 ? "primary" : "text.secondary"}
-                    >
-                      {formatVND(row.hop_le)}
-                    </Typography>
+                    {row.man_tinh_dung_tuyen > 0 ? (
+                      <Chip
+                        label={row.man_tinh_dung_tuyen}
+                        size="small"
+                        color="success"
+                        variant="outlined"
+                      />
+                    ) : (
+                      "0"
+                    )}
+                  </TableCell>
+                  <TableCell align="right">
+                    {row.man_tinh_chuyen_tuyen > 0 ? (
+                      <Chip
+                        label={row.man_tinh_chuyen_tuyen}
+                        size="small"
+                        color="warning"
+                        variant="outlined"
+                      />
+                    ) : (
+                      "0"
+                    )}
                   </TableCell>
                   <TableCell align="right">
                     <Typography
                       fontWeight="bold"
-                      color={row.hop_le_mt_1_3 > 0 ? "success" : "text.secondary"}
+                      color={row.hop_le > 0 ? "primary" : "text.secondary"}
                     >
-                      {Number(row.hop_le_mt_1_3 || 0).toLocaleString("vi-VN", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                      {formatDecimal(row.hop_le)}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
@@ -383,13 +447,13 @@ function BaoCaoTongHopTable({
                   {formatVND(totals.so_man_tinh)}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                  {formatVND(totals.hop_le)}
+                  {formatVND(totals.man_tinh_dung_tuyen)}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                  {Number(totals.hop_le_mt_1_3 || 0).toLocaleString("vi-VN", {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+                  {formatVND(totals.man_tinh_chuyen_tuyen)}
+                </TableCell>
+                <TableCell align="right" sx={{ fontWeight: "bold" }}>
+                  {formatDecimal(totals.hop_le)}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
                   {formatVND(totals.trung_ngay)}

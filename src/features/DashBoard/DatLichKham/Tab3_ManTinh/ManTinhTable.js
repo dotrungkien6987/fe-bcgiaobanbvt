@@ -30,6 +30,7 @@ import {
   Alert,
   Menu,
   MenuItem,
+  LinearProgress,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -54,6 +55,8 @@ import {
   fetchCongThucManTinh,
   selectMaBenhManTinhSet,
   selectCongThucManTinhActive,
+  selectLoadingMaBenh,
+  selectLoadingCongThuc,
 } from "../datLichKhamSlice";
 import LichSuKhamDialog from "../Tab2_ChiTiet/LichSuKhamDialog";
 import MaBenhManTinhDialog from "./MaBenhManTinhDialog";
@@ -88,6 +91,8 @@ function ManTinhTable({
   const dispatch = useDispatch();
   const chronicCodeSet = useSelector(selectMaBenhManTinhSet);
   const activeCongThuc = useSelector(selectCongThucManTinhActive);
+  const loadingMaBenh = useSelector(selectLoadingMaBenh);
+  const loadingCongThuc = useSelector(selectLoadingCongThuc);
 
   const [filter, setFilter] = useState("all"); // all | marked | unmarked
   const [filterTrungNgay, setFilterTrungNgay] = useState(false);
@@ -160,7 +165,8 @@ function ManTinhTable({
           (r.patientname || "").toLowerCase().includes(s) ||
           (r.ten_ngt || "").toLowerCase().includes(s) ||
           (r.chandoanravien || "").toLowerCase().includes(s) ||
-          (r.chandoanravien_code || "").toLowerCase().includes(s),
+          (r.chandoanravien_code || "").toLowerCase().includes(s) ||
+          (r.macskcbbd || "").toLowerCase().includes(s),
       );
     }
     return result;
@@ -325,6 +331,21 @@ function ManTinhTable({
     return { total, marked, unmarked: total - marked };
   }, [vong1Data]);
 
+  const isLoadingMasterData = loadingMaBenh || loadingCongThuc;
+
+  const masterDataLoadingText = useMemo(() => {
+    if (loadingMaBenh && loadingCongThuc) {
+      return "Đang tải danh sách mã bệnh và cấu hình công thức mãn tính...";
+    }
+    if (loadingMaBenh) {
+      return "Đang tải danh sách mã bệnh mãn tính...";
+    }
+    if (loadingCongThuc) {
+      return "Đang tải cấu hình công thức mãn tính...";
+    }
+    return "";
+  }, [loadingMaBenh, loadingCongThuc]);
+
   if (loading) {
     return (
       <Box>
@@ -337,6 +358,19 @@ function ManTinhTable({
 
   return (
     <Paper variant="outlined">
+      {isLoadingMasterData ? (
+        <Alert
+          severity="info"
+          variant="outlined"
+          sx={{ mx: 2, mt: 1.5, mb: 0 }}
+        >
+          <Stack spacing={1} sx={{ width: "100%" }}>
+            <Typography variant="body2">{masterDataLoadingText}</Typography>
+            <LinearProgress color="info" />
+          </Stack>
+        </Alert>
+      ) : null}
+
       {/* Stats + Filter bar */}
       <Stack
         direction="row"
@@ -395,6 +429,7 @@ function ManTinhTable({
               variant="outlined"
               startIcon={<BiotechIcon />}
               onClick={() => setMaBenhDialogOpen(true)}
+              disabled={loadingMaBenh}
             >
               Mã bệnh mãn tính
             </Button>
@@ -406,6 +441,7 @@ function ManTinhTable({
               color="primary"
               startIcon={<TuneIcon />}
               onClick={() => setCongThucDialogOpen(true)}
+              disabled={loadingCongThuc}
             >
               Công thức
             </Button>
@@ -418,6 +454,7 @@ function ManTinhTable({
                 color="secondary"
                 startIcon={<PlayIcon />}
                 onClick={() => handleRunFormula(activeCongThuc[0])}
+                disabled={isLoadingMasterData}
               >
                 Lọc mãn tính
               </Button>
@@ -432,6 +469,7 @@ function ManTinhTable({
                 startIcon={<PlayIcon />}
                 endIcon={<ArrowDropDownIcon />}
                 onClick={(e) => setFormulaMenuAnchor(e.currentTarget)}
+                disabled={isLoadingMasterData}
               >
                 Lọc mãn tính ({activeCongThuc.length})
               </Button>
@@ -456,7 +494,7 @@ function ManTinhTable({
           )}
           <TextField
             size="small"
-            placeholder="Tìm BN, NGT, chẩn đoán..."
+            placeholder="Tìm BN, NGT, chẩn đoán, mã CSKCB..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -528,6 +566,9 @@ function ManTinhTable({
               <TableCell sx={{ fontWeight: "bold", width: 80 }}>
                 Mã BN cũ
               </TableCell>
+              <TableCell sx={{ fontWeight: "bold", width: 115 }}>
+                Mã CSKCB BĐ
+              </TableCell>
               <TableCell sx={{ fontWeight: "bold", width: 95 }}>
                 <TableSortLabel
                   active={orderBy === "dangkykhaminitdate"}
@@ -594,7 +635,7 @@ function ManTinhTable({
           <TableBody>
             {paginatedData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={15} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={16} align="center" sx={{ py: 4 }}>
                   <Typography color="text.secondary">
                     Không có dữ liệu có khám phát sinh tiền
                   </Typography>
@@ -619,6 +660,14 @@ function ManTinhTable({
                   </TableCell>
                   <TableCell>{row.patientid || "—"}</TableCell>
                   <TableCell>{row.patientid_old || "—"}</TableCell>
+                  <TableCell>
+                    <Typography
+                      variant="caption"
+                      sx={{ fontFamily: "monospace" }}
+                    >
+                      {row.macskcbbd || "—"}
+                    </Typography>
+                  </TableCell>
                   <TableCell>
                     {row.dangkykhaminitdate
                       ? dayjs(row.dangkykhaminitdate).format("DD/MM/YYYY")

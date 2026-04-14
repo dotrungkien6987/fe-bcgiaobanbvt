@@ -21,6 +21,7 @@ import {
   Button,
   Alert,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -31,6 +32,7 @@ import {
 } from "@mui/icons-material";
 import dayjs from "dayjs";
 import { exportChiTietExcel } from "../utils/exportChiTietExcel";
+import { isDungTuyenMacskcbbd } from "../utils/constants";
 import LichSuKhamDialog from "./LichSuKhamDialog";
 
 function formatVND(num) {
@@ -59,18 +61,34 @@ function getStatusChip(status, tongTien) {
   const tt = Number(tongTien);
   if (tt > 0) {
     return (
-      <Chip label="Có khám có tiền" size="small" color="success" variant="filled" />
+      <Chip
+        label="Có khám có tiền"
+        size="small"
+        color="success"
+        variant="filled"
+      />
     );
   }
   return <Chip label="Khám 0₫" size="small" color="default" variant="filled" />;
+}
+
+function hasCoHenKhamGanNhat(row) {
+  return Boolean(row?.vienphiid && row?.co_hen_kham_gan_nhat);
 }
 
 const COLUMNS = [
   { id: "stt", label: "STT", align: "center", width: 50 },
   { id: "patientid", label: "Mã BN", width: 80 },
   { id: "patientid_old", label: "Mã BN cũ", width: 80 },
+  { id: "macskcbbd", label: "Mã CSKCB BĐ", width: 115 },
   { id: "dangkykhaminitdate", label: "Ngày đặt lịch", width: 100 },
   { id: "dangkykhamdate", label: "Ngày ĐK khám", width: 100 },
+  {
+    id: "ngay_xu_tri_hen_gan_nhat",
+    label: "Khám gần nhất có hẹn",
+    align: "center",
+    width: 160,
+  },
   { id: "patientname", label: "Bệnh nhân", width: 160 },
   { id: "birthday", label: "Ngày sinh", width: 90 },
   { id: "ten_ngt", label: "NGT", width: 140 },
@@ -117,7 +135,10 @@ function ChiTietDatLichTable({
   const [lichSuPatient, setLichSuPatient] = useState(null);
   const [filterTrungNgay, setFilterTrungNgay] = useState(false);
   const [filterTrangThai, setFilterTrangThai] = useState("");
+  const [filterTuyen, setFilterTuyen] = useState("");
   const [filterManTinh, setFilterManTinh] = useState("");
+  const [filterHen, setFilterHen] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   // Filter by NGT (from Tab1 click) and text search
   const filteredData = useMemo(() => {
@@ -142,10 +163,21 @@ function ChiTietDatLichTable({
     // Filter trạng thái khám (phân cấp, loại trừ nhau)
     if (filterTrangThai === "co_kham_co_tien") {
       result = result.filter(
+        (r) => Number(r.dangkykhamstatus) === 1 && Number(r.tong_tien) > 0,
+      );
+    } else if (filterTrangThai === "co_kham_0dong") {
+      result = result.filter(
         (r) => Number(r.dangkykhamstatus) === 1 && Number(r.tong_tien) <= 0,
       );
     } else if (filterTrangThai === "khong_kham") {
       result = result.filter((r) => Number(r.dangkykhamstatus) !== 1);
+    }
+
+    // Filter tuyến khám theo mã CSKCB ban đầu
+    if (filterTuyen === "dung_tuyen") {
+      result = result.filter((r) => isDungTuyenMacskcbbd(r.macskcbbd));
+    } else if (filterTuyen === "ngoai_tuyen") {
+      result = result.filter((r) => !isDungTuyenMacskcbbd(r.macskcbbd));
     }
 
     // Filter mãn tính
@@ -153,6 +185,13 @@ function ChiTietDatLichTable({
       result = result.filter((r) => danhSachManTinh[r.dangkykhamid]);
     } else if (filterManTinh === "khong_mantinh") {
       result = result.filter((r) => !danhSachManTinh[r.dangkykhamid]);
+    }
+
+    // Filter hẹn của lần khám gần nhất
+    if (filterHen === "co_hen") {
+      result = result.filter((r) => hasCoHenKhamGanNhat(r));
+    } else if (filterHen === "khong_hen") {
+      result = result.filter((r) => r.vienphiid && !hasCoHenKhamGanNhat(r));
     }
 
     // Text search
@@ -164,6 +203,7 @@ function ChiTietDatLichTable({
           (r.ten_ngt || "").toLowerCase().includes(s) ||
           (r.chandoanravien || "").toLowerCase().includes(s) ||
           (r.hosobenhancode || "").includes(s) ||
+          (r.macskcbbd || "").toLowerCase().includes(s) ||
           (r.ma_ngt || "").toLowerCase().includes(s) ||
           String(r.patientid || "").includes(s) ||
           String(r.patientid_old || "").includes(s),
@@ -175,7 +215,9 @@ function ChiTietDatLichTable({
     filterNGT,
     filterTrungNgay,
     filterTrangThai,
+    filterTuyen,
     filterManTinh,
+    filterHen,
     danhSachManTinh,
     search,
   ]);
@@ -206,13 +248,18 @@ function ChiTietDatLichTable({
     setOrderBy(col);
   };
 
-  const handleExport = () => {
-    exportChiTietExcel({
-      data: filteredData,
-      danhSachManTinh,
-      fromDate,
-      toDate,
-    });
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await exportChiTietExcel({
+        data: filteredData,
+        danhSachManTinh,
+        fromDate,
+        toDate,
+      });
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (loading) {
@@ -248,7 +295,11 @@ function ChiTietDatLichTable({
       )}
 
       {/* Active filters banner */}
-      {(filterTrungNgay || filterTrangThai || filterManTinh) && (
+      {(filterTrungNgay ||
+        filterTrangThai ||
+        filterTuyen ||
+        filterManTinh ||
+        filterHen) && (
         <Alert
           severity="warning"
           sx={{ borderRadius: 0 }}
@@ -259,7 +310,9 @@ function ChiTietDatLichTable({
               onClick={() => {
                 setFilterTrungNgay(false);
                 setFilterTrangThai("");
+                setFilterTuyen("");
                 setFilterManTinh("");
+                setFilterHen("");
               }}
             >
               Xóa bộ lọc
@@ -272,8 +325,12 @@ function ChiTietDatLichTable({
             filterTrangThai === "khong_kham" && "Không khám",
             filterTrangThai === "co_kham_0dong" && "Có khám 0₫",
             filterTrangThai === "co_kham_co_tien" && "Có khám + tiền",
+            filterTuyen === "dung_tuyen" && "Đúng tuyến",
+            filterTuyen === "ngoai_tuyen" && "Chuyển tuyến",
             filterManTinh === "mantinh" && "Mãn tính",
             filterManTinh === "khong_mantinh" && "Chưa mãn tính",
+            filterHen === "co_hen" && "Có hẹn",
+            filterHen === "khong_hen" && "Không hẹn",
           ]
             .filter(Boolean)
             .join(" • ")}{" "}
@@ -291,7 +348,7 @@ function ChiTietDatLichTable({
       >
         <TextField
           size="small"
-          placeholder="Tìm bệnh nhân, NGT, chẩn đoán..."
+          placeholder="Tìm BN, NGT, chẩn đoán, mã CSKCB..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -371,6 +428,38 @@ function ChiTietDatLichTable({
 
         <Divider orientation="vertical" flexItem />
 
+        <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+          Tuyến:
+        </Typography>
+        <Chip
+          label="Đúng tuyến"
+          size="small"
+          clickable
+          color={filterTuyen === "dung_tuyen" ? "success" : "default"}
+          variant={filterTuyen === "dung_tuyen" ? "filled" : "outlined"}
+          onClick={() => {
+            setFilterTuyen((prev) =>
+              prev === "dung_tuyen" ? "" : "dung_tuyen",
+            );
+            setPage(0);
+          }}
+        />
+        <Chip
+          label="Chuyển tuyến"
+          size="small"
+          clickable
+          color={filterTuyen === "ngoai_tuyen" ? "warning" : "default"}
+          variant={filterTuyen === "ngoai_tuyen" ? "filled" : "outlined"}
+          onClick={() => {
+            setFilterTuyen((prev) =>
+              prev === "ngoai_tuyen" ? "" : "ngoai_tuyen",
+            );
+            setPage(0);
+          }}
+        />
+
+        <Divider orientation="vertical" flexItem />
+
         <Chip
           label="Mãn tính"
           size="small"
@@ -396,12 +485,49 @@ function ChiTietDatLichTable({
           }}
         />
 
+        <Divider orientation="vertical" flexItem />
+
+        <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+          Hẹn:
+        </Typography>
+        <Chip
+          label="Có hẹn"
+          size="small"
+          clickable
+          color={filterHen === "co_hen" ? "warning" : "default"}
+          variant={filterHen === "co_hen" ? "filled" : "outlined"}
+          onClick={() => {
+            setFilterHen((prev) => (prev === "co_hen" ? "" : "co_hen"));
+            setPage(0);
+          }}
+        />
+        <Chip
+          label="Không hẹn"
+          size="small"
+          clickable
+          variant={filterHen === "khong_hen" ? "filled" : "outlined"}
+          onClick={() => {
+            setFilterHen((prev) => (prev === "khong_hen" ? "" : "khong_hen"));
+            setPage(0);
+          }}
+        />
+
         <Box sx={{ flex: 1 }} />
 
-        <Tooltip title="Xuất Excel">
-          <IconButton color="success" onClick={handleExport}>
-            <ExportIcon />
-          </IconButton>
+        <Tooltip title={exporting ? "Đang xuất Excel" : "Xuất Excel"}>
+          <span>
+            <IconButton
+              color="success"
+              onClick={handleExport}
+              disabled={exporting}
+            >
+              {exporting ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : (
+                <ExportIcon />
+              )}
+            </IconButton>
+          </span>
         </Tooltip>
       </Stack>
 
@@ -470,6 +596,14 @@ function ChiTietDatLichTable({
                     <TableCell>{row.patientid || "—"}</TableCell>
                     <TableCell>{row.patientid_old || "—"}</TableCell>
                     <TableCell>
+                      <Typography
+                        variant="caption"
+                        sx={{ fontFamily: "monospace" }}
+                      >
+                        {row.macskcbbd || "—"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
                       {row.dangkykhaminitdate
                         ? dayjs(row.dangkykhaminitdate).format("DD/MM/YYYY")
                         : ""}
@@ -478,6 +612,24 @@ function ChiTietDatLichTable({
                       {row.dangkykhamdate
                         ? dayjs(row.dangkykhamdate).format("DD/MM/YYYY")
                         : ""}
+                    </TableCell>
+                    <TableCell align="center">
+                      {hasCoHenKhamGanNhat(row) &&
+                      row.ngay_xu_tri_hen_gan_nhat ? (
+                        <Stack alignItems="center" spacing={0.25}>
+                          <Chip
+                            label="Hẹn"
+                            size="small"
+                            color="warning"
+                            variant="filled"
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                            {dayjs(row.ngay_xu_tri_hen_gan_nhat).format(
+                              "DD/MM/YYYY",
+                            )}
+                          </Typography>
+                        </Stack>
+                      ) : null}
                     </TableCell>
                     <TableCell sx={{ fontWeight: 500 }}>
                       {row.patientname}

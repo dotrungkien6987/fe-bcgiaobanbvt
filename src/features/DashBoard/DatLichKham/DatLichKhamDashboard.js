@@ -1,6 +1,15 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Box, Tab, Tabs, Typography, Paper } from "@mui/material";
+import {
+  Box,
+  Tab,
+  Tabs,
+  Typography,
+  Paper,
+  Stack,
+  LinearProgress,
+  Chip,
+} from "@mui/material";
 import {
   Assessment as AssessmentIcon,
   ListAlt as ListAltIcon,
@@ -19,8 +28,14 @@ import {
   selectDanhSachManTinh,
   selectLoadingTongHop,
   selectLoadingChiTiet,
+  selectLoadingManTinh,
 } from "./datLichKhamSlice";
 import dayjs from "dayjs";
+import {
+  buildManTinhClassificationByNGT,
+  calculateHopLeThirdUnits,
+  thirdUnitsToNumber,
+} from "./utils/tongHopMetrics";
 
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -36,29 +51,75 @@ function DatLichKhamDashboard() {
   const [fromDate, setFromDate] = useState(dayjs().startOf("month"));
   const [toDate, setToDate] = useState(dayjs().endOf("month"));
   const [filterNGT, setFilterNGT] = useState(null); // filter Tab2 by NGT
+  const [pendingSearchCount, setPendingSearchCount] = useState(0);
 
   const baoCaoTongHop = useSelector(selectBaoCaoTongHop);
   const chiTietDatLich = useSelector(selectChiTietDatLich);
   const danhSachManTinh = useSelector(selectDanhSachManTinh);
   const loadingTongHop = useSelector(selectLoadingTongHop);
   const loadingChiTiet = useSelector(selectLoadingChiTiet);
+  const loadingManTinh = useSelector(selectLoadingManTinh);
 
-  const handleSearch = useCallback(() => {
+  const handleSearch = useCallback(async () => {
     if (!fromDate || !toDate) return;
-    dispatch(
-      fetchAllData({
-        fromDate: fromDate.format("YYYY-MM-DD HH:mm:ss"),
-        toDate: toDate.format("YYYY-MM-DD HH:mm:ss"),
-      }),
-    );
+    setPendingSearchCount((current) => current + 1);
+    try {
+      await dispatch(
+        fetchAllData({
+          fromDate: fromDate.format("YYYY-MM-DD HH:mm:ss"),
+          toDate: toDate.format("YYYY-MM-DD HH:mm:ss"),
+        }),
+      );
+    } finally {
+      setPendingSearchCount((current) => Math.max(0, current - 1));
+    }
   }, [dispatch, fromDate, toDate]);
 
   useEffect(() => {
-    handleSearch();
+    void handleSearch();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isPageLoading = pendingSearchCount > 0;
+
+  const pageLoadingState = React.useMemo(() => {
+    if (!isPageLoading) return null;
+    if (loadingTongHop && loadingChiTiet) {
+      return {
+        value: 35,
+        label: "Đang tải báo cáo tổng hợp và danh sách lượt khám...",
+      };
+    }
+    if (loadingChiTiet) {
+      return {
+        value: 60,
+        label: "Đang nạp lịch sử khám và dữ liệu chi tiết từng lượt khám...",
+      };
+    }
+    if (loadingTongHop) {
+      return {
+        value: 50,
+        label: "Đang tổng hợp số liệu theo người giới thiệu và khoa...",
+      };
+    }
+    if (loadingManTinh) {
+      return {
+        value: 85,
+        label:
+          "Đang đối soát danh sách đánh dấu mãn tính cho các lượt khám có phát sinh tiền...",
+      };
+    }
+    return {
+      value: 95,
+      label: "Đang hoàn tất dữ liệu báo cáo...",
+    };
+  }, [isPageLoading, loadingTongHop, loadingChiTiet, loadingManTinh]);
 
   // Tính thống kê
   const thongKe = React.useMemo(() => {
+    const { totals: manTinhTotals } = buildManTinhClassificationByNGT({
+      danhSachManTinh,
+      chiTietDatLich,
+    });
     const tongDatLich = baoCaoTongHop.reduce(
       (s, r) => s + Number(r.tong_dat_lich || 0),
       0,
@@ -83,9 +144,16 @@ function DatLichKhamDashboard() {
       (s, r) => s + Number(r.tong_tien || 0),
       0,
     );
-    const soManTinh = Object.keys(danhSachManTinh).length;
-    const hopLe = vong1 - soManTinh;
-    const hopLeMt13 = (vong1 - soManTinh) + soManTinh / 3;
+    const soManTinh = manTinhTotals.so_man_tinh;
+    const manTinhDungTuyen = manTinhTotals.man_tinh_dung_tuyen;
+    const manTinhChuyenTuyen = manTinhTotals.man_tinh_chuyen_tuyen;
+    const hopLe = thirdUnitsToNumber(
+      calculateHopLeThirdUnits({
+        coKhamCoTien: vong1,
+        manTinhDungTuyen,
+        manTinhChuyenTuyen,
+      }),
+    );
 
     // Đếm ca trùng ngày (ngày đặt lịch = ngày ĐK khám)
     const trungNgay = chiTietDatLich.filter(
@@ -103,8 +171,9 @@ function DatLichKhamDashboard() {
       vong1,
       dichvuLt100k,
       soManTinh,
+      manTinhDungTuyen,
+      manTinhChuyenTuyen,
       hopLe,
-      hopLeMt13,
       trungNgay,
       tongTien,
     };
@@ -141,7 +210,52 @@ function DatLichKhamDashboard() {
         onFromDateChange={setFromDate}
         onToDateChange={setToDate}
         onSearch={handleSearch}
+        loading={isPageLoading}
       />
+
+      {pageLoadingState ? (
+        <Paper
+          variant="outlined"
+          sx={{ px: 2, py: 1.5, mb: 1, borderRadius: 2 }}
+        >
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={1.5}
+            alignItems={{ xs: "stretch", md: "center" }}
+            justifyContent="space-between"
+          >
+            <Box sx={{ minWidth: 0 }}>
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{ mb: 0.5 }}
+              >
+                <Typography variant="body2" fontWeight={600}>
+                  Đang làm mới báo cáo
+                </Typography>
+                <Chip
+                  label={`${pageLoadingState.value}%`}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                />
+              </Stack>
+              <Typography variant="caption" color="text.secondary">
+                {pageLoadingState.label}
+              </Typography>
+            </Box>
+
+            <Box sx={{ width: { xs: "100%", md: 280 } }}>
+              <LinearProgress
+                variant="determinate"
+                value={pageLoadingState.value}
+                sx={{ height: 8, borderRadius: 999, bgcolor: "grey.200" }}
+              />
+            </Box>
+          </Stack>
+        </Paper>
+      ) : null}
 
       <DatLichKhamStatistics thongKe={thongKe} loading={loadingTongHop} />
 

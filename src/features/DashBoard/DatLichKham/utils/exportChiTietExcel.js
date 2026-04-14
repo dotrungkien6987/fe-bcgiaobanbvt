@@ -47,6 +47,12 @@ const COLUMNS = [
   { header: "Mã bệnh nhân", key: "patientid", width: 14, align: "left" },
   { header: "Mã bệnh nhân cũ", key: "patientid_old", width: 16, align: "left" },
   {
+    header: "Mã CSKCB ban đầu",
+    key: "macskcbbd",
+    width: 18,
+    align: "left",
+  },
+  {
     header: "Ngày đặt lịch",
     key: "dangkykhaminitdate",
     width: 14,
@@ -56,6 +62,12 @@ const COLUMNS = [
     header: "Ngày đăng ký khám",
     key: "dangkykhamdate",
     width: 18,
+    align: "center",
+  },
+  {
+    header: "Khám gần nhất có hẹn",
+    key: "kham_gan_nhat_co_hen",
+    width: 20,
     align: "center",
   },
   { header: "Bệnh nhân", key: "patientname", width: 22, align: "left" },
@@ -154,6 +166,17 @@ function formatDate(val) {
   return dayjs(val).format("DD/MM/YYYY");
 }
 
+function formatKhamGanNhatCoHen(row) {
+  if (
+    !row?.vienphiid ||
+    !row?.co_hen_kham_gan_nhat ||
+    !row?.ngay_xu_tri_hen_gan_nhat
+  ) {
+    return "";
+  }
+  return `Hẹn - ${formatDate(row.ngay_xu_tri_hen_gan_nhat)}`;
+}
+
 // ── Main export function ──────────────────────────────────────────
 export async function exportChiTietExcel({
   data,
@@ -228,7 +251,7 @@ export async function exportChiTietExcel({
     },
   ];
 
-  // Each metric takes 2 columns (merge). 8 metrics = 16 columns, fits in 18-col sheet.
+  // Each metric takes 2 columns; merge width is independent from detail column count.
   const COLS_PER_METRIC = 2;
 
   // Row 3: metric labels
@@ -379,7 +402,6 @@ export async function exportChiTietExcel({
         const tt = Number(r.tong_tien || 0);
         const isManTinh = !!danhSachManTinh[r.dangkykhamid];
 
-        // Determine detailed status text
         let statusText;
         if (st !== 1) {
           statusText = "Không khám";
@@ -389,7 +411,6 @@ export async function exportChiTietExcel({
           statusText = "Khám 0Đ";
         }
 
-        // Row is invalid if: không khám hoặc đã mãn tính
         const isInvalid = st !== 1 || isManTinh;
 
         const rowValues = COLUMNS.map((col) => {
@@ -397,6 +418,8 @@ export async function exportChiTietExcel({
           if (col.key === "dangkykhaminitdate")
             return formatDate(r.dangkykhaminitdate);
           if (col.key === "dangkykhamdate") return formatDate(r.dangkykhamdate);
+          if (col.key === "kham_gan_nhat_co_hen")
+            return formatKhamGanNhatCoHen(r);
           if (col.key === "birthday") return formatDate(r.birthday);
           if (col.key === "gioitinhname") {
             const raw = r.gioitinhname;
@@ -407,8 +430,10 @@ export async function exportChiTietExcel({
           if (col.key === "status") return statusText;
           if (col.key === "tong_tien") return tt;
           if (col.key === "mantinh") return isManTinh ? "Có" : "";
-          if (col.key === "makemtheo") return r.chandoanravien_kemtheo_code || "";
-          if (col.key === "ghichu") return danhSachManTinh[r.dangkykhamid]?.ghiChu || "";
+          if (col.key === "makemtheo")
+            return r.chandoanravien_kemtheo_code || "";
+          if (col.key === "ghichu")
+            return danhSachManTinh[r.dangkykhamid]?.ghiChu || "";
           return r[col.key] || "";
         });
         const dataRow = ws.addRow(rowValues);
