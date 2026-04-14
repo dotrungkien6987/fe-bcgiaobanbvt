@@ -88,14 +88,14 @@ const COLUMNS = [
     align: "right",
     numeric: true,
   },
-  { header: "Hợp lệ", key: "hop_le", width: 12, align: "right", numeric: true },
   {
-    header: "Trùng ngày",
+    header: "Đặt trong ngày",
     key: "trung_ngay",
     width: 12,
     align: "right",
     numeric: true,
   },
+  { header: "Hợp lệ", key: "hop_le", width: 12, align: "right", numeric: true },
   {
     header: "Tổng tiền",
     key: "tong_tien",

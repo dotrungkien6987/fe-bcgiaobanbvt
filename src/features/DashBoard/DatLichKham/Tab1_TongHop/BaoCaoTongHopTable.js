@@ -76,8 +76,8 @@ const COLUMNS = [
     align: "right",
     width: 150,
   },
+  { id: "trung_ngay", label: "Đặt trong ngày", align: "right", width: 90 },
   { id: "hop_le", label: "Hợp lệ", align: "right", width: 90 },
-  { id: "trung_ngay", label: "Trùng ngày", align: "right", width: 90 },
   { id: "tong_tien", label: "Tổng tiền", align: "right", width: 120 },
   { id: "actions", label: "", width: 50 },
 ];
@@ -383,14 +383,6 @@ function BaoCaoTongHopTable({
                     )}
                   </TableCell>
                   <TableCell align="right">
-                    <Typography
-                      fontWeight="bold"
-                      color={row.hop_le > 0 ? "primary" : "text.secondary"}
-                    >
-                      {formatDecimal(row.hop_le)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
                     {row.trung_ngay > 0 ? (
                       <Chip
                         label={row.trung_ngay}
@@ -400,6 +392,14 @@ function BaoCaoTongHopTable({
                     ) : (
                       "0"
                     )}
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography
+                      fontWeight="bold"
+                      color={row.hop_le > 0 ? "primary" : "text.secondary"}
+                    >
+                      {formatDecimal(row.hop_le)}
+                    </Typography>
                   </TableCell>
                   <TableCell align="right">
                     {formatVND(row.tong_tien)} ₫
@@ -453,10 +453,10 @@ function BaoCaoTongHopTable({
                   {formatVND(totals.man_tinh_chuyen_tuyen)}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                  {formatDecimal(totals.hop_le)}
+                  {formatVND(totals.trung_ngay)}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                  {formatVND(totals.trung_ngay)}
+                  {formatDecimal(totals.hop_le)}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
                   {formatVND(totals.tong_tien)} ₫
