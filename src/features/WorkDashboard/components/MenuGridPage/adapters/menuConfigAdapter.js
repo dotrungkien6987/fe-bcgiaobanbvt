@@ -18,6 +18,7 @@
  */
 
 import menuItems from "menu-items";
+import { shouldHideLegacyPath } from "config/legacyCutover";
 import {
   SECTION_METADATA,
   DEFAULT_SECTION_COLOR,
@@ -179,7 +180,10 @@ function splitLargeSection(group) {
         sections.unshift(generalSection); // Add at beginning
       }
 
-      generalSection.items.push(mapItem(child, "", group.icon, groupRoles));
+      const mappedItem = mapItem(child, "", group.icon, groupRoles);
+      if (mappedItem) {
+        generalSection.items.push(mappedItem);
+      }
     }
   });
 
@@ -214,7 +218,10 @@ function flattenItems(
 
   children.forEach((child) => {
     if (child.type === "item") {
-      items.push(mapItem(child, parentLabel, parentIcon, groupRoles));
+      const mappedItem = mapItem(child, parentLabel, parentIcon, groupRoles);
+      if (mappedItem) {
+        items.push(mappedItem);
+      }
     } else if (child.type === "collapse" && child.children) {
       // Get the label for nested context
       const childLabel = extractLabel(child.title);
@@ -246,6 +253,10 @@ function flattenItems(
  * @returns {Object} Item object for MenuGridPage
  */
 function mapItem(item, parentLabel, fallbackIcon, groupRoles) {
+  if (item.url && shouldHideLegacyPath(item.url)) {
+    return null;
+  }
+
   const label = extractLabel(item.title);
 
   // Build description from parent context

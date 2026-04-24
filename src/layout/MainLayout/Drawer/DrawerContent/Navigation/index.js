@@ -14,6 +14,7 @@ import useConfig from "hooks/useConfig";
 import { HORIZONTAL_MAX_ITEM } from "configAble";
 import { MenuOrientation } from "configAble";
 import useAuth from "hooks/useAuth";
+import { isLegacyPathHidden } from "config/legacyCutover";
 
 // ==============================|| DRAWER CONTENT - NAVIGATION ||============================== //
 
@@ -31,6 +32,7 @@ const Navigation = () => {
 
   // Kiểm tra xem user có quyền truy cập menu item hay không
   const hasAccess = (item) => {
+    if (!item) return false;
     if (!user || !user.PhanQuyen) return false;
     const role = user.PhanQuyen || "default";
     return item.roles?.includes(role);
@@ -44,6 +46,9 @@ const Navigation = () => {
   // Đệ quy thay placeholder :NhanVienID bằng giá trị thực tế
   const replaceNhanVienID = (node) => {
     if (!node) return null;
+    if (node.url && isLegacyPathHidden(node.url)) {
+      return null;
+    }
     // Ẩn node yêu cầu NhanVienID nếu chưa có user
     if (node.url && node.url.includes(":NhanVienID") && !user?.NhanVienID) {
       return null;
@@ -60,6 +65,10 @@ const Navigation = () => {
       newNode.children = newNode.children
         .map(replaceNhanVienID)
         .filter(Boolean);
+
+      if (newNode.children.length === 0) {
+        return null;
+      }
     }
     return newNode;
   };
@@ -68,7 +77,7 @@ const Navigation = () => {
     // Clone & xử lý placeholder động
     const processed = {
       ...menuItem,
-      items: menuItem.items.map(replaceNhanVienID),
+      items: menuItem.items.map(replaceNhanVienID).filter(Boolean),
     };
     setMenuItems(processed);
     // eslint-disable-next-line
@@ -83,7 +92,7 @@ const Navigation = () => {
   const handlerMenuItem = () => {
     // Kiểm tra xem Dashboard đã được thêm vào chưa
     const isFound = menuItems.items.some(
-      (element) => element.id === "group-dashboard"
+      (element) => element.id === "group-dashboard",
     );
 
     if (getMenu?.id !== undefined && !isFound) {
@@ -113,7 +122,7 @@ const Navigation = () => {
       .slice(lastItem - 1, visibleItems.length)
       .map((item) => ({
         title: item.title,
-        elements: item.children,
+        elements: item.children?.filter(Boolean) || [],
         icon: item.icon,
       }));
   }

@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate, Outlet } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 
 import HomePage from "../pages/HomePage";
@@ -142,6 +142,22 @@ import {
   YeuCauDieuPhoiPage,
   YeuCauQuanLyKhoaPage,
 } from "features/QuanLyCongViec/Ticket";
+import {
+  shouldRedirectLegacyDomain,
+  shouldRedirectLegacyDomains,
+} from "config/legacyCutover";
+
+const LegacyDomainOutlet = ({ domain, domains }) => {
+  const shouldRedirect = domains
+    ? shouldRedirectLegacyDomains(domains)
+    : shouldRedirectLegacyDomain(domain);
+
+  if (shouldRedirect) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+};
 
 function Router() {
   return (
@@ -346,185 +362,211 @@ function Router() {
           {/* ========================================== */}
           <Route path="/quanlycongviec">
             {/* Root Dashboard - Phase 2 */}
-            <Route index element={<UnifiedDashboardPage />} />
-
-            {/* ✅ Specialized Dashboards (Phase 2C, 2D) */}
             <Route
-              path="cong-viec-dashboard"
-              element={<CongViecDashboardPage />}
+              index
+              element={
+                shouldRedirectLegacyDomains([
+                  "congviec",
+                  "yeucau",
+                  "kpi",
+                  "notifications",
+                ]) ? (
+                  <Navigate to="/" replace />
+                ) : (
+                  <UnifiedDashboardPage />
+                )
+              }
             />
-            <Route path="yeu-cau-dashboard" element={<YeuCauDashboardPage />} />
 
-            {/* ✅ Task Views (Phase 2) */}
-            <Route path="cong-viec-cua-toi" element={<MyTasksPage />} />
-            <Route path="viec-toi-giao" element={<AssignedTasksPage />} />
-            <Route
-              path="lich-su-hoan-thanh"
-              element={<CompletedTasksArchivePage />}
-            />
+            <Route element={<LegacyDomainOutlet domain="congviec" />}>
+              {/* ✅ Specialized Dashboards (Phase 2C, 2D) */}
+              <Route
+                path="cong-viec-dashboard"
+                element={<CongViecDashboardPage />}
+              />
 
-            {/* Công Việc (Legacy routes) */}
-            <Route path="congviec">
-              <Route index element={<Navigate to="nhanvien/me" replace />} />
+              {/* ✅ Task Views (Phase 2) */}
+              <Route path="cong-viec-cua-toi" element={<MyTasksPage />} />
+              <Route path="viec-toi-giao" element={<AssignedTasksPage />} />
               <Route
-                path="nhanvien/:nhanVienId"
-                element={<CongViecByNhanVienPage />}
+                path="lich-su-hoan-thanh"
+                element={<CompletedTasksArchivePage />}
               />
-              <Route path=":id" element={<CongViecDetailPage />} />
-              {/* 🧪 TEST ROUTES - New Implementations */}
-              <Route path="new/:id" element={<CongViecDetailPageNew />} />
-              <Route path="mobile/:id" element={<CongViecDetailMobile />} />
-              <Route
-                path="responsive/:id"
-                element={<CongViecDetailResponsive />}
-              />
-              <Route
-                path="mind-map"
-                element={<TaskMindMapHierarchicalPage />}
-              />
-              <Route
-                path="tree-view"
-                element={<TaskMindMapHierarchicalPage />}
-              />
-              <Route
-                path="tree-enhanced"
-                element={<TaskMindMapTreeEnhancedPage />}
-              />
-              <Route
-                path="hierarchical"
-                element={<TaskMindMapHierarchicalPage />}
-              />
-              <Route
-                path="hierarchical-dynamic"
-                element={<CongViecHierarchyTreeDynamicPage />}
-              />
+
+              {/* Công Việc (Legacy routes) */}
+              <Route path="congviec">
+                <Route index element={<Navigate to="nhanvien/me" replace />} />
+                <Route
+                  path="nhanvien/:nhanVienId"
+                  element={<CongViecByNhanVienPage />}
+                />
+                <Route path=":id" element={<CongViecDetailPage />} />
+                <Route path="new/:id" element={<CongViecDetailPageNew />} />
+                <Route path="mobile/:id" element={<CongViecDetailMobile />} />
+                <Route
+                  path="responsive/:id"
+                  element={<CongViecDetailResponsive />}
+                />
+                <Route
+                  path="mind-map"
+                  element={<TaskMindMapHierarchicalPage />}
+                />
+                <Route
+                  path="tree-view"
+                  element={<TaskMindMapHierarchicalPage />}
+                />
+                <Route
+                  path="tree-enhanced"
+                  element={<TaskMindMapTreeEnhancedPage />}
+                />
+                <Route
+                  path="hierarchical"
+                  element={<TaskMindMapHierarchicalPage />}
+                />
+                <Route
+                  path="hierarchical-dynamic"
+                  element={<CongViecHierarchyTreeDynamicPage />}
+                />
+              </Route>
+
+              <Route path="nhomviec-user" element={<NhomViecUserList />} />
             </Route>
 
-            {/* KPI */}
-            <Route path="kpi">
-              <Route index element={<Navigate to="hub" replace />} />
-              <Route path="hub" element={<KPIHubPage />} />
-              <Route path="xem" element={<XemKPIPage />} />
-              <Route path="tu-danh-gia" element={<TuDanhGiaKPIPage />} />
+            <Route element={<LegacyDomainOutlet domain="yeucau" />}>
               <Route
-                path="danh-gia-nhan-vien"
-                element={<KPIEvaluationPage />}
+                path="yeu-cau-dashboard"
+                element={<YeuCauDashboardPage />}
               />
-              {/* NEW: Route-based KPI Scoring Page (Responsive Desktop/Mobile) */}
-              <Route
-                path="cham-diem/:nhanVienId"
-                element={<ChamDiemKPIResponsive />}
-              />
-              <Route
-                path="bao-cao"
-                element={
-                  <AdminRequire>
-                    <BaoCaoKPIPage />
-                  </AdminRequire>
-                }
-              />
-              <Route
-                path="chu-ky"
-                element={
-                  <AdminRequire>
-                    <ChuKyDanhGiaList />
-                  </AdminRequire>
-                }
-              />
-              <Route
-                path="chu-ky/:id"
-                element={
-                  <AdminRequire>
-                    <ChuKyDanhGiaView />
-                  </AdminRequire>
-                }
-              />
+
+              {/* Yêu cầu/Tickets */}
+              <Route path="yeucau">
+                <Route index element={<YeuCauPage />} />
+                <Route path=":id" element={<YeuCauDetailPage />} />
+                <Route path="toi-gui" element={<YeuCauToiGuiPage />} />
+                <Route path="xu-ly" element={<YeuCauXuLyPage />} />
+                <Route path="dieu-phoi" element={<YeuCauDieuPhoiPage />} />
+                <Route path="quan-ly-khoa" element={<YeuCauQuanLyKhoaPage />} />
+                <Route
+                  path="admin/cau-hinh-khoa"
+                  element={
+                    <QuanLyKhoaOrAdminRequire>
+                      <CauHinhKhoaAdminPage />
+                    </QuanLyKhoaOrAdminRequire>
+                  }
+                />
+                <Route
+                  path="admin/danh-muc"
+                  element={
+                    <QuanLyKhoaOrAdminRequire>
+                      <DanhMucYeuCauAdminPage />
+                    </QuanLyKhoaOrAdminRequire>
+                  }
+                />
+                <Route
+                  path="admin/ly-do-tu-choi"
+                  element={
+                    <AdminRequire>
+                      <LyDoTuChoiAdminPage />
+                    </AdminRequire>
+                  }
+                />
+              </Route>
             </Route>
 
-            {/* Nhiệm vụ thường quy */}
-            <Route path="nhiemvu-thuongquy">
-              <Route index element={<NhiemVuThuongQuyList />} />
+            <Route element={<LegacyDomainOutlet domain="kpi" />}>
+              {/* KPI */}
+              <Route path="kpi">
+                <Route index element={<Navigate to="hub" replace />} />
+                <Route path="hub" element={<KPIHubPage />} />
+                <Route path="xem" element={<XemKPIPage />} />
+                <Route path="tu-danh-gia" element={<TuDanhGiaKPIPage />} />
+                <Route
+                  path="danh-gia-nhan-vien"
+                  element={<KPIEvaluationPage />}
+                />
+                <Route
+                  path="cham-diem/:nhanVienId"
+                  element={<ChamDiemKPIResponsive />}
+                />
+                <Route
+                  path="bao-cao"
+                  element={
+                    <AdminRequire>
+                      <BaoCaoKPIPage />
+                    </AdminRequire>
+                  }
+                />
+                <Route
+                  path="chu-ky"
+                  element={
+                    <AdminRequire>
+                      <ChuKyDanhGiaList />
+                    </AdminRequire>
+                  }
+                />
+                <Route
+                  path="chu-ky/:id"
+                  element={
+                    <AdminRequire>
+                      <ChuKyDanhGiaView />
+                    </AdminRequire>
+                  }
+                />
+              </Route>
+
+              <Route path="nhiemvu-thuongquy">
+                <Route index element={<NhiemVuThuongQuyList />} />
+              </Route>
+
+              <Route path="giao-nhiemvu">
+                <Route index element={<CycleAssignmentListPage />} />
+                <Route
+                  path=":NhanVienID"
+                  element={<CycleAssignmentDetailPage />}
+                />
+              </Route>
+
+              <Route path="quan-ly-nhan-vien">
+                <Route index element={<NhanVienList />} />
+                <Route path=":nhanVienId" element={<QuanLyNhanVienPage />} />
+              </Route>
             </Route>
 
-            {/* Giao nhiệm vụ */}
-            <Route path="giao-nhiemvu">
-              <Route index element={<CycleAssignmentListPage />} />
-              <Route
-                path=":NhanVienID"
-                element={<CycleAssignmentDetailPage />}
-              />
-            </Route>
+            <Route element={<LegacyDomainOutlet domain="notifications" />}>
+              <Route path="thong-bao">
+                <Route index element={<NotificationPage />} />
+              </Route>
 
-            {/* Yêu cầu/Tickets */}
-            <Route path="yeucau">
-              <Route index element={<YeuCauPage />} />
-              <Route path=":id" element={<YeuCauDetailPage />} />
-              <Route path="toi-gui" element={<YeuCauToiGuiPage />} />
-              <Route path="xu-ly" element={<YeuCauXuLyPage />} />
-              <Route path="dieu-phoi" element={<YeuCauDieuPhoiPage />} />
-              <Route path="quan-ly-khoa" element={<YeuCauQuanLyKhoaPage />} />
-              <Route
-                path="admin/cau-hinh-khoa"
-                element={
-                  <QuanLyKhoaOrAdminRequire>
-                    <CauHinhKhoaAdminPage />
-                  </QuanLyKhoaOrAdminRequire>
-                }
-              />
-              <Route
-                path="admin/danh-muc"
-                element={
-                  <QuanLyKhoaOrAdminRequire>
-                    <DanhMucYeuCauAdminPage />
-                  </QuanLyKhoaOrAdminRequire>
-                }
-              />
-              <Route
-                path="admin/ly-do-tu-choi"
-                element={
-                  <AdminRequire>
-                    <LyDoTuChoiAdminPage />
-                  </AdminRequire>
-                }
-              />
-            </Route>
-
-            {/* Quản lý nhân viên */}
-            <Route path="quan-ly-nhan-vien">
-              <Route index element={<NhanVienList />} />
-              <Route path=":nhanVienId" element={<QuanLyNhanVienPage />} />
-            </Route>
-
-            {/* Nhóm việc user */}
-            <Route path="nhomviec-user" element={<NhomViecUserList />} />
-
-            {/* Thông báo */}
-            <Route path="thong-bao">
-              <Route index element={<NotificationPage />} />
-            </Route>
-
-            {/* Cài đặt */}
-            <Route path="cai-dat">
-              <Route index element={<Navigate to="thong-bao" replace />} />
-              <Route path="thong-bao" element={<NotificationSettings />} />
+              <Route path="cai-dat">
+                <Route index element={<Navigate to="thong-bao" replace />} />
+                <Route path="thong-bao" element={<NotificationSettings />} />
+              </Route>
             </Route>
           </Route>
           {/* Admin Notification Templates */}
           <Route
             path="/admin/notification-templates"
             element={
-              <AdminRequire>
-                <NotificationAdminPage />
-              </AdminRequire>
+              shouldRedirectLegacyDomain("notifications") ? (
+                <Navigate to="/" replace />
+              ) : (
+                <AdminRequire>
+                  <NotificationAdminPage />
+                </AdminRequire>
+              )
             }
           />
           {/* Admin Notification Types */}
           <Route
             path="/admin/notification-types"
             element={
-              <AdminRequire>
-                <NotificationTypeAdminPage />
-              </AdminRequire>
+              shouldRedirectLegacyDomain("notifications") ? (
+                <Navigate to="/" replace />
+              ) : (
+                <AdminRequire>
+                  <NotificationTypeAdminPage />
+                </AdminRequire>
+              )
             }
           />
           {/* Test Routes - Development Only */}

@@ -37,6 +37,7 @@ import { Add as AddIcon } from "@mui/icons-material";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import useAuth from "hooks/useAuth";
+import { getLegacySafeWorkRootPath } from "config/legacyCutover";
 
 // Import Redux actions
 import {
@@ -90,7 +91,7 @@ function formatDateRangeContext(dateRange) {
   // Same month
   if (fromDay.month() === toDay.month() && fromDay.year() === toDay.year()) {
     return `Tháng ${fromDay.format("MM/YYYY")}: ${fromDay.format(
-      "DD"
+      "DD",
     )} - ${toDay.format("DD")}`;
   }
 
@@ -124,7 +125,7 @@ export default function CongViecDashboardPage() {
 
   // Get data from Redux
   const { receivedCongViecs, assignedCongViecs, isLoading } = useSelector(
-    (state) => state.congViec
+    (state) => state.congViec,
   );
 
   // Fetch data on mount
@@ -179,7 +180,7 @@ export default function CongViecDashboardPage() {
     >
       {/* Header */}
       <Stack direction="row" alignItems="center" spacing={2} mb={3}>
-        <IconButton onClick={() => navigate("/quanlycongviec")}>
+        <IconButton onClick={() => navigate(getLegacySafeWorkRootPath())}>
           <ArrowLeft size={24} />
         </IconButton>
         <Box flex={1}>

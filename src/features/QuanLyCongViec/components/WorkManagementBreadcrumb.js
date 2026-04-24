@@ -4,6 +4,7 @@ import { Breadcrumbs, Link, Typography, Icon, Box } from "@mui/material";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { getBreadcrumbs } from "utils/navigationHelper";
 import apiService from "app/apiService";
+import { getLegacySafeWorkRootPath } from "config/legacyCutover";
 
 /**
  * WorkManagementBreadcrumb - Auto-generating breadcrumb for QuanLyCongViec module
@@ -54,7 +55,11 @@ function WorkManagementBreadcrumb() {
         // Fallback to simple breadcrumb
         setBreadcrumbItems([
           { label: "Trang chủ", path: "/", icon: "home" },
-          { label: "Quản lý công việc", path: "/quanlycongviec", icon: "work" },
+          {
+            label: "Quản lý công việc",
+            path: getLegacySafeWorkRootPath(),
+            icon: "work",
+          },
         ]);
       } finally {
         setLoading(false);

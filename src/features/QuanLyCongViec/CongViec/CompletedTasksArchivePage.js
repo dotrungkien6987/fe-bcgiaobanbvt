@@ -46,6 +46,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
+import { getLegacySafeWorkRootPath } from "config/legacyCutover";
 
 /**
  * CompletedTasksArchivePage - Full archive view for completed tasks
@@ -83,7 +84,7 @@ const CompletedTasksArchivePage = () => {
   // Current tab data (memoized)
   const currentTab = useMemo(
     () => (activeTab === "my-completed" ? myCompleted : teamCompleted),
-    [activeTab, myCompleted, teamCompleted]
+    [activeTab, myCompleted, teamCompleted],
   );
   const { tasks, total, isLoading, error, currentPage, rowsPerPage, filters } =
     currentTab;
@@ -109,7 +110,7 @@ const CompletedTasksArchivePage = () => {
         page: currentPage,
         limit: rowsPerPage,
         filters,
-      })
+      }),
     );
 
     // Load stats
@@ -121,21 +122,21 @@ const CompletedTasksArchivePage = () => {
     (event, newTab) => {
       updateTab(newTab);
     },
-    [updateTab]
+    [updateTab],
   );
 
   const handlePageChange = useCallback(
     (newPage) => {
       updatePage(newPage);
     },
-    [updatePage]
+    [updatePage],
   );
 
   const handleRowsPerPageChange = useCallback(
     (newRowsPerPage) => {
       updateRowsPerPage(newRowsPerPage);
     },
-    [updateRowsPerPage]
+    [updateRowsPerPage],
   );
 
   const handleFilterChange = useCallback(
@@ -147,7 +148,7 @@ const CompletedTasksArchivePage = () => {
         setSelectedDatePreset(null);
       }
     },
-    [filters, activeTab, dispatch]
+    [filters, activeTab, dispatch],
   );
 
   const handleResetFilters = useCallback(() => {
@@ -165,7 +166,7 @@ const CompletedTasksArchivePage = () => {
       dispatch(setArchiveFilters({ tab: activeTab, filters: newFilters }));
       setSelectedDatePreset(presetKey);
     },
-    [filters, activeTab, dispatch]
+    [filters, activeTab, dispatch],
   );
 
   const handleOpenDetail = useCallback(
@@ -173,7 +174,7 @@ const CompletedTasksArchivePage = () => {
       setDetailDialog({ open: true, congViecId });
       dispatch(getCongViecDetail(congViecId));
     },
-    [dispatch]
+    [dispatch],
   );
 
   const handleCloseDetail = useCallback(() => {
@@ -193,10 +194,10 @@ const CompletedTasksArchivePage = () => {
         <Link
           underline="hover"
           color="inherit"
-          href="/quanlycongviec"
+          href={getLegacySafeWorkRootPath()}
           onClick={(e) => {
             e.preventDefault();
-            navigate("/quanlycongviec");
+            navigate(getLegacySafeWorkRootPath());
           }}
           sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
         >
@@ -333,7 +334,7 @@ const CompletedTasksArchivePage = () => {
                 onChange={(date) =>
                   handleFilterChange(
                     "NgayHoanThanhFrom",
-                    date ? date.format("YYYY-MM-DD") : null
+                    date ? date.format("YYYY-MM-DD") : null,
                   )
                 }
                 disabled={isLoading}
@@ -354,7 +355,7 @@ const CompletedTasksArchivePage = () => {
                 onChange={(date) =>
                   handleFilterChange(
                     "NgayHoanThanhTo",
-                    date ? date.format("YYYY-MM-DD") : null
+                    date ? date.format("YYYY-MM-DD") : null,
                   )
                 }
                 disabled={isLoading}
@@ -440,7 +441,7 @@ const CompletedTasksArchivePage = () => {
                     page: currentPage,
                     limit: rowsPerPage,
                     filters,
-                  })
+                  }),
                 );
               }}
             >

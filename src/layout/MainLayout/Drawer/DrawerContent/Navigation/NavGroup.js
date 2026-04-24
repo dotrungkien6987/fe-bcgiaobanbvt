@@ -166,7 +166,7 @@ const NavGroup = ({
     />
   ) : null;
 
-  const navCollapse = item.children?.map((menuItem) => {
+  const navCollapse = item.children?.filter(Boolean).map((menuItem) => {
     switch (menuItem.type) {
       case "collapse":
         return (
@@ -204,7 +204,7 @@ const NavGroup = ({
           {itemRem.title}
         </Typography>
       )}
-      {itemRem?.elements?.map((menu) => {
+      {itemRem?.elements?.filter(Boolean).map((menu) => {
         switch (menu.type) {
           case "collapse":
             return (
@@ -238,7 +238,7 @@ const NavGroup = ({
   ));
 
   // menu list collapse & items
-  const items = currentItem.children?.map((menu) => {
+  const items = currentItem.children?.filter(Boolean).map((menu) => {
     switch (menu.type) {
       case "collapse":
         return (

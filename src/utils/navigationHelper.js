@@ -9,12 +9,14 @@
  *   navigate(WorkRoutes.congViecDetail(id));
  */
 
+import { getLegacySafeWorkRootPath } from "config/legacyCutover";
+
 /**
  * WorkRoutes - Route builder functions for QuanLyCongViec module
  */
 export const WorkRoutes = {
   // ==================== Root ====================
-  root: () => "/quanlycongviec",
+  root: () => getLegacySafeWorkRootPath(),
 
   // ==================== Dashboard ====================
   dashboard: () => "/quanlycongviec/dashboard",
@@ -310,7 +312,7 @@ export function navigateTo(navigate, path, options = {}) {
  * @param {Function} navigate - React Router navigate function
  * @param {string} fallbackPath - Fallback path if history is empty
  */
-export function goBack(navigate, fallbackPath = "/quanlycongviec") {
+export function goBack(navigate, fallbackPath = getLegacySafeWorkRootPath()) {
   if (window.history.length > 1) {
     navigate(-1);
   } else {

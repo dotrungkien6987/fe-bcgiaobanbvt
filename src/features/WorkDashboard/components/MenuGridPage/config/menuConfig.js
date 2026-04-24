@@ -24,12 +24,16 @@ import {
   FolderOpen as FolderOpenIcon,
   CloudUpload as CloudUploadIcon,
 } from "@mui/icons-material";
+import {
+  shouldHideLegacyPath,
+  shouldRedirectLegacyDomains,
+} from "config/legacyCutover";
 
 /**
  * Menu sections configuration
  * Defines all menu items, their properties, and access control
  */
-export const MENU_SECTIONS = [
+const RAW_MENU_SECTIONS = [
   {
     id: "quick-access",
     title: "Truy Cập Nhanh",
@@ -407,6 +411,38 @@ export const MENU_SECTIONS = [
     ],
   },
 ];
+
+const SECTION_CUTOVER_GATES = {
+  "work-management": ["congviec", "kpi", "notifications"],
+  kpi: ["kpi"],
+  requests: ["yeucau"],
+};
+
+const filterSectionsForLegacyCutover = (sections) =>
+  sections
+    .map((section) => {
+      const gatedDomains = SECTION_CUTOVER_GATES[section.id];
+
+      if (gatedDomains && shouldRedirectLegacyDomains(gatedDomains)) {
+        return null;
+      }
+
+      const items = section.items.filter(
+        (item) => !item.path || !shouldHideLegacyPath(item.path),
+      );
+
+      if (items.length === 0) {
+        return null;
+      }
+
+      return {
+        ...section,
+        items,
+      };
+    })
+    .filter(Boolean);
+
+export const MENU_SECTIONS = filterSectionsForLegacyCutover(RAW_MENU_SECTIONS);
 
 /**
  * Section color mapping

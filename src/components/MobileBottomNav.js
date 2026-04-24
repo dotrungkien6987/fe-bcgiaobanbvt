@@ -51,6 +51,7 @@ import {
 import { useSelector } from "react-redux";
 import { MenuGridPage } from "features/WorkDashboard/components";
 import MenuGridPageV3 from "features/WorkDashboard/components/MenuGridPageV3";
+import { shouldHideLegacyPath } from "config/legacyCutover";
 
 // Slide transition for menu dialog
 const SlideTransition = React.forwardRef(function Transition(props, ref) {
@@ -116,6 +117,9 @@ function MobileBottomNav() {
   const navigate = useNavigate();
   const [menuDialogOpen, setMenuDialogOpen] = useState(false);
   const [menuV2DialogOpen, setMenuV2DialogOpen] = useState(false);
+  const visibleNavItems = NAV_ITEMS.filter(
+    (item) => !item.path || !shouldHideLegacyPath(item.path),
+  );
 
   // Badge counts from Redux
   const yeuCauBadges = useSelector((state) => state.ticket?.badgeCounts);
@@ -141,7 +145,7 @@ function MobileBottomNav() {
   const getActiveIndex = () => {
     const currentPath = location.pathname;
 
-    const activeIndex = NAV_ITEMS.findIndex((item) => {
+    const activeIndex = visibleNavItems.findIndex((item) => {
       if (item.exactMatch) {
         return currentPath === item.path;
       }
@@ -158,7 +162,7 @@ function MobileBottomNav() {
 
   // Handle navigation change
   const handleChange = (event, newValue) => {
-    const targetItem = NAV_ITEMS[newValue];
+    const targetItem = visibleNavItems[newValue];
     if (targetItem) {
       if (targetItem.isDialog) {
         if (targetItem.dialogType === "menuV2") {
@@ -216,7 +220,7 @@ function MobileBottomNav() {
           },
         }}
       >
-        {NAV_ITEMS.map((item, index) => {
+        {visibleNavItems.map((item, index) => {
           const IconComponent = item.icon;
           const badgeCount =
             item.badge && item.badge !== "beta" ? getBadgeCount(item.badge) : 0;

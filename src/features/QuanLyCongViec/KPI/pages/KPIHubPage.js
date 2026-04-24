@@ -39,6 +39,7 @@ import {
 } from "@mui/icons-material";
 import dayjs from "dayjs";
 import useAuth from "hooks/useAuth";
+import { getLegacySafeWorkRootPath } from "config/legacyCutover";
 import {
   getDanhGiaKPIs,
   getChuKyDanhGias,
@@ -160,7 +161,7 @@ function KPIHubPage() {
           >
             <Stack direction="row" alignItems="center" spacing={1}>
               <IconButton
-                onClick={() => navigate("/quanlycongviec")}
+                onClick={() => navigate(getLegacySafeWorkRootPath())}
                 size="small"
                 sx={{ mr: 0.5 }}
               >
