@@ -42,7 +42,12 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 
 import pptxgen from "pptxgenjs";
-import { getObjectByMaKhoa } from "../utils/heplFuntion";
+import {
+  filterChiTietBenhNhansCLC,
+  getObjectByMaKhoa,
+} from "../utils/heplFuntion";
+import { cc115DepartmentCodes } from "../utils/cc115";
+import { cc115ChiSoFields, cc115ChiSoGroups } from "./BaoCaoNgay/cc115Config";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -50,7 +55,7 @@ dayjs.extend(timezone);
 function Sumary() {
   const { user } = useAuth();
   const { khoaDaGuis, khoaChuaGuis, khoas } = useSelector(
-    (state) => state.bcgiaoban
+    (state) => state.bcgiaoban,
   );
 
   const {
@@ -143,13 +148,13 @@ function Sumary() {
     const dateISO = date.toISOString();
 
     dispatch(
-      InsertOrUpdateTrangThaiForBCGiaoBan(dateISO, !bcGiaoBanCurent.TrangThai)
+      InsertOrUpdateTrangThaiForBCGiaoBan(dateISO, !bcGiaoBanCurent.TrangThai),
     );
   };
 
   const isLargeScreen = useMediaQuery("(min-width:1200px)");
   const isMediumScreen = useMediaQuery(
-    "(min-width:768px) and (max-width:1199px)"
+    "(min-width:768px) and (max-width:1199px)",
   );
   const isSmallScreen = useMediaQuery("(max-width:767px)");
 
@@ -255,9 +260,9 @@ function Sumary() {
       h: 5.65,
     });
 
-      // Thêm text "Phú Thọ, ngày ..." trên slide bắt đầu
+    // Thêm text "Phú Thọ, ngày ..." trên slide bắt đầu
     const formattedDateTextTTCLC = `Ngày ${dayjs(date).format("DD")} tháng ${dayjs(
-      date
+      date,
     ).format("MM")} năm ${dayjs(date).format("YYYY")}`;
     startSilde.addText(formattedDateTextTTCLC, {
       x: 0.5,
@@ -272,7 +277,7 @@ function Sumary() {
       align: "center",
       // valign: "middle",
     });
-    
+
     //Du lieu khoa cap cuu
 
     const bcFilterTheoMaKhoa = getObjectByMaKhoa(baocaongays, "KCC");
@@ -353,7 +358,7 @@ function Sumary() {
         align: "left",
         w: 10,
         h: 0.5,
-      }
+      },
     );
     slideKCC.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
     const table1Data = [
@@ -742,14 +747,14 @@ function Sumary() {
     slideChuyenHeNgoai.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
     slideChuyenHeNgoai.addText(
       "PHẦN BÁO CÁO TỔNG TRỰC HỆ NGOẠI",
-      styleTextChuyenForm
+      styleTextChuyenForm,
     );
 
     let slideBCTongTrucHeNgoai = pres.addSlide();
 
     slideBCTongTrucHeNgoai.addText(
       "Trực lãnh đạo: " + (bcGiaoBanCurent?.TrucLanhDao || ""),
-      { ...styleTitle, h: 0.5 }
+      { ...styleTitle, h: 0.5 },
     );
 
     slideBCTongTrucHeNgoai.addText(
@@ -758,7 +763,7 @@ function Sumary() {
         ...styleTitle,
         y: 0.5,
         h: 0.5,
-      }
+      },
     );
     slideBCTongTrucHeNgoai.addImage({
       path: "/logo.png",
@@ -838,7 +843,10 @@ function Sumary() {
         { text: "Tử vong", options: { ...styleCenterCell, fontSize: 11 } },
         { text: "NB nặng", options: { ...styleCenterCell, fontSize: 11 } },
         { text: "Xin về", options: { ...styleCenterCell, fontSize: 11 } },
-        { text: "PT cấp cứu trong giờ", options: { ...styleCenterCell, fontSize: 11 } },
+        {
+          text: "PT cấp cứu trong giờ",
+          options: { ...styleCenterCell, fontSize: 11 },
+        },
         { text: "PT ngoài giờ", options: { ...styleCenterCell, fontSize: 11 } },
         { text: "Theo dõi", options: { ...styleCenterCell, fontSize: 11 } },
       ],
@@ -970,7 +978,7 @@ function Sumary() {
           });
           slideChuyenNgoaiGio.addText(
             "NGƯỜI BỆNH VÀO VIỆN NGOÀI GIỜ HỆ NGOẠI",
-            styleTextChuyenForm
+            styleTextChuyenForm,
           );
         }
 
@@ -979,7 +987,7 @@ function Sumary() {
           let slide = pres.addSlide();
           slide.addText(
             `${listTitleSlideHeNgoai[index]} : ${lstBenhNhan.length}`,
-            { ...styleTitle, h: 1 }
+            { ...styleTitle, h: 1 },
           );
           slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
           slide.addShape(pres.shapes.RECTANGLE, {
@@ -1094,7 +1102,7 @@ function Sumary() {
               slide = pres.addSlide();
               slide.addText(
                 `${listTitleSlideHeNgoai[index]} : ${lstBenhNhan.length}`,
-                { ...styleTitle, h: 1 }
+                { ...styleTitle, h: 1 },
               );
               slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
               slide.addShape(pres.shapes.RECTANGLE, {
@@ -1132,7 +1140,7 @@ function Sumary() {
             let imgSlide = pres.addSlide();
             imgSlide.addText(
               `${listTitleSlideHeNgoai[index]} : ${lstBenhNhan.length}`,
-              { ...styleTitle, h: 1 }
+              { ...styleTitle, h: 1 },
             );
             imgSlide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
             imgSlide.addShape(pres.shapes.RECTANGLE, {
@@ -1170,14 +1178,14 @@ function Sumary() {
     slideChuyenHeNoi.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
     slideChuyenHeNoi.addText(
       "PHẦN BÁO CÁO TỔNG TRỰC HỆ NỘI",
-      styleTextChuyenForm
+      styleTextChuyenForm,
     );
 
     let slideBCTongTrucHeNoi = pres.addSlide();
 
     slideBCTongTrucHeNoi.addText(
       "Trực lãnh đạo: " + (bcGiaoBanCurent?.TrucLanhDao || ""),
-      { ...styleTitle, h: 0.5 }
+      { ...styleTitle, h: 0.5 },
     );
 
     slideBCTongTrucHeNoi.addText(
@@ -1186,7 +1194,7 @@ function Sumary() {
         ...styleTitle,
         y: 0.5,
         h: 0.5,
-      }
+      },
     );
     slideBCTongTrucHeNoi.addImage({
       path: "/logo.png",
@@ -1337,8 +1345,8 @@ function Sumary() {
     const bcKhoaCLS = baocaongays
       .filter((baocaongay) =>
         ["CDHA", "TDCN", "XNHoaSinh", "XNViSinh", "XNHuyetHoc"].includes(
-          baocaongay.KhoaID.MaKhoa
-        )
+          baocaongay.KhoaID.MaKhoa,
+        ),
       )
       .sort((a, b) => a.KhoaID.STT - b.KhoaID.STT);
 
@@ -1420,7 +1428,7 @@ function Sumary() {
 
     slideHuyethocTruyenMau.addText(
       "Báo cáo ĐV huyết học truyền máu",
-      styleTitle
+      styleTitle,
     );
     slideHuyethocTruyenMau.addImage({
       path: "/logo.png",
@@ -1430,7 +1438,7 @@ function Sumary() {
       h: 1,
     });
     const filterBCHuyetHocTM = baocaongays.filter(
-      (baocaongay) => baocaongay.KhoaID.MaKhoa === "HHTM"
+      (baocaongay) => baocaongay.KhoaID.MaKhoa === "HHTM",
     );
 
     const rowHHTM = {};
@@ -1523,7 +1531,7 @@ function Sumary() {
           });
           slideChuyenNgoaiGio.addText(
             "NGƯỜI BỆNH VÀO VIỆN NGOÀI GIỜ HỆ NỘI",
-            styleTextChuyenForm
+            styleTextChuyenForm,
           );
         }
 
@@ -1532,7 +1540,7 @@ function Sumary() {
           let slide = pres.addSlide();
           slide.addText(
             `${listTitleSlideHeNoi[index]} : ${lstBenhNhan.length}`,
-            { ...styleTitle, h: 1 }
+            { ...styleTitle, h: 1 },
           );
           slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
           slide.addShape(pres.shapes.RECTANGLE, {
@@ -1650,7 +1658,7 @@ function Sumary() {
               slide = pres.addSlide();
               slide.addText(
                 `${listTitleSlideHeNoi[index]} : ${lstBenhNhan.length}`,
-                { ...styleTitle, h: 1 }
+                { ...styleTitle, h: 1 },
               );
               slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
               slide.addShape(pres.shapes.RECTANGLE, {
@@ -1688,7 +1696,7 @@ function Sumary() {
             let imgSlide = pres.addSlide();
             imgSlide.addText(
               `${listTitleSlideHeNoi[index]} : ${lstBenhNhan.length}`,
-              { ...styleTitle, h: 1 }
+              { ...styleTitle, h: 1 },
             );
             imgSlide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
             imgSlide.addShape(pres.shapes.RECTANGLE, {
@@ -1716,6 +1724,374 @@ function Sumary() {
       }
     });
 
+    const cc115Reports = getObjectByMaKhoa(baocaongays, cc115DepartmentCodes);
+    const cc115BNTuvongs = filterChiTietBenhNhansCLC(
+      baocaongays,
+      10,
+      cc115DepartmentCodes,
+    );
+    const cc115BNCapCuus = filterChiTietBenhNhansCLC(
+      baocaongays,
+      11,
+      cc115DepartmentCodes,
+    );
+    const cc115ChiSoMap = cc115ChiSoFields.reduce((acc, field) => {
+      acc[field.trongGioCode] = 0;
+      acc[field.ngoaiGioCode] = 0;
+      return acc;
+    }, {});
+
+    cc115Reports.forEach((entry) => {
+      entry.ChiTietChiSo.forEach((chitiet) => {
+        if (
+          Object.prototype.hasOwnProperty.call(cc115ChiSoMap, chitiet.ChiSoCode)
+        ) {
+          cc115ChiSoMap[chitiet.ChiSoCode] += chitiet.SoLuong;
+        }
+      });
+    });
+
+    const cc115BSTruc = cc115Reports[0]?.BSTruc || "";
+    const cc115DDTruc = cc115Reports[0]?.DDTruc || "";
+
+    const addCC115PatientSlides = (lstBenhNhan, title) => {
+      if (lstBenhNhan.length === 0) {
+        return;
+      }
+
+      for (let benhnhan of lstBenhNhan) {
+        let slide = pres.addSlide();
+        slide.addText(`${title} : ${lstBenhNhan.length}`, {
+          ...styleTitle,
+          h: 1,
+        });
+        slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
+        slide.addShape(pres.shapes.RECTANGLE, {
+          x: 0,
+          y: 1,
+          w: 1.6,
+          h: 4.6,
+          fill: { color: "FFFFFF" },
+          line: { color: "1939B7", width: 1 },
+        });
+        slide.addText(benhnhan.TenKhoa, {
+          x: 0,
+          y: 1,
+          w: 1.6,
+          h: 4.6,
+          fontSize: 29,
+          color: "bb1515",
+          valign: "center",
+          align: "center",
+        });
+        slide.addShape(pres.shapes.RECTANGLE, {
+          x: 1.6,
+          y: 1,
+          w: 8.4,
+          h: 4.6,
+          fill: { color: "FFFFFF" },
+          line: { color: "1939B7", width: 1 },
+        });
+
+        let textForCol2 =
+          benhnhan.Stt +
+          ". " +
+          benhnhan.TenBenhNhan +
+          " - " +
+          benhnhan.Tuoi +
+          " tuổi - " +
+          benhnhan.GioiTinh;
+        textForCol2 +=
+          benhnhan.DiaChi && benhnhan.DiaChi.trim().length > 0
+            ? `\n- Địa chỉ: ${benhnhan.DiaChi.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.VaoVien && benhnhan.VaoVien.trim().length > 0
+            ? `\n- Vào viện: ${benhnhan.VaoVien.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.LyDoVV && benhnhan.LyDoVV.trim().length > 0
+            ? `\n- Lý do vv: ${benhnhan.LyDoVV.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.DienBien && benhnhan.DienBien.trim().length > 0
+            ? `\n- Diễn biến: ${benhnhan.DienBien.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.ChanDoan && benhnhan.ChanDoan.trim().length > 0
+            ? `\n- Chẩn đoán: ${benhnhan.ChanDoan.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.XuTri && benhnhan.XuTri.trim().length > 0
+            ? `\n- Xử trí: ${benhnhan.XuTri.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.HienTai && benhnhan.HienTai.trim().length > 0
+            ? `\n- Hiện tại: ${benhnhan.HienTai.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.GhiChu && benhnhan.GhiChu.trim().length > 0
+            ? `\n- ${benhnhan.GhiChu.trim()}`
+            : "";
+
+        let MAX_CHARS_PER_LINE = 65;
+        let MAX_LINES_PER_SLIDE = 12;
+        let paragraphs = textForCol2.split("\n");
+        let lines = [];
+
+        paragraphs.forEach((paragraph) => {
+          let words = paragraph.split(" ");
+          let currentLine = "";
+
+          words.forEach((word) => {
+            if (currentLine.length + word.length < MAX_CHARS_PER_LINE) {
+              if (currentLine.length > 0) {
+                currentLine += " ";
+              }
+              currentLine += word;
+            } else {
+              lines.push(currentLine);
+              currentLine = word;
+            }
+          });
+          if (currentLine.length > 0) {
+            lines.push(currentLine);
+          }
+        });
+
+        for (let i = 0; i < lines.length; i += MAX_LINES_PER_SLIDE) {
+          let textToInclude = lines
+            .slice(i, i + MAX_LINES_PER_SLIDE)
+            .join("\n");
+          slide.addText(textToInclude, {
+            x: 1.6,
+            y: 1,
+            w: 8.4,
+            h: 4.5,
+            fontFace: "Times New Roman",
+            fontSize: 20,
+            color: "1939B7",
+          });
+          if (i + MAX_LINES_PER_SLIDE < lines.length) {
+            slide = pres.addSlide();
+            slide.addText(`${title} : ${lstBenhNhan.length}`, {
+              ...styleTitle,
+              h: 1,
+            });
+            slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
+            slide.addShape(pres.shapes.RECTANGLE, {
+              x: 0,
+              y: 1,
+              w: 1.6,
+              h: 4.6,
+              fill: { color: "FFFFFF" },
+              line: { color: "1939B7", width: 1 },
+            });
+            slide.addText(benhnhan.TenKhoa, {
+              x: 0,
+              y: 1,
+              w: 1.6,
+              h: 4.5,
+              fontFace: "Times New Roman",
+              fontSize: 30,
+              color: "bb1515",
+              valign: "center",
+              align: "center",
+            });
+            slide.addShape(pres.shapes.RECTANGLE, {
+              x: 1.6,
+              y: 1,
+              w: 8.4,
+              h: 4.6,
+              fill: { color: "FFFFFF" },
+              line: { color: "1939B7", width: 1 },
+            });
+          }
+        }
+
+        for (let img of benhnhan.Images || []) {
+          let imgSlide = pres.addSlide();
+          imgSlide.addText(`${title} : ${lstBenhNhan.length}`, {
+            ...styleTitle,
+            h: 1,
+          });
+          imgSlide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
+          imgSlide.addShape(pres.shapes.RECTANGLE, {
+            x: 0,
+            y: 1,
+            w: 1.6,
+            h: 4.6,
+            fill: { color: "FFFFFF" },
+            line: { color: "1939B7", width: 1 },
+          });
+          imgSlide.addText(benhnhan.TenKhoa, {
+            x: 0,
+            y: 1,
+            w: 1.6,
+            h: 4.5,
+            fontSize: 30,
+            fontFace: "Times New Roman",
+            color: "bb1515",
+            valign: "center",
+            align: "center",
+          });
+          imgSlide.addImage({ path: img, x: 3.5, y: 1.1, w: 4.5, h: 4.5 });
+        }
+      }
+    };
+
+    let slideChuyenCC115 = pres.addSlide();
+    slideChuyenCC115.addText("BÁO CÁO GIAO BAN TOÀN VIỆN", {
+      ...styleTitle,
+      align: "center",
+    });
+    slideChuyenCC115.addImage({
+      path: "/logo.png",
+      x: 9,
+      y: 0,
+      w: 1,
+      h: 1,
+    });
+    slideChuyenCC115.addText(
+      "BÁO CÁO TRUNG TÂM CẤP CỨU 115",
+      styleTextChuyenForm,
+    );
+
+    let slideThongKeCC115 = pres.addSlide();
+    slideThongKeCC115.addText("Trực Trung tâm cấp cứu 115", {
+      x: 0,
+      y: 0,
+      fontSize: 20,
+      fontFace: "Times New Roman",
+      bold: true,
+      color: "FFFFFF",
+      fill: { color: "1939B7" },
+      align: "left",
+      w: 9,
+      h: 0.5,
+    });
+    slideThongKeCC115.addText(
+      `Kíp trực: ${cc115BSTruc}${cc115BSTruc && cc115DDTruc ? " - " : ""}${cc115DDTruc}`,
+      {
+        x: 0,
+        y: 0.5,
+        fontSize: 20,
+        fontFace: "Times New Roman",
+        bold: true,
+        color: "FFFFFF",
+        fill: { color: "1939B7" },
+        align: "left",
+        w: 10,
+        h: 0.5,
+      },
+    );
+    slideThongKeCC115.addImage({
+      path: "/logo.png",
+      x: 9,
+      y: 0,
+      w: 1,
+      h: 1,
+    });
+
+    const cc115SectionTitleStyle = {
+      fontSize: 15,
+      fontFace: "Times New Roman",
+      bold: true,
+      color: "FFFFFF",
+      fill: { color: "1939B7" },
+      align: "left",
+      margin: 0.08,
+      w: 9.4,
+      h: 0.32,
+      x: 0.3,
+    };
+
+    const cc115HeaderCellOptions = {
+      fontFace: "Times New Roman",
+      fontSize: 10.5,
+      bold: true,
+      color: "1939B7",
+      fill: { color: "EAF0FF" },
+      align: "center",
+      valign: "middle",
+      border: { type: "solid", color: "1939B7", pt: 1 },
+      margin: 0.05,
+    };
+
+    const cc115LabelCellOptions = {
+      fontFace: "Times New Roman",
+      fontSize: 10,
+      bold: false,
+      color: "1939B7",
+      align: "left",
+      valign: "middle",
+      border: { type: "solid", color: "1939B7", pt: 1 },
+      margin: 0.06,
+    };
+
+    const cc115ValueCellOptions = {
+      fontFace: "Times New Roman",
+      fontSize: 10,
+      bold: false,
+      color: "1939B7",
+      align: "center",
+      valign: "middle",
+      border: { type: "solid", color: "1939B7", pt: 1 },
+      margin: 0.04,
+    };
+
+    const buildCC115TableData = (fields) => [
+      [
+        { text: "Chỉ số", options: cc115HeaderCellOptions },
+        { text: "Trong giờ", options: cc115HeaderCellOptions },
+        { text: "Ngoài giờ", options: cc115HeaderCellOptions },
+      ],
+      ...fields.map((field) => [
+        { text: field.label, options: cc115LabelCellOptions },
+        {
+          text: String(cc115ChiSoMap[field.trongGioCode] || 0),
+          options: cc115ValueCellOptions,
+        },
+        {
+          text: String(cc115ChiSoMap[field.ngoaiGioCode] || 0),
+          options: cc115ValueCellOptions,
+        },
+      ]),
+    ];
+
+    const tableNgoaiVienCC115 = buildCC115TableData(cc115ChiSoGroups[0].fields);
+
+    slideThongKeCC115.addText("Thống kê ngoại viện", {
+      ...cc115SectionTitleStyle,
+      y: 1.14,
+    });
+
+    slideThongKeCC115.addTable(tableNgoaiVienCC115, {
+      x: 0.3,
+      y: 1.5,
+      w: 9.4,
+      h: 2.05,
+      colW: [5.5, 1.95, 1.95],
+    });
+
+    const tableVanChuyenCC115 = buildCC115TableData(cc115ChiSoGroups[1].fields);
+
+    slideThongKeCC115.addText("Thống kê vận chuyển", {
+      ...cc115SectionTitleStyle,
+      y: 3.78,
+    });
+
+    slideThongKeCC115.addTable(tableVanChuyenCC115, {
+      x: 0.3,
+      y: 4.14,
+      w: 9.4,
+      h: 1.08,
+      colW: [5.5, 1.95, 1.95],
+    });
+
+    addCC115PatientSlides(cc115BNTuvongs, "Người bệnh tử vong CC115");
+    addCC115PatientSlides(cc115BNCapCuus, "Người bệnh cấp cứu CC115");
+
     //Export du lieu Trung tam CLC
     let slideChuyenTrungTamCLC = pres.addSlide();
     slideChuyenTrungTamCLC.addText("BÁO CÁO GIAO BAN TOÀN VIỆN", {
@@ -1731,24 +2107,24 @@ function Sumary() {
     });
     slideChuyenTrungTamCLC.addText(
       "BÁO CÁO TRUNG TÂM KCB CHẤT LƯỢNG CAO",
-      styleTextChuyenForm
+      styleTextChuyenForm,
     );
 
     let slideThongKeGiuong = pres.addSlide();
 
     slideThongKeGiuong.addText(
       "Trung tâm khám chữa bệnh chất lượng cao",
-      styleTitle
+      styleTitle,
     );
     slideThongKeGiuong.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
     const filterBCs = baocaongays.filter(
-      (baocaongay) => baocaongay.KhoaID.MaKhoa === "CLC"
+      (baocaongay) => baocaongay.KhoaID.MaKhoa === "CLC",
     );
     let rowThongKeGiuong = {};
     ["clc-TongNB", "clc-VaoThang", "clc-ChuyenSang", "clc-GiuongTrong"].forEach(
       (code) => {
         rowThongKeGiuong[code] = 0;
-      }
+      },
     );
 
     if (filterBCs.length > 0) {
@@ -1789,7 +2165,7 @@ function Sumary() {
     });
 
     const bcTrungTamCLC = baocaongays.filter((baocaongay) =>
-      ["NoiYC", "NgoaiYC", "HSCCYC"].includes(baocaongay.KhoaID.MaKhoa)
+      ["NoiYC", "NgoaiYC", "HSCCYC"].includes(baocaongay.KhoaID.MaKhoa),
     );
 
     let totalRow = {
@@ -1914,7 +2290,7 @@ function Sumary() {
       });
       slideChuyenNgoaiGio.addText(
         "NGƯỜI BỆNH VÀO VIỆN NGOÀI GIỜ TT KCB CLC",
-        styleTextChuyenForm
+        styleTextChuyenForm,
       );
     }
     listBenhNhanBaoCaoTTCLC.forEach((lstBenhNhan, index) => {
@@ -1932,7 +2308,7 @@ function Sumary() {
             {
               ...styleTitle,
               h: 1,
-            }
+            },
           );
           slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
           slide.addShape(pres.shapes.RECTANGLE, {
@@ -2055,7 +2431,7 @@ function Sumary() {
                 {
                   ...styleTitle,
                   h: 1,
-                }
+                },
               );
               slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
               slide.addShape(pres.shapes.RECTANGLE, {
@@ -2097,7 +2473,7 @@ function Sumary() {
                 noiycBNNgoaiGios.length +
                 ngoaiycBNNgoaiGios.length
               }`,
-              { ...styleTitle, h: 1 }
+              { ...styleTitle, h: 1 },
             );
             imgSlide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
             imgSlide.addShape(pres.shapes.RECTANGLE, {
@@ -2148,9 +2524,9 @@ function Sumary() {
       h: 5.65,
     });
 
-      // Thêm text "Phú Thọ, ngày ..." trên slide bắt đầu
+    // Thêm text "Phú Thọ, ngày ..." trên slide bắt đầu
     const formattedDateText = `Ngày ${dayjs(date).format("DD")} tháng ${dayjs(
-      date
+      date,
     ).format("MM")} năm ${dayjs(date).format("YYYY")}`;
     startSilde.addText(formattedDateText, {
       x: 0.5,
@@ -2165,7 +2541,7 @@ function Sumary() {
       align: "center",
       // valign: "middle",
     });
-    
+
     //Export du lieu Trung tam CLC
     let slideChuyenTrungTamCLC = pres.addSlide();
     slideChuyenTrungTamCLC.addText("BÁO CÁO GIAO BAN TOÀN VIỆN", {
@@ -2181,24 +2557,24 @@ function Sumary() {
     });
     slideChuyenTrungTamCLC.addText(
       "BÁO CÁO TRUNG TÂM KCB CHẤT LƯỢNG CAO",
-      styleTextChuyenForm
+      styleTextChuyenForm,
     );
 
     let slideThongKeGiuong = pres.addSlide();
 
     slideThongKeGiuong.addText(
       "Trung tâm khám chữa bệnh chất lượng cao",
-      styleTitle
+      styleTitle,
     );
     slideThongKeGiuong.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
     const filterBCs = baocaongays.filter(
-      (baocaongay) => baocaongay.KhoaID.MaKhoa === "CLC"
+      (baocaongay) => baocaongay.KhoaID.MaKhoa === "CLC",
     );
     let rowThongKeGiuong = {};
     ["clc-TongNB", "clc-VaoThang", "clc-ChuyenSang", "clc-GiuongTrong"].forEach(
       (code) => {
         rowThongKeGiuong[code] = 0;
-      }
+      },
     );
 
     if (filterBCs.length > 0) {
@@ -2239,7 +2615,7 @@ function Sumary() {
     });
 
     const bcTrungTamCLC = baocaongays.filter((baocaongay) =>
-      ["NoiYC", "NgoaiYC", "HSCCYC"].includes(baocaongay.KhoaID.MaKhoa)
+      ["NoiYC", "NgoaiYC", "HSCCYC"].includes(baocaongay.KhoaID.MaKhoa),
     );
 
     let totalRow = {
@@ -2323,7 +2699,7 @@ function Sumary() {
       w: 10,
       h: 3.5,
       // margin: [0.5, 0.5, 0.5, 0.5],
-      colW: [2.1, 2, 0.6, 0.6, 0.9, 0.6, 0.6, 0.6, 0.8,0.6, 0.6],
+      colW: [2.1, 2, 0.6, 0.6, 0.9, 0.6, 0.6, 0.6, 0.8, 0.6, 0.6],
       align: "center",
       valign: "middle",
       border: { type: "solid", color: "1939B7", pt: 1 },
@@ -2698,7 +3074,7 @@ function Sumary() {
           let slide = pres.addSlide();
           slide.addText(
             `${listTitleSlideTTCLC[index]} : ${lstBenhNhan.length}`,
-            { ...styleTitle, h: 1 }
+            { ...styleTitle, h: 1 },
           );
           slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
           slide.addShape(pres.shapes.RECTANGLE, {
@@ -2813,7 +3189,7 @@ function Sumary() {
               slide = pres.addSlide();
               slide.addText(
                 `${listTitleSlideTTCLC[index]} : ${lstBenhNhan.length}`,
-                { ...styleTitle, h: 1 }
+                { ...styleTitle, h: 1 },
               );
               slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
               slide.addShape(pres.shapes.RECTANGLE, {
@@ -2851,7 +3227,7 @@ function Sumary() {
             let imgSlide = pres.addSlide();
             imgSlide.addText(
               `${listTitleSlideTTCLC[index]} : ${lstBenhNhan.length}`,
-              { ...styleTitle, h: 1 }
+              { ...styleTitle, h: 1 },
             );
             imgSlide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
             imgSlide.addShape(pres.shapes.RECTANGLE, {
@@ -2910,7 +3286,7 @@ function Sumary() {
       });
       slideChuyenNgoaiGio.addText(
         "NGƯỜI BỆNH VÀO VIỆN NGOÀI GIỜ TT KCB CLC",
-        styleTextChuyenForm
+        styleTextChuyenForm,
       );
     }
 
@@ -2929,7 +3305,7 @@ function Sumary() {
             {
               ...styleTitle,
               h: 1,
-            }
+            },
           );
           slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
           slide.addShape(pres.shapes.RECTANGLE, {
@@ -3052,7 +3428,7 @@ function Sumary() {
                 {
                   ...styleTitle,
                   h: 1,
-                }
+                },
               );
               slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
               slide.addShape(pres.shapes.RECTANGLE, {
@@ -3094,7 +3470,7 @@ function Sumary() {
                 noiycBNNgoaiGios.length +
                 ngoaiycBNNgoaiGios.length
               }`,
-              { ...styleTitle, h: 1 }
+              { ...styleTitle, h: 1 },
             );
             imgSlide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
             imgSlide.addShape(pres.shapes.RECTANGLE, {

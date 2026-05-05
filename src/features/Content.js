@@ -8,12 +8,15 @@ import ChuyenTiepForm from "./BaoCaoNgay/ChuyenTiepForm";
 import ThongKeHeNgoai from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/ThongKeHeNgoai";
 import ThongKeHeNoi from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/ThongKeHeNoi";
 import ThongKeGMHS from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/ThongKeGMHS";
+import ThongKeCC115 from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/ThongKeCC115";
 import ThongKeTrungTamCLC from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/ThongKeTrungTamCLC";
 import ThongKeCanLamSang from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/ThongKeCanLamSang";
 import ThongKeHuyetHocTM from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/ThongKeHuyetHocTM";
 import ThongKeKhoaKhamBenh from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/ThongKeKhoaKhamBenh";
 import ThongKeVaoVien from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/ThongKeVaoVien";
 import ThongKePhongKhamYeuCau from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/ThongKePhongKhamYeuCau";
+import { filterChiTietBenhNhansCLC } from "../utils/heplFuntion";
+import { cc115DepartmentCodes } from "../utils/cc115";
 
 function Content() {
   const {
@@ -23,7 +26,6 @@ function Content() {
     noiBNNangs,
     noiBNCanThieps,
     noiBNTheoDois,
-    noiBNNgoaiGios,
     noiBNNgoaiGiosKhongGomCLC,
 
     ngoaiBNTuvongs,
@@ -32,7 +34,6 @@ function Content() {
     ngoaiBNNangs,
     ngoaiBNPhauThuats,
     ngoaiBNTheoDois,
-    ngoaiBNNgoaiGios,
     ngoaiBNNgoaiGiosKhongGomCLC,
 
     hsccycBNNgoaiGios,
@@ -58,6 +59,16 @@ function Content() {
   const bcGMHS = baocaongays.filter((baocaongay) => {
     return baocaongay.KhoaID.MaKhoa === "GMHS";
   });
+  const cc115BNTuvongs = filterChiTietBenhNhansCLC(
+    baocaongays,
+    10,
+    cc115DepartmentCodes,
+  );
+  const cc115BNCapCuus = filterChiTietBenhNhansCLC(
+    baocaongays,
+    11,
+    cc115DepartmentCodes,
+  );
 
   // const handleScroll = (id) => {
   //   const element = document.getElementById(id);
@@ -156,6 +167,15 @@ function Content() {
         <BenhNhanInBaoCao key={noiBNNgoaiGio._id} benhnhan={noiBNNgoaiGio} />
       ))}
 
+      <ChuyenTiepForm title="PHẦN BÁO CÁO TRUNG TÂM CẤP CỨU 115" id="cc115" />
+      <ThongKeCC115 />
+      {cc115BNTuvongs.map((benhnhan) => (
+        <BenhNhanInBaoCao key={benhnhan._id} benhnhan={benhnhan} />
+      ))}
+      {cc115BNCapCuus.map((benhnhan) => (
+        <BenhNhanInBaoCao key={benhnhan._id} benhnhan={benhnhan} />
+      ))}
+
       <ChuyenTiepForm
         title="PHẦN BÁO CÁO TRUNG TÂM KCB CHẤT LƯỢNG CAO"
         id="trungtamclc"
@@ -177,8 +197,8 @@ function Content() {
       {clcBNNangs.map((clcBNNang) => (
         <BenhNhanInBaoCao key={clcBNNang._id} benhnhan={clcBNNang} />
       ))} */}
-<ThongKePhongKhamYeuCau/>
-<ChuyenTiepForm
+      <ThongKePhongKhamYeuCau />
+      <ChuyenTiepForm
         title="BỆNH NHÂN VÀO VIỆN NGOÀI GIỜ TT KCB CLC"
         id="ngoaigioclc"
       />

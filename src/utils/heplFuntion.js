@@ -7,6 +7,8 @@ export function removeAndRenumber(benhnhans, n) {
     return { ...benhNhan, Stt: index + 1 }; // Stt starts from 1
   });
 }
+import { isCC115DepartmentCode } from "./cc115";
+
 export function getTextFromNumber(number) {
   const mapping = {
     1: "tử vong",
@@ -17,6 +19,9 @@ export function getTextFromNumber(number) {
     6: "vào viện ngoài giờ",
     7: "can thiệp",
     8: "theo dõi",
+    9: "mổ cấp cứu",
+    10: "tử vong CC115",
+    11: "cấp cứu CC115",
   };
   return mapping[number] || "Invalid input";
 }
@@ -33,7 +38,7 @@ export function getTextFromNumber(number) {
 export function filterChiTietBenhNhansNotExcludeTTCLC(
   baocaongays,
   LoaiBN,
-  LoaiKhoa
+  LoaiKhoa,
 ) {
   // Mảng các MaKhoa không được phép
   // const excludedMaKhoa = ["NoiYC", "NgoaiYC", "HSCCYC"]; //tam ngung chuc nang nay
@@ -57,7 +62,7 @@ export function filterChiTietBenhNhansNotExcludeTTCLC(
     })
     .reduce((acc, chitietArray) => {
       const filtered = chitietArray.filter(
-        (chitiet) => chitiet.LoaiBN === LoaiBN
+        (chitiet) => chitiet.LoaiBN === LoaiBN,
       );
       return acc.concat(filtered);
     }, []);
@@ -65,7 +70,7 @@ export function filterChiTietBenhNhansNotExcludeTTCLC(
 export function filterChiTietBenhNhansHasExcludeTTCLC(
   baocaongays,
   LoaiBN,
-  LoaiKhoa
+  LoaiKhoa,
 ) {
   // Mảng các MaKhoa không được phép
   const excludedMaKhoa = ["NoiYC", "NgoaiYC", "HSCCYC"];
@@ -86,17 +91,23 @@ export function filterChiTietBenhNhansHasExcludeTTCLC(
     })
     .reduce((acc, chitietArray) => {
       const filtered = chitietArray.filter(
-        (chitiet) => chitiet.LoaiBN === LoaiBN
+        (chitiet) => chitiet.LoaiBN === LoaiBN,
       );
       return acc.concat(filtered);
     }, []);
 }
 
 export function filterChiTietBenhNhansCLC(baocaongays, LoaiBN, MaKhoas) {
+  const normalizedMaKhoas = MaKhoas.map((maKhoa) =>
+    (maKhoa || "").toUpperCase(),
+  );
+
   return baocaongays
     .filter((baocaongay) => {
       // Kiểm tra MaKhoa có nằm trong mảng MaKhoas hay không
-      return MaKhoas.includes(baocaongay.KhoaID.MaKhoa);
+      return normalizedMaKhoas.includes(
+        (baocaongay.KhoaID.MaKhoa || "").toUpperCase(),
+      );
     })
     .map((baocaongay) => {
       const tenKhoa = baocaongay.KhoaID.TenKhoa;
@@ -107,7 +118,7 @@ export function filterChiTietBenhNhansCLC(baocaongays, LoaiBN, MaKhoas) {
     })
     .reduce((acc, chitietArray) => {
       const filtered = chitietArray.filter(
-        (chitiet) => chitiet.LoaiBN === LoaiBN
+        (chitiet) => chitiet.LoaiBN === LoaiBN,
       );
       return acc.concat(filtered);
     }, []);
@@ -129,22 +140,23 @@ export function findKhoasInBaocaongays(baocaongays, khoas) {
         khoa.LoaiKhoa === "tdcn" ||
         khoa.LoaiKhoa === "clc" ||
         khoa.LoaiKhoa === "hhtm" ||
-        khoa.LoaiKhoa === "kkb") &&
-      ![2, 7, 38].includes(khoa.HisDepartmentType)
+        khoa.LoaiKhoa === "kkb" ||
+        isCC115DepartmentCode(khoa.MaKhoa)) &&
+      ![2, 7, 38].includes(khoa.HisDepartmentType),
   );
 
   const khoaIdsInBaocaongays = new Set(
-    baocaongays.map((baocaongay) => baocaongay.KhoaID._id)
+    baocaongays.map((baocaongay) => baocaongay.KhoaID._id),
   );
 
   // Lọc ra các khoa có _id tồn tại trong baocaongays
   const KhoaDaGuis = khoaGiaoBan.filter((khoa) =>
-    khoaIdsInBaocaongays.has(khoa._id)
+    khoaIdsInBaocaongays.has(khoa._id),
   );
 
   // Lọc ra các khoa có _id không tồn tại trong baocaongays
   const KhoaChuaGuis = khoaGiaoBan.filter(
-    (khoa) => !khoaIdsInBaocaongays.has(khoa._id)
+    (khoa) => !khoaIdsInBaocaongays.has(khoa._id),
   );
 
   return { KhoaDaGuis, KhoaChuaGuis };
@@ -197,7 +209,7 @@ export function CheckDisplayKhoa(
   phanquyen,
   trangthaiduyet,
   makhoaUser,
-  makhoaCurent
+  makhoaCurent,
 ) {
   // If trangthaiduyet is true, return false
   if (trangthaiduyet) {
@@ -249,7 +261,12 @@ export const commonStyleLeft = {
   border: "1px solid #1939B7",
 };
 export function getObjectByMaKhoa(arr, maKhoa) {
-  return arr.filter((item) => item.KhoaID.MaKhoa === maKhoa);
+  const normalizedMaKhoas = (Array.isArray(maKhoa) ? maKhoa : [maKhoa]).map(
+    (item) => (item || "").toUpperCase(),
+  );
+  return arr.filter((item) =>
+    normalizedMaKhoas.includes((item.KhoaID.MaKhoa || "").toUpperCase()),
+  );
 }
 
 export function addTenKhoaToUsers(users, khoas) {
@@ -297,7 +314,7 @@ export function calculateTongChiSo(baocaongays) {
   for (const baocao of baocaongays) {
     for (const chiSo of baocao.ChiTietChiSo) {
       const isCLC = ["NoiYC", "NgoaiYC", "HSCCYC"].includes(
-        baocao.KhoaID.MaKhoa
+        baocao.KhoaID.MaKhoa,
       );
       switch (chiSo.ChiSoCode) {
         case "ls-TongNB":
@@ -711,7 +728,7 @@ const khoaToDepartmentGroupMapping = [
 
 export function Get_KhoaID_By_MaKhoa(makhoa) {
   const result = khoaToDepartmentGroupMapping.find(
-    (item) => item.MaKhoa === makhoa
+    (item) => item.MaKhoa === makhoa,
   );
 
   if (result) {
@@ -722,13 +739,13 @@ export function Get_KhoaID_By_MaKhoa(makhoa) {
 export function calculateDoanhThuAdjusted(
   khuyencaokhoa,
   doanhthu_from_db,
-  ngayhientai
+  ngayhientai,
 ) {
   const mapping = new Map(
     khoaToDepartmentGroupMapping.map((item) => [
       item.departmentgroupid,
       item.MaKhoa,
-    ])
+    ]),
   );
 
   return doanhthu_from_db?.map((item, index) => {
@@ -830,25 +847,25 @@ export function calculateTotalsAndAverages(results) {
   const numResults = results.length;
   // Chuyển các giá trị tỷ lệ sang trung bình
   summary.TyLe_BHYT_KC_Avg = parseFloat(
-    (summary.TyLe_BHYT_KC_Avg / numResults).toFixed(1)
+    (summary.TyLe_BHYT_KC_Avg / numResults).toFixed(1),
   );
   summary.TyLe_ThuTrucTiep_KC_Avg = parseFloat(
-    (summary.TyLe_ThuTrucTiep_KC_Avg / numResults).toFixed(1)
+    (summary.TyLe_ThuTrucTiep_KC_Avg / numResults).toFixed(1),
   );
   summary.KC_TyLe_TTT_DT_Avg = parseFloat(
-    (summary.KC_TyLe_TTT_DT_Avg / numResults).toFixed(1)
+    (summary.KC_TyLe_TTT_DT_Avg / numResults).toFixed(1),
   );
   summary.ThucTe_TyLe_TTT_DT_Avg = parseFloat(
-    (summary.ThucTe_TyLe_TTT_DT_Avg / numResults).toFixed(1)
+    (summary.ThucTe_TyLe_TTT_DT_Avg / numResults).toFixed(1),
   );
   summary.KC_TyLe_BHYT_DT_Avg = parseFloat(
-    (summary.KC_TyLe_BHYT_DT_Avg / numResults).toFixed(1)
+    (summary.KC_TyLe_BHYT_DT_Avg / numResults).toFixed(1),
   );
   summary.ThucTe_TyLe_BHYT_DT_Avg = parseFloat(
-    (summary.ThucTe_TyLe_BHYT_DT_Avg / numResults).toFixed(1)
+    (summary.ThucTe_TyLe_BHYT_DT_Avg / numResults).toFixed(1),
   );
   summary.TyLe_DoanhThu_KC_Avg = parseFloat(
-    (summary.TyLe_DoanhThu_KC_Avg / numResults).toFixed(1)
+    (summary.TyLe_DoanhThu_KC_Avg / numResults).toFixed(1),
   );
 
   return summary;
@@ -857,7 +874,7 @@ export function calculateTotalsAndAverages(results) {
 export function calculateKPIWithDifferences(KPI, KPI_NgayChenhLech) {
   // Tạo map từ KPI_NgayChenhLech dựa trên TenKhoa
   const chenhLechMap = new Map(
-    KPI_NgayChenhLech.map((item) => [item.TenKhoa, item])
+    KPI_NgayChenhLech.map((item) => [item.TenKhoa, item]),
   );
 
   // Lặp qua mảng KPI và tính toán chênh lệch
@@ -872,41 +889,45 @@ export function calculateKPIWithDifferences(KPI, KPI_NgayChenhLech) {
     return {
       ...item, // Bảo toàn các giá trị gốc
       ChenhLech_TongThu: parseFloat(
-        (item.TongThu - matchingItem.TongThu).toFixed(1)
+        (item.TongThu - matchingItem.TongThu).toFixed(1),
       ),
       ChenhLech_ThuTrucTiep: parseFloat(
-        (item.ThuTrucTiep - matchingItem.ThuTrucTiep).toFixed(1)
+        (item.ThuTrucTiep - matchingItem.ThuTrucTiep).toFixed(1),
       ),
       ChenhLech_BHYT: parseFloat((item.BHYT - matchingItem.BHYT).toFixed(1)),
       ChenhLech_KC_DoanhThu: parseFloat(
-        (item.KC_DoanhThu - matchingItem.KC_DoanhThu).toFixed(1)
+        (item.KC_DoanhThu - matchingItem.KC_DoanhThu).toFixed(1),
       ),
       ChenhLech_BHYT_KC: parseFloat(
-        (item.BHYT_KC - matchingItem.BHYT_KC).toFixed(1)
+        (item.BHYT_KC - matchingItem.BHYT_KC).toFixed(1),
       ),
       ChenhLech_TyLe_BHYT_KC: parseFloat(
-        (item.TyLe_BHYT_KC - matchingItem.TyLe_BHYT_KC).toFixed(1)
+        (item.TyLe_BHYT_KC - matchingItem.TyLe_BHYT_KC).toFixed(1),
       ),
       ChenhLech_ThuTrucTiep_KC: parseFloat(
-        (item.ThuTrucTiep_KC - matchingItem.ThuTrucTiep_KC).toFixed(1)
+        (item.ThuTrucTiep_KC - matchingItem.ThuTrucTiep_KC).toFixed(1),
       ),
       ChenhLech_TyLe_ThuTrucTiep_KC: parseFloat(
-        (item.TyLe_ThuTrucTiep_KC - matchingItem.TyLe_ThuTrucTiep_KC).toFixed(1)
+        (item.TyLe_ThuTrucTiep_KC - matchingItem.TyLe_ThuTrucTiep_KC).toFixed(
+          1,
+        ),
       ),
       ChenhLech_KC_TyLe_TTT_DT: parseFloat(
-        (item.KC_TyLe_TTT_DT - matchingItem.KC_TyLe_TTT_DT).toFixed(1)
+        (item.KC_TyLe_TTT_DT - matchingItem.KC_TyLe_TTT_DT).toFixed(1),
       ),
       ChenhLech_ThucTe_TyLe_TTT_DT: parseFloat(
-        (item.ThucTe_TyLe_TTT_DT - matchingItem.ThucTe_TyLe_TTT_DT).toFixed(1)
+        (item.ThucTe_TyLe_TTT_DT - matchingItem.ThucTe_TyLe_TTT_DT).toFixed(1),
       ),
       ChenhLech_KC_TyLe_BHYT_DT: parseFloat(
-        (item.KC_TyLe_BHYT_DT - matchingItem.KC_TyLe_BHYT_DT).toFixed(1)
+        (item.KC_TyLe_BHYT_DT - matchingItem.KC_TyLe_BHYT_DT).toFixed(1),
       ),
       ChenhLech_ThucTe_TyLe_BHYT_DT: parseFloat(
-        (item.ThucTe_TyLe_BHYT_DT - matchingItem.ThucTe_TyLe_BHYT_DT).toFixed(1)
+        (item.ThucTe_TyLe_BHYT_DT - matchingItem.ThucTe_TyLe_BHYT_DT).toFixed(
+          1,
+        ),
       ),
       ChenhLech_TyLe_DoanhThu_KC: parseFloat(
-        (item.TyLe_DoanhThu_KC - matchingItem.TyLe_DoanhThu_KC).toFixed(1)
+        (item.TyLe_DoanhThu_KC - matchingItem.TyLe_DoanhThu_KC).toFixed(1),
       ),
       ChenhLech_MRI30: parseFloat((item.MRI30 - matchingItem.MRI30).toFixed(1)),
     };
@@ -917,7 +938,7 @@ export function calculateKPIWithDifferences(KPI, KPI_NgayChenhLech) {
 
 export function ConvertDoanhThuCanLamSang(
   canlamsang,
-  canlamsang_ngaychenhlech
+  canlamsang_ngaychenhlech,
 ) {
   const order = [
     "MRI30",
@@ -1007,11 +1028,11 @@ export function ConvertDoanhThuCanLamSang(
 
     result.soluong_chenhlech.push(item.soluong - itemChenhlech.soluong);
     result.dongchitra_chenhlech.push(
-      item.dongchitra - itemChenhlech.dongchitra
+      item.dongchitra - itemChenhlech.dongchitra,
     );
     result.bhyt_chenhlech.push(item.bhyt - itemChenhlech.bhyt);
     result.thutructiep_chenhlech.push(
-      item.thutructiep - itemChenhlech.thutructiep
+      item.thutructiep - itemChenhlech.thutructiep,
     );
     result.tongdoanhthu_chenhlech.push(
       item.dongchitra +
@@ -1019,7 +1040,7 @@ export function ConvertDoanhThuCanLamSang(
         item.thutructiep -
         (itemChenhlech.dongchitra +
           itemChenhlech.bhyt +
-          itemChenhlech.thutructiep)
+          itemChenhlech.thutructiep),
     );
   });
 
@@ -1053,7 +1074,7 @@ export function TongHopSoLieuChoPieChartDoanhThuChenhLech(
   doanhthu,
   doanhthu_ngaychenhlech,
   canlamsang,
-  canlamsang_ngaychenhlech
+  canlamsang_ngaychenhlech,
 ) {
   // const tongtienMri30 = (canlamsang.find(obj => obj.canlamsangtype === "MRI30") || { tongtien: 0 }).tongtien;
   // const tongtienMri30_ngaychenhlech = (canlamsang_ngaychenhlech.find(obj => obj.canlamsangtype === "MRI30") || { tongtien: 0 }).tongtien;
@@ -1093,7 +1114,7 @@ export function TongHopSoLieuChoRowTongDoanhThuKPI(
   doanhthu,
   doanhthu_ngaychenhlech,
   khuyencaotoanvien,
-  ngayhientai = 0
+  ngayhientai = 0,
 ) {
   let thuTrucTiep = 0;
   let dongChiTra = 0;
@@ -1170,42 +1191,42 @@ export function TongHopSoLieuChoRowTongDoanhThuKPI(
     ThucTe_TyLe_BHYT_DT: parseFloat((tongBHYT / TongTien) * 100).toFixed(1),
     ChenhLech_ThucTe_TyLe_BHYT_DT: parseFloat(
       (tongBHYT / TongTien - tongBHYT_ngaychenhlech / TongTien_NgayChenhLech) *
-        100
+        100,
     ).toFixed(1),
 
     ThucTe_TyLe_ThuTrucTiep_DT: parseFloat(
-      (ThuTrucTiep / TongTien) * 100
+      (ThuTrucTiep / TongTien) * 100,
     ).toFixed(1),
     ChenhLech_ThucTe_TyLe_ThuTrucTiep_DT: parseFloat(
       (ThuTrucTiep / TongTien -
         ThuTrucTiep_NgayChenhLech / TongTien_NgayChenhLech) *
-        100
+        100,
     ).toFixed(1),
 
     TyLe_ThucTe_DoanhThu_KhuyenCao: parseFloat(
-      TyLe_ThucTe_DoanhThu_KhuyenCao * 100
+      TyLe_ThucTe_DoanhThu_KhuyenCao * 100,
     ).toFixed(1),
     TyLe_ThucTe_DoanhThu_KhuyenCao_ChenhLech: parseFloat(
       (TyLe_ThucTe_DoanhThu_KhuyenCao -
         TyLe_ThucTe_DoanhThu_KhuyenCao_NgayChenhLech) *
-        100
+        100,
     ).toFixed(1),
 
     TyLe_ThucTe_BHYT_KhuyenCao: parseFloat(
-      TyLe_ThucTe_BHYT_KhuyenCao * 100
+      TyLe_ThucTe_BHYT_KhuyenCao * 100,
     ).toFixed(1),
     TyLe_ThucTe_BHYT_KhuyenCao_ChenhLech: parseFloat(
       (TyLe_ThucTe_BHYT_KhuyenCao - TyLe_ThucTe_BHYT_KhuyenCao_NgayChenhLech) *
-        100
+        100,
     ).toFixed(1),
 
     TyLe_ThucTe_ThuTrucTiep_KhuyenCao: parseFloat(
-      TyLe_ThucTe_ThuTrucTiep_KhuyenCao * 100
+      TyLe_ThucTe_ThuTrucTiep_KhuyenCao * 100,
     ).toFixed(1),
     TyLe_ThucTe_ThuTrucTiep_KhuyenCao_ChenhLech: parseFloat(
       (TyLe_ThucTe_ThuTrucTiep_KhuyenCao -
         TyLe_ThucTe_ThuTrucTiep_KhuyenCao_NgayChenhLech) *
-        100
+        100,
     ).toFixed(1),
   };
 }
@@ -1591,7 +1612,7 @@ export function chiaNhomDaoTao(arr) {
   // Mảng 1: Saudaihoc - Lọc ra các đối tượng có MaHinhThucCapNhat có 4 ký tự đầu là 'ĐT06' và lopDaoTaoCount > 0
   const saudaihoc = arr.filter(
     (item) =>
-      item.lopDaoTaoCount > 0 && item.MaHinhThucCapNhat.startsWith("ĐT06")
+      item.lopDaoTaoCount > 0 && item.MaHinhThucCapNhat.startsWith("ĐT06"),
   );
 
   // Mảng 2: Đối tượng có 2 ký tự đầu là 'ĐT' nhưng khác 'ĐT06' và lopDaoTaoCount > 0
@@ -1599,13 +1620,13 @@ export function chiaNhomDaoTao(arr) {
     (item) =>
       item.lopDaoTaoCount > 0 &&
       item.MaHinhThucCapNhat.startsWith("ĐT") &&
-      !item.MaHinhThucCapNhat.startsWith("ĐT06")
+      !item.MaHinhThucCapNhat.startsWith("ĐT06"),
   );
 
   // Mảng 3: Đối tượng có 4 ký tự đầu là 'NCKH' và lopDaoTaoCount > 0
   const nckh = arr.filter(
     (item) =>
-      item.lopDaoTaoCount > 0 && item.MaHinhThucCapNhat.startsWith("NCKH")
+      item.lopDaoTaoCount > 0 && item.MaHinhThucCapNhat.startsWith("NCKH"),
   );
 
   return { saudaihoc, dtKhac, nckh };

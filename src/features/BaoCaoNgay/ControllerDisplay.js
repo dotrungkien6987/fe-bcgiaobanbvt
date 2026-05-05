@@ -16,7 +16,11 @@ import {
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { Link as RouterLink } from "react-router-dom";
-import { CalendarTodayOutlined, BusinessOutlined, AssessmentOutlined } from "@mui/icons-material";
+import {
+  CalendarTodayOutlined,
+  BusinessOutlined,
+  AssessmentOutlined,
+} from "@mui/icons-material";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 import { getDataBCNgay, getKhoas } from "./baocaongaySlice";
@@ -36,7 +40,9 @@ import BCTrungTamCLC from "./BCTrungTamCLC";
 import BCNgayLamSangNoi from "./BCNgayLamSangNoi";
 import BCNgayLamSangNgoai from "./BCNgayLamSangNgoai";
 import BCKhoaCapCuu from "./BCKhoaCapCuu";
+import BCCapCuu115 from "./BCCapCuu115";
 import BCPhongKhamYeuCau from "./BCPhongKhamYeuCau";
+import { isCC115DepartmentCode } from "../../utils/cc115";
 
 function ControllerDisplay() {
   const { user } = useAuth();
@@ -46,24 +52,27 @@ function ControllerDisplay() {
   //   const [date, setDate] = useState((new Date()));
 
   // Lấy thời gian hiện tại theo múi giờ của Việt Nam
-const now = dayjs().tz("Asia/Ho_Chi_Minh");
+  const now = dayjs().tz("Asia/Ho_Chi_Minh");
 
-// Kiểm tra xem giờ hiện tại có >= 18 hay không
-const isAfter18 = now.hour() >= 18;
+  // Kiểm tra xem giờ hiện tại có >= 18 hay không
+  const isAfter18 = now.hour() >= 18;
 
-// Thiết lập giá trị mặc định cho date dựa trên giờ hiện tại
-const defaultDate = isAfter18
-  ? now.hour(7).minute(0).second(0).millisecond(0)
-  : now.subtract(1, "day").hour(7).minute(0).second(0).millisecond(0);
+  // Thiết lập giá trị mặc định cho date dựa trên giờ hiện tại
+  const defaultDate = isAfter18
+    ? now.hour(7).minute(0).second(0).millisecond(0)
+    : now.subtract(1, "day").hour(7).minute(0).second(0).millisecond(0);
 
-const [date, setDate] = useState(defaultDate);
+  const [date, setDate] = useState(defaultDate);
 
-  const [selectedDepartment, setSelectedDepartment] = useState(user?.KhoaID?._id || "");
+  const [selectedDepartment, setSelectedDepartment] = useState(
+    user?.KhoaID?._id || "",
+  );
   const [loaikhoa, setLoaikhoa] = useState("");
   const [makhoa, setMakhoa] = useState("");
+  const isCC115 = isCC115DepartmentCode(makhoa);
 
   const dispatch = useDispatch();
-    useEffect(() => {
+  useEffect(() => {
     setLoading(true);
     dispatch(getKhoas()).finally(() => setLoading(false));
   }, [dispatch]);
@@ -74,7 +83,8 @@ const [date, setDate] = useState(defaultDate);
       dispatch(getDataBCNgay(dateISO, selectedDepartment));
       dispatch(getDataBCNgay_Rieng(dateISO, selectedDepartment));
     }
-  }, [date, selectedDepartment, dispatch]);useEffect(() => {
+  }, [date, selectedDepartment, dispatch]);
+  useEffect(() => {
     // Set default department when khoas first loads
     if (khoas && khoas.length > 0 && !selectedDepartment) {
       const defaultDepartmentId = user?.KhoaID?._id;
@@ -88,12 +98,12 @@ const [date, setDate] = useState(defaultDate);
     // Update loaikhoa and makhoa when selectedDepartment changes
     if (khoas && khoas.length > 0 && selectedDepartment) {
       const loai_khoa = khoas.find(
-        (khoa) => khoa._id === selectedDepartment
+        (khoa) => khoa._id === selectedDepartment,
       )?.LoaiKhoa;
       const ma_khoa = khoas.find(
-        (khoa) => khoa._id === selectedDepartment
+        (khoa) => khoa._id === selectedDepartment,
       )?.MaKhoa;
-  
+
       console.log("loaikhoa", loai_khoa);
       setLoaikhoa(loai_khoa);
       setMakhoa(ma_khoa);
@@ -112,98 +122,105 @@ const [date, setDate] = useState(defaultDate);
       console.log("updateDate", updatedDate);
       setDate(updatedDate);
     }
-    
   };
 
   const handleSelectChange = (e) => {
     setSelectedDepartment(e.target.value);
     //setLoaikhoa de hien thi giao dien tuong ung
     const loai_khoa = khoas.find(
-      (khoa) => khoa._id === e.target.value
+      (khoa) => khoa._id === e.target.value,
     )?.LoaiKhoa;
-    const ma_khoa = khoas.find(
-      (khoa) => khoa._id === e.target.value
-    )?.MaKhoa;
+    const ma_khoa = khoas.find((khoa) => khoa._id === e.target.value)?.MaKhoa;
 
     console.log("loaikhoa", loai_khoa);
     setLoaikhoa(loai_khoa);
-    setMakhoa(ma_khoa)
-    
+    setMakhoa(ma_khoa);
   };
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', p: 2 }}>
+    <Box sx={{ maxWidth: 1200, mx: "auto", p: 2 }}>
       {/* Header Section */}
-      <Paper 
-        elevation={0} 
-        sx={{ 
-          p: 3, 
-          mb: 3, 
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          borderRadius: 2
+      <Paper
+        elevation={0}
+        sx={{
+          p: 3,
+          mb: 3,
+          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+          color: "white",
+          borderRadius: 2,
         }}
       >
         <Typography variant="h4" component="h1" sx={{ mb: 1, fontWeight: 600 }}>
-          <AssessmentOutlined sx={{ mr: 1, verticalAlign: 'middle' }} />
+          <AssessmentOutlined sx={{ mr: 1, verticalAlign: "middle" }} />
           Báo Cáo Ngày
         </Typography>
         <Typography variant="body1" sx={{ opacity: 0.9 }}>
           Theo dõi tình hình bệnh nhân các khoa theo ngày
         </Typography>
       </Paper>
-
       {/* Filter Controls */}
-      <Card 
-        sx={{ 
-          p: 3, 
-          mb: 3, 
+      <Card
+        sx={{
+          p: 3,
+          mb: 3,
           borderRadius: 2,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-          border: '1px solid',
-          borderColor: 'divider'
+          boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+          border: "1px solid",
+          borderColor: "divider",
         }}
       >
-        <Typography variant="h6" sx={{ mb: 2, color: 'text.primary', fontWeight: 500 }}>
+        <Typography
+          variant="h6"
+          sx={{ mb: 2, color: "text.primary", fontWeight: 500 }}
+        >
           Bộ lọc báo cáo
         </Typography>
-        
-        <Stack 
-          direction={{ xs: 'column', sm: 'row' }} 
+
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
           spacing={3}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
+          alignItems={{ xs: "stretch", sm: "center" }}
         >
           {/* Date Picker */}
-          <Box sx={{ minWidth: { xs: '100%', sm: 250 } }}>
+          <Box sx={{ minWidth: { xs: "100%", sm: 250 } }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <DatePicker 
-                label="Ngày báo cáo" 
-                value={date} 
+              <DatePicker
+                label="Ngày báo cáo"
+                value={date}
                 onChange={handleDateChange}
                 slotProps={{
                   textField: {
                     fullWidth: true,
-                    variant: 'outlined',
+                    variant: "outlined",
                     InputProps: {
-                      startAdornment: <CalendarTodayOutlined sx={{ mr: 1, color: 'action.active' }} />
-                    }
-                  }
+                      startAdornment: (
+                        <CalendarTodayOutlined
+                          sx={{ mr: 1, color: "action.active" }}
+                        />
+                      ),
+                    },
+                  },
                 }}
               />
             </LocalizationProvider>
-          </Box>          {/* Department Autocomplete */}
-          <Box sx={{ minWidth: { xs: '100%', sm: 300 }, flex: 1 }}>
+          </Box>{" "}
+          {/* Department Autocomplete */}
+          <Box sx={{ minWidth: { xs: "100%", sm: 300 }, flex: 1 }}>
             <Autocomplete
               options={khoas || []}
               loading={loading}
               getOptionLabel={(option) => option.TenKhoa}
-              value={khoas?.find(khoa => khoa._id === selectedDepartment) || null}
+              value={
+                khoas?.find((khoa) => khoa._id === selectedDepartment) || null
+              }
               onChange={(event, newValue) => {
                 if (newValue) {
                   const e = { target: { value: newValue._id } };
                   handleSelectChange(e);
                 }
               }}
-              isOptionEqualToValue={(option, value) => option._id === value?._id}
+              isOptionEqualToValue={(option, value) =>
+                option._id === value?._id
+              }
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -214,13 +231,17 @@ const [date, setDate] = useState(defaultDate);
                     ...params.InputProps,
                     startAdornment: (
                       <>
-                        <BusinessOutlined sx={{ mr: 1, color: 'action.active' }} />
+                        <BusinessOutlined
+                          sx={{ mr: 1, color: "action.active" }}
+                        />
                         {params.InputProps.startAdornment}
                       </>
                     ),
                     endAdornment: (
                       <>
-                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                        {loading ? (
+                          <CircularProgress color="inherit" size={20} />
+                        ) : null}
                         {params.InputProps.endAdornment}
                       </>
                     ),
@@ -243,20 +264,19 @@ const [date, setDate] = useState(defaultDate);
               )}
               noOptionsText="Không tìm thấy khoa nào"
               loadingText="Đang tải danh sách khoa..."
-              sx={{ 
-                '& .MuiOutlinedInput-root': {
-                  '&:hover': {
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'primary.main',
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "&:hover": {
+                    "& .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "primary.main",
                     },
                   },
                 },
               }}
             />
           </Box>
-
           {/* Report Link */}
-          <Box sx={{ alignSelf: { xs: 'stretch', sm: 'center' } }}>
+          <Box sx={{ alignSelf: { xs: "stretch", sm: "center" } }}>
             <Chip
               label="Báo cáo toàn viện"
               component={RouterLink}
@@ -264,45 +284,53 @@ const [date, setDate] = useState(defaultDate);
               clickable
               variant="outlined"
               color="primary"
-              sx={{ 
+              sx={{
                 px: 2,
                 py: 0.5,
-                fontSize: '0.875rem',
+                fontSize: "0.875rem",
                 fontWeight: 500,
-                '&:hover': {
-                  backgroundColor: 'primary.main',
-                  color: 'white',
+                "&:hover": {
+                  backgroundColor: "primary.main",
+                  color: "white",
                 },
-                transition: 'all 0.2s ease-in-out'
+                transition: "all 0.2s ease-in-out",
               }}
             />
           </Box>
         </Stack>
-      </Card>      {/* Report Content */}
-      <Card 
-        sx={{ 
+      </Card>{" "}
+      {/* Report Content */}
+      <Card
+        sx={{
           borderRadius: 2,
-          overflow: 'hidden',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-          border: '1px solid',
-          borderColor: 'divider'
+          overflow: "hidden",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
+          border: "1px solid",
+          borderColor: "divider",
         }}
       >
         {/* Report Header */}
-        <Box sx={{ 
-          p: 3, 
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.02)
-        }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, color: 'text.primary' }}>
+        <Box
+          sx={{
+            p: 3,
+            borderBottom: "1px solid",
+            borderColor: "divider",
+            backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.02),
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600, color: "text.primary" }}
+          >
             Báo cáo chi tiết
           </Typography>
           <Typography variant="h6" color="text.secondary" sx={{ mt: 0.5 }}>
-            {khoas?.find(khoa => khoa._id === selectedDepartment)?.TenKhoa || 'Chưa chọn khoa'}
-            {date && ` - ${dayjs(date).format('DD/MM/YYYY')}`}
+            {khoas?.find((khoa) => khoa._id === selectedDepartment)?.TenKhoa ||
+              "Chưa chọn khoa"}
+            {date && ` - ${dayjs(date).format("DD/MM/YYYY")}`}
           </Typography>
-        </Box>        {/* Report Body */}
+        </Box>{" "}
+        {/* Report Body */}
         <Box sx={{ p: 3, minHeight: 400 }}>
           {loading ? (
             // Loading skeleton
@@ -315,28 +343,44 @@ const [date, setDate] = useState(defaultDate);
             </Stack>
           ) : (
             <>
-              {(loaikhoa === "kkb") && <BCKhoaKhamBenh />}
-              {(loaikhoa === "pkyc") && <BCPhongKhamYeuCau />}
-              {(loaikhoa === "noi" && makhoa !== "KCC" && makhoa !== "CDHA") && <BCNgayLamSangNoi />}
-              {(loaikhoa === "noi" && makhoa === "KCC") && <BCKhoaCapCuu />}
-              {(loaikhoa === "ngoai" && makhoa !== "GMHS") && <BCNgayLamSangNgoai />}
-              {(loaikhoa === "ngoai" && makhoa === "GMHS") && <BCGayMeHS />}
-              {loaikhoa === "xnhh" && <BCXetNghiemHH />}
-              {loaikhoa === "xnhs" && <BCXetNghiemHS />}
-              {loaikhoa === "xnvs" && <BCXetNghiemVS />}
-              {(loaikhoa === "noi" && makhoa === "CDHA") && <BCChanDoanHA />}
-              {loaikhoa === "tdcn" && <BCThamDoCN />}
-              {loaikhoa === "hhtm" && <BCHuyetHocTM />}
-              {loaikhoa === "clc" && <BCTrungTamCLC />}
-              
+              {isCC115 && <BCCapCuu115 />}
+              {!isCC115 && loaikhoa === "kkb" && <BCKhoaKhamBenh />}
+              {!isCC115 && loaikhoa === "pkyc" && <BCPhongKhamYeuCau />}
+              {!isCC115 &&
+                loaikhoa === "noi" &&
+                makhoa !== "KCC" &&
+                makhoa !== "CDHA" && <BCNgayLamSangNoi />}
+              {!isCC115 && loaikhoa === "noi" && makhoa === "KCC" && (
+                <BCKhoaCapCuu />
+              )}
+              {!isCC115 && loaikhoa === "ngoai" && makhoa !== "GMHS" && (
+                <BCNgayLamSangNgoai />
+              )}
+              {!isCC115 && loaikhoa === "ngoai" && makhoa === "GMHS" && (
+                <BCGayMeHS />
+              )}
+              {!isCC115 && loaikhoa === "xnhh" && <BCXetNghiemHH />}
+              {!isCC115 && loaikhoa === "xnhs" && <BCXetNghiemHS />}
+              {!isCC115 && loaikhoa === "xnvs" && <BCXetNghiemVS />}
+              {!isCC115 && loaikhoa === "noi" && makhoa === "CDHA" && (
+                <BCChanDoanHA />
+              )}
+              {!isCC115 && loaikhoa === "tdcn" && <BCThamDoCN />}
+              {!isCC115 && loaikhoa === "hhtm" && <BCHuyetHocTM />}
+              {!isCC115 && loaikhoa === "clc" && <BCTrungTamCLC />}
+
               {/* Empty state when no report type matches */}
-              {!loaikhoa && (
-                <Box sx={{ 
-                  textAlign: 'center', 
-                  py: 8,
-                  color: 'text.secondary' 
-                }}>
-                  <AssessmentOutlined sx={{ fontSize: 64, mb: 2, opacity: 0.3 }} />
+              {!loaikhoa && !isCC115 && (
+                <Box
+                  sx={{
+                    textAlign: "center",
+                    py: 8,
+                    color: "text.secondary",
+                  }}
+                >
+                  <AssessmentOutlined
+                    sx={{ fontSize: 64, mb: 2, opacity: 0.3 }}
+                  />
                   <Typography variant="h6" sx={{ mb: 1 }}>
                     Chưa có dữ liệu báo cáo
                   </Typography>

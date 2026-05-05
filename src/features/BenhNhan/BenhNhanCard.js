@@ -27,14 +27,12 @@ import {
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import PersonIcon from "@mui/icons-material/Person";
 import EditIcon from "@mui/icons-material/Edit";
-import TransferWithinAStationIcon from "@mui/icons-material/TransferWithinAStation";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ImageIcon from "@mui/icons-material/Image";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import { removeBenhNhanInList } from "../BaoCaoNgay/baocaongaySlice";
-import { transferBenhNhanFromChung } from "../BaoCaoNgay/baocaongay_riengtheokhoaSlice";
 import BenhNhanEditForm from "./BenhNhanEditForm";
 
 // import useAuth from "../../hooks/useAuth";
@@ -76,12 +74,6 @@ function BenhNhanCard({ benhnhan }) {
     console.log("BN del", benhnhan);
     setAnchorEl(null);
     setOpen(false);
-  };
-
-  const handleTransfer = () => {
-    dispatch(transferBenhNhanFromChung(benhnhan));
-    console.log("BN transfer to rieng", benhnhan);
-    setAnchorEl(null);
   };
 
   //dialogDelete
@@ -370,22 +362,6 @@ function BenhNhanCard({ benhnhan }) {
           >
             <EditIcon sx={{ fontSize: 18, color: "primary.main" }} />
             <Typography variant="body2">Sửa</Typography>
-          </MenuItem>
-
-          <Divider />
-
-          <MenuItem
-            onClick={handleTransfer}
-            sx={{
-              py: 1.5,
-              gap: 2,
-              "&:hover": { bgcolor: alpha("#ed6c02", 0.1) },
-            }}
-          >
-            <TransferWithinAStationIcon
-              sx={{ fontSize: 18, color: "warning.main" }}
-            />
-            <Typography variant="body2">Chuyển về khoa</Typography>
           </MenuItem>
 
           <Divider />

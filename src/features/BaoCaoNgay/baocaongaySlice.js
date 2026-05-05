@@ -19,6 +19,8 @@ const initialState = {
   bnCanThieps: [],
   bnTheoDois: [],
   bnMoCCs: [],
+  bnTuVong115s: [],
+  bnCapCuu115s: [],
   ctChiSos: [],
   khoas: [],
 };
@@ -78,6 +80,20 @@ const slice = createSlice({
       const benhnhan = { ...action.payload, Stt: state.bnMoCCs.length + 1 };
       state.bnMoCCs.push(benhnhan);
     },
+    addTuVong115Success(state, action) {
+      const benhnhan = {
+        ...action.payload,
+        Stt: state.bnTuVong115s.length + 1,
+      };
+      state.bnTuVong115s.push(benhnhan);
+    },
+    addCapCuu115Success(state, action) {
+      const benhnhan = {
+        ...action.payload,
+        Stt: state.bnCapCuu115s.length + 1,
+      };
+      state.bnCapCuu115s.push(benhnhan);
+    },
     //Xử lý khi update 1 Bn vào trong các list BN
     updateTuVongSuccess(state, action) {
       state.bnTuVongs[action.payload.Stt - 1] = action.payload;
@@ -105,6 +121,12 @@ const slice = createSlice({
     },
     updateMoCCSuccess(state, action) {
       state.bnMoCCs[action.payload.Stt - 1] = action.payload;
+    },
+    updateTuVong115Success(state, action) {
+      state.bnTuVong115s[action.payload.Stt - 1] = action.payload;
+    },
+    updateCapCuu115Success(state, action) {
+      state.bnCapCuu115s[action.payload.Stt - 1] = action.payload;
     },
     //Xử lý khi xóa 1 BN trong list BN
     removeBenhNhanInTuVongSuccess(state, action) {
@@ -144,6 +166,14 @@ const slice = createSlice({
       const stt = action.payload.Stt;
       state.bnMoCCs = removeAndRenumber(state.bnMoCCs, stt);
     },
+    removeBenhNhanInTuVong115Success(state, action) {
+      const stt = action.payload.Stt;
+      state.bnTuVong115s = removeAndRenumber(state.bnTuVong115s, stt);
+    },
+    removeBenhNhanInCapCuu115Success(state, action) {
+      const stt = action.payload.Stt;
+      state.bnCapCuu115s = removeAndRenumber(state.bnCapCuu115s, stt);
+    },
     getDataBCNgaySuccess(state, action) {
       state.isLoading = false;
       state.error = null;
@@ -163,37 +193,45 @@ const slice = createSlice({
         state.ctChiSos = baocaongay.ChiTietChiSo;
 
         state.bnTuVongs = baocaongay.ChiTietBenhNhan.filter(
-          (BN) => BN.LoaiBN === 1
+          (BN) => BN.LoaiBN === 1,
         );
         state.bnChuyenViens = baocaongay.ChiTietBenhNhan.filter(
-          (BN) => BN.LoaiBN === 2
+          (BN) => BN.LoaiBN === 2,
         );
         state.bnXinVes = baocaongay.ChiTietBenhNhan.filter(
-          (BN) => BN.LoaiBN === 3
+          (BN) => BN.LoaiBN === 3,
         );
         state.bnNangs = baocaongay.ChiTietBenhNhan.filter(
-          (BN) => BN.LoaiBN === 4
+          (BN) => BN.LoaiBN === 4,
         );
         state.bnPhauThuats = baocaongay.ChiTietBenhNhan.filter(
-          (BN) => BN.LoaiBN === 5
+          (BN) => BN.LoaiBN === 5,
         );
         state.bnNgoaiGios = baocaongay.ChiTietBenhNhan.filter(
-          (BN) => BN.LoaiBN === 6
+          (BN) => BN.LoaiBN === 6,
         );
         state.bnCanThieps = baocaongay.ChiTietBenhNhan.filter(
-          (BN) => BN.LoaiBN === 7
+          (BN) => BN.LoaiBN === 7,
         );
         state.bnTheoDois = baocaongay.ChiTietBenhNhan.filter(
-          (BN) => BN.LoaiBN === 8
+          (BN) => BN.LoaiBN === 8,
         );
         state.bnMoCCs = baocaongay.ChiTietBenhNhan.filter(
-          (BN) => BN.LoaiBN === 9
+          (BN) => BN.LoaiBN === 9,
+        );
+        state.bnTuVong115s = baocaongay.ChiTietBenhNhan.filter(
+          (BN) => BN.LoaiBN === 10,
+        );
+        state.bnCapCuu115s = baocaongay.ChiTietBenhNhan.filter(
+          (BN) => BN.LoaiBN === 11,
         );
       } else {
         console.log("get BCngay insert", action.payload);
         state.bcGiaoBanTheoNgay = {
           Ngay: action.payload.baocaongay.Ngay,
           KhoaID: action.payload.baocaongay.KhoaID,
+          BSTruc: "",
+          DDTruc: "",
         };
         state.bnTuVongs = [];
         state.bnChuyenViens = [];
@@ -204,6 +242,8 @@ const slice = createSlice({
         state.bnCanThieps = [];
         state.bnTheoDois = [];
         state.bnMoCCs = [];
+        state.bnTuVong115s = [];
+        state.bnCapCuu115s = [];
         state.ctChiSos = [];
       }
     },
@@ -279,6 +319,12 @@ export const addBenhNhanToList = (benhnhan, images) => async (dispatch) => {
       case 9:
         dispatch(slice.actions.addMoCCSuccess(benhnhan));
         break;
+      case 10:
+        dispatch(slice.actions.addTuVong115Success(benhnhan));
+        break;
+      case 11:
+        dispatch(slice.actions.addCapCuu115Success(benhnhan));
+        break;
       default:
         break;
     }
@@ -328,6 +374,12 @@ export const updateBenhNhanToList = (benhnhan, images) => async (dispatch) => {
       case 9:
         dispatch(slice.actions.updateMoCCSuccess(benhnhan));
         break;
+      case 10:
+        dispatch(slice.actions.updateTuVong115Success(benhnhan));
+        break;
+      case 11:
+        dispatch(slice.actions.updateCapCuu115Success(benhnhan));
+        break;
       default:
         break;
     }
@@ -363,6 +415,12 @@ export const removeBenhNhanInList = (benhnhan) => (dispatch) => {
       break;
     case 9:
       dispatch(slice.actions.removeBenhNhanInMoCCSuccess(benhnhan));
+      break;
+    case 10:
+      dispatch(slice.actions.removeBenhNhanInTuVong115Success(benhnhan));
+      break;
+    case 11:
+      dispatch(slice.actions.removeBenhNhanInCapCuu115Success(benhnhan));
       break;
     default:
       break;
@@ -417,7 +475,7 @@ export const transferBenhNhanFromRieng = (benhnhan) => (dispatch) => {
     // Thêm vào slice chung với cùng LoaiBN
     dispatch(addBenhNhanToList(benhnhan, []));
     toast.success(
-      `Đã chuyển bệnh nhân "${benhnhan.TenBenhNhan}" lên báo cáo toàn viện`
+      `Đã chuyển bệnh nhân "${benhnhan.TenBenhNhan}" lên báo cáo toàn viện`,
     );
   } catch (error) {
     toast.error("Có lỗi xảy ra khi chuyển bệnh nhân");

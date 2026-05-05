@@ -53,6 +53,17 @@ const treeData = [
   },
 
   {
+    id: "cc115",
+    name: "Trung tâm cấp cứu 115",
+    children: [
+      {
+        id: "tinhhinhchungcc115",
+        name: "Tình hình chung",
+      },
+    ],
+  },
+
+  {
     id: "trungtamclc",
     name: "Trung tâm KCB CLC",
     children: [
