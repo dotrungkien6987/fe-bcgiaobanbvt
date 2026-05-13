@@ -1,114 +1,137 @@
-import React, {  useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as Yup from "yup";
 
-
-import {
-  
-  FTextField,
-  
-  FormProvider,
-} from "../../components/form";
+import { FTextField, FormProvider } from "../../components/form";
 
 import {
   Box,
   Stack,
-  
   Dialog,
   DialogTitle,
   DialogContent,
-  
   DialogActions,
+  Alert,
   Button,
   Card,
   Divider,
-  FormControl,
-  
+  Typography,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import { useForm } from "react-hook-form";
 
-import {  resetPass } from "./userSlice";
+import { resetPass, resetUserFormState } from "./userSlice";
+
+const resetPassSchema = Yup.object().shape({
+  UserName: Yup.string().required("Thiếu tên đăng nhập"),
+  PassWord: Yup.string()
+    .trim()
+    .required("Bắt buộc nhập mật khẩu mới")
+    .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+});
 
 function ResetPassForm({
   open,
-    handleClose,
+  handleClose,
   handleSave,
- 
+
   handleChange,
 }) {
-  
   const { userCurrent } = useSelector((state) => state.user);
   const dispatch = useDispatch();
- 
+
+  const defaultValues = useMemo(
+    () => ({
+      UserName: "",
+      PassWord: "",
+    }),
+    [],
+  );
+
   const methods = useForm({
-   
-    defaultValues: {
-      UserName:  "",
-      PassWord:  "",
-      
-    },
+    resolver: yupResolver(resetPassSchema),
+    defaultValues,
   });
   const {
     handleSubmit,
-    
-    setValue,
+    reset,
     formState: { isSubmitting },
   } = methods;
 
-  const onSubmitData = (data) => {
-    
-    const userUpdate = {
-      ...data, 
-      UserId:userCurrent._id
-    };
-    console.log("reset pass userCurrent",userUpdate)
-
-    //dispach reset User
-    dispatch(resetPass(userUpdate))
+  const handleCloseForm = () => {
+    reset(defaultValues);
+    dispatch(resetUserFormState());
     handleClose();
   };
-  
+
+  const onSubmitData = async (data) => {
+    if (!userCurrent?._id) return;
+
+    const userUpdate = {
+      ...data,
+      UserId: userCurrent._id,
+    };
+    console.log("reset pass userCurrent", userUpdate);
+
+    const success = await dispatch(resetPass(userUpdate));
+    if (!success) return;
+
+    handleCloseForm();
+  };
   useEffect(() => {
-    if (userCurrent) {
-      // Khi prop benhnhan thay đổi, cập nhật lại dữ liệu trong form
-      console.log("chay vao day",userCurrent)
-      setValue("UserName", userCurrent.UserName || "");
-      setValue("PassWord", userCurrent.PassWord || "");
-     
+    if (open && userCurrent) {
+      console.log("chay vao day", userCurrent);
+      reset({
+        UserName: userCurrent.UserName || "",
+        PassWord: "",
+      });
+      return;
     }
-   
-  }, [userCurrent,open,setValue]);
+
+    reset(defaultValues);
+  }, [defaultValues, open, reset, userCurrent]);
 
   return (
     <div>
       <Dialog
         open={open}
-        onClose={handleClose}
+        onClose={handleCloseForm}
         aria-labelledby="form-dialog-title"
-        sx={{
-          "& .MuiDialog-paper": {
-            width: "1000px", // Or any other width you want
-            height: "600px", // Or any other height you want
-          },
-        }}
+        fullWidth
+        maxWidth="sm"
       >
-        <DialogTitle id="form-dialog-title">Đặt lại mật khẩu</DialogTitle>
+        <DialogTitle id="form-dialog-title">
+          Đặt lại mật khẩu tài khoản
+        </DialogTitle>
         <DialogContent>
-          <Card sx={{ p: 3 }}>
-            {/* onSubmit={handleSubmit(onSubmit)} */}
+          <Card sx={{ p: 3, mt: 1 }}>
             <FormProvider
               methods={methods}
               onSubmit={handleSubmit(onSubmitData)}
             >
-              <Stack spacing={1}>
-              <FormControl fullWidth>
-           
-          </FormControl>
-                  <FTextField name="UserName" label="User name"  disabled={true}/>
-                <FTextField name="PassWord" label="Password"  type={"password"}/>
-                 
+              <Stack spacing={2}>
+                <Alert severity="info">
+                  Mật khẩu mới áp dụng cho tài khoản{" "}
+                  <strong>{userCurrent?.UserName || "đang chọn"}</strong> và
+                  phải có ít nhất 6 ký tự.
+                </Alert>
+                <Typography variant="body2" color="text.secondary">
+                  Sau khi lưu, người dùng sẽ đăng nhập bằng mật khẩu mới này.
+                </Typography>
+                <FTextField
+                  name="UserName"
+                  label="Tên đăng nhập"
+                  disabled={true}
+                />
+                <FTextField
+                  name="PassWord"
+                  label="Mật khẩu mới"
+                  type={"password"}
+                />
+
                 <Divider />
-                
+
                 <Box
                   sx={{
                     display: "flex",
@@ -122,7 +145,7 @@ function ResetPassForm({
                     size="small"
                     loading={isSubmitting}
                   >
-                   Lưu
+                    Lưu mật khẩu mới
                   </LoadingButton>
                 </Box>
               </Stack>
@@ -130,7 +153,7 @@ function ResetPassForm({
           </Card>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
+          <Button onClick={handleCloseForm} color="primary">
             Hủy
           </Button>
         </DialogActions>

@@ -2,12 +2,18 @@ import { createSlice } from "@reduxjs/toolkit";
 import { toast } from "react-toastify";
 import apiService from "../../app/apiService";
 
+const mapUserForList = (user = {}) => ({
+  ...user,
+  TenKhoa: user?.KhoaID?.TenKhoa || user?.TenKhoa || "",
+});
+
 const initialState = {
   isLoading: false,
   error: null,
   updatedProfile: null,
   selectedUser: null,
   users: [],
+  totalUsers: 0,
   totalPages: 1,
   KhoaTaiChinhCurent: [],
   KhoaLichTrucCurent: [],
@@ -32,10 +38,7 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       console.log("action payload", action.payload);
-      state.users.unshift({
-        ...action.payload.user,
-        TenKhoa: action.payload.user.KhoaID.TenKhoa,
-      });
+      state.users.unshift(mapUserForList(action.payload.user));
     },
 
     getUserSuccess(state, action) {
@@ -55,16 +58,13 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
 
-      state.users = action.payload.users.map((user) => ({
-        ...user,
-        TenKhoa: user.KhoaID ? user.KhoaID.TenKhoa : "",
-      }));
+      state.users = action.payload.users.map(mapUserForList);
     },
     getUsersSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
       console.log("payload get users", action.payload);
-      state.users = action.payload.users;
+      state.users = action.payload.users.map(mapUserForList);
       state.totalUsers = action.payload.count;
       state.totalPages = action.payload.totalPages;
     },
@@ -73,12 +73,11 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.users = state.users.map((user) => {
-        if (user._id === action.payload._id) {
-          return {
+        if (String(user._id) === String(action.payload._id)) {
+          return mapUserForList({
             ...user,
             ...action.payload,
-            TenKhoa: action.payload.KhoaID ? action.payload.KhoaID.TenKhoa : "",
-          };
+          });
         }
         return user;
       });
@@ -88,7 +87,7 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.users = state.users.filter(
-        (user) => user._id !== action.payload._id
+        (user) => String(user._id) !== String(action.payload._id),
       );
     },
     setKhoaTaiChinhCurentSuccess(state, action) {
@@ -122,6 +121,14 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.userCurrent = action.payload;
+    },
+    resetUserFormStateSuccess(state) {
+      state.isLoading = false;
+      state.error = null;
+      state.KhoaTaiChinhCurent = [];
+      state.KhoaLichTrucCurent = [];
+      state.NhanVienUserCurrent = {};
+      state.userCurrent = {};
     },
   },
 });
@@ -162,9 +169,11 @@ export const updateUserProfile =
       console.log("update user success", response.data.data);
       dispatch(slice.actions.updateUserProfileSuccess(response.data.data));
       toast.success("Cập nhật người dùng thành công");
+      return true;
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);
+      return false;
     }
   };
 
@@ -180,10 +189,12 @@ export const resetPass =
       const response = await apiService.put(`/user/resetpass/${UserId}`, data);
       console.log("update user success", response.data.data);
       dispatch(slice.actions.resetPassSuccess(response.data.data));
-      toast.success("Reset Password successfully");
+      toast.success("Đặt lại mật khẩu thành công");
+      return true;
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);
+      return false;
     }
   };
 
@@ -202,9 +213,11 @@ export const resetPassMe =
 
       dispatch(slice.actions.resetPassSuccess(response.data.data));
       toast.success("Đổi mật khẩu thành công");
+      return true;
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);
+      return false;
     }
   };
 
@@ -261,10 +274,12 @@ export const CreateUser = (user) => async (dispatch) => {
       ...user,
     });
     dispatch(slice.actions.CreateUserSuccess(response.data.data));
-    toast.success("Thêm mới user thành công");
+    toast.success("Thêm tài khoản thành công");
+    return true;
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
+    return false;
   }
 };
 
@@ -274,9 +289,11 @@ export const deleteUser = (userId) => async (dispatch) => {
     const response = await apiService.delete(`/user/${userId}`);
     dispatch(slice.actions.deleteUserSuccess(response.data.data));
     toast.success("Xóa người dùng thành công");
+    return true;
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);
+    return false;
   }
 };
 export const setKhoaTaiChinhCurent = (khoataichinh) => (dispatch) => {
@@ -314,6 +331,16 @@ export const setNhanVienUserCurrent = (nhanvien) => (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
     dispatch(slice.actions.setNhanVienUserCurrentSuccess(nhanvien));
+  } catch (error) {
+    dispatch(slice.actions.hasError(error.message));
+    toast.error(error.message);
+  }
+};
+
+export const resetUserFormState = () => (dispatch) => {
+  dispatch(slice.actions.startLoading());
+  try {
+    dispatch(slice.actions.resetUserFormStateSuccess());
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
     toast.error(error.message);

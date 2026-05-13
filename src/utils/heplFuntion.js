@@ -1,3 +1,5 @@
+import { isCC115DepartmentCode } from "./cc115";
+
 export function removeAndRenumber(benhnhans, n) {
   // Remove the element with Stt = n
   const filteredBenhnhans = benhnhans.filter((benhNhan) => benhNhan.Stt !== n);
@@ -7,7 +9,6 @@ export function removeAndRenumber(benhnhans, n) {
     return { ...benhNhan, Stt: index + 1 }; // Stt starts from 1
   });
 }
-import { isCC115DepartmentCode } from "./cc115";
 
 export function getTextFromNumber(number) {
   const mapping = {

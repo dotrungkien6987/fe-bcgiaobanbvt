@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
@@ -37,6 +37,7 @@ import { useForm } from "react-hook-form";
 import { getKhoas } from "../BaoCaoNgay/baocaongaySlice";
 import {
   CreateUser,
+  resetUserFormState,
   updateUserProfile,
   setKhoaTaiChinhCurent,
   setKhoaLichTrucCurent,
@@ -74,10 +75,21 @@ import MedicalInformationIcon from "@mui/icons-material/MedicalInformation";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 
 const yupSchema = Yup.object().shape({
-  UserName: Yup.string().required("Bắt buộc nhập UserName"),
-  KhoaID: Yup.object({
-    TenKhoa: Yup.string().required("Bắt buộc chọn khoa"),
-  }).required("Bắt buộc chọn khoa"),
+  UserName: Yup.string().trim().required("Bắt buộc nhập tên đăng nhập"),
+  PassWord: Yup.string().when("_isEditing", {
+    is: false,
+    then: (schema) =>
+      schema
+        .trim()
+        .required("Bắt buộc nhập mật khẩu")
+        .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  Email: Yup.string().nullable().email("Email không hợp lệ"),
+  KhoaID: Yup.object()
+    .nullable()
+    .required("Bắt buộc chọn khoa")
+    .test("has-id", "Bắt buộc chọn khoa", (value) => Boolean(value?._id)),
 });
 
 function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
@@ -150,9 +162,8 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const methods = useForm({
-    resolver: yupResolver(yupSchema),
-    defaultValues: {
+  const defaultFormValues = useMemo(
+    () => ({
       UserName: "",
       PassWord: "",
       KhoaID: null,
@@ -160,7 +171,14 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
       Email: "",
       PhanQuyen: "nomal",
       UserHis: "",
-    },
+      _isEditing: false,
+    }),
+    [],
+  );
+
+  const methods = useForm({
+    resolver: yupResolver(yupSchema),
+    defaultValues: defaultFormValues,
   });
 
   const {
@@ -170,11 +188,49 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
     formState: { isSubmitting },
   } = methods;
 
-  const resetForm = () => {
-    reset();
+  const clearAuxiliaryState = () => {
     setDashboardPermissions([]);
-    // Reset nhân viên đã chọn khi làm mới form (tránh lưu từ form trước)
-    dispatch(setNhanVienUserCurrent(null));
+    setValueQuyen("nomal");
+    dispatch(resetUserFormState());
+    reset(defaultFormValues);
+  };
+
+  const resetForm = () => {
+    if (userCurrent && userCurrent._id && userCurrent._id !== 0) {
+      reset({
+        ...defaultFormValues,
+        ...userCurrent,
+        PassWord: "",
+        _isEditing: true,
+      });
+      setValueQuyen(userCurrent.PhanQuyen || "nomal");
+      setDashboardPermissions(
+        Array.isArray(userCurrent.DashBoard) ? userCurrent.DashBoard : [],
+      );
+      dispatch(
+        setKhoaTaiChinhCurent(
+          Array.isArray(userCurrent.KhoaTaiChinh)
+            ? userCurrent.KhoaTaiChinh
+            : [],
+        ),
+      );
+      dispatch(
+        setKhoaLichTrucCurent(
+          Array.isArray(userCurrent.KhoaLichTruc)
+            ? userCurrent.KhoaLichTruc
+            : [],
+        ),
+      );
+      if (
+        userCurrent.NhanVienID &&
+        typeof userCurrent.NhanVienID === "object"
+      ) {
+        dispatch(setNhanVienUserCurrent(userCurrent.NhanVienID));
+      }
+      return;
+    }
+
+    clearAuxiliaryState();
   };
 
   // Hàm xử lý khi checkbox Dashboard thay đổi
@@ -187,11 +243,18 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
       setDashboardPermissions([...dashboardPermissions, permission]);
     }
   };
-  const onSubmitData = (data) => {
+  const handleCloseForm = () => {
+    clearAuxiliaryState();
+    handleClose();
+  };
+
+  const onSubmitData = async (data) => {
+    const { _isEditing, ...formValues } = data;
+
     if (isEditing) {
       const userUpdate = {
-        ...data,
-        KhoaID: data.KhoaID._id,
+        ...formValues,
+        KhoaID: formValues.KhoaID._id,
         PhanQuyen: valueQuyen,
         KhoaTaiChinh: KhoaTaiChinhCurent,
         KhoaLichTruc: KhoaLichTrucCurent,
@@ -199,31 +262,36 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
         NhanVienID: NhanVienUserCurrent?._id || null,
         DashBoard: dashboardPermissions, // Thêm quyền dashboard
       };
-      dispatch(updateUserProfile(userUpdate));
+      const success = await dispatch(updateUserProfile(userUpdate));
+      if (!success) return;
     } else {
       const userUpdate = {
-        ...data,
-        KhoaID: data.KhoaID._id,
+        ...formValues,
+        KhoaID: formValues.KhoaID._id,
         PhanQuyen: valueQuyen,
         KhoaTaiChinh: KhoaTaiChinhCurent,
         KhoaLichTruc: KhoaLichTrucCurent,
         NhanVienID: NhanVienUserCurrent?._id || null,
         DashBoard: dashboardPermissions, // Thêm quyền dashboard
       };
-      dispatch(CreateUser(userUpdate));
-      // Sau khi thêm mới thành công (optimistic reset để lần mở sau sạch)
-      dispatch(setNhanVienUserCurrent(null));
+      const success = await dispatch(CreateUser(userUpdate));
+      if (!success) return;
     }
-    handleClose();
+    handleCloseForm();
   };
   useEffect(() => {
+    if (!open) return;
+
     if (userCurrent && userCurrent._id && userCurrent._id !== 0) {
       setIsEditing(true);
 
       reset({
+        ...defaultFormValues,
         ...userCurrent,
+        PassWord: "",
+        _isEditing: true,
       });
-      setValueQuyen(userCurrent.PhanQuyen);
+      setValueQuyen(userCurrent.PhanQuyen || "nomal");
 
       // Set quyền Dashboard
       if (userCurrent.DashBoard && Array.isArray(userCurrent.DashBoard)) {
@@ -279,16 +347,9 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
     } else {
       setIsEditing(false);
       setDashboardPermissions([]);
+      setValueQuyen("nomal");
 
-      reset({
-        UserName: "",
-        PassWord: "",
-        KhoaID: null,
-        HoTen: "",
-        Email: "",
-        PhanQuyen: "nomal",
-        UserHis: "",
-      });
+      reset(defaultFormValues);
 
       // Reset về mảng rỗng khi tạo mới
       dispatch(setKhoaTaiChinhCurent([]));
@@ -296,11 +357,12 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
       // Reset luôn nhân viên khi bắt đầu tạo mới
       dispatch(setNhanVienUserCurrent(null));
     }
-  }, [userCurrent, reset, dispatch, nhanviens]);
+  }, [defaultFormValues, dispatch, nhanviens, open, reset, userCurrent]);
 
   // Side-effect bổ sung: khi danh sách nhân viên vừa được load mà userCurrent có NhanVienID dạng string nhưng chưa map được trước đó.
   useEffect(() => {
     if (
+      open &&
       userCurrent &&
       userCurrent._id &&
       userCurrent.NhanVienID &&
@@ -312,7 +374,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
       const emp = nhanviens.find((nv) => nv._id === userCurrent.NhanVienID);
       if (emp) dispatch(setNhanVienUserCurrent(emp));
     }
-  }, [userCurrent, NhanVienUserCurrent, nhanviens, dispatch]);
+  }, [userCurrent, NhanVienUserCurrent, nhanviens, dispatch, open]);
 
   const [valueQuyen, setValueQuyen] = useState("nomal");
 
@@ -371,7 +433,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={handleCloseForm}
       aria-labelledby="form-dialog-title"
       sx={{
         "& .MuiDialog-paper": {
@@ -401,7 +463,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
             {isEditing ? "Chỉnh sửa người dùng" : "Thêm người dùng mới"}
           </Typography>
         </Box>
-        <IconButton onClick={handleClose} sx={{ color: "white" }}>
+        <IconButton onClick={handleCloseForm} sx={{ color: "white" }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
@@ -437,6 +499,10 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                       options={khoas}
                       displayField="TenKhoa"
                       label="Chọn khoa"
+                      loading={!khoas?.length}
+                      loadingText="Đang tải danh sách khoa"
+                      noOptionsText="Không có khoa phù hợp"
+                      disabled={!khoas?.length}
                       required
                       sx={{ mb: 1 }}
                     />
@@ -445,6 +511,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                     <FTextField
                       name="UserName"
                       label="Tên đăng nhập"
+                      placeholder="Nhập tên dùng để đăng nhập"
                       required
                       InputProps={{
                         startAdornment: (
@@ -458,6 +525,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                       <FTextField
                         name="PassWord"
                         label="Mật khẩu"
+                        placeholder="Ít nhất 6 ký tự"
                         type="password"
                         required
                         InputProps={{
@@ -472,6 +540,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                     <FTextField
                       name="HoTen"
                       label="Họ và tên"
+                      placeholder="Nhập họ tên hiển thị"
                       InputProps={{
                         startAdornment: (
                           <AccountCircleIcon color="primary" sx={{ mr: 1 }} />
@@ -483,6 +552,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                     <FTextField
                       name="Email"
                       label="Email"
+                      placeholder="email@benhvien.vn"
                       InputProps={{
                         startAdornment: (
                           <EmailIcon color="primary" sx={{ mr: 1 }} />
@@ -494,6 +564,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                     <FTextField
                       name="UserHis"
                       label="User HIS"
+                      placeholder="Nhập tài khoản HIS nếu có"
                       InputProps={{
                         startAdornment: (
                           <HistoryIcon color="primary" sx={{ mr: 1 }} />
@@ -514,6 +585,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                           "cntt",
                         ]}
                         value={valueQuyen || "nomal"}
+                        disableClearable
                         onChange={(event, newValue) => {
                           setValueQuyen(newValue || "nomal");
                         }}
@@ -951,7 +1023,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                   onClick={resetForm}
                   startIcon={<RefreshIcon />}
                 >
-                  Làm mới
+                  Khôi phục
                 </Button>
                 <LoadingButton
                   type="submit"
@@ -959,7 +1031,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
                   loading={isSubmitting}
                   startIcon={<SaveIcon />}
                 >
-                  {isEditing ? "Cập nhật" : "Lưu mới"}
+                  {isEditing ? "Lưu thay đổi" : "Tạo tài khoản"}
                 </LoadingButton>
               </Box>
             </Stack>
@@ -970,7 +1042,7 @@ function UserInsertForm({ open, handleClose, handleSave, handleChange }) {
       <DialogActions sx={{ px: 3, py: 2, bgcolor: "#f5f5f5" }}>
         <Button
           variant="outlined"
-          onClick={handleClose}
+          onClick={handleCloseForm}
           color="error"
           startIcon={<CancelIcon />}
         >

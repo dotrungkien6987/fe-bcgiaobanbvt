@@ -47,6 +47,13 @@ const HeaderContent = () => {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const { user, logout } = useAuth();
+  const displayUserName = user?.UserName || user?.HoTen || "";
+  const displayDepartment =
+    user?.nhanVienInfo?.nhanVien?.KhoaID?.TenKhoa ||
+    user?.KhoaID?.TenKhoa ||
+    user?.TenKhoa ||
+    "Chưa gán khoa";
+  const userRole = user?.PhanQuyen || "";
   const location = useLocation();
   // const { user, logout } ={};
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -99,10 +106,10 @@ const HeaderContent = () => {
     >
       <Box sx={{ my: 1.5, px: 2.5 }}>
         <Typography variant="subtitle2" noWrap>
-          {user?.UserName}
+          {displayUserName}
         </Typography>
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          {user?.KhoaID.TenKhoa}
+          {displayDepartment}
         </Typography>
       </Box>
       <Divider sx={{ borderStyle: "dashed" }} />
@@ -115,7 +122,7 @@ const HeaderContent = () => {
       >
         Home
       </MenuItem>
-      {(user.PhanQuyen === "admin" || user.PhanQuyen === "manager") && [
+      {(userRole === "admin" || userRole === "manager") && [
         <MenuItem
           key="dashboard"
           onClick={handleMenuClose}

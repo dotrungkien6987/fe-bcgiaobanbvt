@@ -9,6 +9,7 @@ import {
   Stack,
   Tooltip,
   IconButton,
+  Typography,
 } from "@mui/material";
 import MainCard from "components/MainCard";
 
@@ -17,10 +18,10 @@ import SimpleTable from "pages/tables/MyTable/SimpleTable";
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Edit, Trash, Convert3DCube } from "iconsax-react";
-import AddHinhThucButton from "features/Daotao/AddHinhThucButton";
 import {
   deleteUser,
   getAllUsers,
+  resetUserFormState,
   setKhoaTaiChinhCurent,
   setNhanVienUserCurrent,
   setUserCurent,
@@ -30,15 +31,13 @@ import ResetPassForm from "../ResetPassForm";
 import AddUserButton from "./AddUserButton";
 
 function UserThemeAbleTable() {
-  const { khoas } = useSelector((state) => state.baocaongay);
   const { users, userCurrent } = useSelector((state) => state.user);
-  // const updateUser = addTenKhoaToUsers(users,khoas)
 
   const dispatch = useDispatch();
   useEffect(() => {
     if (users.length > 0) return;
     dispatch(getAllUsers());
-  }, []);
+  }, [dispatch, users.length]);
 
   const [openDelete, setOpenDelete] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
@@ -46,35 +45,33 @@ function UserThemeAbleTable() {
 
   const handleCloseResetPassForm = () => {
     setOpenResetPass(false);
+    dispatch(resetUserFormState());
   };
   const handleCloseEditForm = () => {
     setOpenEdit(false);
   };
   const handleEditUser = (user) => {
-    // const bn = users.find((user) => user._id === userId);
-
     if (user) dispatch(setKhoaTaiChinhCurent(user.KhoaTaiChinh));
     if (user.NhanVienID) dispatch(setNhanVienUserCurrent(user.NhanVienID));
-    // console.log("user suwar", userEdit);
-    // setUserEdit(user);
     dispatch(setUserCurent(user));
-    
+
     setOpenEdit(true);
   };
   const handleCloseDeleteForm = () => {
     setOpenDelete(false);
+    dispatch(resetUserFormState());
   };
 
   const handleClickDeleteUser = (userId) => {
-    // const bn = users.find((user) => user._id === userId);
     const bn = users.find((user) => String(user._id) === String(userId));
     dispatch(setUserCurent(bn));
     setOpenDelete(true);
   };
-  const handleDeleteUser = () => {
+  const handleDeleteUser = async () => {
     if (userCurrent && userCurrent._id) {
-      dispatch(deleteUser(userCurrent._id)); // Sử dụng _id từ userCurrent để xóa
-      setOpenDelete(false);
+      const success = await dispatch(deleteUser(userCurrent._id));
+      if (!success) return;
+      handleCloseDeleteForm();
     }
   };
   const handleResetPass = (user) => {
@@ -86,8 +83,8 @@ function UserThemeAbleTable() {
   const columns = useMemo(
     () => [
       {
-        Header: "Action",
-        Footer: "Action",
+        Header: "Thao tác",
+        Footer: "Thao tác",
         accessor: "action",
         disableGroupBy: true,
         sticky: "left",
@@ -131,8 +128,8 @@ function UserThemeAbleTable() {
       },
 
       {
-        Header: "UserName",
-        Footer: "UserName",
+        Header: "Tên đăng nhập",
+        Footer: "Tên đăng nhập",
 
         accessor: "UserName",
         disableGroupBy: true,
@@ -159,35 +156,30 @@ function UserThemeAbleTable() {
         disableGroupBy: true,
       },
       {
-        Header: "User His",
-        Footer: "User His",
+        Header: "User HIS",
+        Footer: "User HIS",
 
         accessor: "UserHis",
         disableGroupBy: true,
       },
-      // {
-      //   Header: "NhanVienID",
-      //   Footer: "NhanVienID",
-
-      //   accessor: "NhanVienID",
-      //   disableGroupBy: true,
-      // },
       {
-        Header: "_ID",
-        Footer: "_ID",
+        Header: "ID",
+        Footer: "ID",
 
         accessor: "_id",
         disableGroupBy: true,
       },
     ],
-    []
+    [],
   );
 
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
-        <MainCard title={`Danh sách tài khoản 
-          người dùng`}>
+        <MainCard
+          title={`Danh sách tài khoản 
+          người dùng`}
+        >
           <SimpleTable
             data={data}
             columns={columns}
@@ -207,10 +199,19 @@ function UserThemeAbleTable() {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{"Cảnh báo!"}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">
+          Xóa tài khoản người dùng
+        </DialogTitle>
         <DialogContent>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
+            {userCurrent?.UserName || "Tài khoản chưa xác định"}
+          </Typography>
           <DialogContentText id="alert-dialog-description">
-            Bạn có chắc muốn xóa người dùng này?
+            Bạn có chắc muốn xóa tài khoản này khỏi danh sách quản lý?
+          </DialogContentText>
+          <DialogContentText sx={{ mt: 1 }}>
+            Thao tác này sẽ ẩn tài khoản khỏi danh sách hiện tại và cần can
+            thiệp dữ liệu nếu muốn khôi phục.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

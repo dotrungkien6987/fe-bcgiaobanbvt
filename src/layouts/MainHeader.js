@@ -23,6 +23,12 @@ function MainHeader() {
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const { user, logout } = useAuth();
+  const displayUserName = user?.UserName || user?.HoTen || "";
+  const displayDepartment =
+    user?.nhanVienInfo?.nhanVien?.KhoaID?.TenKhoa ||
+    user?.KhoaID?.TenKhoa ||
+    user?.TenKhoa ||
+    "Chưa gán khoa";
   // const { user, logout } ={};
   const [anchorEl, setAnchorEl] = React.useState(null);
   const navigate = useNavigate();
@@ -83,10 +89,10 @@ function MainHeader() {
     >
       <Box sx={{ my: 1.5, px: 2.5 }}>
         <Typography variant="subtitle2" noWrap>
-          {user?.UserName}
+          {displayUserName}
         </Typography>
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          {user?.KhoaID.TenKhoa}
+          {displayDepartment}
         </Typography>
       </Box>
       <Divider sx={{ borderStyle: "dashed" }} />

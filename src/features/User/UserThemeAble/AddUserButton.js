@@ -10,13 +10,13 @@ function AddUserButton() {
   const [openFormAddNew, setOpenFormAddNew] = useState(false);
   const dispatch = useDispatch();
   const handleThemMoi = () => {
-    setOpenFormAddNew(true)
-    dispatch(setUserCurent({_id:0}))
+    setOpenFormAddNew(true);
+    dispatch(setUserCurent({ _id: 0 }));
   };
-  const handCloseForm = ()=>{
-    setOpenFormAddNew(false)
-  }
-  
+  const handCloseForm = () => {
+    setOpenFormAddNew(false);
+  };
+
   return (
     <div>
       <Button
@@ -24,14 +24,10 @@ function AddUserButton() {
         startIcon={<AddIcon />}
         onClick={handleThemMoi}
       >
-        Thêm 
+        Thêm tài khoản
       </Button>
 
-      <UserInsertForm
-      open ={openFormAddNew}
-      handleClose={handCloseForm}
-     
-      />
+      <UserInsertForm open={openFormAddNew} handleClose={handCloseForm} />
     </div>
   );
 }
