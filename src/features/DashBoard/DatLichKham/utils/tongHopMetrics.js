@@ -1,12 +1,27 @@
 import { isDungTuyenMacskcbbd } from "./constants";
 
+export function isNgoaiTruChuaDong(row = {}) {
+  if (row?.la_ngoai_tru_chua_dong != null) {
+    return Boolean(row.la_ngoai_tru_chua_dong);
+  }
+
+  return (
+    Number(row?.dangkykhamstatus) === 1 &&
+    Number(row?.tong_tien || 0) > 0 &&
+    Number(row?.hinhthucvaovienid || 0) <= 0 &&
+    Number(row?.hosobenhanstatus || 0) <= 0
+  );
+}
+
 export function calculateHopLeThirdUnits({
   coKhamCoTien = 0,
+  ngoaiTruChuaDong = 0,
   manTinhDungTuyen = 0,
   manTinhChuyenTuyen = 0,
 }) {
   return (
     Number(coKhamCoTien || 0) * 3 -
+    Number(ngoaiTruChuaDong || 0) * 3 -
     Number(manTinhDungTuyen || 0) * 3 -
     Number(manTinhChuyenTuyen || 0) * 2
   );
@@ -40,6 +55,8 @@ export function buildManTinhClassificationByNGT({
     if (dangKyKhamId == null) return;
 
     const chiTiet = chiTietByDangKyKhamId.get(String(dangKyKhamId));
+    if (isNgoaiTruChuaDong(chiTiet)) return;
+
     const ngtId = String(
       doc?.nguoigioithieuid ?? chiTiet?.nguoigioithieuid ?? "",
     );

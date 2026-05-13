@@ -47,6 +47,15 @@ const CARDS = [
     bg: "#ffebee",
   },
   {
+    key: "ngoaiTruChuaDong",
+    label: "Ngoại trú chưa đóng",
+    icon: HospitalIcon,
+    color: "#c62828",
+    bg: "#ffebee",
+    tooltip:
+      "Ca có khám có tiền nhưng chưa vào viện và chưa đóng bệnh án, không được tính hợp lệ.",
+  },
+  {
     key: "trungNgay",
     label: "Đặt trong ngày",
     icon: DateRangeIcon,

@@ -68,6 +68,13 @@ const COLUMNS = [
     numeric: true,
   },
   {
+    header: "Ngoại trú chưa đóng",
+    key: "ngoai_tru_chua_dong",
+    width: 18,
+    align: "right",
+    numeric: true,
+  },
+  {
     header: "Mãn tính",
     key: "so_man_tinh",
     width: 10,

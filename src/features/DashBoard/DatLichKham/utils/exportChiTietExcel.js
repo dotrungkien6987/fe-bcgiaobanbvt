@@ -1,6 +1,12 @@
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import dayjs from "dayjs";
+import { isDungTuyenMacskcbbd } from "./constants";
+import {
+  calculateHopLeThirdUnits,
+  isNgoaiTruChuaDong,
+  thirdUnitsToNumber,
+} from "./tongHopMetrics";
 
 // ── Styling constants ──────────────────────────────────────────────
 const FONT = { name: "Times New Roman", size: 11 };
@@ -205,22 +211,47 @@ export async function exportChiTietExcel({
   // ─── Metrics: compute stats from data ──────────────────────────
   const metricTongDL = data.length;
   let metricCoKham = 0;
+  let metricCoKhamCoTien = 0;
   let metricKhongKham = 0;
   let metricKham0d = 0;
+  let metricNgoaiTruChuaDong = 0;
   let metricManTinh = 0;
+  let metricManTinhDungTuyen = 0;
+  let metricManTinhChuyenTuyen = 0;
   data.forEach((r) => {
     const st = Number(r.dangkykhamstatus);
     const tt = Number(r.tong_tien || 0);
-    const isManTinh = !!danhSachManTinh[r.dangkykhamid];
+    const isNgoaiTruChuaDongRow = isNgoaiTruChuaDong(r);
+    const isManTinh =
+      !!danhSachManTinh[r.dangkykhamid] && !isNgoaiTruChuaDongRow;
     if (st === 1) {
       metricCoKham++;
-      if (tt <= 0) metricKham0d++;
+      if (tt > 0) {
+        metricCoKhamCoTien++;
+      } else {
+        metricKham0d++;
+      }
     } else {
       metricKhongKham++;
     }
-    if (isManTinh) metricManTinh++;
+    if (isNgoaiTruChuaDongRow) metricNgoaiTruChuaDong++;
+    if (isManTinh) {
+      metricManTinh++;
+      if (isDungTuyenMacskcbbd(r.macskcbbd)) {
+        metricManTinhDungTuyen++;
+      } else {
+        metricManTinhChuyenTuyen++;
+      }
+    }
   });
-  const metricHopLe = metricCoKham - metricManTinh;
+  const metricHopLe = thirdUnitsToNumber(
+    calculateHopLeThirdUnits({
+      coKhamCoTien: metricCoKhamCoTien,
+      ngoaiTruChuaDong: metricNgoaiTruChuaDong,
+      manTinhDungTuyen: metricManTinhDungTuyen,
+      manTinhChuyenTuyen: metricManTinhChuyenTuyen,
+    }),
+  );
 
   const METRICS = [
     {
@@ -231,6 +262,12 @@ export async function exportChiTietExcel({
     },
     { label: "Có khám", value: metricCoKham, color: "2E7D32", bg: "E8F5E9" },
     {
+      label: "CK có tiền",
+      value: metricCoKhamCoTien,
+      color: "ED6C02",
+      bg: "FFF3E0",
+    },
+    {
       label: "Không khám",
       value: metricKhongKham,
       color: "D32F2F",
@@ -238,16 +275,23 @@ export async function exportChiTietExcel({
     },
     { label: "Khám 0Đ", value: metricKham0d, color: "757575", bg: "F5F5F5" },
     {
+      label: "Ngoại trú chưa đóng",
+      value: metricNgoaiTruChuaDong,
+      color: "C62828",
+      bg: "FFEBEE",
+    },
+    {
       label: "Mãn tính",
       value: metricManTinh,
       color: "9C27B0",
       bg: "F3E5F5",
     },
     {
-      label: "Hợp lệ (CK có tiền − MT)",
+      label: "Hợp lệ",
       value: metricHopLe,
       color: "0288D1",
       bg: "E1F5FE",
+      decimal: true,
     },
   ];
 
@@ -284,7 +328,7 @@ export async function exportChiTietExcel({
     cell.font = { ...FONT_BOLD, size: 14, color: { argb: m.color } };
     cell.alignment = ALIGN_CENTER;
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: m.bg } };
-    cell.numFmt = "#,##0";
+    cell.numFmt = m.decimal ? "#,##0.00" : "#,##0";
     const cell2 = valueRow.getCell(endCol);
     cell2.fill = { type: "pattern", pattern: "solid", fgColor: { argb: m.bg } };
     if (endCol > startCol) {
@@ -400,10 +444,14 @@ export async function exportChiTietExcel({
         stt++;
         const st = Number(r.dangkykhamstatus);
         const tt = Number(r.tong_tien || 0);
-        const isManTinh = !!danhSachManTinh[r.dangkykhamid];
+        const isNgoaiTruChuaDongRow = isNgoaiTruChuaDong(r);
+        const isManTinh =
+          !!danhSachManTinh[r.dangkykhamid] && !isNgoaiTruChuaDongRow;
 
         let statusText;
-        if (st !== 1) {
+        if (isNgoaiTruChuaDongRow) {
+          statusText = "Ngoại trú chưa đóng";
+        } else if (st !== 1) {
           statusText = "Không khám";
         } else if (tt > 0) {
           statusText = "Có khám có tiền";
@@ -411,7 +459,7 @@ export async function exportChiTietExcel({
           statusText = "Khám 0Đ";
         }
 
-        const isInvalid = st !== 1 || isManTinh;
+        const isInvalid = st !== 1 || isNgoaiTruChuaDongRow || isManTinh;
 
         const rowValues = COLUMNS.map((col) => {
           if (col.key === "stt") return stt;

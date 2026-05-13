@@ -136,6 +136,10 @@ function DatLichKhamDashboard() {
       (s, r) => s + Number(r.co_kham_co_tien || 0),
       0,
     );
+    const ngoaiTruChuaDong = baoCaoTongHop.reduce(
+      (s, r) => s + Number(r.ngoai_tru_chua_dong || 0),
+      0,
+    );
     const dichvuLt100k = baoCaoTongHop.reduce(
       (s, r) => s + Number(r.co_kham_khong_tien || 0),
       0,
@@ -150,6 +154,7 @@ function DatLichKhamDashboard() {
     const hopLe = thirdUnitsToNumber(
       calculateHopLeThirdUnits({
         coKhamCoTien: vong1,
+        ngoaiTruChuaDong,
         manTinhDungTuyen,
         manTinhChuyenTuyen,
       }),
@@ -169,6 +174,7 @@ function DatLichKhamDashboard() {
       coKham,
       khongKham,
       vong1,
+      ngoaiTruChuaDong,
       dichvuLt100k,
       soManTinh,
       manTinhDungTuyen,

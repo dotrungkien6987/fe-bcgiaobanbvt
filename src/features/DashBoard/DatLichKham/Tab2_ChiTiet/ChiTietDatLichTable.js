@@ -33,6 +33,7 @@ import {
 import dayjs from "dayjs";
 import { exportChiTietExcel } from "../utils/exportChiTietExcel";
 import { isDungTuyenMacskcbbd } from "../utils/constants";
+import { isNgoaiTruChuaDong } from "../utils/tongHopMetrics";
 import LichSuKhamDialog from "./LichSuKhamDialog";
 
 function formatVND(num) {
@@ -52,7 +53,19 @@ function parseLichSu(lichsu_kham) {
   return Array.isArray(lichsu_kham) ? lichsu_kham : [];
 }
 
-function getStatusChip(status, tongTien) {
+function getStatusChip(row) {
+  if (isNgoaiTruChuaDong(row)) {
+    return (
+      <Chip
+        label="Ngoại trú chưa đóng"
+        size="small"
+        color="error"
+        variant="filled"
+      />
+    );
+  }
+
+  const { dangkykhamstatus: status, tong_tien: tongTien } = row || {};
   if (Number(status) !== 1) {
     return (
       <Chip label="Không khám" size="small" color="error" variant="outlined" />
@@ -165,6 +178,8 @@ function ChiTietDatLichTable({
       result = result.filter(
         (r) => Number(r.dangkykhamstatus) === 1 && Number(r.tong_tien) > 0,
       );
+    } else if (filterTrangThai === "ngoai_tru_chua_dong") {
+      result = result.filter((r) => isNgoaiTruChuaDong(r));
     } else if (filterTrangThai === "co_kham_0dong") {
       result = result.filter(
         (r) => Number(r.dangkykhamstatus) === 1 && Number(r.tong_tien) <= 0,
@@ -182,9 +197,13 @@ function ChiTietDatLichTable({
 
     // Filter mãn tính
     if (filterManTinh === "mantinh") {
-      result = result.filter((r) => danhSachManTinh[r.dangkykhamid]);
+      result = result.filter(
+        (r) => danhSachManTinh[r.dangkykhamid] && !isNgoaiTruChuaDong(r),
+      );
     } else if (filterManTinh === "khong_mantinh") {
-      result = result.filter((r) => !danhSachManTinh[r.dangkykhamid]);
+      result = result.filter(
+        (r) => !danhSachManTinh[r.dangkykhamid] || isNgoaiTruChuaDong(r),
+      );
     }
 
     // Filter hẹn của lần khám gần nhất
@@ -325,6 +344,7 @@ function ChiTietDatLichTable({
             filterTrangThai === "khong_kham" && "Không khám",
             filterTrangThai === "co_kham_0dong" && "Có khám 0₫",
             filterTrangThai === "co_kham_co_tien" && "Có khám + tiền",
+            filterTrangThai === "ngoai_tru_chua_dong" && "Ngoại trú chưa đóng",
             filterTuyen === "dung_tuyen" && "Đúng tuyến",
             filterTuyen === "ngoai_tuyen" && "Chuyển tuyến",
             filterManTinh === "mantinh" && "Mãn tính",
@@ -421,6 +441,23 @@ function ChiTietDatLichTable({
           onClick={() => {
             setFilterTrangThai((prev) =>
               prev === "co_kham_co_tien" ? "" : "co_kham_co_tien",
+            );
+            setPage(0);
+          }}
+        />
+        <Chip
+          label="Ngoại trú chưa đóng"
+          size="small"
+          clickable
+          color={
+            filterTrangThai === "ngoai_tru_chua_dong" ? "error" : "default"
+          }
+          variant={
+            filterTrangThai === "ngoai_tru_chua_dong" ? "filled" : "outlined"
+          }
+          onClick={() => {
+            setFilterTrangThai((prev) =>
+              prev === "ngoai_tru_chua_dong" ? "" : "ngoai_tru_chua_dong",
             );
             setPage(0);
           }}
@@ -577,8 +614,10 @@ function ChiTietDatLichTable({
               </TableRow>
             ) : (
               paginatedData.map((row, idx) => {
-                const statusColor =
-                  Number(row.dangkykhamstatus) !== 1
+                const isNgoaiTruChuaDongRow = isNgoaiTruChuaDong(row);
+                const statusColor = isNgoaiTruChuaDongRow
+                  ? "#ffebee"
+                  : Number(row.dangkykhamstatus) !== 1
                     ? "#ffebee"
                     : Number(row.tong_tien) > 0
                       ? "#e8f5e9"
@@ -641,9 +680,7 @@ function ChiTietDatLichTable({
                     </TableCell>
                     <TableCell>{row.ten_ngt}</TableCell>
                     <TableCell>{row.ngt_departmentgroupname}</TableCell>
-                    <TableCell align="center">
-                      {getStatusChip(row.dangkykhamstatus, row.tong_tien)}
-                    </TableCell>
+                    <TableCell align="center">{getStatusChip(row)}</TableCell>
                     <TableCell>
                       <Stack>
                         {row.chandoanravien_code && (
@@ -685,7 +722,8 @@ function ChiTietDatLichTable({
                       {formatVND(row.tong_tien)} ₫
                     </TableCell>
                     <TableCell align="center">
-                      {danhSachManTinh[row.dangkykhamid] ? (
+                      {danhSachManTinh[row.dangkykhamid] &&
+                      !isNgoaiTruChuaDongRow ? (
                         <Chip label="Mãn tính" size="small" color="secondary" />
                       ) : (
                         "—"

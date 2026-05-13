@@ -63,6 +63,12 @@ const COLUMNS = [
   { id: "co_kham", label: "Có khám", align: "right", width: 80 },
   { id: "khong_kham", label: "Không khám", align: "right", width: 90 },
   { id: "co_kham_co_tien", label: "CK có tiền", align: "right", width: 90 },
+  {
+    id: "ngoai_tru_chua_dong",
+    label: "Ngoại trú chưa đóng",
+    align: "right",
+    width: 130,
+  },
   { id: "so_man_tinh", label: "Mãn tính", align: "right", width: 80 },
   {
     id: "man_tinh_dung_tuyen",
@@ -137,6 +143,7 @@ function BaoCaoTongHopTable({
         };
       const hopLeThirdUnits = calculateHopLeThirdUnits({
         coKhamCoTien: row.co_kham_co_tien,
+        ngoaiTruChuaDong: row.ngoai_tru_chua_dong,
         manTinhDungTuyen: manTinhMetrics.man_tinh_dung_tuyen,
         manTinhChuyenTuyen: manTinhMetrics.man_tinh_chuyen_tuyen,
       });
@@ -184,6 +191,7 @@ function BaoCaoTongHopTable({
       co_kham: 0,
       khong_kham: 0,
       co_kham_co_tien: 0,
+      ngoai_tru_chua_dong: 0,
       so_man_tinh: 0,
       man_tinh_dung_tuyen: 0,
       man_tinh_chuyen_tuyen: 0,
@@ -197,6 +205,7 @@ function BaoCaoTongHopTable({
       t.co_kham += Number(r.co_kham || 0);
       t.khong_kham += Number(r.khong_kham || 0);
       t.co_kham_co_tien += Number(r.co_kham_co_tien || 0);
+      t.ngoai_tru_chua_dong += Number(r.ngoai_tru_chua_dong || 0);
       t.so_man_tinh += Number(r.so_man_tinh || 0);
       t.man_tinh_dung_tuyen += Number(r.man_tinh_dung_tuyen || 0);
       t.man_tinh_chuyen_tuyen += Number(r.man_tinh_chuyen_tuyen || 0);
@@ -348,6 +357,18 @@ function BaoCaoTongHopTable({
                     />
                   </TableCell>
                   <TableCell align="right">
+                    {row.ngoai_tru_chua_dong > 0 ? (
+                      <Chip
+                        label={row.ngoai_tru_chua_dong}
+                        size="small"
+                        color="error"
+                        variant="outlined"
+                      />
+                    ) : (
+                      "0"
+                    )}
+                  </TableCell>
+                  <TableCell align="right">
                     {row.so_man_tinh > 0 ? (
                       <Chip
                         label={row.so_man_tinh}
@@ -442,6 +463,9 @@ function BaoCaoTongHopTable({
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
                   {formatVND(totals.co_kham_co_tien)}
+                </TableCell>
+                <TableCell align="right" sx={{ fontWeight: "bold" }}>
+                  {formatVND(totals.ngoai_tru_chua_dong)}
                 </TableCell>
                 <TableCell align="right" sx={{ fontWeight: "bold" }}>
                   {formatVND(totals.so_man_tinh)}
