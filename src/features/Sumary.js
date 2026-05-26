@@ -1,6 +1,6 @@
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
 
-import { useNavigate, Link as RouterLink, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -13,7 +13,7 @@ import {
   Typography,
   useMediaQuery,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
@@ -23,12 +23,12 @@ import {
   getDataBCGiaoBanCurent,
   getDataBCNgaysForGiaoBan,
   getKhoasInBCGiaoBan,
+  setActiveDateRequestKey,
 } from "./BCGiaoBan/bcgiaobanSlice";
 
 import DisplayKhoaButton from "../components/DisplayKhoaButton";
 import TongHopHeNoi from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/TongHopHeNoi";
 
-import { fDate } from "../utils/formatTime";
 import TongHopHeNgoai from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/TongHopHeNgoai";
 import TongHopCLC from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/TongHopCLC";
 import TongHopToanVien from "./BCGiaoBan/BaoCaoSoLieuGiaoBan/TongHopToanVien";
@@ -52,9 +52,11 @@ import { cc115ChiSoFields, cc115ChiSoGroups } from "./BaoCaoNgay/cc115Config";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const REPORT_TIMEZONE = "Asia/Ho_Chi_Minh";
+
 function Sumary() {
   const { user } = useAuth();
-  const { khoaDaGuis, khoaChuaGuis, khoas } = useSelector(
+  const { isLoading, khoaDaGuis, khoaChuaGuis } = useSelector(
     (state) => state.bcgiaoban,
   );
 
@@ -88,67 +90,100 @@ function Sumary() {
     hsccycBNNgoaiGios,
     noiycBNNgoaiGios,
     ngoaiycBNNgoaiGios,
-    ngoaiycBNMoCCs,
     ngoaiycBNPhauThuats,
     baocaongays,
     chiso,
     pkycs,
   } = useSelector((state) => state.bcgiaoban);
+  const [isRefreshingDateData, setIsRefreshingDateData] = useState(false);
+  const latestDateRequestRef = useRef(0);
 
   // Lấy thời gian hiện tại theo múi giờ của Việt Nam
-  const now = dayjs().tz("Asia/Ho_Chi_Minh");
+  const now = dayjs().tz(REPORT_TIMEZONE);
 
   // Kiểm tra xem giờ hiện tại có >= 18 hay không
   const isAfter18 = now.hour() >= 18;
 
+  const normalizeReportDate = (value) => {
+    const parsedDate = dayjs.isDayjs(value) ? value : dayjs(value);
+
+    if (!parsedDate.isValid()) {
+      return null;
+    }
+
+    return dayjs.tz(
+      `${parsedDate.format("YYYY-MM-DD")}T07:00:00`,
+      REPORT_TIMEZONE,
+    );
+  };
+
   // Thiết lập giá trị mặc định cho date dựa trên giờ hiện tại
-  const defaultDate = isAfter18
-    ? now.hour(7).minute(0).second(0).millisecond(0)
-    : now.subtract(1, "day").hour(7).minute(0).second(0).millisecond(0);
+  const defaultDate = normalizeReportDate(
+    isAfter18 ? now : now.subtract(1, "day"),
+  );
 
   const [date, setDate] = useState(defaultDate);
+  const formattedSelectedDate = date?.format("DD-MM-YYYY") || "";
+  const selectedDateQuery = date?.format("YYYY-MM-DD") || "";
+  const hasExportData = baocaongays.length > 0;
+  const isDateActionDisabled = isLoading || isRefreshingDateData;
+  const isExportDisabled = isLoading || isRefreshingDateData || !hasExportData;
 
   const handleDateChange = (newDate) => {
-    // Chuyển đổi về múi giờ VN, kiểm tra đầu vào
+    const normalizedDate = normalizeReportDate(newDate);
 
-    if (newDate instanceof Date) {
-      newDate.setHours(7, 0, 0, 0);
-      setDate(new Date(newDate));
-    } else if (dayjs.isDayjs(newDate)) {
-      console.log("newdate", newDate);
-      const updatedDate = newDate.hour(7).minute(0).second(0).millisecond(0);
-      console.log("updateDate", updatedDate);
-      setDate(updatedDate);
+    if (normalizedDate) {
+      setDate(normalizedDate);
     }
   };
   const dispatch = useDispatch();
   useEffect(() => {
-    //SetBaoCaoNgayInStore
-    const dateISO = date.toISOString();
+    if (!selectedDateQuery) {
+      return undefined;
+    }
 
-    dispatch(getDataBCGiaoBanCurent(dateISO));
-  }, [date, dispatch]);
+    let isMounted = true;
+    const requestKey = latestDateRequestRef.current + 1;
 
-  useEffect(() => {
-    //Set BCGiaoBanCurent In Store
-    const dateISO = date.toISOString();
+    latestDateRequestRef.current = requestKey;
+    setIsRefreshingDateData(true);
+    dispatch(setActiveDateRequestKey(requestKey));
 
-    dispatch(getDataBCNgaysForGiaoBan(dateISO));
-  }, [date, khoas, dispatch]);
+    Promise.all([
+      dispatch(getDataBCGiaoBanCurent(selectedDateQuery, requestKey)),
+      dispatch(getDataBCNgaysForGiaoBan(selectedDateQuery, requestKey)),
+    ]).finally(() => {
+      if (isMounted && latestDateRequestRef.current === requestKey) {
+        setIsRefreshingDateData(false);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch, selectedDateQuery]);
 
   useEffect(() => {
     //SetBaoCaoNgayInStore
     dispatch(getKhoasInBCGiaoBan());
-  }, []);
+  }, [dispatch]);
   const navigate = useNavigate();
   const handleNhapBaoCao = () => {
     navigate("/khoa");
   };
   const handleDuyet = () => {
-    const dateISO = date.toISOString();
+    if (!selectedDateQuery) {
+      return;
+    }
+
+    const requestKey = latestDateRequestRef.current;
 
     dispatch(
-      InsertOrUpdateTrangThaiForBCGiaoBan(dateISO, !bcGiaoBanCurent.TrangThai),
+      InsertOrUpdateTrangThaiForBCGiaoBan(
+        selectedDateQuery,
+        !bcGiaoBanCurent.TrangThai,
+        requestKey,
+      ),
     );
   };
 
@@ -249,6 +284,10 @@ function Sumary() {
   const bcGM = bcGMHS[0];
 
   const handleExportToPowerPoint = () => {
+    if (isExportDisabled) {
+      return;
+    }
+
     let pres = new pptxgen();
 
     let startSilde = pres.addSlide();
@@ -2509,10 +2548,14 @@ function Sumary() {
       w: 10,
       h: 5.65,
     });
-    pres.writeFile(`Báo cáo giao ban ngày ${fDate(date)}`);
+    pres.writeFile(`Báo cáo giao ban ngày ${formattedSelectedDate}`);
   };
 
   const handleExportTrungTamCLC = () => {
+    if (isExportDisabled) {
+      return;
+    }
+
     let pres = new pptxgen();
 
     let startSilde = pres.addSlide();
@@ -3506,7 +3549,7 @@ function Sumary() {
       w: 10,
       h: 5.65,
     });
-    pres.writeFile(`Báo cáo TTCLC ngày ${fDate(date)}`);
+    pres.writeFile(`Báo cáo TTCLC ngày ${formattedSelectedDate}`);
   };
   return (
     <Box>
@@ -3519,6 +3562,7 @@ function Sumary() {
                 label="Ngày"
                 value={date}
                 onChange={handleDateChange}
+                disabled={isDateActionDisabled}
               />
             </LocalizationProvider>
             <TrangThai trangthai={bcGiaoBanCurent.TrangThai} />
@@ -3542,6 +3586,7 @@ function Sumary() {
                   label="Ngày"
                   value={date}
                   onChange={handleDateChange}
+                  disabled={isDateActionDisabled}
                 />
               </LocalizationProvider>
               <TrangThai trangthai={bcGiaoBanCurent.TrangThai} />
@@ -3571,6 +3616,7 @@ function Sumary() {
                 label="Ngày"
                 value={date}
                 onChange={handleDateChange}
+                disabled={isDateActionDisabled}
               />
             </LocalizationProvider>
             <TrangThai trangthai={bcGiaoBanCurent.TrangThai} />
@@ -3578,7 +3624,11 @@ function Sumary() {
             <DisplayKhoaButton khoaHienThis={khoaDaGuis} type="đã gửi" />
             <DisplayKhoaButton khoaHienThis={khoaChuaGuis} type="chưa gửi" />
             {(user.PhanQuyen === "admin" || user.PhanQuyen === "manager") && (
-              <Button variant="contained" onClick={handleDuyet}>
+              <Button
+                disabled={isDateActionDisabled}
+                variant="contained"
+                onClick={handleDuyet}
+              >
                 {" "}
                 {bcGiaoBanCurent.TrangThai ? "Gỡ duyệt" : "Duyệt"}
               </Button>
@@ -3600,10 +3650,16 @@ function Sumary() {
               open={Boolean(anchorE2)}
               onClose={handleClose2}
             >
-              <MenuItem onClick={handleExportToPowerPoint}>
+              <MenuItem
+                disabled={isExportDisabled}
+                onClick={handleExportToPowerPoint}
+              >
                 Export toàn viện
               </MenuItem>
-              <MenuItem onClick={handleExportTrungTamCLC}>
+              <MenuItem
+                disabled={isExportDisabled}
+                onClick={handleExportTrungTamCLC}
+              >
                 Export trung tâm KCB CLC
               </MenuItem>
             </Menu>
@@ -3617,6 +3673,7 @@ function Sumary() {
         >
           {(user.PhanQuyen === "admin" || user.PhanQuyen === "manager") && (
             <MenuItem
+              disabled={isDateActionDisabled}
               onClick={() => {
                 handleDuyet();
                 handleClose();
@@ -3633,10 +3690,16 @@ function Sumary() {
           >
             Nhập báo cáo
           </MenuItem>
-          <MenuItem onClick={handleExportToPowerPoint}>
+          <MenuItem
+            disabled={isExportDisabled}
+            onClick={handleExportToPowerPoint}
+          >
             Export toàn viện
           </MenuItem>
-          <MenuItem onClick={handleExportTrungTamCLC}>
+          <MenuItem
+            disabled={isExportDisabled}
+            onClick={handleExportTrungTamCLC}
+          >
             Export trung tâm KCB CLC
           </MenuItem>
         </Menu>
@@ -3647,7 +3710,7 @@ function Sumary() {
           sx={{ my: 1, fontSize: isSmallScreen ? "1.5rem" : "2rem" }}
           textAlign="center"
         >
-          BÁO CÁO GIAO BAN TOÀN VIỆN NGÀY {fDate(date)}
+          BÁO CÁO GIAO BAN TOÀN VIỆN NGÀY {formattedSelectedDate}
         </Typography>
         <Stack direction="row" justifyContent="center">
           <Card sx={{ p: 2, my: 4 }}>

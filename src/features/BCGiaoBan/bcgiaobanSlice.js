@@ -10,13 +10,58 @@ import {
   findKhoasInBaocaongays,
 } from "../../utils/heplFuntion";
 
-const initialState = {
-  isLoading: false,
-  error: null,
-  bcGiaoBans: [],
+const chisoCode = [
+  "kkb-TongKham",
+  "kkb-BaoHiem",
+  "kkb-VienPhi",
+  "kkb-YeuCau",
+  "kkb-NBVaoVien",
+  "kkb-CVNoiTru",
+  "kkb-CVNgoaiTru",
+  "kkb-NgoaiTinhNgoaiTruBH",
+  "kkb-NgoaiTinhNgoaiTruVP",
+  "kkb-NgoaiTinhNoiTruBH",
+  "kkb-NgoaiTinhNoiTruVP",
+  "gmhs-TongMo",
+  "gmhs-TrongGio",
+  "gmhs-NgoaiGio",
+  "xn-HuyetHoc",
+  "xn-HoaSinh",
+  "xn-ViSinh",
+  "cdha-Xquang",
+  "cdha-CT16",
+  "cdha-CT128",
+  "cdha-MRI",
+  "tdcn-SieuAm",
+  "tdcn-NoiSoi",
+  "hhtm-TongXN",
+  "hhtm-HongCau",
+  "hhtm-HuyetTuong",
+  "hhtm-TieuCau",
+  "hhtm-Cryo",
+  "kcc-TongKham",
+  "kcc-VaoVien",
+  "clc-TongNB",
+  "clc-VaoThang",
+  "clc-ChuyenSang",
+  "clc-GiuongTrong",
+];
+
+const hasResolvedKhoaRef = (baocaongay) => {
+  const khoa = baocaongay?.KhoaID;
+
+  return !!(
+    khoa &&
+    typeof khoa === "object" &&
+    khoa._id &&
+    khoa.MaKhoa &&
+    khoa.LoaiKhoa
+  );
+};
+
+const createSelectedDateState = () => ({
   bcGiaoBanCurent: {},
   baocaongays: [],
-
   noiBNTuvongs: [],
   noiBNChuyenViens: [],
   noiBNXinVes: [],
@@ -25,7 +70,6 @@ const initialState = {
   noiBNTheoDois: [],
   noiBNNgoaiGios: [],
   noiBNNgoaiGiosKhongGomCLC: [],
-
   ngoaiBNTuvongs: [],
   ngoaiBNChuyenViens: [],
   ngoaiBNXinVes: [],
@@ -35,28 +79,31 @@ const initialState = {
   ngoaiBNNgoaiGios: [],
   ngoaiBNTheoDois: [],
   ngoaiBNNgoaiGiosKhongGomCLC: [],
-
   clcBNTuvongs: [],
   clcBNChuyenViens: [],
   clcBNXinVes: [],
   clcBNNangs: [],
   clcBNCanThieps: [],
   clcBNTheoDois: [],
-
   hsccycBNNgoaiGios: [],
   noiycBNNgoaiGios: [],
   ngoaiycBNMoCCs: [],
   ngoaiycBNPhauThuats: [],
   ngoaiycBNNgoaiGios: [],
-
-  khoas: [],
   khoaDaGuis: [],
   khoaChuaGuis: [],
-
-  chiso: {},
-  chisoTong: {},
-
+  chiso: extractChiSo([], chisoCode),
+  chisoTong: calculateTongChiSo([]),
   pkycs: [],
+});
+
+const initialState = {
+  isLoading: false,
+  error: null,
+  bcGiaoBans: [],
+  activeDateRequestKey: 0,
+  khoas: [],
+  ...createSelectedDateState(),
 };
 
 const slice = createSlice({
@@ -65,213 +112,194 @@ const slice = createSlice({
   reducers: {
     startLoading(state) {
       state.isLoading = true;
+      state.error = null;
     },
     hasError(state, action) {
+      if (
+        typeof action.payload?.requestKey === "number" &&
+        action.payload.requestKey !== state.activeDateRequestKey
+      ) {
+        return;
+      }
+
       state.isLoading = false;
-      state.error = action.payload;
+      state.error = action.payload?.message ?? action.payload;
     },
-    getDataBCNgaysForGiaoBanSuccess(state, action) {
+    setActiveDateRequestKey(state, action) {
+      state.activeDateRequestKey = action.payload;
+    },
+    resetSelectedDateData(state) {
       state.isLoading = false;
       state.error = null;
-      state.baocaongays = action.payload.baocaongays.sort(
-        (a, b) => a.KhoaID.STT - b.KhoaID.STT
-      );
+      Object.assign(state, createSelectedDateState());
+    },
+    getDataBCNgaysForGiaoBanSuccess(state, action) {
+      if (
+        typeof action.payload?.requestKey === "number" &&
+        action.payload.requestKey !== state.activeDateRequestKey
+      ) {
+        return;
+      }
+
+      state.isLoading = false;
+      state.error = null;
+      const baocaongays = Array.isArray(action.payload?.data?.baocaongays)
+        ? action.payload.data.baocaongays
+            // Bỏ record có ref khoa mồ côi để không làm vỡ toàn bộ summary ngày.
+            .filter(hasResolvedKhoaRef)
+            .slice()
+            .sort((a, b) => (a.KhoaID.STT ?? 0) - (b.KhoaID.STT ?? 0))
+        : [];
+
+      state.baocaongays = baocaongays;
 
       state.noiBNTuvongs = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         1,
-        "noi"
+        "noi",
       );
       state.noiBNChuyenViens = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         2,
-        "noi"
+        "noi",
       );
       state.noiBNXinVes = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         3,
-        "noi"
+        "noi",
       );
       state.noiBNNangs = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         4,
-        "noi"
+        "noi",
       );
       state.noiBNCanThieps = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         7,
-        "noi"
+        "noi",
       );
 
       state.noiBNTheoDois = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         8,
-        "noi"
+        "noi",
       );
 
       state.noiBNNgoaiGios = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         6,
-        "noi"
+        "noi",
       );
       state.noiBNNgoaiGiosKhongGomCLC = filterChiTietBenhNhansHasExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         6,
-        "noi"
+        "noi",
       );
 
       state.ngoaiBNTuvongs = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         1,
-        "ngoai"
+        "ngoai",
       );
       state.ngoaiBNChuyenViens = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         2,
-        "ngoai"
+        "ngoai",
       );
       state.ngoaiBNXinVes = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         3,
-        "ngoai"
+        "ngoai",
       );
       state.ngoaiBNNangs = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         4,
-        "ngoai"
+        "ngoai",
       );
       state.ngoaiBNMoCCs = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         9,
-        "ngoai"
+        "ngoai",
       );
       state.ngoaiBNPhauThuats = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         5,
-        "ngoai"
+        "ngoai",
       );
       state.ngoaiBNNgoaiGios = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         6,
-        "ngoai"
+        "ngoai",
       );
       state.ngoaiBNTheoDois = filterChiTietBenhNhansNotExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         8,
-        "ngoai"
+        "ngoai",
       );
       state.ngoaiBNNgoaiGiosKhongGomCLC = filterChiTietBenhNhansHasExcludeTTCLC(
-        state.baocaongays,
+        baocaongays,
         6,
-        "ngoai"
+        "ngoai",
       );
 
-      state.clcBNTuvongs = filterChiTietBenhNhansCLC(state.baocaongays, 1, [
+      state.clcBNTuvongs = filterChiTietBenhNhansCLC(baocaongays, 1, [
         "NoiYC",
         "NgoaiYC",
         "HSCCYC",
       ]);
-      state.clcBNChuyenViens = filterChiTietBenhNhansCLC(state.baocaongays, 2, [
+      state.clcBNChuyenViens = filterChiTietBenhNhansCLC(baocaongays, 2, [
         "NoiYC",
         "NgoaiYC",
         "HSCCYC",
       ]);
-      state.clcBNXinVes = filterChiTietBenhNhansCLC(state.baocaongays, 3, [
+      state.clcBNXinVes = filterChiTietBenhNhansCLC(baocaongays, 3, [
         "NoiYC",
         "NgoaiYC",
         "HSCCYC",
       ]);
-      state.clcBNNangs = filterChiTietBenhNhansCLC(state.baocaongays, 4, [
+      state.clcBNNangs = filterChiTietBenhNhansCLC(baocaongays, 4, [
         "NoiYC",
         "NgoaiYC",
         "HSCCYC",
       ]);
-      state.clcBNCanThieps = filterChiTietBenhNhansCLC(state.baocaongays, 7, [
+      state.clcBNCanThieps = filterChiTietBenhNhansCLC(baocaongays, 7, [
         "NoiYC",
         "NgoaiYC",
         "HSCCYC",
       ]);
-      state.clcBNTheoDois = filterChiTietBenhNhansCLC(state.baocaongays, 8, [
+      state.clcBNTheoDois = filterChiTietBenhNhansCLC(baocaongays, 8, [
         "NoiYC",
         "NgoaiYC",
         "HSCCYC",
       ]);
 
-      state.hsccycBNNgoaiGios = filterChiTietBenhNhansCLC(
-        state.baocaongays,
-        6,
-        ["HSCCYC"]
+      state.hsccycBNNgoaiGios = filterChiTietBenhNhansCLC(baocaongays, 6, [
+        "HSCCYC",
+      ]);
+      state.noiycBNNgoaiGios = filterChiTietBenhNhansCLC(baocaongays, 6, [
+        "NoiYC",
+      ]);
+      state.ngoaiycBNNgoaiGios = filterChiTietBenhNhansCLC(baocaongays, 6, [
+        "NgoaiYC",
+      ]);
+      state.ngoaiycBNMoCCs = filterChiTietBenhNhansCLC(baocaongays, 9, [
+        "NgoaiYC",
+      ]);
+      state.ngoaiycBNPhauThuats = filterChiTietBenhNhansCLC(baocaongays, 5, [
+        "NgoaiYC",
+      ]);
+
+      const { KhoaDaGuis, KhoaChuaGuis } = findKhoasInBaocaongays(
+        baocaongays,
+        state.khoas,
       );
-      state.noiycBNNgoaiGios = filterChiTietBenhNhansCLC(state.baocaongays, 6, [
-        "NoiYC",
-      ]);
-      state.ngoaiycBNNgoaiGios = filterChiTietBenhNhansCLC(
-        state.baocaongays,
-        6,
-        ["NgoaiYC"]
-      );
-      state.ngoaiycBNMoCCs = filterChiTietBenhNhansCLC(
-        state.baocaongays,
-        9,
-        ["NgoaiYC"]
-      );
-      state.ngoaiycBNPhauThuats = filterChiTietBenhNhansCLC(
-        state.baocaongays,
-        5,
-        ["NgoaiYC"]
-      );
+      state.khoaDaGuis = KhoaDaGuis;
+      state.khoaChuaGuis = KhoaChuaGuis;
+      state.chiso = extractChiSo(baocaongays, chisoCode);
 
-      state.khoaDaGuis = findKhoasInBaocaongays(
-        state.baocaongays,
-        state.khoas
-      ).KhoaDaGuis;
-      state.khoaChuaGuis = findKhoasInBaocaongays(
-        state.baocaongays,
-        state.khoas
-      ).KhoaChuaGuis;
+      state.chisoTong = calculateTongChiSo(baocaongays);
 
-      //set gía trị cho chiso:
-      const chisoCode = [
-        "kkb-TongKham",
-        "kkb-BaoHiem",
-        "kkb-VienPhi",
-        "kkb-YeuCau",
-        "kkb-NBVaoVien",
-        "kkb-CVNoiTru",
-        "kkb-CVNgoaiTru",
-        "kkb-NgoaiTinhNgoaiTruBH",
-        "kkb-NgoaiTinhNgoaiTruVP",
-        "kkb-NgoaiTinhNoiTruBH",
-        "kkb-NgoaiTinhNoiTruVP",
-        "gmhs-TongMo",
-        "gmhs-TrongGio",
-        "gmhs-NgoaiGio",
-        "xn-HuyetHoc",
-        "xn-HoaSinh",
-        "xn-ViSinh",
-        "cdha-Xquang",
-        "cdha-CT16",
-        "cdha-CT128",
-        "cdha-MRI",
-        "tdcn-SieuAm",
-        "tdcn-NoiSoi",
-        "hhtm-TongXN",
-        "hhtm-HongCau",
-        "hhtm-HuyetTuong",
-        "hhtm-TieuCau",
-        "hhtm-Cryo",
-        "kcc-TongKham",
-        "kcc-VaoVien",
-        "clc-TongNB",
-        "clc-VaoThang",
-        "clc-ChuyenSang",
-        "clc-GiuongTrong",
-      ];
-      state.chiso = extractChiSo(state.baocaongays, chisoCode);
-
-      state.chisoTong = calculateTongChiSo(state.baocaongays);
-
-      state.pkycs = state.baocaongays.filter((baocaongay) => {
+      state.pkycs = baocaongays.filter((baocaongay) => {
         return baocaongay.KhoaID.LoaiKhoa === "pkyc";
       });
     },
@@ -281,14 +309,12 @@ const slice = createSlice({
       state.error = null;
       console.log("khoas", action.payload);
       state.khoas = [...action.payload];
-      // state.khoaDaGuis = findKhoasInBaocaongays(
-      //   state.baocaongays,
-      //   state.khoas
-      // ).KhoaDaGuis;
-      // state.khoaChuaGuis = findKhoasInBaocaongays(
-      //   state.baocaongays,
-      //   state.khoas
-      // ).KhoaChuaGuis;
+      const { KhoaDaGuis, KhoaChuaGuis } = findKhoasInBaocaongays(
+        state.baocaongays,
+        state.khoas,
+      );
+      state.khoaDaGuis = KhoaDaGuis;
+      state.khoaChuaGuis = KhoaChuaGuis;
     },
 
     getDataBCGiaoBanByFromDateToDateSuccess(state, action) {
@@ -298,10 +324,22 @@ const slice = createSlice({
     },
 
     getDataBCGiaoBanCurentSuccess(state, action) {
+      if (
+        typeof action.payload?.requestKey === "number" &&
+        action.payload.requestKey !== state.activeDateRequestKey
+      ) {
+        return;
+      }
+
       state.isLoading = false;
       state.error = null;
-      if (action.payload.length > 0) {
-        state.bcGiaoBanCurent = action.payload[0];
+      if (
+        Array.isArray(action.payload?.data) &&
+        action.payload.data.length > 0
+      ) {
+        state.bcGiaoBanCurent = action.payload.data[0];
+      } else {
+        state.bcGiaoBanCurent = {};
       }
     },
 
@@ -312,31 +350,50 @@ const slice = createSlice({
     },
 
     InsertOrUpdateTrangThaiForBCGiaoBanSuccess(state, action) {
+      if (
+        typeof action.payload?.requestKey === "number" &&
+        action.payload.requestKey !== state.activeDateRequestKey
+      ) {
+        return;
+      }
+
       state.isLoading = false;
       state.error = null;
-      state.bcGiaoBanCurent = action.payload;
+      state.bcGiaoBanCurent = action.payload?.data ?? action.payload;
     },
   },
 });
+export const { resetSelectedDateData, setActiveDateRequestKey } = slice.actions;
 export default slice.reducer;
 //get Baocaongays theo ngay
-export const getDataBCNgaysForGiaoBan = (date) => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
-  try {
-    const params = {
-      Ngay: date,
-    };
-    const response = await apiService.get(`/baocaongay/all`, { params });
+export const getDataBCNgaysForGiaoBan =
+  (date, requestKey) => async (dispatch) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const params = {
+        Ngay: date,
+      };
+      const response = await apiService.get(`/baocaongay/all`, { params });
 
-    dispatch(slice.actions.getDataBCNgaysForGiaoBanSuccess(response.data.data));
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-  }
-};
+      dispatch(
+        slice.actions.getDataBCNgaysForGiaoBanSuccess({
+          requestKey,
+          data: response.data.data,
+        }),
+      );
+    } catch (error) {
+      dispatch(
+        slice.actions.hasError({
+          message: error.message,
+          requestKey,
+        }),
+      );
+    }
+  };
 
 export const getDataBCGiaoBanByFromDateToDate =
   (fromDate, toDate) => async (dispatch) => {
-    dispatch(slice.actions.startLoading);
+    dispatch(slice.actions.startLoading());
     try {
       const params = {
         fromDate: fromDate,
@@ -346,46 +403,63 @@ export const getDataBCGiaoBanByFromDateToDate =
       console.log("bc giao ban by fromDate toDate", response.data.data);
       dispatch(
         slice.actions.getDataBCGiaoBanByFromDateToDateSuccess(
-          response.data.data
-        )
+          response.data.data,
+        ),
       );
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
       toast.error(error.message);
     }
   };
-export const getDataBCGiaoBanCurent = (date) => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
-  try {
-    const params = {
-      fromDate: date,
-      toDate: date,
-    };
-    const response = await apiService.get(`/bcgiaoban/allbyngay`, { params });
-    console.log("response in getDataBCGiaoBanCurent", response.data.data);
-    dispatch(slice.actions.getDataBCGiaoBanCurentSuccess(response.data.data));
-  } catch (error) {
-    dispatch(slice.actions.hasError(error.message));
-    toast.error(error.message);
-  }
-};
+export const getDataBCGiaoBanCurent =
+  (date, requestKey) => async (dispatch, getState) => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const params = {
+        fromDate: date,
+        toDate: date,
+      };
+      const response = await apiService.get(`/bcgiaoban/allbyngay`, { params });
+      console.log("response in getDataBCGiaoBanCurent", response.data.data);
+      dispatch(
+        slice.actions.getDataBCGiaoBanCurentSuccess({
+          requestKey,
+          data: response.data.data,
+        }),
+      );
+    } catch (error) {
+      dispatch(
+        slice.actions.hasError({
+          message: error.message,
+          requestKey,
+        }),
+      );
+
+      if (
+        typeof requestKey !== "number" ||
+        getState().bcgiaoban.activeDateRequestKey === requestKey
+      ) {
+        toast.error(error.message);
+      }
+    }
+  };
 
 export const InsertOrUpdateBCGiaoBanByFromDateToDate =
   (bcGiaoBanUpdateOrInsert) => async (dispatch) => {
-    dispatch(slice.actions.startLoading);
+    dispatch(slice.actions.startLoading());
     try {
       const response = await apiService.post(
         `/bcgiaoban/allbyngay`,
-        bcGiaoBanUpdateOrInsert
+        bcGiaoBanUpdateOrInsert,
       );
       console.log(
         "bc giao ban after update and insert by fromDate toDate",
-        response.data.data
+        response.data.data,
       );
       dispatch(
         slice.actions.InsertOrUpdateBCGiaoBanByFromDateToDateSuccess(
-          response.data.data
-        )
+          response.data.data,
+        ),
       );
       toast.success("Cập nhật  thành công");
     } catch (error) {
@@ -395,8 +469,8 @@ export const InsertOrUpdateBCGiaoBanByFromDateToDate =
   };
 
 export const InsertOrUpdateTrangThaiForBCGiaoBan =
-  (ngay, trangthai) => async (dispatch) => {
-    dispatch(slice.actions.startLoading);
+  (ngay, trangthai, requestKey) => async (dispatch, getState) => {
+    dispatch(slice.actions.startLoading());
     try {
       const response = await apiService.post(`/bcgiaoban/trangthai`, {
         ngay,
@@ -404,27 +478,46 @@ export const InsertOrUpdateTrangThaiForBCGiaoBan =
       });
       console.log(
         "bc giao ban after update and insert trang thai",
-        response.data.data
+        response.data.data,
       );
       dispatch(
-        slice.actions.InsertOrUpdateTrangThaiForBCGiaoBanSuccess(
-          response.data.data
-        )
+        slice.actions.InsertOrUpdateTrangThaiForBCGiaoBanSuccess({
+          requestKey,
+          data: response.data.data,
+        }),
       );
-      dispatch(getDataBCNgaysForGiaoBan(ngay));
+
+      if (
+        typeof requestKey !== "number" ||
+        getState().bcgiaoban.activeDateRequestKey === requestKey
+      ) {
+        dispatch(getDataBCNgaysForGiaoBan(ngay, requestKey));
+      }
+
       toast.success("Cập nhật trạng thái thành công");
     } catch (error) {
-      dispatch(slice.actions.hasError(error.message));
-      toast.error(error.message);
+      dispatch(
+        slice.actions.hasError({
+          message: error.message,
+          requestKey,
+        }),
+      );
+
+      if (
+        typeof requestKey !== "number" ||
+        getState().bcgiaoban.activeDateRequestKey === requestKey
+      ) {
+        toast.error(error.message);
+      }
     }
   };
 
 export const getKhoasInBCGiaoBan = () => async (dispatch) => {
-  dispatch(slice.actions.startLoading);
+  dispatch(slice.actions.startLoading());
   try {
     const response = await apiService.get("/khoa");
     dispatch(
-      slice.actions.getKhoasInBCGiaoBanSuccess(response.data.data.khoas)
+      slice.actions.getKhoasInBCGiaoBanSuccess(response.data.data.khoas),
     );
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
