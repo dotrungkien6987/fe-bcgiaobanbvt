@@ -14,6 +14,7 @@ const LOGIN_SUCSESS = "AUTH.LOGIN_SUCSESS";
 const REGISTER_SUCCESS = "AUTH.REGISTER_SUCCESS";
 const LOGOUT = "AUTH.LOGOUT";
 const UPDATE_PROFILE = "AUTH.UPDATE_PROFILE";
+const SET_AUTH_USER = "AUTH.SET_AUTH_USER";
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -37,6 +38,12 @@ const reducer = (state, action) => {
         isAuthenticated: true,
         user: action.payload.user,
       };
+    case SET_AUTH_USER:
+      return {
+        ...state,
+        isAuthenticated: true,
+        user: action.payload.user,
+      };
     case LOGOUT:
       return {
         ...state,
@@ -46,24 +53,24 @@ const reducer = (state, action) => {
     case UPDATE_PROFILE:
       const {
         UserName,
-        PassWord,
         PhanQuyen,
         KhoaID,
         HoTen,
         Email,
         KhoaTaiChinh,
+        mustChangePassword,
       } = action.payload;
       return {
         ...state,
         user: {
           ...state.user,
           UserName,
-          PassWord,
           PhanQuyen,
           KhoaID,
           HoTen,
           Email,
           KhoaTaiChinh,
+          mustChangePassword,
         },
       };
     default:
@@ -84,35 +91,63 @@ function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const reduxDispatch = useReduxDispatch();
   // const updatedProfile = useSelector((state) => state.user.updatedProfile);
+
+  const hydrateAuthenticatedUser = async (user) => {
+    const nextUser = { ...user };
+
+    if (nextUser.mustChangePassword) {
+      nextUser.nhanVienInfo = null;
+      return nextUser;
+    }
+
+    if (nextUser.NhanVienID) {
+      try {
+        const fullInfoRes = await apiService.get("/user/me/full");
+        const { nhanVien, nhanVienKhoaId } = fullInfoRes.data.data;
+        nextUser.nhanVienInfo = { nhanVien, khoaId: nhanVienKhoaId };
+      } catch (error) {
+        nextUser.nhanVienInfo = null;
+      }
+    } else {
+      nextUser.nhanVienInfo = null;
+    }
+
+    return nextUser;
+  };
+
+  const refreshCurrentUser = async () => {
+    const response = await apiService.get("/user/me");
+    const user = await hydrateAuthenticatedUser(response.data.data);
+
+    dispatch({
+      type: SET_AUTH_USER,
+      payload: { user },
+    });
+
+    if (!user.mustChangePassword) {
+      reduxDispatch(fetchColorConfig());
+    }
+
+    return user;
+  };
+
   useEffect(() => {
     const initialize = async () => {
       try {
         const accessToken = window.localStorage.getItem("accessToken");
-        console.log(`access Token in useEffect initial ${accessToken}`);
         if (accessToken && isValidToken(accessToken)) {
           setSecsion(accessToken);
           const response = await apiService.get("/user/me");
-          const user = response.data.data;
-          console.log(`user in useEfect initial`, user);
-
-          // Fetch full NhanVien info if user has NhanVienID
-          if (user.NhanVienID) {
-            try {
-              const fullInfoRes = await apiService.get("/user/me/full");
-              const { nhanVien, nhanVienKhoaId } = fullInfoRes.data.data;
-              user.nhanVienInfo = { nhanVien, khoaId: nhanVienKhoaId };
-            } catch (error) {
-              console.warn("Failed to fetch NhanVien info:", error);
-              user.nhanVienInfo = null;
-            }
-          }
+          const user = await hydrateAuthenticatedUser(response.data.data);
 
           dispatch({
             type: INITIALIZE,
             payload: { isAuthenticated: true, user },
           });
           // Load global color config after auth is ready
-          reduxDispatch(fetchColorConfig());
+          if (!user.mustChangePassword) {
+            reduxDispatch(fetchColorConfig());
+          }
         } else {
           setSecsion(null);
           dispatch({
@@ -137,36 +172,21 @@ function AuthProvider({ children }) {
   // }, [updatedProfile]);
 
   const login = async ({ UserName, PassWord }, callback) => {
-    console.log("login");
     const response = await apiService.post("/auth/login", {
       UserName,
       PassWord,
     });
     const { user, accessToken } = response.data.data;
-
-    console.log(user);
+    const hydratedUser = await hydrateAuthenticatedUser(user);
     setSecsion(accessToken);
-
-    // Fetch full NhanVien info if user has NhanVienID
-    if (user.NhanVienID) {
-      try {
-        const fullInfoRes = await apiService.get("/user/me/full");
-        const { nhanVien, nhanVienKhoaId } = fullInfoRes.data.data;
-        user.nhanVienInfo = { nhanVien, khoaId: nhanVienKhoaId };
-      } catch (error) {
-        console.warn("Failed to fetch NhanVien info:", error);
-        user.nhanVienInfo = null;
-      }
-    }
-
-    // console.log(`isAuth before dispatch login ${state.isAuthenticated}`);
     dispatch({
       type: LOGIN_SUCSESS,
-      payload: { user },
+      payload: { user: hydratedUser },
     });
     // Ensure color config is loaded after login
-    reduxDispatch(fetchColorConfig());
-    // console.log(`isAuth after dispatch login ${state.isAuthenticated}`);
+    if (!hydratedUser.mustChangePassword) {
+      reduxDispatch(fetchColorConfig());
+    }
     callback();
   };
 
@@ -180,13 +200,23 @@ function AuthProvider({ children }) {
       payload: { user },
     });
   };
-  const logout = (callback) => {
-    setSecsion(null);
-    dispatch({ type: LOGOUT });
-    callback();
+  const logout = async (callback) => {
+    try {
+      await apiService.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout API failed", error);
+    } finally {
+      setSecsion(null);
+      dispatch({ type: LOGOUT });
+      if (typeof callback === "function") {
+        callback();
+      }
+    }
   };
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ ...state, login, register, logout, refreshCurrentUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

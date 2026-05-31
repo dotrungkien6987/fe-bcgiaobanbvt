@@ -7,6 +7,7 @@ import AcountPage from "../pages/AccountPage";
 
 import BlankLayout from "../layouts/BlankLayout";
 import LoginPage from "../pages/LoginPage";
+import ForcePasswordChangePage from "../pages/ForcePasswordChangePage";
 
 import NotFoundPage from "../pages/NotFoundPage";
 import AuthRequire from "./AuthRequire";
@@ -20,7 +21,11 @@ import DanhSachSuCoPage from "../pages/DanhSachSuCoPage";
 import BaoCaoSuCoYKhoaPage from "../pages/BaoCaoSuCoYKhoaPage";
 import DanhSachSuCoDataGridPage from "../pages/DanhSachSuCoDataGridPage";
 import AdminRequire from "./AdminRequire";
+import AdminDaotaoRequire from "./AdminDaotaoRequire";
 import AdminOrCnttRequire from "./AdminOrCnttRequire";
+import AdminDaotaoCnttRequire from "./AdminDaotaoCnttRequire";
+import DashboardRequire from "./DashboardRequire";
+import TapSanRequire from "./TapSanRequire";
 import QuanLyKhoaOrAdminRequire from "./QuanLyKhoaOrAdminRequire";
 import DashBoardPage from "../pages/DashBoardPage";
 
@@ -187,7 +192,14 @@ function Router() {
               </AdminRequire>
             }
           />
-          <Route path="/dashboard" element={<DashBoardPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <DashboardRequire>
+                <DashBoardPage />
+              </DashboardRequire>
+            }
+          />
           <Route
             path="/khuyencaokhoa"
             element={
@@ -198,20 +210,90 @@ function Router() {
             }
           />
           <Route path="/tongtruc" element={<TongTrucPage />} />
-          <Route path="/suco" element={<SuCoYKhoaPage />} />
-          <Route path="/suco/:sucoId" element={<SuCoYKhoaPage />} />
-          <Route path="/phantich/:sucoId" element={<PhanTichSuCoPage />} />
-          <Route path="/danhsach" element={<DanhSachSuCoPage />} />
-          <Route path="/datagrid" element={<DanhSachSuCoDataGridPage />} />
-          <Route path="/baocaosuco" element={<BaoCaoSuCoYKhoaPage />} />
-          <Route path="/kienadmin" element={<SupperAdminPage />} />
+          <Route
+            path="/suco"
+            element={
+              <AdminRequire>
+                <SuCoYKhoaPage />
+              </AdminRequire>
+            }
+          />
+          <Route
+            path="/suco/:sucoId"
+            element={
+              <AdminRequire>
+                <SuCoYKhoaPage />
+              </AdminRequire>
+            }
+          />
+          <Route
+            path="/phantich/:sucoId"
+            element={
+              <AdminRequire>
+                <PhanTichSuCoPage />
+              </AdminRequire>
+            }
+          />
+          <Route
+            path="/danhsach"
+            element={
+              <AdminRequire>
+                <DanhSachSuCoPage />
+              </AdminRequire>
+            }
+          />
+          <Route
+            path="/datagrid"
+            element={
+              <AdminRequire>
+                <DanhSachSuCoDataGridPage />
+              </AdminRequire>
+            }
+          />
+          <Route
+            path="/baocaosuco"
+            element={
+              <AdminRequire>
+                <BaoCaoSuCoYKhoaPage />
+              </AdminRequire>
+            }
+          />
+          <Route
+            path="/kienadmin"
+            element={
+              <AdminRequire>
+                <SupperAdminPage />
+              </AdminRequire>
+            }
+          />
           <Route path="/daotao" element={<DataFixTable />} />
           <Route path="/testtonghop1" element={<TongHopHoatDong />} />
           <Route path="/hocvien" element={<QuanLyHocVienPage />} />
           <Route path="/lichtruc" element={<LichTrucPage />} />{" "}
-          <Route path="/sothutu" element={<SoThuTuDashboard />} />
-          <Route path="/hoatdongbenhvien" element={<HoatDongDashboard />} />
-          <Route path="/hoatdongchung" element={<HoatDongDashBoard1 />} />{" "}
+          <Route
+            path="/sothutu"
+            element={
+              <AdminRequire>
+                <SoThuTuDashboard />
+              </AdminRequire>
+            }
+          />
+          <Route
+            path="/hoatdongbenhvien"
+            element={
+              <AdminRequire>
+                <HoatDongDashboard />
+              </AdminRequire>
+            }
+          />
+          <Route
+            path="/hoatdongchung"
+            element={
+              <AdminRequire>
+                <HoatDongDashBoard1 />
+              </AdminRequire>
+            }
+          />{" "}
           {/* Compatibility with old path */}
           {/* <Route
             path="/hoatdongbenhvien/schema"
@@ -229,6 +311,14 @@ function Router() {
 
         <Route element={<BlankLayout />}>
           <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/force-password-change"
+            element={
+              <AuthRequire>
+                <ForcePasswordChangePage />
+              </AuthRequire>
+            }
+          />
 
           <Route path="*" element={<NotFoundPage />} />
         </Route>
@@ -247,7 +337,14 @@ function Router() {
             path="/dashboard/lopdaotao-by-year"
             element={<DashboardLopDaoTaoByYear />}
           />
-          <Route path="/dev" element={<SupperAdminPage />} />
+          <Route
+            path="/dev"
+            element={
+              <AdminRequire>
+                <SupperAdminPage />
+              </AdminRequire>
+            }
+          />
           <Route path="/testtonghop" element={<TongHopHoatDong />} />
           <Route path="/test" element={<Test />} />
           <Route path="/nhanvien" element={<NhanVienList />} />
@@ -285,7 +382,14 @@ function Router() {
           <Route path="/tonghopsoluong" element={<TongHopSoLuongThucHien />} />
           <Route path="/soluongtheokhoa" element={<BaoCaoSoLuongTheoKhoa />} />
 
-          <Route path="/hoidong" element={<HoiDongTable />} />
+          <Route
+            path="/hoidong"
+            element={
+              <AdminDaotaoRequire>
+                <HoiDongTable />
+              </AdminDaotaoRequire>
+            }
+          />
           <Route path="/usersable" element={<UserThemeAbleTable />} />
           <Route
             path="/lopdaotaotam/:lopdaotaoID"
@@ -296,7 +400,14 @@ function Router() {
           <Route path="/newfeature/function2" element={<Function2 />} />
           <Route path="/newfeature/function3" element={<TongHopHoatDong />} />
           <Route path="/tinh" element={<TinhTable />} />
-          <Route path="/loaichuyenmon" element={<LoaiChuyenMonTable />} />
+          <Route
+            path="/loaichuyenmon"
+            element={
+              <AdminDaotaoRequire>
+                <LoaiChuyenMonTable />
+              </AdminDaotaoRequire>
+            }
+          />
           <Route path="/Huyen" element={<HuyenTable />} />
           <Route
             path="/khoa-binh-quan-benh-an"
@@ -321,15 +432,71 @@ function Router() {
           <Route path="/Xa" element={<XaTable />} />
           <Route path="/quocgia" element={<QuocGiaTable />} />
           <Route path="/khoas" element={<KhoaTable />} />
-          <Route path="/nhomkhoas" element={<NhomKhoaSoThuTuTable />} />
-          <Route path="/doanra" element={<DoanRaTable />} />
-          <Route path="/doanvao" element={<DoanVaoTable />} />
-          <Route path="/doanra/members" element={<DoanRaMembersPage />} />
-          <Route path="/doanvao/members" element={<DoanVaoMembersPage />} />
-          <Route path="/doanra/:doanRaId" element={<DoanRaDetailPage />} />
-          <Route path="/doanvao/:doanVaoId" element={<DoanVaoDetailPage />} />
+          <Route
+            path="/nhomkhoas"
+            element={
+              <AdminDaotaoRequire>
+                <NhomKhoaSoThuTuTable />
+              </AdminDaotaoRequire>
+            }
+          />
+          <Route
+            path="/doanra"
+            element={
+              <AdminDaotaoCnttRequire>
+                <DoanRaTable />
+              </AdminDaotaoCnttRequire>
+            }
+          />
+          <Route
+            path="/doanvao"
+            element={
+              <AdminDaotaoCnttRequire>
+                <DoanVaoTable />
+              </AdminDaotaoCnttRequire>
+            }
+          />
+          <Route
+            path="/doanra/members"
+            element={
+              <AdminDaotaoCnttRequire>
+                <DoanRaMembersPage />
+              </AdminDaotaoCnttRequire>
+            }
+          />
+          <Route
+            path="/doanvao/members"
+            element={
+              <AdminDaotaoCnttRequire>
+                <DoanVaoMembersPage />
+              </AdminDaotaoCnttRequire>
+            }
+          />
+          <Route
+            path="/doanra/:doanRaId"
+            element={
+              <AdminDaotaoCnttRequire>
+                <DoanRaDetailPage />
+              </AdminDaotaoCnttRequire>
+            }
+          />
+          <Route
+            path="/doanvao/:doanVaoId"
+            element={
+              <AdminDaotaoCnttRequire>
+                <DoanVaoDetailPage />
+              </AdminDaotaoCnttRequire>
+            }
+          />
           {/* TapSan nested routes */}
-          <Route path="/tapsan/*" element={<TapSanRoutes />} />
+          <Route
+            path="/tapsan/*"
+            element={
+              <TapSanRequire>
+                <TapSanRoutes />
+              </TapSanRequire>
+            }
+          />
 
           {/* ========================================== */}
           {/* Quy Trình ISO - Quản Lý Chất Lượng       */}

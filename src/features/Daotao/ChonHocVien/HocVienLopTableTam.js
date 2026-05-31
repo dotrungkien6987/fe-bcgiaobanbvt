@@ -15,9 +15,17 @@ import { insertOrUpdateLopDaoTaoNhanVien } from "../daotaoSlice";
 
 import { formatDate_getDate } from "utils/formatTime";
 import useAuth from "hooks/useAuth";
+import { canManageLopDaoTao } from "../lopDaoTaoPermissions";
+
 function HocVienLopTableTam({ setSelectedRows }) {
-  const columns = useMemo(
-    () => [
+  const { hocvienCurrents, lopdaotaoCurrent } = useSelector(
+    (state) => state.daotao,
+  );
+  const { user } = useAuth();
+  const canManageTempList = canManageLopDaoTao(user, lopdaotaoCurrent);
+
+  const columns = useMemo(() => {
+    const baseColumns = [
       {
         Header: "_id",
         Footer: "Action",
@@ -84,10 +92,14 @@ function HocVienLopTableTam({ setSelectedRows }) {
         disableGroupBy: true,
         Cell: ({ value }) => formatDate_getDate(value),
       },
+    ];
 
-    ],
-    []
-  );
+    if (!canManageTempList) {
+      return baseColumns.slice(1);
+    }
+
+    return baseColumns;
+  }, [canManageTempList]);
 
   const dispatch = useDispatch();
   useEffect(() => {
@@ -95,10 +107,6 @@ function HocVienLopTableTam({ setSelectedRows }) {
     dispatch(getAllNhanVien());
   }, [dispatch]);
 
-  const { hocvienCurrents, lopdaotaoCurrent } = useSelector(
-    (state) => state.daotao
-  );
-  const {user} = useAuth()  ;
   const handleClickSave = () => {
     if (
       lopdaotaoCurrent &&
@@ -109,8 +117,6 @@ function HocVienLopTableTam({ setSelectedRows }) {
         LopDaoTaoID: lopdaotaoCurrent._id,
         NhanVienID: hv.NhanVienID,
         VaiTro: hv.VaiTro,
-        UserID: user._id,
-        UserName: user.UserName,
       }));
 
       dispatch(
@@ -118,9 +124,7 @@ function HocVienLopTableTam({ setSelectedRows }) {
           lopdaotaonhanvienData,
           lopdaotaoID: lopdaotaoCurrent._id,
           tam: true,
-          userID: user._id,
-       
-        })
+        }),
       );
     } else {
       // Hiển thị thông báo cho người dùng
@@ -136,7 +140,8 @@ function HocVienLopTableTam({ setSelectedRows }) {
           Danh sách tạm
         </Typography>
         <Box sx={{ flexGrow: 1 }}></Box>
-        {lopdaotaoCurrent &&
+        {canManageTempList &&
+          lopdaotaoCurrent &&
           lopdaotaoCurrent._id &&
           lopdaotaoCurrent._id !== 0 && (
             <Button
@@ -155,10 +160,12 @@ function HocVienLopTableTam({ setSelectedRows }) {
         setSelectedRows={setSelectedRows}
         sx={{ height: 598 }}
         additionalComponent={
-          <Stack direction="row">
-            <SelectHocVienForm />
-            <SelectVaiTro />
-          </Stack>
+          canManageTempList ? (
+            <Stack direction="row">
+              <SelectHocVienForm />
+              <SelectVaiTro />
+            </Stack>
+          ) : null
         }
       />
     </Card>

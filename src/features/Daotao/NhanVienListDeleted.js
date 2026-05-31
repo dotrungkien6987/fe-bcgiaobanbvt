@@ -1,4 +1,4 @@
-import { Grid, Stack, Tooltip, useTheme } from "@mui/material";
+import { Grid, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 
 import { getAllNhanVienDeleted } from "features/NhanVien/nhanvienSlice";
 
@@ -14,6 +14,7 @@ import { ThemeMode } from "configAble";
 import NhanVienView from "features/NhanVien/NhanVienView";
 import { formatDate_getDate } from "utils/formatTime";
 import ScrollX from "components/ScrollX";
+import useAuth from "hooks/useAuth";
 
 const LOAI_CHUYEN_MON_LABELS = {
   BAC_SI: "Bác sĩ",
@@ -26,6 +27,10 @@ const LOAI_CHUYEN_MON_LABELS = {
 function NhanVienListDeleted() {
   const theme = useTheme();
   const mode = theme.palette.mode;
+  const { user } = useAuth();
+  const canManageNhanVien = ["admin", "superadmin", "cntt", "daotao"].includes(
+    (user?.PhanQuyen || "").toLowerCase(),
+  );
 
   const columns = useMemo(
     () => [
@@ -223,26 +228,40 @@ function NhanVienListDeleted() {
         disableGroupBy: true,
       },
     ],
-    [mode, theme.palette.grey]
+    [mode, theme.palette.grey],
   );
 
   const dispatch = useDispatch();
   const { nhanviensDeleted } = useSelector((state) => state.nhanvien);
 
   useEffect(() => {
-    // Gọi hàm để lấy danh sách nhân viên đã xóa khi component được tạo
-    console.log(
-      "NhanVienListDeleted: component mounted, calling getAllNhanVienDeleted"
-    );
+    if (!canManageNhanVien) {
+      return;
+    }
+
     dispatch(getAllNhanVienDeleted());
-  }, [dispatch]);
+  }, [canManageNhanVien, dispatch]);
 
   const data = useMemo(() => nhanviensDeleted, [nhanviensDeleted]);
 
   const renderRowSubComponent = useCallback(
     ({ row }) => <NhanVienView data={data[Number(row.id)]} />,
-    [data]
+    [data],
   );
+
+  if (!canManageNhanVien) {
+    return (
+      <Grid container spacing={3}>
+        <Grid item xs={12} lg={12}>
+          <MainCard title="Danh sách nhân viên đã xóa">
+            <Typography>
+              Bạn không có quyền truy cập danh sách nhân viên đã xóa.
+            </Typography>
+          </MainCard>
+        </Grid>
+      </Grid>
+    );
+  }
 
   return (
     <Grid container spacing={3}>

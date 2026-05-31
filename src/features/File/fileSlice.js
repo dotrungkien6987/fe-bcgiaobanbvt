@@ -6,7 +6,7 @@ const initialState = {
   isLoading: false,
   error: null,
   uploadedFile: null,
-  fileName:'',
+  fileName: "",
   fileBlob: null,
   fileURL: null,
 };
@@ -25,7 +25,7 @@ const slice = createSlice({
     uploadFileSuccess(state, action) {
       state.isLoading = false;
       state.error = null;
-      console.log("action.payload trong upload success",action.payload);
+      console.log("action.payload trong upload success", action.payload);
       state.uploadedFile = action.payload;
       state.fileName = action.payload.data.filename;
     },
@@ -33,7 +33,6 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.fileURL = action.payload;
-      
     },
   },
 });
@@ -45,23 +44,21 @@ export const uploadFile = (file) => async (dispatch) => {
   try {
     const formData = new FormData();
     formData.append("file", file);
-    const response = await apiService.post("/file/upload", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const response = await apiService.post("/file/upload", formData);
     dispatch(slice.actions.uploadFileSuccess(response.data));
     toast.success("Upload file successfully");
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
-    toast.error("Upload file failed");
+    toast.error(error.message || "Upload file failed");
   }
 };
 
 export const fetchFile = (filename) => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    const response = await apiService.get(`/file/view/${filename}`, { responseType: "blob" });
+    const response = await apiService.get(`/file/view/${filename}`, {
+      responseType: "blob",
+    });
     const fileUrl = URL.createObjectURL(response.data);
     dispatch(slice.actions.fetchFileSuccess(fileUrl));
   } catch (error) {

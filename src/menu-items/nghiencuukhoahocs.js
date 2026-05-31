@@ -25,6 +25,15 @@ const icons = {
   setting: Setting2,
 };
 
+const NGHIEN_CUU_COMMON_ROLES = [
+  "admin",
+  "daotao",
+  "nomal",
+  "manager",
+  "noibo",
+];
+const HOP_TAC_QUOC_TE_ROLES = ["admin", "daotao", "cntt"];
+
 // ==============================|| MENU ITEMS - PAGES ||============================== //
 
 const nghiencuukhoahocs = {
@@ -38,6 +47,7 @@ const nghiencuukhoahocs = {
       title: "Báo cáo",
       type: "collapse",
       icon: icons.bank,
+      roles: NGHIEN_CUU_COMMON_ROLES,
       children: [
         {
           id: "thongketheonam",
@@ -53,6 +63,7 @@ const nghiencuukhoahocs = {
       title: "Nghiên cứu khoa học",
       type: "collapse",
       icon: icons.menuboard,
+      roles: NGHIEN_CUU_COMMON_ROLES,
       children: [
         {
           id: "sinhhoatkhoahoc",
@@ -149,6 +160,7 @@ const nghiencuukhoahocs = {
           id: "tapsan",
           title: "Tập san TTT/YHTH",
           type: "item",
+          roles: NGHIEN_CUU_COMMON_ROLES,
           url: "/tapsan",
         },
       ],
@@ -159,6 +171,7 @@ const nghiencuukhoahocs = {
       title: "Hợp tác quốc tế",
       type: "collapse",
       icon: icons.bank,
+      roles: HOP_TAC_QUOC_TE_ROLES,
       children: [
         {
           id: "doanvao",
@@ -178,7 +191,7 @@ const nghiencuukhoahocs = {
           type: "item",
           url: "/doanra",
         },
-          {
+        {
           id: "doanramember",
           title: "Danh sách thành viên đoàn ra",
           type: "item",
@@ -192,30 +205,35 @@ const nghiencuukhoahocs = {
       title: "Danh mục",
       type: "collapse",
       icon: icons.setting,
+      roles: NGHIEN_CUU_COMMON_ROLES,
       children: [
         {
           id: "LoaiHinhYHTH",
           title: "Loại hình y học thực hành",
           type: "item",
           url: "/datafix/LoaiHinhYHTH",
+          roles: ["admin", "superadmin"],
         },
         {
           id: "ChuyenDeTTT",
           title: "Chuyên đề thông tin thuốc",
           type: "item",
           url: "/datafix/ChuyenDeTTT",
+          roles: ["admin", "superadmin"],
         },
         {
           id: "MucDichXuatCanh",
           title: "Mục đích xuất cảnh",
           type: "item",
           url: "/datafix/MucDichXuatCanh",
+          roles: ["admin", "superadmin"],
         },
         {
           id: "DonViGioiThieu",
           title: "Đơn vị giới thiệu",
           type: "item",
           url: "/datafix/DonViGioiThieu",
+          roles: ["admin", "superadmin"],
         },
       ],
     },

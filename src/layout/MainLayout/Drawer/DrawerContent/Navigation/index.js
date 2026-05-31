@@ -20,6 +20,7 @@ import { isLegacyPathHidden } from "config/legacyCutover";
 
 const Navigation = () => {
   const { user } = useAuth();
+  const currentRole = (user?.PhanQuyen || "").toLowerCase();
 
   const theme = useTheme();
   const downLG = useMediaQuery(theme.breakpoints.down("lg"));
@@ -33,9 +34,9 @@ const Navigation = () => {
   // Kiểm tra xem user có quyền truy cập menu item hay không
   const hasAccess = (item) => {
     if (!item) return false;
-    if (!user || !user.PhanQuyen) return false;
-    const role = user.PhanQuyen || "default";
-    return item.roles?.includes(role);
+    if (!currentRole) return false;
+    if (!Array.isArray(item.roles) || item.roles.length === 0) return true;
+    return item.roles.includes(currentRole);
   };
 
   useEffect(() => {
@@ -73,15 +74,43 @@ const Navigation = () => {
     return newNode;
   };
 
+  const filterMenuByAccess = (node) => {
+    if (!node || !currentRole) return null;
+    if (Array.isArray(node.roles) && node.roles.length > 0) {
+      if (!node.roles.includes(currentRole)) {
+        return null;
+      }
+    }
+
+    const filteredNode = { ...node };
+    if (Array.isArray(filteredNode.children)) {
+      filteredNode.children = filteredNode.children
+        .map(filterMenuByAccess)
+        .filter(Boolean);
+
+      if (
+        ["group", "collapse"].includes(filteredNode.type) &&
+        filteredNode.children.length === 0
+      ) {
+        return null;
+      }
+    }
+
+    return filteredNode;
+  };
+
   useLayoutEffect(() => {
     // Clone & xử lý placeholder động
     const processed = {
       ...menuItem,
-      items: menuItem.items.map(replaceNhanVienID).filter(Boolean),
+      items: menuItem.items
+        .map(replaceNhanVienID)
+        .map(filterMenuByAccess)
+        .filter(Boolean),
     };
     setMenuItems(processed);
     // eslint-disable-next-line
-  }, [menuItem, user?.NhanVienID]);
+  }, [currentRole, user?.NhanVienID]);
 
   let getMenu = Menu();
   // Nếu getMenu có roles, đảm bảo gán nó

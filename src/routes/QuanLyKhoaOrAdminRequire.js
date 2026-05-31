@@ -42,9 +42,7 @@ function QuanLyKhoaOrAdminRequire({ children }) {
         if (!myPermissions) {
           try {
             await dispatch(getMyPermissions());
-          } catch (error) {
-            console.error("Error checking permissions:", error);
-          }
+          } catch (error) {}
         }
         setIsChecking(false);
       }

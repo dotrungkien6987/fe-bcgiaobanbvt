@@ -1,10 +1,6 @@
-import {
-  
-  Grid,
-  Stack,
- 
-} from "@mui/material";
+import { Grid, Stack } from "@mui/material";
 import MainCard from "components/MainCard";
+import { useAuth } from "contexts/AuthContext";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import SimpleTable from "pages/tables/MyTable/SimpleTable";
 
@@ -17,40 +13,47 @@ import AddXaButton from "./AddXaButton";
 
 function XaTable() {
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const canManageDataFix = ["admin", "superadmin"].includes(
+    (user?.PhanQuyen || "").toLowerCase(),
+  );
+
   useEffect(() => {
     dispatch(getDataFix());
   }, [dispatch]);
-  const { Xa } = useSelector(
-    (state) => state.nhanvien
-  );
+  const { Xa } = useSelector((state) => state.nhanvien);
 
   const data = useMemo(() => Xa, [Xa]);
 
   const columns = useMemo(
     () => [
-      {
-        Header: "Action",
-        Footer: "Action",
-        accessor: "_id",
-        disableGroupBy: true,
-        sticky: "left",
-        Cell: ({ row }) => (
-          <Stack
-            direction="row"
-            alignItems="left"
-            justifyContent="left"
-            spacing={0}
-          >
-            <UpdateXaButton index={row.original.index} />
-            <DeleteDataFixButton
-              index={row.original.index}
-              datafixField="Xa"
-              datafixTitle="Danh mục xã"
-            />
-          </Stack>
-        ),
-      },
-      
+      ...(canManageDataFix
+        ? [
+            {
+              Header: "Action",
+              Footer: "Action",
+              accessor: "_id",
+              disableGroupBy: true,
+              sticky: "left",
+              Cell: ({ row }) => (
+                <Stack
+                  direction="row"
+                  alignItems="left"
+                  justifyContent="left"
+                  spacing={0}
+                >
+                  <UpdateXaButton index={row.original.index} />
+                  <DeleteDataFixButton
+                    index={row.original.index}
+                    datafixField="Xa"
+                    datafixTitle="Danh mục xã"
+                  />
+                </Stack>
+              ),
+            },
+          ]
+        : []),
+
       {
         Header: "Tên xã",
         Footer: "Tên xã",
@@ -108,19 +111,17 @@ function XaTable() {
         disableGroupBy: true,
       },
     ],
-    []
+    [canManageDataFix],
   );
 
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
-        <MainCard
-          title={`Danh mục xã`}
-        >
+        <MainCard title={`Danh mục xã`}>
           <SimpleTable
             data={data}
             columns={columns}
-            additionalComponent={<AddXaButton />}
+            additionalComponent={canManageDataFix ? <AddXaButton /> : null}
           />
         </MainCard>
       </Grid>

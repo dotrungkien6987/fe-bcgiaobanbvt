@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -25,6 +25,7 @@ import FormProvider from "../../components/form/FormProvider";
 import FTextField from "../../components/form/FTextField";
 import FDatePicker from "../../components/form/FDatePicker";
 import FAutocomplete from "../../components/form/FAutocomplete";
+import useAuth from "../../hooks/useAuth";
 import { createQuyTrinhISO } from "./quyTrinhISOSlice";
 import { getISOKhoa } from "../Daotao/Khoa/khoaSlice";
 
@@ -61,16 +62,22 @@ function QuyTrinhISOCreatePage() {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { user } = useAuth();
   const { isLoading } = useSelector((state) => state.quyTrinhISO);
   const { ISOKhoa: khoaList } = useSelector((state) => state.khoa);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const isQLCL = ["qlcl", "admin", "superadmin"].includes(
+    user?.PhanQuyen?.toLowerCase(),
+  );
 
   // Load danh sách khoa ISO
   useEffect(() => {
-    if (khoaList.length === 0) {
-      dispatch(getISOKhoa());
+    if (!isQLCL || khoaList.length !== 0) {
+      return;
     }
-  }, [dispatch, khoaList.length]);
+
+    dispatch(getISOKhoa());
+  }, [dispatch, isQLCL, khoaList.length]);
 
   const methods = useForm({
     resolver: yupResolver(quyTrinhSchema),
@@ -85,15 +92,22 @@ function QuyTrinhISOCreatePage() {
 
   // Warn about unsaved changes on page unload
   useEffect(() => {
+    if (!isQLCL || !isDirty) {
+      return undefined;
+    }
+
     const handler = (e) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
+      e.preventDefault();
+      e.returnValue = "";
     };
+
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
-  }, [isDirty]);
+  }, [isDirty, isQLCL]);
+
+  if (!isQLCL) {
+    return <Navigate to="/quytrinh-iso" replace />;
+  }
 
   const onSubmit = async (data) => {
     try {

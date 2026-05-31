@@ -13,8 +13,33 @@ import { Add, Eye } from "iconsax-react";
 import NhomViecUserView from "./NhomViecUserView";
 import { formatDate_getDate } from "utils/formatTime";
 import ScrollX from "components/ScrollX";
+import useAuth from "hooks/useAuth";
 
 function NhomViecUserList() {
+  const { user } = useAuth();
+  const normalizedRole = (user?.PhanQuyen || "").toLowerCase();
+  const canCreate = ["admin", "superadmin", "manager"].includes(normalizedRole);
+
+  const canManageRow = useCallback(
+    (rowData) => {
+      if (["admin", "superadmin"].includes(normalizedRole)) {
+        return true;
+      }
+
+      if (normalizedRole !== "manager") {
+        return false;
+      }
+
+      const ownerId =
+        rowData?.NguoiTaoID && typeof rowData.NguoiTaoID === "object"
+          ? rowData.NguoiTaoID._id
+          : rowData?.NguoiTaoID;
+
+      return ownerId?.toString() === user?._id?.toString();
+    },
+    [normalizedRole, user?._id],
+  );
+
   const columns = useMemo(
     () => [
       {
@@ -37,8 +62,12 @@ function NhomViecUserList() {
               justifyContent="center"
               spacing={0}
             >
-              <UpdateNhomViecUserButton nhomViecUser={row.original} />
-              <DeleteNhomViecUserButton nhomViecUserID={row.original._id} />
+              {canManageRow(row.original) && (
+                <>
+                  <UpdateNhomViecUserButton nhomViecUser={row.original} />
+                  <DeleteNhomViecUserButton nhomViecUserID={row.original._id} />
+                </>
+              )}
               <Tooltip title="Xem nhanh">
                 <IconButton
                   color="secondary"
@@ -87,7 +116,7 @@ function NhomViecUserList() {
         Cell: ({ value }) => formatDate_getDate(value),
       },
     ],
-    []
+    [canManageRow],
   );
 
   const dispatch = useDispatch();
@@ -101,7 +130,7 @@ function NhomViecUserList() {
 
   const renderRowSubComponent = useCallback(
     ({ row }) => <NhomViecUserView data={data[Number(row.id)]} />,
-    [data]
+    [data],
   );
 
   return (
@@ -116,7 +145,7 @@ function NhomViecUserList() {
               additionalComponent={
                 <div style={{ display: "flex", alignItems: "flex-end" }}>
                   <ExcelButton />
-                  <AddNhomViecUserButton />
+                  {canCreate ? <AddNhomViecUserButton /> : null}
                 </div>
               }
             />

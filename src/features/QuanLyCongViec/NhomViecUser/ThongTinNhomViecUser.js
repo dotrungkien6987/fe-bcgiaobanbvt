@@ -16,11 +16,9 @@ import {
   updateOneNhomViecUser,
 } from "./nhomViecUserSlice";
 import { toast } from "react-toastify";
-import useAuth from "../../../hooks/useAuth";
 
 function ThongTinNhomViecUser({ open, handleClose, nhomViecUser }) {
   const dispatch = useDispatch();
-  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
     TenNhom: "",
@@ -46,7 +44,7 @@ function ThongTinNhomViecUser({ open, handleClose, nhomViecUser }) {
         });
       }
     }
-  }, [open, nhomViecUser, isEdit, user]);
+  }, [open, nhomViecUser, isEdit]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -56,27 +54,19 @@ function ThongTinNhomViecUser({ open, handleClose, nhomViecUser }) {
   };
 
   const handleSubmit = () => {
-    if (!user || !user._id) {
-      toast.error("Không thể xác định người dùng hiện tại");
-      return;
-    }
-
     if (!formData.TenNhom.trim()) {
       toast.error("Vui lòng nhập tên nhóm việc");
       return;
     }
 
-    const submitData = {
-      ...formData,
-      NguoiTaoID: user._id,
-    };
+    const submitData = { ...formData };
 
     if (isEdit) {
       dispatch(
         updateOneNhomViecUser({
           ...submitData,
           _id: nhomViecUser._id,
-        })
+        }),
       );
     } else {
       dispatch(insertOneNhomViecUser(submitData));

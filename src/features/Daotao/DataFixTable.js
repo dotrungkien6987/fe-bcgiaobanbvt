@@ -1,5 +1,6 @@
 import { Grid, Stack } from "@mui/material";
 import MainCard from "components/MainCard";
+import { useAuth } from "contexts/AuthContext";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import SimpleTable from "pages/tables/MyTable/SimpleTable";
 
@@ -16,6 +17,11 @@ function DataFixTable() {
   const name = params.field;
   console.log("name", name);
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const canManageDataFix = ["admin", "superadmin"].includes(
+    (user?.PhanQuyen || "").toLowerCase(),
+  );
+
   useEffect(() => {
     dispatch(getDataFix());
   }, [dispatch]);
@@ -127,32 +133,36 @@ function DataFixTable() {
   };
   const columns = useMemo(
     () => [
-      {
-        Header: "Action",
-        Footer: "Action",
-        accessor: "_id",
-        disableGroupBy: true,
-        sticky: "left",
-        Cell: ({ row }) => (
-          <Stack
-            direction="row"
-            alignItems="left"
-            justifyContent="left"
-            spacing={0}
-          >
-            <UpdateDataFixButton
-              index={row.original.index}
-              datafixField={name}
-              datafixTitle={title(name)}
-            />
-            <DeleteDataFixButton
-              index={row.original.index}
-              datafixField={name}
-              datafixTitle={title(name)}
-            />
-          </Stack>
-        ),
-      },
+      ...(canManageDataFix
+        ? [
+            {
+              Header: "Action",
+              Footer: "Action",
+              accessor: "_id",
+              disableGroupBy: true,
+              sticky: "left",
+              Cell: ({ row }) => (
+                <Stack
+                  direction="row"
+                  alignItems="left"
+                  justifyContent="left"
+                  spacing={0}
+                >
+                  <UpdateDataFixButton
+                    index={row.original.index}
+                    datafixField={name}
+                    datafixTitle={title(name)}
+                  />
+                  <DeleteDataFixButton
+                    index={row.original.index}
+                    datafixField={name}
+                    datafixTitle={title(name)}
+                  />
+                </Stack>
+              ),
+            },
+          ]
+        : []),
 
       {
         Header: "Index",
@@ -169,7 +179,7 @@ function DataFixTable() {
         disableGroupBy: true,
       },
     ],
-    [name]
+    [canManageDataFix, name],
   );
 
   return (
@@ -180,10 +190,12 @@ function DataFixTable() {
             data={data}
             columns={columns}
             additionalComponent={
-              <AddDataFixButton
-                datafixField={name}
-                datafixTitle={title(name)}
-              />
+              canManageDataFix ? (
+                <AddDataFixButton
+                  datafixField={name}
+                  datafixTitle={title(name)}
+                />
+              ) : null
             }
           />
         </MainCard>

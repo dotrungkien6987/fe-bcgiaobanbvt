@@ -79,6 +79,7 @@
   "scripts": {
     "start": "react-scripts start",
     "prebuild": "node scripts/inject-version.js",
+    "extract:pentest-source-docs": "node scripts/extract-pentest-source-docs.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

@@ -1,6 +1,7 @@
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
 import {
+  Alert,
+  CircularProgress,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -12,10 +13,14 @@ import {
   Radio,
   Checkbox,
   Box,
+  InputAdornment,
+  TextField,
+  Typography,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
+import SearchIcon from "@mui/icons-material/Search";
 import CommonTable from "pages/tables/MyTable/CommonTable";
-import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
+import useTapSanNhanVienOptions from "../hooks/useTapSanNhanVienOptions";
 
 /**
  * AuthorsSelectorDialog
@@ -30,28 +35,34 @@ export default function AuthorsSelectorDialog({
   onClose,
   value,
   onChange,
+  nhanVienOptions: initialNhanVienOptions = [],
 }) {
-  const dispatch = useDispatch();
-  const nhanviens = useSelector((s) => s.nhanvien?.nhanviens || []);
-  const isLoading = useSelector((s) => s.nhanvien?.isLoading || false);
-
   const [mainId, setMainId] = React.useState(value?.TacGiaChinhID || "");
   const [coIds, setCoIds] = React.useState(value?.DongTacGiaIDs || []);
-
-  React.useEffect(() => {
-    if (!nhanviens || nhanviens.length === 0) {
-      dispatch(getAllNhanVien());
-    }
-  }, [dispatch, nhanviens]);
+  const [searchText, setSearchText] = React.useState("");
+  const { nhanVienOptions, nhanVienById, loading, error, isSearching } =
+    useTapSanNhanVienOptions({
+      enabled: open,
+      limit: 60,
+      search: searchText,
+      debounceMs: 300,
+      initialOptions: initialNhanVienOptions,
+    });
 
   React.useEffect(() => {
     setMainId(value?.TacGiaChinhID || "");
     setCoIds(value?.DongTacGiaIDs || []);
   }, [value]);
 
+  React.useEffect(() => {
+    if (!open) {
+      setSearchText("");
+    }
+  }, [open]);
+
   const handleToggleCoAuthor = (id) => {
     setCoIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
@@ -96,7 +107,7 @@ export default function AuthorsSelectorDialog({
       { Header: "Khoa", accessor: "TenKhoa" },
       { Header: "Chức danh", accessor: "ChucDanh" },
     ],
-    [mainId, coIds]
+    [mainId, coIds],
   );
 
   const handleConfirm = () => {
@@ -104,7 +115,20 @@ export default function AuthorsSelectorDialog({
     onClose?.();
   };
 
-  const getName = (id) => nhanviens.find((x) => x._id === id)?.Ten || id;
+  const tableData = React.useMemo(() => {
+    const byId = new Map(
+      (nhanVienOptions || []).map((item) => [item._id, item]),
+    );
+    [mainId, ...(coIds || [])].forEach((id) => {
+      const item = nhanVienById.get(id);
+      if (item?._id) {
+        byId.set(item._id, item);
+      }
+    });
+    return Array.from(byId.values());
+  }, [coIds, mainId, nhanVienById, nhanVienOptions]);
+
+  const getName = (id) => nhanVienById.get(id)?.Ten || id;
 
   return (
     <Dialog open={open} onClose={onClose} fullScreen>
@@ -132,6 +156,32 @@ export default function AuthorsSelectorDialog({
             borderColor: "divider",
           }}
         >
+          <TextField
+            fullWidth
+            size="small"
+            value={searchText}
+            onChange={(event) => setSearchText(event.target.value)}
+            placeholder="Tìm theo họ tên, mã NV, chức danh..."
+            sx={{ mb: 1.5 }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+              endAdornment:
+                loading || isSearching ? (
+                  <InputAdornment position="end">
+                    <CircularProgress size={18} />
+                  </InputAdornment>
+                ) : null,
+            }}
+          />
+          <Typography variant="caption" color="text.secondary">
+            {searchText.trim()
+              ? `Đang hiển thị ${tableData.length} kết quả phù hợp.`
+              : "Nhập từ khóa để thu hẹp nhanh danh sách nhân viên."}
+          </Typography>
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             {mainId && (
               <Chip
@@ -151,12 +201,16 @@ export default function AuthorsSelectorDialog({
             ))}
           </Stack>
         </Box>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            Không thể tải danh sách nhân viên. Vui lòng thử lại.
+          </Alert>
+        )}
         <CommonTable
-          data={nhanviens || []}
+          data={tableData}
           columns={columns}
-          showGlobalFilter
           showColumnVisibility
-          loading={isLoading}
+          loading={loading}
         />
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>

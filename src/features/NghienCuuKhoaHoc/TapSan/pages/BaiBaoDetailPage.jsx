@@ -32,7 +32,7 @@ import { fetchTapSanById, selectTapSanById } from "../slices/tapSanSlice";
 import AttachmentSection from "../components/AttachmentSection";
 import ConfirmDialog from "components/ConfirmDialog";
 import useLocalSnackbar from "../hooks/useLocalSnackbar";
-import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
+import useTapSanNhanVienOptions from "../hooks/useTapSanNhanVienOptions";
 
 export default function BaiBaoDetailPage() {
   const { tapSanId, baiBaoId } = useParams();
@@ -46,7 +46,7 @@ export default function BaiBaoDetailPage() {
   // Tabs removed – single page layout
   const { showSuccess, showError, SnackbarElement } = useLocalSnackbar();
   const [confirm, setConfirm] = React.useState({ open: false, loading: false });
-  const nhanviens = useSelector((s) => s.nhanvien?.nhanviens || []);
+  const { nhanVienById } = useTapSanNhanVienOptions();
 
   const loadTapSan = React.useCallback(async () => {
     try {
@@ -78,13 +78,6 @@ export default function BaiBaoDetailPage() {
   React.useEffect(() => {
     loadBaiBao();
   }, [loadBaiBao]);
-
-  // Load NhanVien list once
-  React.useEffect(() => {
-    if (!nhanviens || nhanviens.length === 0) {
-      dispatch(getAllNhanVien());
-    }
-  }, [dispatch, nhanviens]);
 
   const loaiHinhLabel = (v) => {
     switch (v) {
@@ -123,8 +116,7 @@ export default function BaiBaoDetailPage() {
     (author) => {
       if (!author) return null;
 
-      const khoaInfo =
-        nhanviens.find((nv) => nv._id === author._id)?.KhoaID || author.KhoaID;
+      const khoaInfo = nhanVienById.get(author._id)?.KhoaID || author.KhoaID;
       let tenKhoa = "";
 
       if (typeof khoaInfo === "object" && khoaInfo?.TenKhoa) {
@@ -145,7 +137,7 @@ export default function BaiBaoDetailPage() {
         ChucVu: author.ChucVu || "",
       };
     },
-    [nhanviens]
+    [nhanVienById],
   );
 
   const tacGiaChinh = React.useMemo(() => {
@@ -159,17 +151,17 @@ export default function BaiBaoDetailPage() {
       return getAuthorFullInfo(v);
     }
 
-    const author = nhanviens.find((nv) => nv._id === id);
+    const author = nhanVienById.get(id);
     return author ? getAuthorFullInfo(author) : null;
-  }, [baiBao, nhanviens, getAuthorFullInfo]);
+  }, [baiBao, nhanVienById, getAuthorFullInfo]);
 
   const dongTacGia = React.useMemo(() => {
     if (!baiBao || !Array.isArray(baiBao.DongTacGiaIDs)) return [];
     // Normalize to ID strings
     const ids = new Set(
       baiBao.DongTacGiaIDs.map((x) =>
-        x && typeof x === "object" ? x._id : x
-      ).filter(Boolean)
+        x && typeof x === "object" ? x._id : x,
+      ).filter(Boolean),
     );
     // Ensure main author not duplicated in co-authors
     const mainId =
@@ -180,19 +172,19 @@ export default function BaiBaoDetailPage() {
 
     // Return enhanced author objects
     const providedObjects = (baiBao.DongTacGiaIDs || []).filter(
-      (x) => x && typeof x === "object"
+      (x) => x && typeof x === "object",
     );
     const providedById = new Map(providedObjects.map((o) => [o._id, o]));
     const list = [];
     ids.forEach((id) => {
-      const obj = providedById.get(id) || nhanviens.find((nv) => nv._id === id);
+      const obj = providedById.get(id) || nhanVienById.get(id);
       if (obj) {
         const enhancedAuthor = getAuthorFullInfo(obj);
         if (enhancedAuthor) list.push(enhancedAuthor);
       }
     });
     return list;
-  }, [baiBao, nhanviens, getAuthorFullInfo]);
+  }, [baiBao, nhanVienById, getAuthorFullInfo]);
 
   const nguoiThamDinh = React.useMemo(() => {
     if (!baiBao || !baiBao.NguoiThamDinhID) return null;
@@ -204,9 +196,9 @@ export default function BaiBaoDetailPage() {
       return getAuthorFullInfo(v);
     }
 
-    const reviewer = nhanviens.find((nv) => nv._id === id);
+    const reviewer = nhanVienById.get(id);
     return reviewer ? getAuthorFullInfo(reviewer) : null;
-  }, [baiBao, nhanviens, getAuthorFullInfo]);
+  }, [baiBao, nhanVienById, getAuthorFullInfo]);
 
   const handleAskDelete = () => {
     setConfirm({ open: true, loading: false });
@@ -704,11 +696,11 @@ export default function BaiBaoDetailPage() {
                           ? tapSan.Loai === "YHTH"
                             ? `Tập san y học thực hành số ${tapSan.SoXuatBan?.toString().padStart(
                                 2,
-                                "0"
+                                "0",
                               )} năm ${tapSan.NamXuatBan}`
                             : `Tập san thông tin thuốc số ${tapSan.SoXuatBan?.toString().padStart(
                                 2,
-                                "0"
+                                "0",
                               )} năm ${tapSan.NamXuatBan}`
                           : "Đang tải thông tin tập san..."}
                       </Typography>
@@ -1299,11 +1291,11 @@ export default function BaiBaoDetailPage() {
                           ? tapSan.Loai === "YHTH"
                             ? `Tập san y học thực hành số ${tapSan.SoXuatBan?.toString().padStart(
                                 2,
-                                "0"
+                                "0",
                               )} năm ${tapSan.NamXuatBan}`
                             : `Tập san thông tin thuốc số ${tapSan.SoXuatBan?.toString().padStart(
                                 2,
-                                "0"
+                                "0",
                               )} năm ${tapSan.NamXuatBan}`
                           : "Đang tải thông tin tập san..."}
                       </Typography>
@@ -1333,7 +1325,7 @@ export default function BaiBaoDetailPage() {
                           day: "numeric",
                           hour: "2-digit",
                           minute: "2-digit",
-                        }
+                        },
                       )}
                       color="success"
                       variant="outlined"
@@ -1359,7 +1351,7 @@ export default function BaiBaoDetailPage() {
                           day: "numeric",
                           hour: "2-digit",
                           minute: "2-digit",
-                        }
+                        },
                       )}
                       color="warning"
                       variant="outlined"

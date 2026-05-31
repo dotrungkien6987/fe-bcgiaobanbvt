@@ -1,10 +1,6 @@
-import {
-  
-  Grid,
-  Stack,
- 
-} from "@mui/material";
+import { Grid, Stack } from "@mui/material";
 import MainCard from "components/MainCard";
+import { useAuth } from "contexts/AuthContext";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import SimpleTable from "pages/tables/MyTable/SimpleTable";
 
@@ -17,39 +13,46 @@ import AddHuyenButton from "./AddHuyenButton";
 
 function HuyenTable() {
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const canManageDataFix = ["admin", "superadmin"].includes(
+    (user?.PhanQuyen || "").toLowerCase(),
+  );
+
   useEffect(() => {
     dispatch(getDataFix());
   }, [dispatch]);
-  const { Huyen } = useSelector(
-    (state) => state.nhanvien
-  );
+  const { Huyen } = useSelector((state) => state.nhanvien);
 
   const data = useMemo(() => Huyen, [Huyen]);
 
   const columns = useMemo(
     () => [
-      {
-        Header: "Action",
-        Footer: "Action",
-        accessor: "_id",
-        disableGroupBy: true,
-        sticky: "left",
-        Cell: ({ row }) => (
-          <Stack
-            direction="row"
-            alignItems="left"
-            justifyContent="left"
-            spacing={0}
-          >
-            <UpdateHuyenButton index={row.original.index} />
-            <DeleteDataFixButton
-              index={row.original.index}
-              datafixField="Huyen"
-              datafixTitle="Danh mục huyện"
-            />
-          </Stack>
-        ),
-      },
+      ...(canManageDataFix
+        ? [
+            {
+              Header: "Action",
+              Footer: "Action",
+              accessor: "_id",
+              disableGroupBy: true,
+              sticky: "left",
+              Cell: ({ row }) => (
+                <Stack
+                  direction="row"
+                  alignItems="left"
+                  justifyContent="left"
+                  spacing={0}
+                >
+                  <UpdateHuyenButton index={row.original.index} />
+                  <DeleteDataFixButton
+                    index={row.original.index}
+                    datafixField="Huyen"
+                    datafixTitle="Danh mục huyện"
+                  />
+                </Stack>
+              ),
+            },
+          ]
+        : []),
       {
         Header: "Mã tỉnh",
         Footer: "Mã tỉnh",
@@ -100,19 +103,17 @@ function HuyenTable() {
         disableGroupBy: true,
       },
     ],
-    []
+    [canManageDataFix],
   );
 
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
-        <MainCard
-          title={`Danh mục huyện`}
-        >
+        <MainCard title={`Danh mục huyện`}>
           <SimpleTable
             data={data}
             columns={columns}
-            additionalComponent={<AddHuyenButton />}
+            additionalComponent={canManageDataFix ? <AddHuyenButton /> : null}
           />
         </MainCard>
       </Grid>

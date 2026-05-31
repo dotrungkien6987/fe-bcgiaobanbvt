@@ -10,54 +10,59 @@ import {
   TableRow,
 } from "@mui/material";
 import MainCard from "components/MainCard";
+import { useAuth } from "contexts/AuthContext";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import SimpleTable from "pages/tables/MyTable/SimpleTable";
 
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import AddDataFixButton from "./AddDataFixButton";
 import DeleteDataFixButton from "./DeleteDataFixButton";
-import UpdateDataFixButton from "./UpdateDataFixButton";
-import { useParams } from "react-router-dom";
 import AddNhomHinhThucButton from "./AddNhomHinhThucButton";
 import UpdateNhomHinhThucButton from "./UpdateNhomHinhThucButton";
 
 function NhomHinhThucTable() {
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const canManageDataFix = ["admin", "superadmin"].includes(
+    (user?.PhanQuyen || "").toLowerCase(),
+  );
+
   useEffect(() => {
     dispatch(getDataFix());
   }, [dispatch]);
-  const { NhomHinhThucCapNhat, datafix } = useSelector(
-    (state) => state.nhanvien
-  );
+  const { NhomHinhThucCapNhat } = useSelector((state) => state.nhanvien);
 
   const data = useMemo(() => NhomHinhThucCapNhat, [NhomHinhThucCapNhat]);
 
   const columns = useMemo(
     () => [
-      {
-        Header: "Action",
-        Footer: "Action",
-        accessor: "_id",
-        disableGroupBy: true,
-        sticky: "left",
-        Cell: ({ row }) => (
-          <Stack
-            direction="row"
-            alignItems="left"
-            justifyContent="left"
-            spacing={0}
-          >
-            <UpdateNhomHinhThucButton index={row.original.index} />
-            <DeleteDataFixButton
-              index={row.original.index}
-              datafixField="NhomHinhThucCapNhat"
-              datafixTitle="Nhóm hình thúc cập nhật kiến thức y khoa liên tục"
-            />
-          </Stack>
-        ),
-      },
+      ...(canManageDataFix
+        ? [
+            {
+              Header: "Action",
+              Footer: "Action",
+              accessor: "_id",
+              disableGroupBy: true,
+              sticky: "left",
+              Cell: ({ row }) => (
+                <Stack
+                  direction="row"
+                  alignItems="left"
+                  justifyContent="left"
+                  spacing={0}
+                >
+                  <UpdateNhomHinhThucButton index={row.original.index} />
+                  <DeleteDataFixButton
+                    index={row.original.index}
+                    datafixField="NhomHinhThucCapNhat"
+                    datafixTitle="Nhóm hình thúc cập nhật kiến thức y khoa liên tục"
+                  />
+                </Stack>
+              ),
+            },
+          ]
+        : []),
 
       {
         Header: "Loại",
@@ -88,7 +93,7 @@ function NhomHinhThucTable() {
         disableGroupBy: true,
       },
     ],
-    []
+    [canManageDataFix],
   );
 
   return (
@@ -100,7 +105,9 @@ function NhomHinhThucTable() {
           <SimpleTable
             data={data}
             columns={columns}
-            additionalComponent={<AddNhomHinhThucButton />}
+            additionalComponent={
+              canManageDataFix ? <AddNhomHinhThucButton /> : null
+            }
           />
         </MainCard>
       </Grid>

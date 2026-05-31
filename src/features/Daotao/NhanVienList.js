@@ -35,7 +35,11 @@ function NhanVienList() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const isAdmin = user?.PhanQuyen === "admin";
+  const normalizedRole = (user?.PhanQuyen || "").toLowerCase();
+  const canManageNhanVien = ["admin", "superadmin", "cntt", "daotao"].includes(
+    normalizedRole,
+  );
+  const isAdmin = ["admin", "superadmin"].includes(normalizedRole);
 
   const columns = useMemo(
     () => [
@@ -63,8 +67,12 @@ function NhanVienList() {
               justifyContent="center"
               spacing={0}
             >
-              <UpdateNhanVienButton nhanvien={row.original} />
-              <DeleteNhanVienButton nhanvienID={row.original._id} />
+              {canManageNhanVien ? (
+                <>
+                  <UpdateNhanVienButton nhanvien={row.original} />
+                  <DeleteNhanVienButton nhanvienID={row.original._id} />
+                </>
+              ) : null}
               <QuaTrinhDaoTaoNhanVienButon nhanvienID={row.original._id} />
               {isAdmin && (
                 <>
@@ -88,7 +96,7 @@ function NhanVienList() {
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(
-                          `/quan-ly-cong-viec/nhan-vien/${row.original._id}`
+                          `/quan-ly-cong-viec/nhan-vien/${row.original._id}`,
                         );
                       }}
                     >
@@ -114,7 +122,7 @@ function NhanVienList() {
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(
-                          `/quanlycongviec/giao-nhiem-vu/${row.original._id}`
+                          `/quanlycongviec/giao-nhiem-vu/${row.original._id}`,
                         );
                       }}
                     >
@@ -335,7 +343,7 @@ function NhanVienList() {
         disableGroupBy: true,
       },
     ],
-    [mode, theme.palette.grey, navigate, isAdmin]
+    [canManageNhanVien, mode, theme.palette.grey, navigate, isAdmin],
   );
 
   const dispatch = useDispatch();
@@ -350,7 +358,7 @@ function NhanVienList() {
 
   const renderRowSubComponent = useCallback(
     ({ row }) => <NhanVienView data={data[Number(row.id)]} />,
-    [data]
+    [data],
   );
   return (
     <Grid container spacing={3}>
@@ -364,7 +372,7 @@ function NhanVienList() {
               additionalComponent={
                 <div style={{ display: "flex", alignItems: "flex-end" }}>
                   <ExcelButton />
-                  <AddNhanVienButton />
+                  {canManageNhanVien ? <AddNhanVienButton /> : null}
                 </div>
               }
             />

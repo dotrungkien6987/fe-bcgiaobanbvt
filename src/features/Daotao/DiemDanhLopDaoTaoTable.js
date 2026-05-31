@@ -19,7 +19,14 @@ import useAuth from "hooks/useAuth";
 
 function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
   const { user } = useAuth();
-  
+  const { hocvienCurrents, lopdaotaoCurrent, openUploadLopDaoTaoNhanVien } =
+    useSelector((state) => state.daotao);
+  const canManageLopDaoTao = Boolean(
+    lopdaotaoCurrent &&
+    (user?._id === lopdaotaoCurrent.UserIDCreated ||
+      ["admin", "superadmin"].includes((user?.PhanQuyen || "").toLowerCase())),
+  );
+
   const columns = useMemo(() => {
     // Các cột cơ bản
     const baseColumns = [
@@ -57,17 +64,6 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
         accessor: "TenKhoa",
         disableGroupBy: true,
       },
-      {
-        Header: "Upload",
-        Footer: "Upload",
-        accessor: "Upload",
-        disableGroupBy: true,
-        Cell: ({ row }) => (
-          <UploadLopDaoTaoNhanVienButton
-            lopdaotaonhanvienID={row.original._id}
-          />
-        ),
-      },
 
       {
         Header: "Ảnh",
@@ -86,7 +82,7 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
         accessor: "SoTinChiTichLuy",
         className: "cell-center",
         dataType: "text",
-        editable: true,
+        editable: canManageLopDaoTao,
         disableGroupBy: true,
       },
       {
@@ -131,16 +127,33 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
       Header: `section ${index + 1}`,
       Footer: `section ${index + 1}`,
       accessor: `section ${index + 1}`,
-      editable: true,
+      editable: canManageLopDaoTao,
       dataType: "checkbox",
       disableGroupBy: true,
     }));
-    console.log("columns", [...baseColumns, ...dynamicColumns]);
-    return [...baseColumns, ...dynamicColumns];
-  }, [numSections]);
+    const uploadColumn = canManageLopDaoTao
+      ? [
+          {
+            Header: "Upload",
+            Footer: "Upload",
+            accessor: "Upload",
+            disableGroupBy: true,
+            Cell: ({ row }) => (
+              <UploadLopDaoTaoNhanVienButton
+                lopdaotaonhanvienID={row.original._id}
+              />
+            ),
+          },
+        ]
+      : [];
+    console.log("columns", [
+      ...baseColumns,
+      ...uploadColumn,
+      ...dynamicColumns,
+    ]);
+    return [...baseColumns, ...uploadColumn, ...dynamicColumns];
+  }, [canManageLopDaoTao, numSections]);
 
-  const { hocvienCurrents, lopdaotaoCurrent, openUploadLopDaoTaoNhanVien } =
-    useSelector((state) => state.daotao);
   const dispatch = useDispatch();
 
   const handleClickSave = () => {
@@ -196,7 +209,7 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
           };
         }
         return row;
-      })
+      }),
     );
   };
   const handleAutoCalculate = () => {
@@ -206,7 +219,7 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
           ...row,
           SoTinChiTichLuy: row.TuDong,
         };
-      })
+      }),
     );
   };
   useEffect(() => {
@@ -227,7 +240,7 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
         <Box sx={{ display: "flex", gap: 2 }}>
           {" "}
           {/* Thêm khoảng cách giữa các nút */}
-          {!lopdaotaoCurrent.TrangThai && (
+          {!lopdaotaoCurrent.TrangThai && canManageLopDaoTao && (
             <Button
               variant="contained"
               startIcon={<CompareArrowsIcon />}
@@ -236,7 +249,7 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
               Tự động tính tín chỉ tích lũy
             </Button>
           )}
-          {!lopdaotaoCurrent.TrangThai && (user?._id === lopdaotaoCurrent.UserIDCreated) && (
+          {!lopdaotaoCurrent.TrangThai && canManageLopDaoTao && (
             <Button
               variant="contained"
               startIcon={<SaveIcon />}
@@ -249,7 +262,6 @@ function DiemDanhLopDaoTaoTable({ numSections = 0 }) {
         <UpLoadHocVienLopDaoTaoForm
           open={openUploadLopDaoTaoNhanVien}
           handleClose={handleCloseUpload}
-          
         />
       </Stack>
       <MyStickyEditTable

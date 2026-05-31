@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FCheckbox, FormProvider, FTextField } from "../components/form";
+import { FormProvider, FTextField } from "../components/form";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from "yup";
@@ -7,12 +7,11 @@ import * as Yup from "yup";
 import useAuth from "../hooks/useAuth";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-import { useNavigate, useLocation, Link as RouterLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Alert,
   Container,
   Stack,
-  Link,
   InputAdornment,
   IconButton,
 } from "@mui/material";
@@ -20,49 +19,80 @@ import {
 import { LoadingButton } from "@mui/lab";
 
 const LoginSchema = Yup.object().shape({
-  UserName: Yup.string().required("UserName is required"),
-  PassWord: Yup.string().required("Password is required"),
+  UserName: Yup.string().required("Bắt buộc nhập tên đăng nhập"),
+  PassWord: Yup.string().required("Bắt buộc nhập mật khẩu"),
 });
 const defaultValues = {
   UserName: "",
   PassWord: "",
-  remember: true,
 };
+
+function getLoginErrorDisplay(error) {
+  switch (error?.status) {
+    case 401:
+      return {
+        severity: "error",
+        message: "Tên đăng nhập hoặc mật khẩu không đúng.",
+      };
+    case 423:
+      return {
+        severity: "warning",
+        message:
+          error?.message || "Tài khoản tạm thời bị khóa. Vui lòng thử lại sau.",
+      };
+    case 429:
+      return {
+        severity: "warning",
+        message: "Bạn đã thử quá nhanh. Vui lòng chờ một chút rồi thử lại.",
+      };
+    default:
+      return {
+        severity: "error",
+        message:
+          error?.message || "Đăng nhập không thành công. Vui lòng thử lại.",
+      };
+  }
+}
 
 function LoginPage() {
   const auth = useAuth();
-  console.log("auth",auth);
   const methods = useForm({
     resolver: yupResolver(LoginSchema),
     defaultValues,
   });
   const {
     handleSubmit,
-    reset,
+    clearErrors,
     setError,
+    setFocus,
+    resetField,
     formState: { errors, isSubmitting },
   } = methods;
   const navigate = useNavigate();
-  
+
   const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data) => {
     // const from = location.state?.from?.pathname || "/";
     const from = "/";
-    console.log(from);
     let { UserName, PassWord } = data;
-    console.log(UserName, PassWord);
+    clearErrors("responseError");
     try {
-      
       await auth.login({ UserName, PassWord }, () => {
-        console.log(`isAuth after submit login:`, auth);
         navigate(from, { replace: true });
       });
-      // console.log(`isAuth after submit login ${auth.isAuthenticated}`);
     } catch (error) {
-      // reset();
-      
-      setError("responseError", error);
+      const loginError = getLoginErrorDisplay(error);
+
+      if (error?.status === 401) {
+        resetField("PassWord");
+        setFocus("PassWord");
+      }
+
+      setError("responseError", {
+        type: loginError.severity,
+        message: loginError.message,
+      });
     }
   };
   return (
@@ -71,7 +101,9 @@ function LoginPage() {
         <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={3}>
             {!!errors.responseError && (
-              <Alert severity="error">{errors.responseError.message}</Alert>
+              <Alert severity={errors.responseError.type || "error"}>
+                {errors.responseError.message}
+              </Alert>
             )}
 
             <FTextField name="UserName" label="Tên đăng nhập" />
@@ -82,9 +114,9 @@ function LoginPage() {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton 
-                    onClick={()=>setShowPassword(!showPassword)}
-                    edge="end"
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
                     >
                       {showPassword ? (
                         <VisibilityIcon />
@@ -103,19 +135,16 @@ function LoginPage() {
             alignItems="center"
             justifyContent="space-between"
             sx={{ my: 2 }}
-          >
-            <FCheckbox name="remember" label="Remember me" />
-          </Stack>
+          />
 
           <LoadingButton
             fullWidth
             size="large"
             type="submit"
-            
             variant="contained"
             loading={isSubmitting}
           >
-            Login
+            Đăng nhập
           </LoadingButton>
         </FormProvider>
       </Container>

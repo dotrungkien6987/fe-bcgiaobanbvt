@@ -1,10 +1,6 @@
-import {
-  
-  Grid,
-  Stack,
- 
-} from "@mui/material";
+import { Grid, Stack } from "@mui/material";
 import MainCard from "components/MainCard";
+import { useAuth } from "contexts/AuthContext";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import SimpleTable from "pages/tables/MyTable/SimpleTable";
 
@@ -20,39 +16,46 @@ import AddTinhButton from "./AddTinhButton";
 
 function TinhTable() {
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const canManageDataFix = ["admin", "superadmin"].includes(
+    (user?.PhanQuyen || "").toLowerCase(),
+  );
+
   useEffect(() => {
     dispatch(getDataFix());
   }, [dispatch]);
-  const { Tinh } = useSelector(
-    (state) => state.nhanvien
-  );
+  const { Tinh } = useSelector((state) => state.nhanvien);
 
   const data = useMemo(() => Tinh, [Tinh]);
 
   const columns = useMemo(
     () => [
-      {
-        Header: "Action",
-        Footer: "Action",
-        accessor: "_id",
-        disableGroupBy: true,
-        sticky: "left",
-        Cell: ({ row }) => (
-          <Stack
-            direction="row"
-            alignItems="left"
-            justifyContent="left"
-            spacing={0}
-          >
-            <UpdateTinhButton index={row.original.index} />
-            <DeleteDataFixButton
-              index={row.original.index}
-              datafixField="Tinh"
-              datafixTitle="Danh mục tỉnh"
-            />
-          </Stack>
-        ),
-      },
+      ...(canManageDataFix
+        ? [
+            {
+              Header: "Action",
+              Footer: "Action",
+              accessor: "_id",
+              disableGroupBy: true,
+              sticky: "left",
+              Cell: ({ row }) => (
+                <Stack
+                  direction="row"
+                  alignItems="left"
+                  justifyContent="left"
+                  spacing={0}
+                >
+                  <UpdateTinhButton index={row.original.index} />
+                  <DeleteDataFixButton
+                    index={row.original.index}
+                    datafixField="Tinh"
+                    datafixTitle="Danh mục tỉnh"
+                  />
+                </Stack>
+              ),
+            },
+          ]
+        : []),
 
       {
         Header: "Tên tỉnh",
@@ -97,19 +100,17 @@ function TinhTable() {
         disableGroupBy: true,
       },
     ],
-    []
+    [canManageDataFix],
   );
 
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
-        <MainCard
-          title={`Danh mục tỉnh`}
-        >
+        <MainCard title={`Danh mục tỉnh`}>
           <SimpleTable
             data={data}
             columns={columns}
-            additionalComponent={<AddTinhButton />}
+            additionalComponent={canManageDataFix ? <AddTinhButton /> : null}
           />
         </MainCard>
       </Grid>

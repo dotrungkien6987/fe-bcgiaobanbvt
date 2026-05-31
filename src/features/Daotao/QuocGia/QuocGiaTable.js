@@ -1,5 +1,6 @@
 import { Grid, Stack } from "@mui/material";
 import MainCard from "components/MainCard";
+import { useAuth } from "contexts/AuthContext";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import SimpleTable from "pages/tables/MyTable/SimpleTable";
 
@@ -12,6 +13,11 @@ import AddQuocGiaButton from "./AddQuocGiaButton";
 
 function QuocGiaTable() {
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const canManageDataFix = ["admin", "superadmin"].includes(
+    (user?.PhanQuyen || "").toLowerCase(),
+  );
+
   useEffect(() => {
     dispatch(getDataFix());
   }, [dispatch]);
@@ -21,28 +27,32 @@ function QuocGiaTable() {
 
   const columns = useMemo(
     () => [
-      {
-        Header: "Action",
-        Footer: "Action",
-        accessor: "_id",
-        disableGroupBy: true,
-        sticky: "left",
-        Cell: ({ row }) => (
-          <Stack
-            direction="row"
-            alignItems="left"
-            justifyContent="left"
-            spacing={0}
-          >
-            <UpdateQuocGiaButton index={row.original.index} />
-            <DeleteDataFixButton
-              index={row.original.index}
-              datafixField="QuocGia"
-              datafixTitle="Danh mục quốc gia"
-            />
-          </Stack>
-        ),
-      },
+      ...(canManageDataFix
+        ? [
+            {
+              Header: "Action",
+              Footer: "Action",
+              accessor: "_id",
+              disableGroupBy: true,
+              sticky: "left",
+              Cell: ({ row }) => (
+                <Stack
+                  direction="row"
+                  alignItems="left"
+                  justifyContent="left"
+                  spacing={0}
+                >
+                  <UpdateQuocGiaButton index={row.original.index} />
+                  <DeleteDataFixButton
+                    index={row.original.index}
+                    datafixField="QuocGia"
+                    datafixTitle="Danh mục quốc gia"
+                  />
+                </Stack>
+              ),
+            },
+          ]
+        : []),
 
       {
         Header: "Mã quốc gia",
@@ -73,7 +83,7 @@ function QuocGiaTable() {
         disableGroupBy: true,
       },
     ],
-    []
+    [canManageDataFix],
   );
 
   return (
@@ -83,7 +93,7 @@ function QuocGiaTable() {
           <SimpleTable
             data={data}
             columns={columns}
-            additionalComponent={<AddQuocGiaButton />}
+            additionalComponent={canManageDataFix ? <AddQuocGiaButton /> : null}
           />
         </MainCard>
       </Grid>

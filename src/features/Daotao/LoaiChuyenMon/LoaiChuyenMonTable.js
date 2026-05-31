@@ -7,10 +7,15 @@ import { getAllLoaiChuyenMon, deleteLoaiChuyenMon } from "./loaiChuyenMonSlice";
 import AddLoaiChuyenMonButton from "./AddLoaiChuyenMonButton";
 import UpdateLoaiChuyenMonButton from "./UpdateLoaiChuyenMonButton";
 import DeleteIcon from "@mui/icons-material/Delete";
+import useAuth from "hooks/useAuth";
 
 export default function LoaiChuyenMonTable() {
   const dispatch = useDispatch();
   const { list } = useSelector((state) => state.loaichuyenmon);
+  const { user } = useAuth();
+  const canManage = ["admin", "superadmin", "daotao"].includes(
+    (user?.PhanQuyen || "").toLowerCase(),
+  );
 
   useEffect(() => {
     dispatch(getAllLoaiChuyenMon());
@@ -18,8 +23,22 @@ export default function LoaiChuyenMonTable() {
 
   const data = useMemo(() => list, [list]);
 
-  const columns = useMemo(
-    () => [
+  const columns = useMemo(() => {
+    const baseColumns = [
+      { Header: "Loại", accessor: "LoaiChuyenMon" },
+      { Header: "Trình độ", accessor: "TrinhDo" },
+      {
+        Header: "Ngày tạo",
+        accessor: "createdAt",
+        Cell: ({ value }) => new Date(value).toLocaleDateString("vi-VN"),
+      },
+    ];
+
+    if (!canManage) {
+      return baseColumns;
+    }
+
+    return [
       {
         Header: "Action",
         accessor: "_id",
@@ -37,16 +56,9 @@ export default function LoaiChuyenMonTable() {
           </Stack>
         ),
       },
-      { Header: "Loại", accessor: "LoaiChuyenMon" },
-      { Header: "Trình độ", accessor: "TrinhDo" },
-      {
-        Header: "Ngày tạo",
-        accessor: "createdAt",
-        Cell: ({ value }) => new Date(value).toLocaleDateString("vi-VN"),
-      },
-    ],
-    [dispatch]
-  );
+      ...baseColumns,
+    ];
+  }, [canManage, dispatch]);
 
   return (
     <Grid container spacing={3}>
@@ -55,7 +67,7 @@ export default function LoaiChuyenMonTable() {
           <SimpleTable
             data={data}
             columns={columns}
-            additionalComponent={<AddLoaiChuyenMonButton />}
+            additionalComponent={canManage ? <AddLoaiChuyenMonButton /> : null}
           />
         </MainCard>
       </Grid>

@@ -13,7 +13,7 @@ import {
   selectKhoas,
 } from "../Slice/lichtrucSlice";
 import {
-  getAllNhomKhoa,
+  getLookupNhomKhoa,
   selectNhomKhoaList,
 } from "../Slice/nhomkhoasothutuSlice";
 import { getAllSoThuTuStats } from "../Slice/soThuTuSlice";
@@ -70,7 +70,7 @@ export const HoatDongBenhVienProvider = ({ children }) => {
     setLoading(true);
 
     // Fetch nhóm khoa và khoa từ redux store
-    Promise.all([dispatch(getAllNhomKhoa()), dispatch(getKhoas())])
+    Promise.all([dispatch(getLookupNhomKhoa()), dispatch(getKhoas())])
       .then(() => {
         setLoading(false);
       })
@@ -170,7 +170,7 @@ export const HoatDongBenhVienProvider = ({ children }) => {
                 if (!khoaId) {
                   console.log(
                     "Skipping item with null/undefined KhoaID:",
-                    item
+                    item,
                   );
                   return;
                 }
@@ -178,17 +178,17 @@ export const HoatDongBenhVienProvider = ({ children }) => {
                 // Tìm mã khoa dựa trên ID của khoa
                 let maKhoa = "";
                 const matchedDept = khoasFromRedux.find(
-                  (khoa) => khoa._id === khoaId
+                  (khoa) => khoa._id === khoaId,
                 );
 
                 if (matchedDept) {
                   maKhoa = matchedDept.MaKhoa;
                   console.log(
-                    `Matched department: ${matchedDept.TenKhoa}, MaKhoa: ${maKhoa}`
+                    `Matched department: ${matchedDept.TenKhoa}, MaKhoa: ${maKhoa}`,
                   );
                 } else {
                   console.log(
-                    `No matching department found for KhoaID: ${khoaId}`
+                    `No matching department found for KhoaID: ${khoaId}`,
                   );
                 }
 
@@ -288,7 +288,7 @@ export const HoatDongBenhVienProvider = ({ children }) => {
     if (
       deptSchedule.dieuDuong &&
       removeVietnameseTones(deptSchedule.dieuDuong.toLowerCase()).includes(
-        searchTermWithoutAccents
+        searchTermWithoutAccents,
       )
     ) {
       return true;
@@ -298,7 +298,7 @@ export const HoatDongBenhVienProvider = ({ children }) => {
     if (
       deptSchedule.bacSi &&
       removeVietnameseTones(deptSchedule.bacSi.toLowerCase()).includes(
-        searchTermWithoutAccents
+        searchTermWithoutAccents,
       )
     ) {
       return true;
@@ -308,7 +308,7 @@ export const HoatDongBenhVienProvider = ({ children }) => {
     if (
       deptSchedule.ghiChu &&
       removeVietnameseTones(deptSchedule.ghiChu.toLowerCase()).includes(
-        searchTermWithoutAccents
+        searchTermWithoutAccents,
       )
     ) {
       return true;
@@ -350,14 +350,14 @@ export const HoatDongBenhVienProvider = ({ children }) => {
   // Chuyển đổi chế độ xem
   const toggleViewMode = () => {
     setViewMode((prev) =>
-      prev === VIEW_MODES.COMPACT ? VIEW_MODES.EXPANDED : VIEW_MODES.COMPACT
+      prev === VIEW_MODES.COMPACT ? VIEW_MODES.EXPANDED : VIEW_MODES.COMPACT,
     );
   };
 
   // Toggle hiển thị loại phòng
   const toggleDepartmentType = (type) => {
     setVisibleTypes((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
     );
   }; // Lấy danh sách khoa theo loại với tìm kiếm tiếng Việt
   const getDepartmentsByType = useCallback(
@@ -387,7 +387,7 @@ export const HoatDongBenhVienProvider = ({ children }) => {
         return false;
       });
     },
-    [filteredDepartments, schedules, searchTerm]
+    [filteredDepartments, schedules, searchTerm],
   ); // Refresh data
   const refreshData = () => {
     setLoading(true);
@@ -400,7 +400,7 @@ export const HoatDongBenhVienProvider = ({ children }) => {
     // Thực hiện các promise đồng thời: lấy lịch trực, lấy nhóm khoa và lấy danh sách khoa
     Promise.all([
       dispatch(getLichTrucByDate(formattedDate)),
-      dispatch(getAllNhomKhoa()),
+      dispatch(getLookupNhomKhoa()),
       dispatch(getKhoas()),
     ])
       .then(([lichTrucResult]) => {
@@ -436,7 +436,7 @@ export const HoatDongBenhVienProvider = ({ children }) => {
               if (!khoaId) {
                 console.log(
                   "Skipping refresh item with null/undefined KhoaID:",
-                  item
+                  item,
                 );
                 return;
               }
@@ -444,17 +444,17 @@ export const HoatDongBenhVienProvider = ({ children }) => {
               // Tìm mã khoa dựa trên ID của khoa
               let maKhoa = "";
               const matchedDept = khoasFromRedux.find(
-                (khoa) => khoa._id === khoaId
+                (khoa) => khoa._id === khoaId,
               );
 
               if (matchedDept) {
                 maKhoa = matchedDept.MaKhoa;
                 console.log(
-                  `Matched refreshed department: ${matchedDept.TenKhoa}, MaKhoa: ${maKhoa}`
+                  `Matched refreshed department: ${matchedDept.TenKhoa}, MaKhoa: ${maKhoa}`,
                 );
               } else {
                 console.log(
-                  `No matching department found for refreshed KhoaID: ${khoaId}`
+                  `No matching department found for refreshed KhoaID: ${khoaId}`,
                 );
               }
 
@@ -469,7 +469,7 @@ export const HoatDongBenhVienProvider = ({ children }) => {
               } else if (item.MaKhoa) {
                 // Nếu không tìm được bằng KhoaID nhưng có MaKhoa
                 console.log(
-                  `Using MaKhoa fallback during refresh for: ${item.MaKhoa}`
+                  `Using MaKhoa fallback during refresh for: ${item.MaKhoa}`,
                 );
                 schedulesData[item.MaKhoa] = {
                   dieuDuong: item.DieuDuong || "",
@@ -480,7 +480,7 @@ export const HoatDongBenhVienProvider = ({ children }) => {
             } else if (item && item.MaKhoa) {
               // Fallback nếu không có KhoaID nhưng có MaKhoa (backwards compatibility)
               console.log(
-                `Using MaKhoa fallback during refresh for: ${item.MaKhoa}`
+                `Using MaKhoa fallback during refresh for: ${item.MaKhoa}`,
               );
               schedulesData[item.MaKhoa] = {
                 dieuDuong: item.DieuDuong || "",
@@ -501,7 +501,7 @@ export const HoatDongBenhVienProvider = ({ children }) => {
         // Nếu có nhóm khoa được chọn, lọc theo nhóm đó
         if (selectedGroup) {
           const selectedGroupData = departmentGroups.find(
-            (g) => g.id === selectedGroup
+            (g) => g.id === selectedGroup,
           );
 
           if (selectedGroupData) {
@@ -518,12 +518,12 @@ export const HoatDongBenhVienProvider = ({ children }) => {
 
             // Lọc chỉ những khoa thuộc nhóm đã chọn
             filteredKhoas = khoasFromRedux.filter((khoa) =>
-              khoaIdsInGroup.includes(khoa._id)
+              khoaIdsInGroup.includes(khoa._id),
             );
 
             console.log(
               "Filtered khoas by selected group:",
-              filteredKhoas.length
+              filteredKhoas.length,
             );
           }
         }
@@ -537,7 +537,7 @@ export const HoatDongBenhVienProvider = ({ children }) => {
           setLoadingSoThuTu(true);
           console.log(
             "Loading SoThuTu data with departmentIds:",
-            departmentIds
+            departmentIds,
           );
 
           // Dispatch action để lấy dữ liệu số thứ tự
