@@ -37,9 +37,9 @@ import FTextField from "components/form/FTextField";
 import FRadioGroup from "components/form/FRadioGroup";
 import FAutocomplete from "components/form/FAutocomplete";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
-import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 import AuthorsSelectorDialog from "../components/AuthorsSelectorDialog";
 import ReviewerSelectorDialog from "../components/ReviewerSelectorDialog";
+import useTapSanNhanVienOptions from "../hooks/useTapSanNhanVienOptions";
 
 export default function BaiBaoFormPage() {
   const { tapSanId, baiBaoId } = useParams();
@@ -47,7 +47,7 @@ export default function BaiBaoFormPage() {
   const isEdit = !!baiBaoId;
   const dispatch = useDispatch();
   const baiBaoFromStore = useSelector((state) =>
-    isEdit ? selectBaiBaoById(state, baiBaoId) : null
+    isEdit ? selectBaiBaoById(state, baiBaoId) : null,
   );
 
   const tapSan = useSelector((state) => selectTapSanById(state, tapSanId));
@@ -55,11 +55,15 @@ export default function BaiBaoFormPage() {
   const [submitLoading, setSubmitLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [success, setSuccess] = React.useState(null);
-  const nhanviens = useSelector((s) => s.nhanvien?.nhanviens || []);
+  const {
+    nhanVienOptions,
+    nhanVienById,
+    error: nhanVienError,
+  } = useTapSanNhanVienOptions();
 
   // DataFix lists
   const { LoaiHinhYHTH = [], ChuyenDeTTT = [] } = useSelector(
-    (s) => s.nhanvien || {}
+    (s) => s.nhanvien || {},
   );
 
   const schema = Yup.object().shape({
@@ -118,7 +122,7 @@ export default function BaiBaoFormPage() {
               if (!arr || arr.length === 0) return true;
               const main = this.parent.TacGiaChinhID;
               return !arr.includes(main);
-            }
+            },
           ),
         otherwise: (s) => s.transform(() => []).default([]),
       }),
@@ -156,7 +160,7 @@ export default function BaiBaoFormPage() {
   const coIds = watch("DongTacGiaIDs");
   const [openAuthors, setOpenAuthors] = React.useState(false);
   const [openReviewer, setOpenReviewer] = React.useState(false);
-  const getName = (id) => nhanviens.find((x) => x._id === id)?.Ten || id;
+  const getName = (id) => nhanVienById.get(id)?.Ten || id;
 
   const loadTapSan = React.useCallback(async () => {
     try {
@@ -214,16 +218,12 @@ export default function BaiBaoFormPage() {
     loadBaiBao();
   }, [loadBaiBao]);
 
-  // Load NhanVien list once
   React.useEffect(() => {
-    if (!nhanviens || nhanviens.length === 0) {
-      dispatch(getAllNhanVien());
-    }
     // Ensure DataFix is loaded for Autocomplete options
     if (!LoaiHinhYHTH?.length || !ChuyenDeTTT?.length) {
       dispatch(getDataFix());
     }
-  }, [dispatch, nhanviens, LoaiHinhYHTH?.length, ChuyenDeTTT?.length]);
+  }, [dispatch, LoaiHinhYHTH?.length, ChuyenDeTTT?.length]);
 
   const onSubmit = async (data) => {
     try {
@@ -258,12 +258,12 @@ export default function BaiBaoFormPage() {
       let result;
       if (isEdit) {
         result = await dispatch(
-          updateBaiBaoThunk({ id: baiBaoId, payload })
+          updateBaiBaoThunk({ id: baiBaoId, payload }),
         ).unwrap();
         setSuccess("Cập nhật bài báo thành công");
       } else {
         result = await dispatch(
-          createBaiBaoThunk({ tapSanId, payload })
+          createBaiBaoThunk({ tapSanId, payload }),
         ).unwrap();
         setSuccess("Tạo bài báo thành công");
       }
@@ -273,7 +273,7 @@ export default function BaiBaoFormPage() {
     } catch (error) {
       console.error("Error saving BaiBao:", error);
       setError(
-        error?.response?.data?.message || "Có lỗi xảy ra khi lưu bài báo"
+        error?.response?.data?.message || "Có lỗi xảy ra khi lưu bài báo",
       );
     } finally {
       setSubmitLoading(false);
@@ -347,9 +347,9 @@ export default function BaiBaoFormPage() {
       )}
 
       {/* Error Alert */}
-      {error && (
+      {(error || nhanVienError) && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-          {error}
+          {error || "Không thể tải danh sách nhân viên TapSan"}
         </Alert>
       )}
 
@@ -412,7 +412,7 @@ export default function BaiBaoFormPage() {
                     options={
                       Array.isArray(LoaiHinhYHTH)
                         ? LoaiHinhYHTH.map((x) => x?.LoaiHinhYHTH).filter(
-                            Boolean
+                            Boolean,
                           )
                         : []
                     }
@@ -495,7 +495,7 @@ export default function BaiBaoFormPage() {
                               setValue(
                                 "DongTacGiaIDs",
                                 coIds.filter((x) => x !== id),
-                                { shouldValidate: true }
+                                { shouldValidate: true },
                               )
                             }
                           />
@@ -532,7 +532,7 @@ export default function BaiBaoFormPage() {
                       <Chip
                         color="info"
                         label={`Người thẩm định: ${getName(
-                          methods.watch("NguoiThamDinhID")
+                          methods.watch("NguoiThamDinhID"),
                         )}`}
                         onDelete={() =>
                           setValue("NguoiThamDinhID", "", {
@@ -599,6 +599,7 @@ export default function BaiBaoFormPage() {
         open={openAuthors}
         onClose={() => setOpenAuthors(false)}
         value={{ TacGiaChinhID: mainId, DongTacGiaIDs: coIds || [] }}
+        nhanVienOptions={nhanVienOptions}
         onChange={({ TacGiaChinhID, DongTacGiaIDs }) => {
           setValue("TacGiaChinhID", TacGiaChinhID, { shouldValidate: true });
           setValue("DongTacGiaIDs", DongTacGiaIDs, { shouldValidate: true });
@@ -608,6 +609,7 @@ export default function BaiBaoFormPage() {
         open={openReviewer}
         onClose={() => setOpenReviewer(false)}
         value={methods.watch("NguoiThamDinhID") || ""}
+        nhanVienOptions={nhanVienOptions}
         onChange={(id) =>
           setValue("NguoiThamDinhID", id, { shouldValidate: true })
         }

@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import {
+  Navigate,
+  useNavigate,
+  useParams,
+  useLocation,
+} from "react-router-dom";
 import {
   Box,
   Button,
@@ -43,6 +48,7 @@ import FormProvider from "../../components/form/FormProvider";
 import FTextField from "../../components/form/FTextField";
 import FDatePicker from "../../components/form/FDatePicker";
 import FAutocomplete from "../../components/form/FAutocomplete";
+import useAuth from "../../hooks/useAuth";
 import AttachmentSection from "../../shared/components/AttachmentSection";
 import {
   getQuyTrinhISODetail,
@@ -79,6 +85,7 @@ function QuyTrinhISOEditPage() {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { user } = useAuth();
   const fromCreate = location.state?.fromCreate === true;
   const [activateLoading, setActivateLoading] = useState(false);
   const { currentItem, versions, isLoading } = useSelector(
@@ -91,13 +98,18 @@ function QuyTrinhISOEditPage() {
   const [selectedVersion, setSelectedVersion] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [copyLoading, setCopyLoading] = useState(false);
+  const isQLCL = ["qlcl", "admin", "superadmin"].includes(
+    user?.PhanQuyen?.toLowerCase(),
+  );
 
   // Load danh sách khoa ISO
   useEffect(() => {
-    if (khoaList.length === 0) {
-      dispatch(getISOKhoa());
+    if (!isQLCL || khoaList.length !== 0) {
+      return;
     }
-  }, [dispatch, khoaList.length]);
+
+    dispatch(getISOKhoa());
+  }, [dispatch, isQLCL, khoaList.length]);
 
   const methods = useForm({
     resolver: yupResolver(quyTrinhSchema),
@@ -119,43 +131,53 @@ function QuyTrinhISOEditPage() {
 
   // Warn about unsaved changes on page unload
   useEffect(() => {
+    if (!isQLCL || !isDirty) {
+      return undefined;
+    }
+
     const handler = (e) => {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
+      e.preventDefault();
+      e.returnValue = "";
     };
+
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
-  }, [isDirty]);
+  }, [isDirty, isQLCL]);
 
   // Fetch data
   useEffect(() => {
-    if (id) {
-      dispatch(getQuyTrinhISODetail(id));
+    if (!isQLCL || !id) {
+      return;
     }
-  }, [dispatch, id]);
+
+    dispatch(getQuyTrinhISODetail(id));
+  }, [dispatch, id, isQLCL]);
 
   // Populate form when data loads
   useEffect(() => {
-    if (currentItem && currentItem._id === id) {
-      reset({
-        TenQuyTrinh: currentItem.TenQuyTrinh || "",
-        MaQuyTrinh: currentItem.MaQuyTrinh || "",
-        PhienBan: currentItem.PhienBan || "",
-        KhoaXayDungID: currentItem.KhoaXayDungID || null,
-        NgayHieuLuc: currentItem.NgayHieuLuc
-          ? dayjs(currentItem.NgayHieuLuc)
-          : dayjs(),
-        GhiChu: currentItem.GhiChu || "",
-      });
-
-      // Fetch versions if we have MaQuyTrinh
-      if (currentItem.MaQuyTrinh) {
-        dispatch(getQuyTrinhISOVersions(currentItem._id));
-      }
+    if (!isQLCL || !currentItem || currentItem._id !== id) {
+      return;
     }
-  }, [currentItem, id, reset, dispatch]);
+
+    reset({
+      TenQuyTrinh: currentItem.TenQuyTrinh || "",
+      MaQuyTrinh: currentItem.MaQuyTrinh || "",
+      PhienBan: currentItem.PhienBan || "",
+      KhoaXayDungID: currentItem.KhoaXayDungID || null,
+      NgayHieuLuc: currentItem.NgayHieuLuc
+        ? dayjs(currentItem.NgayHieuLuc)
+        : dayjs(),
+      GhiChu: currentItem.GhiChu || "",
+    });
+
+    if (currentItem.MaQuyTrinh) {
+      dispatch(getQuyTrinhISOVersions(currentItem._id));
+    }
+  }, [currentItem, id, reset, dispatch, isQLCL]);
+
+  if (!isQLCL) {
+    return <Navigate to="/quytrinh-iso" replace />;
+  }
 
   const onSubmit = async (data) => {
     try {

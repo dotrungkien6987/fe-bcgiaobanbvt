@@ -1,5 +1,6 @@
 import { Chip, Grid, Stack } from "@mui/material";
 import MainCard from "components/MainCard";
+import { useAuth } from "contexts/AuthContext";
 import SimpleTable from "pages/tables/MyTable/SimpleTable";
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,6 +11,10 @@ import { getAllKhoa } from "./khoaSlice";
 
 function KhoaTable() {
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const canManageKhoa = ["admin", "superadmin"].includes(
+    (user?.PhanQuyen || "").toLowerCase(),
+  );
 
   useEffect(() => {
     dispatch(getAllKhoa());
@@ -41,24 +46,28 @@ function KhoaTable() {
 
   const columns = useMemo(
     () => [
-      {
-        Header: "Thao tác",
-        Footer: "Thao tác",
-        accessor: "_id",
-        disableGroupBy: true,
-        sticky: "left",
-        Cell: ({ row }) => (
-          <Stack
-            direction="row"
-            alignItems="left"
-            justifyContent="left"
-            spacing={0}
-          >
-            <UpdateKhoaButton khoa={row.original} />
-            <DeleteKhoaButton khoaID={row.original._id} />
-          </Stack>
-        ),
-      },
+      ...(canManageKhoa
+        ? [
+            {
+              Header: "Thao tác",
+              Footer: "Thao tác",
+              accessor: "_id",
+              disableGroupBy: true,
+              sticky: "left",
+              Cell: ({ row }) => (
+                <Stack
+                  direction="row"
+                  alignItems="left"
+                  justifyContent="left"
+                  spacing={0}
+                >
+                  <UpdateKhoaButton khoa={row.original} />
+                  <DeleteKhoaButton khoaID={row.original._id} />
+                </Stack>
+              ),
+            },
+          ]
+        : []),
       {
         Header: "STT",
         Footer: "STT",
@@ -115,7 +124,7 @@ function KhoaTable() {
         disableGroupBy: true,
       },
     ],
-    [],
+    [canManageKhoa],
   );
 
   return (
@@ -125,7 +134,7 @@ function KhoaTable() {
           <SimpleTable
             data={data}
             columns={columns}
-            additionalComponent={<AddKhoaButton />}
+            additionalComponent={canManageKhoa ? <AddKhoaButton /> : null}
           />
         </MainCard>
       </Grid>

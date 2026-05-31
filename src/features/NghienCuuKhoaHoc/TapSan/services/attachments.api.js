@@ -5,16 +5,16 @@ export async function uploadFiles(
   ownerId,
   field,
   files,
-  extra = {}
+  extra = {},
 ) {
+  const { onUploadProgress, ...formExtra } = extra || {};
   const form = new FormData();
   [...files].forEach((f) => form.append("files", f));
-  Object.entries(extra || {}).forEach(([k, v]) => form.append(k, v));
+  Object.entries(formExtra).forEach(([k, v]) => form.append(k, v));
   // Use relative path; axios baseURL points to /api
   const url = `attachments/${ownerType}/${ownerId}/${field}/files`;
   const res = await api.post(url, form, {
-    headers: { "Content-Type": "multipart/form-data" },
-    onUploadProgress: extra.onUploadProgress,
+    onUploadProgress,
   });
   return res.data?.data;
 }
@@ -65,7 +65,7 @@ function buildAbsoluteUrl(path) {
     "path:",
     path,
     "normalized:",
-    normalized
+    normalized,
   );
 
   try {

@@ -75,13 +75,13 @@ const slice = createSlice({
           ? {
               ...action.payload.data,
               NgayBatDauFormat: formatDate_getDate(
-                action.payload.data.NgayBatDau
+                action.payload.data.NgayBatDau,
               ),
               NgayKetThucFormat: formatDate_getDate(
-                action.payload.data.NgayKetThuc
+                action.payload.data.NgayKetThuc,
               ),
             }
-          : item
+          : item,
       );
       state.lopdaotaoCurrent = action.payload.data;
       state.vaitroquydoiCurents = action.payload.vaitroquydoi;
@@ -96,7 +96,7 @@ const slice = createSlice({
               ...item,
               TrangThai: action.payload.TrangThai,
             }
-          : item
+          : item,
       );
       state.lopdaotaoCurrent.TrangThai = action.payload.TrangThai;
     },
@@ -109,7 +109,7 @@ const slice = createSlice({
               ...item,
               HoiDongID: action.payload.hoidongID,
             }
-          : item
+          : item,
       );
       state.lopdaotaoCurrent.HoiDongID = action.payload.hoidongID;
     },
@@ -117,7 +117,7 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.LopDaoTaos = state.LopDaoTaos.filter(
-        (item) => item._id !== action.payload
+        (item) => item._id !== action.payload,
       );
     },
 
@@ -149,7 +149,7 @@ const slice = createSlice({
       state.hocvienCurrents = state.hocvienCurrents.map((item) =>
         item._id === action.payload._id
           ? { ...item, Images: action.payload.Images }
-          : item
+          : item,
       );
     },
 
@@ -171,7 +171,7 @@ const slice = createSlice({
       console.log("action.payload getOneLopDaoTaoByIDSuccess", action.payload);
       state.vaitroquydoiCurents =
         action.payload.HinhThucCapNhat.find(
-          (item) => item.Ma === state.lopdaotaoCurrent.MaHinhThucCapNhat
+          (item) => item.Ma === state.lopdaotaoCurrent.MaHinhThucCapNhat,
         )?.VaiTroQuyDoi || [];
       state.vaitroCurrent = state.vaitroquydoiCurents[0]?.VaiTro || {};
 
@@ -194,10 +194,10 @@ const slice = createSlice({
               acc[`section ${index + 1}`] = diemdanh;
               return acc;
             },
-            {}
+            {},
           );
           const vaitroquydoi = state.vaitroquydoiCurents.find(
-            (vtqd) => vtqd.VaiTro === item.VaiTro
+            (vtqd) => vtqd.VaiTro === item.VaiTro,
           );
           const soluong = item.DiemDanh.filter((item) => item === true).length;
           const tinhtudong = vaitroquydoi.QuyDoi * soluong;
@@ -252,7 +252,7 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.hocvienCurrents = state.hocvienCurrents.filter(
-        (item) => item._id !== action.payload
+        (item) => item._id !== action.payload,
       );
     },
     insertOrUpdateLopDaoTaoNhanVienSuccess(state, action) {
@@ -296,7 +296,7 @@ const slice = createSlice({
               TuNgayFormat: formatDate_getDate(action.payload.TuNgay),
               DenNgayFormat: formatDate_getDate(action.payload.DenNgay),
             }
-          : item
+          : item,
       );
     },
     //delete quatrinh dt06
@@ -304,7 +304,7 @@ const slice = createSlice({
       state.isLoading = false;
       state.error = null;
       state.quatrinhdt06 = state.quatrinhdt06.filter(
-        (item) => item._id !== action.payload
+        (item) => item._id !== action.payload,
       );
     },
 
@@ -338,7 +338,7 @@ const slice = createSlice({
       state.hocvienCurrents = updateHocVienCurrents(
         state.hocvienCurrents,
         action.payload.thanhvienOld,
-        action.payload.thanhvienNew
+        action.payload.thanhvienNew,
       );
     },
 
@@ -377,7 +377,7 @@ export const insertOneLopDaoTao =
         slice.actions.insertOneLopDaoTaoSuccess({
           data: response.data.data,
           vaitroquydoi,
-        })
+        }),
       );
       toast.success("Thêm mới thành công");
     } catch (error) {
@@ -411,7 +411,7 @@ export const refreshLopDaoTaoAttachmentCountOne = (id) => async (dispatch) => {
   if (!id) return;
   try {
     const res = await apiService.get(
-      `/attachments/LopDaoTao/${id}/file/files/count`
+      `/attachments/LopDaoTao/${id}/file/files/count`,
     );
     const total = res?.data?.data?.total ?? 0;
     dispatch(slice.actions.setAttachmentCountLopDaoTaoOne({ id, total }));
@@ -430,7 +430,7 @@ export const updateOneLopDaoTao =
         slice.actions.updateOneLopDaoTaoSuccess({
           data: response.data.data,
           vaitroquydoi,
-        })
+        }),
       );
       toast.success("Cập nhật thành công");
     } catch (error) {
@@ -452,7 +452,7 @@ export const updateHoiDongForLopDaoTao =
         slice.actions.updateHoiDongForLopDaoTaoSuccess({
           hoidongID,
           lopdaotaoID,
-        })
+        }),
       );
       toast.success("Cập nhật hội đồng thành công");
     } catch (error) {
@@ -473,7 +473,7 @@ export const updateTrangThaiLopDaoTao =
         slice.actions.updateTrangThaiLopDaoTaoSuccess({
           TrangThai,
           lopdaotaoID,
-        })
+        }),
       );
       toast.success("Cập nhật thành công");
     } catch (error) {
@@ -514,7 +514,7 @@ export const getOneLopDaoTaoByID =
           lopdaotaonhanvienDT06: response.data.data.lopdaotaonhanvienDT06,
           HinhThucCapNhat,
           tam,
-        })
+        }),
       );
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
@@ -540,7 +540,7 @@ export const getAllLopDaoTao = () => async (dispatch) => {
     const response = await apiService.get("/lopdaotao");
 
     dispatch(
-      slice.actions.getAllLopDaoTaoSuccess(response.data.data.lopdaotaos)
+      slice.actions.getAllLopDaoTaoSuccess(response.data.data.lopdaotaos),
     );
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
@@ -556,7 +556,7 @@ export const getLopDaoTaoByType = (type) => async (dispatch) => {
       params: { type },
     });
     dispatch(
-      slice.actions.getAllLopDaoTaoSuccess(response.data.data.lopdaotaos)
+      slice.actions.getAllLopDaoTaoSuccess(response.data.data.lopdaotaos),
     );
   } catch (error) {
     dispatch(slice.actions.hasError(error.message));
@@ -606,13 +606,12 @@ export const insertOrUpdateLopDaoTaoNhanVien =
         response = await apiService.post(`/lopdaotaonhanvientam`, {
           lopdaotaonhanvienData,
           lopdaotaoID,
-          userID,
         });
       }
       dispatch(
         slice.actions.insertOrUpdateLopDaoTaoNhanVienSuccess({
           data: response.data.data,
-        })
+        }),
       );
       toast.success("Cập nhật thành viên thành công");
     } catch (error) {
@@ -632,7 +631,7 @@ export const updateLopDaoTaoNhanVienDiemDanh =
       dispatch(
         slice.actions.updateLopDaoTaoNhanVienDiemDanhSuccess({
           data: response.data.data,
-        })
+        }),
       );
       toast.success("Cập nhật thành công");
     } catch (error) {
@@ -648,11 +647,13 @@ export const dongboThanhVienTamByLopDaoTaoID =
 
     try {
       const response = await apiService.get(
-        `/lopdaotao/dongbothanhvientam/${lopdaotaoID}`
+        `/lopdaotao/dongbothanhvientam/${lopdaotaoID}`,
       );
 
       dispatch(
-        slice.actions.dongboThanhVienTamByLopDaoTaoIDSuccess(response.data.data)
+        slice.actions.dongboThanhVienTamByLopDaoTaoIDSuccess(
+          response.data.data,
+        ),
       );
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
@@ -665,11 +666,11 @@ export const getOneLopDaoTaoNhanVienByID =
     dispatch(slice.actions.startLoading);
     try {
       const response = await apiService.get(
-        `/lopdaotaonhanvien/${lopdaotaonhanvienID}`
+        `/lopdaotaonhanvien/${lopdaotaonhanvienID}`,
       );
       console.log("data lopdaotaotaonhanvie get one", response.data.data);
       dispatch(
-        slice.actions.getOneLopDaoTaoNhanVienByIDSuccess(response.data.data)
+        slice.actions.getOneLopDaoTaoNhanVienByIDSuccess(response.data.data),
       );
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
@@ -701,8 +702,8 @@ export const uploadImagesForOneLopDaoTaoNhanVien =
       console.log("response upload images", response.data.data);
       dispatch(
         slice.actions.uploadImagesForOneLopDaoTaoNhanVienSuccess(
-          response.data.data
-        )
+          response.data.data,
+        ),
       );
 
       toast.success("Cập nhật thành công");
@@ -718,7 +719,7 @@ export const insertOneQuaTrinhDT06 =
     try {
       const response = await apiService.post(
         `/lopdaotaonhanviendt06`,
-        lopdaotaonhanvienDT06Data
+        lopdaotaonhanvienDT06Data,
       );
       dispatch(slice.actions.insertOneQuaTrinhDT06Success(response.data.data));
       toast.success("Thêm mới thành công");
@@ -734,7 +735,7 @@ export const updateOneQuaTrinhDT06 =
     try {
       const response = await apiService.put(
         `/lopdaotaonhanviendt06`,
-        lopdaotaonhanvienDT06Data
+        lopdaotaonhanvienDT06Data,
       );
       dispatch(slice.actions.updateOneQuaTrinhDT06Success(response.data.data));
       toast.success("Cập nhật thành công");
@@ -761,7 +762,7 @@ export const setVaiTroQuyDoiCurrentsWithCaseIsHoiDong =
     dispatch(slice.actions.startLoading);
     try {
       dispatch(
-        slice.actions.setVaiTroQuyDoiCurrentsWithCaseIsHoiDongSuccess(vaitro)
+        slice.actions.setVaiTroQuyDoiCurrentsWithCaseIsHoiDongSuccess(vaitro),
       );
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
@@ -814,7 +815,7 @@ export const updateHocVienCurrentsWhenHoiDongChanged =
     dispatch(slice.actions.startLoading);
     try {
       dispatch(
-        slice.actions.updateHocVienCurrentsWhenHoiDongChangedSuccess(thanhvien)
+        slice.actions.updateHocVienCurrentsWhenHoiDongChangedSuccess(thanhvien),
       );
     } catch (error) {
       dispatch(slice.actions.hasError(error.message));
@@ -828,7 +829,7 @@ function updateHocVienCurrents(hocvienCurrents, thanhvienOld, thanhvienNew) {
     return !thanhvienOld.some(
       (thanhvien) =>
         hocvien.NhanVienID === thanhvien.NhanVienID &&
-        hocvien.VaiTro === thanhvien.VaiTro
+        hocvien.VaiTro === thanhvien.VaiTro,
     );
   });
 

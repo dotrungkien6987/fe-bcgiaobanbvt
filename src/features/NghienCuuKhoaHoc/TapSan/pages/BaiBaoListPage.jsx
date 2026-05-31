@@ -2,9 +2,11 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate, Link as RouterLink } from "react-router-dom";
 import {
+  Autocomplete,
   Box,
   Card,
   CardContent,
+  CircularProgress,
   Typography,
   Button,
   Stack,
@@ -56,8 +58,8 @@ import { fetchTapSanById, selectTapSanById } from "../slices/tapSanSlice";
 import useLocalSnackbar from "../hooks/useLocalSnackbar";
 import ConfirmDialog from "components/ConfirmDialog";
 import AttachmentLinksCell from "../components/AttachmentLinksCell";
-import { getAllNhanVien } from "features/NhanVien/nhanvienSlice";
 import { reorderBaiBao } from "../slices/baiBaoSlice";
+import useTapSanNhanVienOptions from "../hooks/useTapSanNhanVienOptions";
 
 function CustomToolbar({ onRefresh, onAdd, onReorder }) {
   return (
@@ -149,10 +151,21 @@ export default function BaiBaoListPage({
   const dispatch = useDispatch();
 
   const rows = useSelector((state) =>
-    selectBaiBaoListByTapSan(state, tapSanId)
+    selectBaiBaoListByTapSan(state, tapSanId),
   );
   const meta = useSelector((state) => selectBaiBaoListMeta(state, tapSanId));
-  const nhanviens = useSelector((s) => s.nhanvien?.nhanviens || []);
+  const [reviewerSearchText, setReviewerSearchText] = React.useState("");
+  const {
+    nhanVienOptions,
+    nhanVienById,
+    loading: nhanVienLoading,
+    error: nhanVienError,
+    isSearching: reviewerIsSearching,
+  } = useTapSanNhanVienOptions({
+    limit: 60,
+    search: reviewerSearchText,
+    debounceMs: 300,
+  });
 
   const tapSan = useSelector((state) => selectTapSanById(state, tapSanId));
   const [localError, setLocalError] = React.useState(null);
@@ -181,6 +194,10 @@ export default function BaiBaoListPage({
   const [khoiFilter, setKhoiFilter] = React.useState("");
   const [loaiFilter, setLoaiFilter] = React.useState("");
   const [reviewerFilter, setReviewerFilter] = React.useState("");
+  const selectedReviewer = React.useMemo(
+    () => (reviewerFilter ? nhanVienById.get(reviewerFilter) || null : null),
+    [nhanVienById, reviewerFilter],
+  );
 
   const loadTapSan = React.useCallback(async () => {
     try {
@@ -226,12 +243,6 @@ export default function BaiBaoListPage({
   React.useEffect(() => {
     loadTapSan();
   }, [loadTapSan]);
-
-  React.useEffect(() => {
-    if (!nhanviens || nhanviens.length === 0) {
-      dispatch(getAllNhanVien());
-    }
-  }, [nhanviens, dispatch]);
 
   React.useEffect(() => {
     loadData();
@@ -305,7 +316,7 @@ export default function BaiBaoListPage({
     } catch (e) {
       console.error(e);
       setReorderError(
-        e?.response?.data?.message || "Không thể cập nhật thứ tự bài báo"
+        e?.response?.data?.message || "Không thể cập nhật thứ tự bài báo",
       );
       showError("Không thể cập nhật thứ tự bài báo");
     } finally {
@@ -506,7 +517,7 @@ export default function BaiBaoListPage({
             </Typography>
           );
         }
-        const nv = nhanviens.find((x) => x._id === params.value);
+        const nv = nhanVienById.get(params.value);
         return (
           <Typography variant="body2" sx={{ fontWeight: 500 }}>
             {nv
@@ -548,7 +559,7 @@ export default function BaiBaoListPage({
             </Typography>
           );
         }
-        const nv = nhanviens.find((x) => x._id === params.value);
+        const nv = nhanVienById.get(params.value);
         return (
           <Typography variant="body2" sx={{ fontWeight: 500 }}>
             {nv
@@ -800,33 +811,71 @@ export default function BaiBaoListPage({
               <MenuItem value="ca-lam-sang">Ca lâm sàng</MenuItem>
             </TextField>
 
-            <TextField
-              select
-              label="Người thẩm định"
-              value={reviewerFilter}
-              onChange={(e) => setReviewerFilter(e.target.value)}
-              size="small"
+            <Autocomplete
+              options={nhanVienOptions}
+              value={selectedReviewer}
+              inputValue={reviewerSearchText}
+              onInputChange={(_, value, reason) => {
+                if (reason === "reset") return;
+                setReviewerSearchText(value);
+              }}
+              onChange={(_, option) => {
+                setReviewerFilter(option?._id || "");
+                setReviewerSearchText(
+                  option
+                    ? `${option.Ten}${
+                        option.MaNhanVien ? ` (${option.MaNhanVien})` : ""
+                      }`
+                    : "",
+                );
+              }}
+              isOptionEqualToValue={(option, value) => option._id === value._id}
+              getOptionLabel={(option) =>
+                option
+                  ? `${option.Ten}${
+                      option.MaNhanVien ? ` (${option.MaNhanVien})` : ""
+                    }`
+                  : ""
+              }
+              filterOptions={(options) => options}
+              loading={nhanVienLoading || reviewerIsSearching}
+              noOptionsText={
+                reviewerSearchText.trim()
+                  ? "Không tìm thấy người thẩm định phù hợp"
+                  : "Nhập từ khóa để tìm người thẩm định"
+              }
               sx={{
-                minWidth: 220,
+                minWidth: 280,
                 "& .MuiOutlinedInput-root": {
                   borderRadius: 2,
                 },
               }}
-            >
-              <MenuItem value="">Tất cả</MenuItem>
-              {nhanviens.map((nv) => (
-                <MenuItem key={nv._id} value={nv._id}>
-                  {nv.Ten}
-                  {nv.MaNhanVien ? ` (${nv.MaNhanVien})` : ""}
-                </MenuItem>
-              ))}
-            </TextField>
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Người thẩm định"
+                  size="small"
+                  placeholder="Tìm theo tên, mã NV..."
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {nhanVienLoading || reviewerIsSearching ? (
+                          <CircularProgress color="inherit" size={18} />
+                        ) : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              )}
+            />
           </Stack>
         </CardContent>
       </Card>
 
       {/* Error Alert */}
-      {(meta?.error || localError) && (
+      {(meta?.error || localError || nhanVienError) && (
         <Alert
           severity="error"
           sx={{
@@ -838,7 +887,9 @@ export default function BaiBaoListPage({
           }}
           onClose={() => setLocalError(null)}
         >
-          {meta?.error || localError}
+          {meta?.error ||
+            localError ||
+            "Không thể tải danh sách nhân viên TapSan"}
         </Alert>
       )}
 
@@ -983,8 +1034,8 @@ export default function BaiBaoListPage({
                         const v = e.target.value;
                         setReorderItems((arr) =>
                           arr.map((it, i) =>
-                            i === idx ? { ...it, SoThuTu: v } : it
-                          )
+                            i === idx ? { ...it, SoThuTu: v } : it,
+                          ),
                         );
                       }}
                       sx={{ width: 100 }}

@@ -29,10 +29,13 @@ import ScrollX from "components/ScrollX";
 import ThemHocVienTamButton from "./ThemHocVienTam/ThemHocVienTamButton";
 import apiService from "app/apiService";
 import { insertAttachmentsColumn } from "./lopDaoTaoTableConfig";
+import useAuth from "hooks/useAuth";
+import { canManageLopDaoTao } from "./lopDaoTaoPermissions";
 
 function LopDaoTaoTable() {
   const theme = useTheme();
   const mode = theme.palette.mode;
+  const { user } = useAuth();
   // Popover + cache for attachments
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [activeId, setActiveId] = React.useState(null);
@@ -42,7 +45,7 @@ function LopDaoTaoTable() {
   const fileCacheRef = React.useRef(new Map());
   const countCacheRef = React.useRef(new Map());
   const { LopDaoTaos, attachmentsCountLopDaoTao } = useSelector(
-    (state) => state.daotao
+    (state) => state.daotao,
   );
 
   const handleOpenFiles = async (e, id) => {
@@ -59,7 +62,7 @@ function LopDaoTaoTable() {
     try {
       const res = await apiService.get(
         `/attachments/LopDaoTao/${id}/file/files`,
-        { params: { size: 20 } }
+        { params: { size: 20 } },
       );
       const list =
         res?.data?.data?.items ||
@@ -104,7 +107,7 @@ function LopDaoTaoTable() {
         `/attachments/files/${fileId}/download`,
         {
           responseType: "blob",
-        }
+        },
       );
       const blobUrl = URL.createObjectURL(res.data);
       const a = document.createElement("a");
@@ -128,6 +131,7 @@ function LopDaoTaoTable() {
         disableGroupBy: true,
         sticky: "left",
         Cell: ({ row }) => {
+          const canManageRow = canManageLopDaoTao(user, row.original);
           const collapseIcon = row.isExpanded ? (
             <Add
               style={{
@@ -145,8 +149,10 @@ function LopDaoTaoTable() {
               justifyContent="center"
               spacing={0}
             >
-              <DeleteLopDaoTaoButton lopdaotaoID={row.original._id} />
-              {row.original.TrangThai === false && (
+              {canManageRow && (
+                <DeleteLopDaoTaoButton lopdaotaoID={row.original._id} />
+              )}
+              {canManageRow && row.original.TrangThai === false && (
                 <Stack direction={"row"}>
                   <UpdateLopDaoTaoButton lopdaotaoID={row.original._id} />
                   <ThemHocVienTamButton lopdaotaoID={row.original._id} />
@@ -307,7 +313,7 @@ function LopDaoTaoTable() {
       },
       width: 90,
     });
-  }, [mode, theme, attachmentsCountLopDaoTao]);
+  }, [mode, theme, attachmentsCountLopDaoTao, user]);
 
   const dispatch = useDispatch();
   useEffect(() => {
@@ -324,7 +330,7 @@ function LopDaoTaoTable() {
   }, [dispatch, data]);
   const renderRowSubComponent = useCallback(
     ({ row }) => <LopDaoTaoView data={data[Number(row.id)]} />,
-    [data]
+    [data],
   );
   return (
     <Grid container spacing={3}>
@@ -372,7 +378,7 @@ function LopDaoTaoTable() {
                   try {
                     const res = await apiService.get(
                       `/attachments/LopDaoTao/${activeId}/file/files`,
-                      { params: { size: 20 } }
+                      { params: { size: 20 } },
                     );
                     const list =
                       res?.data?.data?.items ||
@@ -383,7 +389,7 @@ function LopDaoTaoTable() {
                     fileCacheRef.current.set(activeId, list);
                     countCacheRef.current.set(
                       activeId,
-                      Array.isArray(list) ? list.length : 0
+                      Array.isArray(list) ? list.length : 0,
                     );
                     setFiles(list);
                     // sync Redux count for this row

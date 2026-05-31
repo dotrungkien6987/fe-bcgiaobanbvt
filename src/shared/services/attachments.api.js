@@ -10,15 +10,15 @@ export async function uploadFiles(
   ownerId,
   field,
   files,
-  extra = {}
+  extra = {},
 ) {
+  const { onUploadProgress, ...formExtra } = extra || {};
   const form = new FormData();
   [...files].forEach((f) => form.append("files", f));
-  Object.entries(extra || {}).forEach(([k, v]) => form.append(k, v));
+  Object.entries(formExtra).forEach(([k, v]) => form.append(k, v));
   const url = withField(ownerType, ownerId, field, "files");
   const res = await api.post(url, form, {
-    headers: { "Content-Type": "multipart/form-data" },
-    onUploadProgress: extra.onUploadProgress,
+    onUploadProgress,
   });
   return res.data?.data;
 }
@@ -57,7 +57,7 @@ export async function batchPreviewAttachments(
   ownerType,
   field,
   ids = [],
-  limit = 3
+  limit = 3,
 ) {
   if (!ids.length) return {};
   const res = await api.post("attachments/batch-preview", {

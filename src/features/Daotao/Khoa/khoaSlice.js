@@ -84,7 +84,7 @@ export const getAllKhoa = () => async (dispatch) => {
 export const getISOKhoa = () => async (dispatch) => {
   dispatch(slice.actions.startLoading());
   try {
-    const response = await apiService.get("/khoa/iso");
+    const response = await apiService.get("/khoa/iso/accessible");
 
     dispatch(slice.actions.getISOKhoaSuccess(response.data.data.khoas));
   } catch (error) {

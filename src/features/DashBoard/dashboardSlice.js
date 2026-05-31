@@ -80,6 +80,7 @@ const initialState = {
   CanLamSang_PhongThucHien: [],
   ChitietBN_PhongThucHien: [],
   ChitietBN_PhongThucHien_Cho_NgayTruoc: [],
+  SoLuong_CanLamSang_PhongChiDinh_PhongThucHien: [],
 
   DoanhThu_ToanVien_BacSi_DuyetKeToan: [],
   DoanhThu_ToanVien_BacSi_TheoChiDinh: [],
@@ -173,6 +174,7 @@ const slice = createSlice({
 
       state.giuongconglap = setGiuongNotFound();
       state.giuongyeucau = setGiuongNotFound();
+      state.SoLuong_CanLamSang_PhongChiDinh_PhongThucHien = [];
     },
 
     getDataNewestByNgaySuccess(state, action) {

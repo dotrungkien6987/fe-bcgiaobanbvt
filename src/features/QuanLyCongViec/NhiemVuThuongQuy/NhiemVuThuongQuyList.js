@@ -13,8 +13,14 @@ import { Add, Eye } from "iconsax-react";
 import NhiemVuThuongQuyView from "./NhiemVuThuongQuyView";
 import { formatDate_getDate } from "utils/formatTime";
 import ScrollX from "components/ScrollX";
+import useAuth from "hooks/useAuth";
 
 function NhiemVuThuongQuyList() {
+  const { user } = useAuth();
+  const canWrite = ["admin", "superadmin", "manager"].includes(
+    (user?.PhanQuyen || "").toLowerCase(),
+  );
+
   const columns = useMemo(
     () => [
       {
@@ -37,10 +43,16 @@ function NhiemVuThuongQuyList() {
               justifyContent="center"
               spacing={0}
             >
-              <UpdateNhiemVuThuongQuyButton nhiemvuThuongQuy={row.original} />
-              <DeleteNhiemVuThuongQuyButton
-                nhiemvuThuongQuyID={row.original._id}
-              />
+              {canWrite ? (
+                <>
+                  <UpdateNhiemVuThuongQuyButton
+                    nhiemvuThuongQuy={row.original}
+                  />
+                  <DeleteNhiemVuThuongQuyButton
+                    nhiemvuThuongQuyID={row.original._id}
+                  />
+                </>
+              ) : null}
               <Tooltip title="Xem nhanh">
                 <IconButton
                   color="secondary"
@@ -112,7 +124,7 @@ function NhiemVuThuongQuyList() {
         Cell: ({ value }) => formatDate_getDate(value),
       },
     ],
-    []
+    [canWrite],
   );
 
   const dispatch = useDispatch();
@@ -126,7 +138,7 @@ function NhiemVuThuongQuyList() {
 
   const renderRowSubComponent = useCallback(
     ({ row }) => <NhiemVuThuongQuyView data={data[Number(row.id)]} />,
-    [data]
+    [data],
   );
 
   return (
@@ -141,7 +153,7 @@ function NhiemVuThuongQuyList() {
               additionalComponent={
                 <div style={{ display: "flex", alignItems: "flex-end" }}>
                   <ExcelButton />
-                  <AddNhiemVuThuongQuyButton />
+                  {canWrite ? <AddNhiemVuThuongQuyButton /> : null}
                 </div>
               }
             />

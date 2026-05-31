@@ -2,7 +2,7 @@
 
 ## 📋 Database Context
 
-**Database:** PostgreSQL HIS (192.168.5.5:5432/HIS_bvt)  
+**Database:** PostgreSQL HIS (<HIS_DB_HOST>:5432/HIS_bvt)  
 **Main Table:** `serviceprice`  
 **Filter Services:** bhyt_groupcode (CDHA='04CDHA', XN='03XN', TDCN='05TDCN') - **Truyền từ FE**
 

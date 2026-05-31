@@ -48,23 +48,10 @@ const TabsWrapperStyled = styled("div")(({ theme }) => ({
   },
 }));
 
-// Mapping giữa các mã quyền dashboard và tên tab
-const DASHBOARD_PERMISSION_MAP = {
-  BNNT: "BỆNH NHÂN NGOẠI TỈNH",
-  CSCL: "CHỈ SỐ CHẤT LƯỢNG",
-  ĐH: "ĐIỀU HÀNH",
-  TC: "TÀI CHÍNH",
-  BQBA: "Bình quân bệnh án",
-  DICHVUTRUNG: "DỊCH VỤ TRÙNG",
-  TCKHOA: "THEO DÕI THEO KHOA",
-  DVT: "DƯỢC VẬT TƯ",
-  ĐT: "ĐÀO TẠO TOÀN VIỆN",
-  ĐTKHOA: "ĐÀO TẠO THEO KHOA",
-  SOTHUTU: "SỐ THỨ TỰ BỆNH NHÂN",
-};
-
 function DashBoardPage() {
   const { user } = useAuth();
+  const userRole = (user?.PhanQuyen || "").toLowerCase();
+  const isAdminRole = ["admin", "superadmin"].includes(userRole);
 
   // Danh sách tất cả các tab có sẵn (memoized)
   const allTabs = useMemo(
@@ -125,52 +112,21 @@ function DashBoardPage() {
         permission: "ĐTKHOA",
       },
     ],
-    []
+    [],
   );
 
   // Lọc các tab dựa trên quyền của người dùng
   const getAuthorizedTabs = useCallback(() => {
-    // Nếu là admin, hiển thị tất cả các tab
-    if (user.PhanQuyen === "admin") {
+    if (isAdminRole) {
       return allTabs;
     }
 
-    // Lấy các quyền dashboard từ user
-    const userDashboardPermissions = user.DashBoard || [];
-
-    // Tạo mảng chứa tên các tab mà user có quyền xem
-    let allowedTabs = [];
-
-    // Nếu là manager
-    if (user.PhanQuyen === "manager") {
-      // Manager mặc định xem được THEO DÕI THEO KHOA và CHỈ SỐ CHẤT LƯỢNG
-      allowedTabs = ["THEO DÕI THEO KHOA", "CHỈ SỐ CHẤT LƯỢNG"];
-
-      // Thêm các quyền dashboard khác
-      userDashboardPermissions.forEach((permission) => {
-        const tabName = DASHBOARD_PERMISSION_MAP[permission];
-        if (tabName && !allowedTabs.includes(tabName)) {
-          allowedTabs.push(tabName);
-        }
-      });
-    }
-    // Các quyền khác (nomal, daotao, noibo)
-    else {
-      // Mặc định xem được CHỈ SỐ CHẤT LƯỢNG
-      allowedTabs = ["CHỈ SỐ CHẤT LƯỢNG"];
-
-      // Thêm các quyền dashboard khác
-      userDashboardPermissions.forEach((permission) => {
-        const tabName = DASHBOARD_PERMISSION_MAP[permission];
-        if (tabName && !allowedTabs.includes(tabName)) {
-          allowedTabs.push(tabName);
-        }
-      });
+    if (userRole === "manager") {
+      return allTabs.filter((tab) => tab.permission === "TCKHOA");
     }
 
-    // Lọc lại danh sách tab theo các quyền đã xác định
-    return allTabs.filter((tab) => allowedTabs.includes(tab.value));
-  }, [user, allTabs]);
+    return [];
+  }, [allTabs, isAdminRole, userRole]);
 
   // Lấy danh sách tab được phép xem (memoized)
   const PROFILE_TABS = useMemo(() => getAuthorizedTabs(), [getAuthorizedTabs]);
@@ -179,10 +135,10 @@ function DashBoardPage() {
   const defaultTab = useMemo(() => {
     if (PROFILE_TABS.length === 0) return "";
 
-    if (user.PhanQuyen === "admin") return "TÀI CHÍNH";
-    if (user.PhanQuyen === "manager") return "THEO DÕI THEO KHOA";
-    return "CHỈ SỐ CHẤT LƯỢNG";
-  }, [user, PROFILE_TABS]);
+    if (isAdminRole) return "TÀI CHÍNH";
+    if (userRole === "manager") return "THEO DÕI THEO KHOA";
+    return "";
+  }, [isAdminRole, userRole, PROFILE_TABS]);
 
   const [currentTab, setCurrentTab] = useState("");
 

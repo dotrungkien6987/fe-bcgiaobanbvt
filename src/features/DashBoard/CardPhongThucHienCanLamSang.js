@@ -25,8 +25,11 @@ function CardPhongThucHienCanLamSang({
   const theme = useTheme();
   const { darkMode } = useSelector((state) => state.mytheme);
 
-  const { ChitietBN_PhongThucHien, ChitietBN_PhongThucHien_Cho_NgayTruoc,SoLuong_CanLamSang_PhongChiDinh_PhongThucHien } =
-    useSelector((state) => state.dashboard);
+  const {
+    ChitietBN_PhongThucHien = [],
+    ChitietBN_PhongThucHien_Cho_NgayTruoc = [],
+    SoLuong_CanLamSang_PhongChiDinh_PhongThucHien = [],
+  } = useSelector((state) => state.dashboard);
 
   const colors = [
     { color: "#FFBB28" },

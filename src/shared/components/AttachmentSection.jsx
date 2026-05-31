@@ -216,7 +216,11 @@ export default function AttachmentSection({
       if (onChangeRef.current) onChangeRef.current({ items: list, total: cnt });
     } catch (error) {
       console.error("Error refreshing files:", error);
-      notifyError(cannotLoadMsgRef.current || "Không thể tải danh sách tệp");
+      notifyError(
+        error?.message ||
+          cannotLoadMsgRef.current ||
+          "Không thể tải danh sách tệp",
+      );
     }
   }, [ownerType, ownerId, field]);
 
@@ -305,7 +309,7 @@ export default function AttachmentSection({
       await refresh();
     } catch (error) {
       console.error("Error uploading files:", error);
-      notifyError(t.cannotUpload);
+      notifyError(error?.message || t.cannotUpload);
     } finally {
       setUploading(false);
       setProgress(0);
@@ -348,7 +352,7 @@ export default function AttachmentSection({
       setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
     } catch (e) {
       console.error("Preview failed:", e);
-      notifyError(t.cannotPreview);
+      notifyError(e?.message || t.cannotPreview);
     } finally {
       setPreviewLoading(null);
     }
@@ -376,7 +380,7 @@ export default function AttachmentSection({
       setTimeout(() => URL.revokeObjectURL(url), 30_000);
     } catch (e) {
       console.error("Download failed:", e);
-      notifyError(t.cannotDownload);
+      notifyError(e?.message || t.cannotDownload);
     } finally {
       setDownloadLoading(null);
     }
@@ -391,7 +395,7 @@ export default function AttachmentSection({
       setDeleteDialog({ open: false, file: null });
     } catch (error) {
       console.error("Error deleting file:", error);
-      notifyError(t.cannotDelete);
+      notifyError(error?.message || t.cannotDelete);
     } finally {
       setDeleteLoading(null);
     }

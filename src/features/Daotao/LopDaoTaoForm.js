@@ -27,6 +27,7 @@ import HocVienLopTable from "./ChonHocVien/HocVienLopTable";
 import DiemDanhLopDaoTaoButton from "./DiemDanhLopDaoTaoButton";
 import useAuth from "hooks/useAuth";
 import { getKhoas } from "features/BaoCaoNgay/baocaongaySlice";
+import { canManageLopDaoTao } from "./lopDaoTaoPermissions";
 
 const yupSchema = Yup.object().shape({
   MaHinhThucCapNhat: Yup.object({
@@ -46,10 +47,11 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
   const { lopdaotaoCurrent } = useSelector((state) => state.daotao);
   const { HinhThucCapNhat } = useSelector((state) => state.hinhthuccapnhat);
   const { NoiDaoTao, NguonKinhPhi, HinhThucDaoTao } = useSelector(
-    (state) => state.nhanvien
+    (state) => state.nhanvien,
   );
   const { user } = useAuth();
   const dispatch = useDispatch();
+  const canManageCurrentLopDaoTao = canManageLopDaoTao(user, lopdaotaoCurrent);
   useEffect(() => {
     if (lopdaotaoID) dispatch(getOneLopDaoTaoByID({ lopdaotaoID, tam: false }));
     else dispatch(resetLopDaoTaoCurrent());
@@ -139,7 +141,7 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
       lopdaotaoCurrent._id !== 0
     ) {
       const hinhthuccapnhatCurent = HinhThucCapNhat.find(
-        (item) => item.Ma === lopdaotaoCurrent.MaHinhThucCapNhat
+        (item) => item.Ma === lopdaotaoCurrent.MaHinhThucCapNhat,
       );
       console.log("hinhthuccapnhatCurent", hinhthuccapnhatCurent);
       // Cập nhật giá trị mặc định cho form bằng thông tin của `lopdaotaoCurrent`
@@ -191,7 +193,7 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
     };
     const vaitroquydoi =
       HinhThucCapNhat.find(
-        (item) => item.Ma === lopdaotaoData.MaHinhThucCapNhat
+        (item) => item.Ma === lopdaotaoData.MaHinhThucCapNhat,
       ).VaiTroQuyDoi || [];
     console.log("vaitroquydoi", vaitroquydoi);
     console.log("lopdaotaoData", lopdaotaoData);
@@ -221,8 +223,7 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
                   Thông tin chung
                 </Typography>
                 <Box sx={{ flexGrow: 1 }}></Box>
-                {(user?._id === lopdaotaoCurrent.UserIDCreated ||
-                  !lopdaotaoCurrent._id) && (
+                {(!lopdaotaoCurrent._id || canManageCurrentLopDaoTao) && (
                   <LoadingButton
                     type="submit"
                     variant="contained"
@@ -285,7 +286,7 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
                     <div>
                       {maHinhThucCapNhatValue &&
                         ["NCKH02", "NCKH03"].includes(
-                          maHinhThucCapNhatValue.Ma
+                          maHinhThucCapNhatValue.Ma,
                         ) && (
                           <div>
                             <FTextField
@@ -310,7 +311,7 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
 
                       {maHinhThucCapNhatValue &&
                         !["NCKH02", "NCKH03"].includes(
-                          maHinhThucCapNhatValue.Ma
+                          maHinhThucCapNhatValue.Ma,
                         ) && (
                           <FAutocomplete
                             name="XepLoai"
@@ -323,12 +324,12 @@ function LopDaoTaoForm({ mahinhthuccapnhat }) {
 
                   {maHinhThucCapNhatValue &&
                     !["NCKH02", "NCKH03"].includes(
-                      maHinhThucCapNhatValue.Ma
+                      maHinhThucCapNhatValue.Ma,
                     ) && (
                       <FAutocomplete
                         name="HinhThucDaoTao"
                         options={HinhThucDaoTao.map(
-                          (item) => item.HinhThucDaoTao
+                          (item) => item.HinhThucDaoTao,
                         )}
                         label="Hình thức tổ chức"
                       />

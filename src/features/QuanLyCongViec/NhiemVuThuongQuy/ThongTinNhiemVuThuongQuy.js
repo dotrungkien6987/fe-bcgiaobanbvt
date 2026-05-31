@@ -26,6 +26,8 @@ import { getAllKhoa } from "../../Daotao/Khoa/khoaSlice";
 function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
   const dispatch = useDispatch();
   const { user } = useAuth();
+  const normalizedRole = (user?.PhanQuyen || "").toLowerCase();
+  const canSelectKhoa = ["admin", "superadmin"].includes(normalizedRole);
 
   // Reference data selectors
   const { Khoa: khoas } = useSelector((state) => state.khoa || { Khoa: [] });
@@ -65,7 +67,7 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
         // Set selected khoa for edit
         const khoa = khoas.find(
           (k) =>
-            k._id === (nhiemvuThuongQuy.KhoaID?._id || nhiemvuThuongQuy.KhoaID)
+            k._id === (nhiemvuThuongQuy.KhoaID?._id || nhiemvuThuongQuy.KhoaID),
         );
         setSelectedKhoa(khoa || null);
       } else {
@@ -73,18 +75,16 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
         setFormData({
           TenNhiemVu: "",
           MoTa: "",
-          KhoaID: user?.KhoaID || "",
+          KhoaID: "",
           MucDoKhoDefault: 5.0,
           TrangThaiHoatDong: true,
         });
-        // Set default selected khoa
-        const defaultKhoa = khoas.find((k) => k._id === user?.KhoaID);
-        setSelectedKhoa(defaultKhoa || null);
+        setSelectedKhoa(null);
         // Không còn trường NhomViecUserID
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, nhiemvuThuongQuy, isEdit, user?.KhoaID, khoas, dispatch]);
+  }, [open, nhiemvuThuongQuy, isEdit, khoas, dispatch]);
 
   // Bỏ thiết lập NhomViecUser khi load dữ liệu
 
@@ -98,14 +98,11 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
   };
 
   const handleSubmit = () => {
-    const submitData = {
-      ...formData,
-      NguoiTaoID: user._id, // Auto-set creator
-    };
+    const submitData = { ...formData };
 
     if (isEdit) {
       dispatch(
-        updateOneNhiemVuThuongQuy({ ...submitData, _id: nhiemvuThuongQuy._id })
+        updateOneNhiemVuThuongQuy({ ...submitData, _id: nhiemvuThuongQuy._id }),
       );
     } else {
       dispatch(insertOneNhiemVuThuongQuy(submitData));
@@ -141,19 +138,32 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
           </Grid>
 
           <Grid item xs={12}>
-            <Autocomplete
-              fullWidth
-              options={khoas}
-              getOptionLabel={(option) => option.TenKhoa || ""}
-              value={selectedKhoa}
-              onChange={handleKhoaChange}
-              isOptionEqualToValue={(option, value) =>
-                option._id === value?._id
-              }
-              renderInput={(params) => (
-                <TextField {...params} label="Khoa *" required />
-              )}
-            />
+            {canSelectKhoa ? (
+              <Autocomplete
+                fullWidth
+                options={khoas}
+                getOptionLabel={(option) => option.TenKhoa || ""}
+                value={selectedKhoa}
+                onChange={handleKhoaChange}
+                isOptionEqualToValue={(option, value) =>
+                  option._id === value?._id
+                }
+                renderInput={(params) => (
+                  <TextField {...params} label="Khoa *" required />
+                )}
+              />
+            ) : (
+              <TextField
+                fullWidth
+                label="Khoa"
+                value={
+                  nhiemvuThuongQuy?.KhoaID?.TenKhoa ||
+                  selectedKhoa?.TenKhoa ||
+                  "Khoa sẽ được xác định theo tài khoản quản lý"
+                }
+                InputProps={{ readOnly: true }}
+              />
+            )}
           </Grid>
 
           <Grid item xs={12}>
@@ -198,7 +208,7 @@ function ThongTinNhiemVuThuongQuy({ open, handleClose, nhiemvuThuongQuy }) {
                     if (!isNaN(value) && value >= 1.0 && value <= 10.0) {
                       handleInputChange(
                         "MucDoKhoDefault",
-                        Math.round(value * 10) / 10
+                        Math.round(value * 10) / 10,
                       );
                     }
                   }}

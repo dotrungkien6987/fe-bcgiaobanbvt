@@ -1,10 +1,6 @@
-import {
-  
-  Grid,
-  Stack,
- 
-} from "@mui/material";
+import { Grid, Stack } from "@mui/material";
 import MainCard from "components/MainCard";
+import { useAuth } from "contexts/AuthContext";
 import { getDataFix } from "features/NhanVien/nhanvienSlice";
 import SimpleTable from "pages/tables/MyTable/SimpleTable";
 
@@ -18,39 +14,46 @@ import UpdateTrinhDocChuyenMonButton from "./UpdateTrinhDocChuyenMonButton";
 
 function TrinhDoChuyenMonTable() {
   const dispatch = useDispatch();
+  const { user } = useAuth();
+  const canManageDataFix = ["admin", "superadmin"].includes(
+    (user?.PhanQuyen || "").toLowerCase(),
+  );
+
   useEffect(() => {
     dispatch(getDataFix());
   }, [dispatch]);
-  const { TrinhDoChuyenMon } = useSelector(
-    (state) => state.nhanvien
-  );
+  const { TrinhDoChuyenMon } = useSelector((state) => state.nhanvien);
 
   const data = useMemo(() => TrinhDoChuyenMon, [TrinhDoChuyenMon]);
 
   const columns = useMemo(
     () => [
-      {
-        Header: "Action",
-        Footer: "Action",
-        accessor: "_id",
-        disableGroupBy: true,
-        sticky: "left",
-        Cell: ({ row }) => (
-          <Stack
-            direction="row"
-            alignItems="left"
-            justifyContent="left"
-            spacing={0}
-          >
-            <UpdateTrinhDocChuyenMonButton index={row.original.index} />
-            <DeleteDataFixButton
-              index={row.original.index}
-              datafixField="TrinhDoChuyenMon"
-              datafixTitle="Danh mục trình độ chuyên môn"
-            />
-          </Stack>
-        ),
-      },
+      ...(canManageDataFix
+        ? [
+            {
+              Header: "Action",
+              Footer: "Action",
+              accessor: "_id",
+              disableGroupBy: true,
+              sticky: "left",
+              Cell: ({ row }) => (
+                <Stack
+                  direction="row"
+                  alignItems="left"
+                  justifyContent="left"
+                  spacing={0}
+                >
+                  <UpdateTrinhDocChuyenMonButton index={row.original.index} />
+                  <DeleteDataFixButton
+                    index={row.original.index}
+                    datafixField="TrinhDoChuyenMon"
+                    datafixTitle="Danh mục trình độ chuyên môn"
+                  />
+                </Stack>
+              ),
+            },
+          ]
+        : []),
 
       {
         Header: "Trình độ chuyên môn",
@@ -81,19 +84,19 @@ function TrinhDoChuyenMonTable() {
         disableGroupBy: true,
       },
     ],
-    []
+    [canManageDataFix],
   );
 
   return (
     <Grid container spacing={3}>
       <Grid item xs={12} lg={12}>
-        <MainCard
-          title={`Danh mục trình độ chuyên môn`}
-        >
+        <MainCard title={`Danh mục trình độ chuyên môn`}>
           <SimpleTable
             data={data}
             columns={columns}
-            additionalComponent={<AddTrinhDoChuyenMonButton />}
+            additionalComponent={
+              canManageDataFix ? <AddTrinhDoChuyenMonButton /> : null
+            }
           />
         </MainCard>
       </Grid>

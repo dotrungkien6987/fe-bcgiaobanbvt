@@ -11,10 +11,8 @@ function AdminRequire({ children }) {
   if (!isInitialize) {
     return <LoadingScreen />;
   }
-  console.log("user adminrequire", user);
   // console.log(`isAuth = ${isAuthenticated}`);
   if (!isAuthenticated) {
-    console.log("isAuthenticated false");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   // console.log("isAuthenticated true");

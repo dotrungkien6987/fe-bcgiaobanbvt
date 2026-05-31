@@ -22,13 +22,14 @@ import { LoadingButton } from "@mui/lab";
 import { useForm } from "react-hook-form";
 
 import { resetPass, resetUserFormState } from "./userSlice";
+import {
+  buildStrongPasswordSchema,
+  PASSWORD_POLICY_HINT,
+} from "../../utils/passwordPolicy";
 
 const resetPassSchema = Yup.object().shape({
   UserName: Yup.string().required("Thiếu tên đăng nhập"),
-  PassWord: Yup.string()
-    .trim()
-    .required("Bắt buộc nhập mật khẩu mới")
-    .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+  PassWord: buildStrongPasswordSchema(Yup, "Bắt buộc nhập mật khẩu mới"),
 });
 
 function ResetPassForm({
@@ -113,11 +114,11 @@ function ResetPassForm({
               <Stack spacing={2}>
                 <Alert severity="info">
                   Mật khẩu mới áp dụng cho tài khoản{" "}
-                  <strong>{userCurrent?.UserName || "đang chọn"}</strong> và
-                  phải có ít nhất 6 ký tự.
+                  <strong>{userCurrent?.UserName || "đang chọn"}</strong> và sẽ
+                  yêu cầu người dùng đổi lại ở lần đăng nhập kế tiếp.
                 </Alert>
                 <Typography variant="body2" color="text.secondary">
-                  Sau khi lưu, người dùng sẽ đăng nhập bằng mật khẩu mới này.
+                  {PASSWORD_POLICY_HINT}
                 </Typography>
                 <FTextField
                   name="UserName"

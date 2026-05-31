@@ -36,10 +36,13 @@ import {
   insertAttachmentsColumn,
 } from "./lopDaoTaoTableConfig";
 import apiService from "app/apiService";
+import useAuth from "hooks/useAuth";
+import { canManageLopDaoTao } from "./lopDaoTaoPermissions";
 
 function LopDaoTaoTableByType() {
   const params = useParams();
   let typeLopDaoTao = params.type;
+  const { user } = useAuth();
   const { HinhThucCapNhat } = useSelector((state) => state.hinhthuccapnhat);
   const dispatch = useDispatch();
   useEffect(() => {
@@ -75,7 +78,7 @@ function LopDaoTaoTableByType() {
     try {
       const res = await apiService.get(
         `/attachments/LopDaoTao/${id}/file/files`,
-        { params: { size: 20 } }
+        { params: { size: 20 } },
       );
       const list =
         res?.data?.data?.items ||
@@ -120,7 +123,7 @@ function LopDaoTaoTableByType() {
         `/attachments/files/${fileId}/download`,
         {
           responseType: "blob",
-        }
+        },
       );
       const blobUrl = URL.createObjectURL(res.data);
       const a = document.createElement("a");
@@ -144,6 +147,7 @@ function LopDaoTaoTableByType() {
         disableGroupBy: true,
         sticky: "left",
         Cell: ({ row }) => {
+          const canManageRow = canManageLopDaoTao(user, row.original);
           const collapseIcon = row.isExpanded ? (
             <Add
               style={{
@@ -161,8 +165,10 @@ function LopDaoTaoTableByType() {
               justifyContent="center"
               spacing={0}
             >
-              <DeleteLopDaoTaoButton lopdaotaoID={row.original._id} />
-              {row.original.TrangThai === false && (
+              {canManageRow && (
+                <DeleteLopDaoTaoButton lopdaotaoID={row.original._id} />
+              )}
+              {canManageRow && row.original.TrangThai === false && (
                 <Stack direction={"row"}>
                   <UpdateLopDaoTaoButton lopdaotaoID={row.original._id} />
                   <ThemHocVienTamButton lopdaotaoID={row.original._id} />
@@ -276,11 +282,11 @@ function LopDaoTaoTableByType() {
         disableGroupBy: true,
       },
     ],
-    [mode, theme]
+    [mode, theme],
   );
 
   const { attachmentsCountLopDaoTao, LopDaoTaos } = useSelector(
-    (state) => state.daotao
+    (state) => state.daotao,
   );
 
   const columns = useMemo(() => {
@@ -310,7 +316,7 @@ function LopDaoTaoTableByType() {
       },
       width: 90,
     });
-  }, [baseColumns, typeLopDaoTao, attachmentsCountLopDaoTao]);
+  }, [baseColumns, typeLopDaoTao, attachmentsCountLopDaoTao, user]);
 
   useEffect(() => {
     if (typeLopDaoTao) {
@@ -329,7 +335,7 @@ function LopDaoTaoTableByType() {
   }, [dispatch, data]);
   const renderRowSubComponent = useCallback(
     ({ row }) => <LopDaoTaoView data={data[Number(row.id)]} />,
-    [data]
+    [data],
   );
   const quyDoiLoaiDaoTao = (maLoai) => {
     const hinhthuc = HinhThucCapNhat.find((item) => item.Ma === maLoai);
@@ -339,7 +345,7 @@ function LopDaoTaoTableByType() {
 
   const title = resolveLopDaoTaoTitleByCode(
     typeLopDaoTao,
-    `Quản lý ${quyDoiLoaiDaoTao(typeLopDaoTao)}`
+    `Quản lý ${quyDoiLoaiDaoTao(typeLopDaoTao)}`,
   );
 
   return (
@@ -388,7 +394,7 @@ function LopDaoTaoTableByType() {
                   try {
                     const res = await apiService.get(
                       `/attachments/LopDaoTao/${activeId}/file/files`,
-                      { params: { size: 20 } }
+                      { params: { size: 20 } },
                     );
                     const list =
                       res?.data?.data?.items ||
@@ -399,7 +405,7 @@ function LopDaoTaoTableByType() {
                     fileCacheRef.current.set(activeId, list);
                     countCacheRef.current.set(
                       activeId,
-                      Array.isArray(list) ? list.length : 0
+                      Array.isArray(list) ? list.length : 0,
                     );
                     setFiles(list);
                     // sync Redux count for this row

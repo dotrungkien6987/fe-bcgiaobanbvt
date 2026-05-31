@@ -24,10 +24,19 @@ import SelectHoiDong from "../HoiDong/ChonHoiDong/SelectHoiDong";
 function HocVienLopTable({ setSelectedRows }) {
   const { user } = useAuth();
   const { hoidongCurrent, vaitroquydoiCurents } = useSelector(
-    (state) => state.daotao
+    (state) => state.daotao,
   );
-  const columns = useMemo(
-    () => [
+  const { hocvienCurrents, lopdaotaoCurrent } = useSelector(
+    (state) => state.daotao,
+  );
+  const canManageLopDaoTao = Boolean(
+    lopdaotaoCurrent &&
+    lopdaotaoCurrent._id &&
+    (user?._id === lopdaotaoCurrent.UserIDCreated ||
+      ["admin", "superadmin"].includes((user?.PhanQuyen || "").toLowerCase())),
+  );
+  const columns = useMemo(() => {
+    const baseColumns = [
       {
         Header: "_id",
         Footer: "Action",
@@ -94,19 +103,20 @@ function HocVienLopTable({ setSelectedRows }) {
         disableGroupBy: true,
         Cell: ({ value }) => formatDate_getDate(value),
       },
-    ],
-    []
-  );
+    ];
+
+    if (!canManageLopDaoTao) {
+      return baseColumns.slice(1);
+    }
+
+    return baseColumns;
+  }, [canManageLopDaoTao]);
 
   const dispatch = useDispatch();
   useEffect(() => {
     // Gọi hàm để lấy danh sách cán bộ khi component được tạo
     dispatch(getAllNhanVien());
   }, [dispatch]);
-
-  const { hocvienCurrents, lopdaotaoCurrent } = useSelector(
-    (state) => state.daotao
-  );
   function validateHocVien(hocvienCurrents, vaitro) {
     // Bước 1: Kiểm tra NhanVienID trùng lặp
     const nhanVienIDSet = new Set();
@@ -170,27 +180,26 @@ function HocVienLopTable({ setSelectedRows }) {
         VaiTro: hv.VaiTro,
       }));
       if (lopdaotaoCurrent.MaHinhThucCapNhat.startsWith("NCKH")) {
-       
         if (hoidongCurrent !== "0")
           dispatch(
             updateHoiDongForLopDaoTao({
               hoidongID: hoidongCurrent,
               lopdaotaoID: lopdaotaoCurrent._id,
-            })
+            }),
           );
         else
           dispatch(
             updateHoiDongForLopDaoTao({
               hoidongID: null,
               lopdaotaoID: lopdaotaoCurrent._id,
-            })
+            }),
           );
       }
       dispatch(
         insertOrUpdateLopDaoTaoNhanVien({
           lopdaotaonhanvienData,
           lopdaotaoID: lopdaotaoCurrent._id,
-        })
+        }),
       );
     } else {
       // Hiển thị thông báo cho người dùng
@@ -206,16 +215,17 @@ function HocVienLopTable({ setSelectedRows }) {
           Danh sách học viên trong lớp
         </Typography>
         <Box sx={{ flexGrow: 1 }}></Box>
-        {lopdaotaoCurrent &&
-          lopdaotaoCurrent._id &&
-          lopdaotaoCurrent._id !== 0 && lopdaotaoCurrent.MaHinhThucCapNhat.startsWith("NCKH")&&(
-
-        <SelectHoiDong />
-          )}
-        {lopdaotaoCurrent &&
+        {canManageLopDaoTao &&
+          lopdaotaoCurrent &&
           lopdaotaoCurrent._id &&
           lopdaotaoCurrent._id !== 0 &&
-          user._id === lopdaotaoCurrent.UserIDCreated && (
+          lopdaotaoCurrent.MaHinhThucCapNhat.startsWith("NCKH") && (
+            <SelectHoiDong />
+          )}
+        {canManageLopDaoTao &&
+          lopdaotaoCurrent &&
+          lopdaotaoCurrent._id &&
+          lopdaotaoCurrent._id !== 0 && (
             <Button
               variant="contained"
               startIcon={<SaveIcon />}
@@ -232,17 +242,19 @@ function HocVienLopTable({ setSelectedRows }) {
         setSelectedRows={setSelectedRows}
         sx={{ height: 598 }}
         additionalComponent={
-          <Stack direction="row" spacing={1}>
-            {lopdaotaoCurrent &&
-              lopdaotaoCurrent._id &&
-              (lopdaotaoCurrent.MaHinhThucCapNhat?.startsWith("ĐT") ? (
-                <DongBoHocViensTamButton lopdaotaoID={lopdaotaoCurrent._id} />
-              ) : (
-                <></>
-              ))}
-            <SelectHocVienForm />
-            <SelectVaiTro />
-          </Stack>
+          canManageLopDaoTao ? (
+            <Stack direction="row" spacing={1}>
+              {lopdaotaoCurrent &&
+                lopdaotaoCurrent._id &&
+                (lopdaotaoCurrent.MaHinhThucCapNhat?.startsWith("ĐT") ? (
+                  <DongBoHocViensTamButton lopdaotaoID={lopdaotaoCurrent._id} />
+                ) : (
+                  <></>
+                ))}
+              <SelectHocVienForm />
+              <SelectVaiTro />
+            </Stack>
+          ) : null
         }
       />
     </Card>
