@@ -1,5 +1,5 @@
 export const PASSWORD_POLICY_HINT =
-  "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt, đồng thời không thuộc nhóm mật khẩu yếu phổ biến.";
+  "Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.";
 
 const COMMON_WEAK_PASSWORDS = [
   "123456",

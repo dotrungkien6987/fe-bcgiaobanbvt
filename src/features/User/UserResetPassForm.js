@@ -43,6 +43,7 @@ function UserResetPassForm({
   handleChange,
   forcedChange = false,
   onSuccess,
+  onLogout,
 }) {
   const dispatch = useDispatch();
 
@@ -166,9 +167,14 @@ function UserResetPassForm({
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "flex-end",
+                    justifyContent: forcedChange ? "space-between" : "flex-end",
                   }}
                 >
+                  {forcedChange && onLogout && (
+                    <Button onClick={onLogout} color="error" variant="text">
+                      Đổi tài khoản khác
+                    </Button>
+                  )}
                   <LoadingButton
                     type="submit"
                     variant="contained"
