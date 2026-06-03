@@ -37,7 +37,7 @@ function BenhNhanInBaoCao({ benhnhan, tenkhoa, loaibenhnhan }) {
     ? { ...commonStyleTextNomalReponsive, color: "#FFF" }
     : { ...commonStyleTextNomalReponsive };
 
-  const {
+    const {
     TenBenhNhan,
     Tuoi,
     DiaChi,
@@ -51,11 +51,20 @@ function BenhNhanInBaoCao({ benhnhan, tenkhoa, loaibenhnhan }) {
     HienTai,
     GhiChu,
     TenKhoa,
-
+    MaKhoa,
     Stt,
+    TiepNhanLuc,
+    DenCapCuuLuc,
+    LamSang,
+    ThuocDaDung,
   } = benhnhan;
   const [isOpen, setIsOpen] = useState(false);
   // const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const isCC115Patient = (LoaiBN === 10 || LoaiBN === 11) && 
+    (TiepNhanLuc || DenCapCuuLuc || LamSang || ThuocDaDung || 
+     (TenKhoa && TenKhoa.toUpperCase().includes("115")) ||
+     (MaKhoa && (MaKhoa.toUpperCase() === "CC115" || MaKhoa.toUpperCase() === "TT115")));
 
   return (
     <Container sx={{ my: 1 }}>
@@ -114,46 +123,78 @@ function BenhNhanInBaoCao({ benhnhan, tenkhoa, loaibenhnhan }) {
               {Stt}. {TenBenhNhan} - {GioiTinh}- {Tuoi} tuổi - {DiaChi}
             </Typography>
             <Divider sx={{ my: 1 }} />
-            {DienBien.trim() !== "" && (
-              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
-                - Vaò viện: {VaoVien}
-              </Typography>
-            )}
-
-            {LyDoVV.trim() !== "" && (
-              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
-                - Lý do vào viện: {LyDoVV}
-              </Typography>
-            )}
-
-            {DienBien.trim() !== "" && (
-              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
-                - Diễn biến: {DienBien}
-              </Typography>
-            )}
-
-            {ChanDoan.trim() !== "" && (
-              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
-                - Chẩn đoán: {ChanDoan}
-              </Typography>
-            )}
-
-            {XuTri.trim() !== "" && (
-              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
-                - Xử trí: {XuTri}
-              </Typography>
-            )}
-
-            {HienTai.trim() !== "" && (
-              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
-                - Hiện tại: {HienTai}
-              </Typography>
-            )}
-
-            {GhiChu.trim() !== "" && (
-              <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
-                - {GhiChu}
-              </Typography>
+            
+            {isCC115Patient ? (
+              <>
+                {(TiepNhanLuc || DenCapCuuLuc) && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - Tiếp nhận thông tin lúc: {TiepNhanLuc || "..."}; đến cấp cứu lúc: {DenCapCuuLuc || "..."}
+                  </Typography>
+                )}
+                {DienBien && DienBien.trim() !== "" && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - Diễn biến bệnh: {DienBien}
+                  </Typography>
+                )}
+                {LamSang && LamSang.trim() !== "" && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - Dấu hiệu, triệu chứng lâm sàng chính: {LamSang}
+                  </Typography>
+                )}
+                {ChanDoan && ChanDoan.trim() !== "" && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - {LoaiBN === 10 ? "Chẩn đoán nguyên nhân tử vong" : "Chẩn đoán"}: {ChanDoan}
+                  </Typography>
+                )}
+                {XuTri && XuTri.trim() !== "" && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - Các can thiệp cấp cứu được thực hiện: {XuTri}
+                  </Typography>
+                )}
+                {ThuocDaDung && ThuocDaDung.trim() !== "" && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - Các thuốc đã dùng cho bệnh nhân: {ThuocDaDung}
+                  </Typography>
+                )}
+              </>
+            ) : (
+              <>
+                {VaoVien && VaoVien.trim() !== "" && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - Vào viện: {VaoVien}
+                  </Typography>
+                )}
+                {LyDoVV && LyDoVV.trim() !== "" && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - Lý do vào viện: {LyDoVV}
+                  </Typography>
+                )}
+                {DienBien && DienBien.trim() !== "" && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - Diễn biến: {DienBien}
+                  </Typography>
+                )}
+                {ChanDoan && ChanDoan.trim() !== "" && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - Chẩn đoán: {ChanDoan}
+                  </Typography>
+                )}
+                {XuTri && XuTri.trim() !== "" && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - Xử trí: {XuTri}
+                  </Typography>
+                )}
+                {HienTai && HienTai.trim() !== "" && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - Hiện tại: {HienTai}
+                  </Typography>
+                )}
+                {GhiChu && GhiChu.trim() !== "" && (
+                  <Typography variant="body2" sx={commonStyleTextNomalReponsive}>
+                    - {GhiChu}
+                  </Typography>
+                )}
+              </>
             )}
           </Grid>
         </Grid>

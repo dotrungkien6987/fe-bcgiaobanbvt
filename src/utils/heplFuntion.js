@@ -112,9 +112,10 @@ export function filterChiTietBenhNhansCLC(baocaongays, LoaiBN, MaKhoas) {
     })
     .map((baocaongay) => {
       const tenKhoa = baocaongay.KhoaID.TenKhoa;
+      const maKhoa = baocaongay.KhoaID.MaKhoa;
       return baocaongay.ChiTietBenhNhan.map((chitiet) => {
-        // Thêm trường TenKhoa vào mỗi ChiTietBenhNhan
-        return { ...chitiet, TenKhoa: tenKhoa };
+        // Thêm trường TenKhoa và MaKhoa vào mỗi ChiTietBenhNhan
+        return { ...chitiet, TenKhoa: tenKhoa, MaKhoa: maKhoa };
       });
     })
     .reduce((acc, chitietArray) => {

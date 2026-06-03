@@ -33,10 +33,10 @@ const schemaShape = {
 };
 
 chiSoFields.forEach((field) => {
-  schemaShape[field.trongGioName] =
+  schemaShape[field.qtyName] =
     Yup.number().typeError("Bạn phải nhập 1 số");
-  schemaShape[field.ngoaiGioName] =
-    Yup.number().typeError("Bạn phải nhập 1 số");
+  schemaShape[field.noteName] =
+    Yup.string().nullable();
 });
 
 const RegisterSchema = Yup.object().shape(schemaShape);
@@ -44,8 +44,8 @@ const RegisterSchema = Yup.object().shape(schemaShape);
 const defaultValues = chiSoFields.reduce(
   (values, field) => ({
     ...values,
-    [field.trongGioName]: 0,
-    [field.ngoaiGioName]: 0,
+    [field.qtyName]: 0,
+    [field.noteName]: "",
   }),
   {
     BSTruc: "",
@@ -72,8 +72,25 @@ function BCCapCuu115() {
   const {
     handleSubmit,
     setValue,
+    watch,
     formState: { isSubmitting },
   } = methods;
+
+  // Lắng nghe sự thay đổi của các chỉ số con để tự động tính tổng
+  const valChuyenVeBV = watch("ChuyenVeBVDieuTri_SoLuong");
+  const valTuVong = watch("TuVong_SoLuong");
+  const valChuyenVien = watch("ChuyenVien_SoLuong");
+  const valVeGiaDinh = watch("VeGiaDinh_SoLuong");
+
+  useEffect(() => {
+    const totalCapCuu = Number(valChuyenVeBV || 0) + Number(valTuVong || 0);
+    setValue("TongSoCaCapCuu_SoLuong", totalCapCuu);
+  }, [valChuyenVeBV, valTuVong, setValue]);
+
+  useEffect(() => {
+    const totalVanChuyen = Number(valChuyenVien || 0) + Number(valVeGiaDinh || 0);
+    setValue("TongSoCaVanChuyen_SoLuong", totalVanChuyen);
+  }, [valChuyenVien, valVeGiaDinh, setValue]);
 
   useEffect(() => {
     if (bcGiaoBanTheoNgay.Ngay) {
@@ -101,30 +118,18 @@ function BCCapCuu115() {
     setValue("DDTruc", bcGiaoBanTheoNgay.DDTruc || "");
 
     chiSoFields.forEach((field) => {
-      setValue(
-        field.trongGioName,
-        ctChiSos.find((obj) => obj.ChiSoCode === field.trongGioCode)?.SoLuong ||
-          0,
-      );
-      setValue(
-        field.ngoaiGioName,
-        ctChiSos.find((obj) => obj.ChiSoCode === field.ngoaiGioCode)?.SoLuong ||
-          0,
-      );
+      const found = ctChiSos.find((obj) => obj.ChiSoCode === field.code);
+      setValue(field.qtyName, found?.SoLuong || 0);
+      setValue(field.noteName, found?.GhiChu || "");
     });
   }, [bcGiaoBanTheoNgay, ctChiSos, setValue]);
 
   const handleCapNhatDuLieu = (data) => {
-    const ctChiSo = chiSoFields.flatMap((field) => [
-      {
-        ChiSoCode: field.trongGioCode,
-        SoLuong: Number(data[field.trongGioName] || 0),
-      },
-      {
-        ChiSoCode: field.ngoaiGioCode,
-        SoLuong: Number(data[field.ngoaiGioName] || 0),
-      },
-    ]);
+    const ctChiSo = chiSoFields.map((field) => ({
+      ChiSoCode: field.code,
+      SoLuong: Number(data[field.qtyName] || 0),
+      GhiChu: data[field.noteName] || "",
+    }));
 
     const bcNgayKhoa = {
       ...bcGiaoBanTheoNgay,
@@ -176,29 +181,48 @@ function BCCapCuu115() {
                 {group.title}
               </Typography>
               <Grid container spacing={2} alignItems="center">
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={3}>
                   <Typography fontWeight="bold">Chỉ số</Typography>
                 </Grid>
-                <Grid item xs={6} md={4}>
-                  <Typography fontWeight="bold">Trong giờ</Typography>
+                <Grid item xs={12} md={3}>
+                  <Typography fontWeight="bold">Số lượng</Typography>
                 </Grid>
-                <Grid item xs={6} md={4}>
-                  <Typography fontWeight="bold">Ngoài giờ</Typography>
+                <Grid item xs={12} md={6}>
+                  <Typography fontWeight="bold">Ghi chú</Typography>
                 </Grid>
 
-                {group.fields.map((field) => (
-                  <React.Fragment key={field.label}>
-                    <Grid item xs={12} md={4}>
-                      <Typography>{field.label}</Typography>
-                    </Grid>
-                    <Grid item xs={6} md={4}>
-                      <FTextField name={field.trongGioName} label="Trong giờ" />
-                    </Grid>
-                    <Grid item xs={6} md={4}>
-                      <FTextField name={field.ngoaiGioName} label="Ngoài giờ" />
-                    </Grid>
-                  </React.Fragment>
-                ))}
+                {group.fields.map((field) => {
+                  const isTotalField =
+                    field.code === "cc115-TongSoCaCapCuu" ||
+                    field.code === "cc115-TongSoCaVanChuyen";
+
+                  return (
+                    <React.Fragment key={field.label}>
+                      <Grid item xs={12} md={3}>
+                        <Typography sx={{ fontWeight: isTotalField ? "bold" : "normal" }}>
+                          {field.label}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} md={3}>
+                        <FTextField
+                          name={field.qtyName}
+                          label="Số lượng"
+                          InputProps={
+                            isTotalField
+                              ? {
+                                  readOnly: true,
+                                  style: { fontWeight: "bold", backgroundColor: "#f1f5f9" },
+                                }
+                              : undefined
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <FTextField name={field.noteName} label="Ghi chú" />
+                      </Grid>
+                    </React.Fragment>
+                  );
+                })}
               </Grid>
             </Card>
           ))}
@@ -270,6 +294,7 @@ function BCCapCuu115() {
             tenLoaiBN={tenLoaiBN}
             loaiBN={loaiBN}
             benhnhan={{}}
+            isCC115={true}
           />
         </Stack>
 

@@ -1532,6 +1532,228 @@ function Sumary() {
       fontSize: 14,
     });
 
+    const cc115Reports = getObjectByMaKhoa(baocaongays, cc115DepartmentCodes);
+    const cc115BNTuvongs = filterChiTietBenhNhansCLC(
+      baocaongays,
+      10,
+      cc115DepartmentCodes,
+    );
+    const cc115BNCapCuus = filterChiTietBenhNhansCLC(
+      baocaongays,
+      11,
+      cc115DepartmentCodes,
+    );
+    const cc115ChiSoMap = cc115ChiSoFields.reduce((acc, field) => {
+      acc[field.code] = { SoLuong: 0, GhiChu: "" };
+      return acc;
+    }, {});
+
+    cc115Reports.forEach((entry) => {
+      entry.ChiTietChiSo.forEach((chitiet) => {
+        if (
+          Object.prototype.hasOwnProperty.call(cc115ChiSoMap, chitiet.ChiSoCode)
+        ) {
+          cc115ChiSoMap[chitiet.ChiSoCode].SoLuong += chitiet.SoLuong;
+          if (chitiet.GhiChu) {
+            if (cc115ChiSoMap[chitiet.ChiSoCode].GhiChu) {
+              cc115ChiSoMap[chitiet.ChiSoCode].GhiChu += "; " + chitiet.GhiChu;
+            } else {
+              cc115ChiSoMap[chitiet.ChiSoCode].GhiChu = chitiet.GhiChu;
+            }
+          }
+        }
+      });
+    });
+
+    const cc115BSTruc = cc115Reports[0]?.BSTruc || "";
+    const cc115DDTruc = cc115Reports[0]?.DDTruc || "";
+
+    const addCC115PatientSlides = (lstBenhNhan, title) => {
+      if (lstBenhNhan.length === 0) {
+        return;
+      }
+
+      for (let benhnhan of lstBenhNhan) {
+        let slide = pres.addSlide();
+        slide.addText(`${title} : ${lstBenhNhan.length}`, {
+          ...styleTitle,
+          h: 1,
+        });
+        slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
+        slide.addShape(pres.shapes.RECTANGLE, {
+          x: 0,
+          y: 1,
+          w: 1.6,
+          h: 4.6,
+          fill: { color: "FFFFFF" },
+          line: { color: "1939B7", width: 1 },
+        });
+        slide.addText(benhnhan.TenKhoa, {
+          x: 0,
+          y: 1,
+          w: 1.6,
+          h: 4.6,
+          fontSize: 29,
+          color: "bb1515",
+          valign: "center",
+          align: "center",
+        });
+        slide.addShape(pres.shapes.RECTANGLE, {
+          x: 1.6,
+          y: 1,
+          w: 8.4,
+          h: 4.6,
+          fill: { color: "FFFFFF" },
+          line: { color: "1939B7", width: 1 },
+        });
+
+        let textForCol2 =
+          benhnhan.Stt +
+          ". " +
+          benhnhan.TenBenhNhan +
+          " - " +
+          benhnhan.Tuoi +
+          " tuổi - " +
+          benhnhan.GioiTinh;
+        textForCol2 +=
+          benhnhan.DiaChi && benhnhan.DiaChi.trim().length > 0
+            ? `\n- Địa chỉ: ${benhnhan.DiaChi.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.TiepNhanLuc && benhnhan.TiepNhanLuc.trim().length > 0
+            ? `\n- Tiếp nhận thông tin lúc: ${benhnhan.TiepNhanLuc.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.DenCapCuuLuc && benhnhan.DenCapCuuLuc.trim().length > 0
+            ? `\n- Đến cấp cứu lúc: ${benhnhan.DenCapCuuLuc.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.DienBien && benhnhan.DienBien.trim().length > 0
+            ? `\n- Diễn biến: ${benhnhan.DienBien.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.LamSang && benhnhan.LamSang.trim().length > 0
+            ? `\n- Lâm sàng chính: ${benhnhan.LamSang.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.ChanDoan && benhnhan.ChanDoan.trim().length > 0
+            ? `\n- Chẩn đoán: ${benhnhan.ChanDoan.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.XuTri && benhnhan.XuTri.trim().length > 0
+            ? `\n- Can thiệp thực hiện: ${benhnhan.XuTri.trim()}`
+            : "";
+        textForCol2 +=
+          benhnhan.ThuocDaDung && benhnhan.ThuocDaDung.trim().length > 0
+            ? `\n- Thuốc đã dùng: ${benhnhan.ThuocDaDung.trim()}`
+            : "";
+
+        let MAX_CHARS_PER_LINE = 65;
+        let MAX_LINES_PER_SLIDE = 12;
+        let paragraphs = textForCol2.split("\n");
+        let lines = [];
+
+        paragraphs.forEach((paragraph) => {
+          let words = paragraph.split(" ");
+          let currentLine = "";
+
+          words.forEach((word) => {
+            if (currentLine.length + word.length < MAX_CHARS_PER_LINE) {
+              if (currentLine.length > 0) {
+                currentLine += " ";
+              }
+              currentLine += word;
+            } else {
+              lines.push(currentLine);
+              currentLine = word;
+            }
+          });
+          if (currentLine.length > 0) {
+            lines.push(currentLine);
+          }
+        });
+
+        for (let i = 0; i < lines.length; i += MAX_LINES_PER_SLIDE) {
+          let textToInclude = lines
+            .slice(i, i + MAX_LINES_PER_SLIDE)
+            .join("\n");
+          slide.addText(textToInclude, {
+            x: 1.6,
+            y: 1,
+            w: 8.4,
+            h: 4.5,
+            fontFace: "Times New Roman",
+            fontSize: 20,
+            color: "1939B7",
+          });
+          if (i + MAX_LINES_PER_SLIDE < lines.length) {
+            slide = pres.addSlide();
+            slide.addText(`${title} : ${lstBenhNhan.length}`, {
+              ...styleTitle,
+              h: 1,
+            });
+            slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
+            slide.addShape(pres.shapes.RECTANGLE, {
+              x: 0,
+              y: 1,
+              w: 1.6,
+              h: 4.6,
+              fill: { color: "FFFFFF" },
+              line: { color: "1939B7", width: 1 },
+            });
+            slide.addText(benhnhan.TenKhoa, {
+              x: 0,
+              y: 1,
+              w: 1.6,
+              h: 4.5,
+              fontFace: "Times New Roman",
+              fontSize: 30,
+              color: "bb1515",
+              valign: "center",
+              align: "center",
+            });
+            slide.addShape(pres.shapes.RECTANGLE, {
+              x: 1.6,
+              y: 1,
+              w: 8.4,
+              h: 4.6,
+              fill: { color: "FFFFFF" },
+              line: { color: "1939B7", width: 1 },
+            });
+          }
+        }
+
+        for (let img of benhnhan.Images || []) {
+          let imgSlide = pres.addSlide();
+          imgSlide.addText(`${title} : ${lstBenhNhan.length}`, {
+            ...styleTitle,
+            h: 1,
+          });
+          imgSlide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
+          imgSlide.addShape(pres.shapes.RECTANGLE, {
+            x: 0,
+            y: 1,
+            w: 1.6,
+            h: 4.6,
+            fill: { color: "FFFFFF" },
+            line: { color: "1939B7", width: 1 },
+          });
+          imgSlide.addText(benhnhan.TenKhoa, {
+            x: 0,
+            y: 1,
+            w: 1.6,
+            h: 4.5,
+            fontSize: 30,
+            fontFace: "Times New Roman",
+            color: "bb1515",
+            valign: "center",
+            align: "center",
+          });
+          imgSlide.addImage({ path: img, x: 3.5, y: 1.1, w: 4.5, h: 4.5 });
+        }
+      }
+    };
+
     const listBenhNhanBaoCaoTongTrucHeNoi = [
       noiBNTuvongs,
       noiBNChuyenViens,
@@ -1552,6 +1774,196 @@ function Sumary() {
       "Người bệnh vào viện ngoài giờ",
     ];
     listBenhNhanBaoCaoTongTrucHeNoi.forEach((lstBenhNhan, index) => {
+      // Export CC115 right before Internal Medicine Out-of-hours patients (index 6)
+      if (index === 6) {
+        let slideChuyenCC115 = pres.addSlide();
+        slideChuyenCC115.addText("BÁO CÁO GIAO BAN TOÀN VIỆN", {
+          ...styleTitle,
+          align: "center",
+        });
+        slideChuyenCC115.addImage({
+          path: "/logo.png",
+          x: 9,
+          y: 0,
+          w: 1,
+          h: 1,
+        });
+        slideChuyenCC115.addText(
+          "BÁO CÁO TRUNG TÂM CẤP CỨU 115",
+          styleTextChuyenForm,
+        );
+
+        let slideThongKeCC115 = pres.addSlide();
+        slideThongKeCC115.addText("Trực Trung tâm cấp cứu 115", {
+          x: 0,
+          y: 0,
+          fontSize: 20,
+          fontFace: "Times New Roman",
+          bold: true,
+          color: "FFFFFF",
+          fill: { color: "1939B7" },
+          align: "left",
+          w: 9,
+          h: 0.5,
+        });
+        slideThongKeCC115.addText(
+          `Kíp trực: ${cc115BSTruc}${cc115BSTruc && cc115DDTruc ? " - " : ""}${cc115DDTruc}`,
+          {
+            x: 0,
+            y: 0.5,
+            fontSize: 20,
+            fontFace: "Times New Roman",
+            bold: true,
+            color: "FFFFFF",
+            fill: { color: "1939B7" },
+            align: "left",
+            w: 10,
+            h: 0.5,
+          },
+        );
+        slideThongKeCC115.addImage({
+          path: "/logo.png",
+          x: 9,
+          y: 0,
+          w: 1,
+          h: 1,
+        });
+
+        const cc115HeaderCellOptions = {
+          fontFace: "Times New Roman",
+          fontSize: 13,
+          bold: true,
+          color: "FFFFFF",
+          fill: { color: "1939B7" },
+          align: "center",
+          valign: "middle",
+          border: { type: "solid", color: "CCCCCC", pt: 1 },
+          margin: 0.06,
+        };
+
+        const cc115LabelCellOptions = {
+          fontFace: "Times New Roman",
+          fontSize: 12,
+          bold: false,
+          color: "333333",
+          align: "left",
+          valign: "middle",
+          border: { type: "solid", color: "CCCCCC", pt: 1 },
+          margin: 0.06,
+        };
+
+        const cc115ValueCellOptions = {
+          fontFace: "Times New Roman",
+          fontSize: 12,
+          bold: false,
+          color: "333333",
+          align: "center",
+          valign: "middle",
+          border: { type: "solid", color: "CCCCCC", pt: 1 },
+          margin: 0.04,
+        };
+
+        const tableRowsConfig = [
+          {
+            stt: "1",
+            label: "Tổng số ca cấp cứu",
+            code: "cc115-TongSoCaCapCuu",
+            isParent: true,
+          },
+          {
+            stt: "",
+            label: "   - Số ca chuyển về BV điều trị",
+            code: "cc115-ChuyenVeBVDieuTri",
+            isParent: false,
+          },
+          {
+            stt: "",
+            label: "   - Số ca tử vong",
+            code: "cc115-TuVong",
+            isParent: false,
+            isDanger: true,
+          },
+          {
+            stt: "2",
+            label: "Tổng số ca vận chuyển",
+            code: "cc115-TongSoCaVanChuyen",
+            isParent: true,
+          },
+          {
+            stt: "",
+            label: "   - Chuyển viện",
+            code: "cc115-ChuyenVien",
+            isParent: false,
+          },
+          {
+            stt: "",
+            label: "   - Chuyển về gia đình",
+            code: "cc115-VeGiaDinh",
+            isParent: false,
+          },
+        ];
+
+        const tableData = [
+          [
+            { text: "STT", options: cc115HeaderCellOptions },
+            { text: "Chỉ số", options: { ...cc115HeaderCellOptions, align: "left" } },
+            { text: "Số lượng", options: cc115HeaderCellOptions },
+            { text: "Ghi chú", options: { ...cc115HeaderCellOptions, align: "left" } },
+          ],
+          ...tableRowsConfig.map((row, rIdx) => {
+            const value = cc115ChiSoMap[row.code]?.SoLuong || 0;
+            const note = cc115ChiSoMap[row.code]?.GhiChu || "";
+            const isDangerAlert = row.isDanger && value > 0;
+
+            let bgFill = undefined;
+            if (row.isParent) {
+              bgFill = { color: "EAF0FF" };
+            } else if (rIdx % 2 === 0) {
+              bgFill = { color: "F8FAFC" };
+            }
+
+            const cellOpts = {
+              ...cc115LabelCellOptions,
+              fill: bgFill,
+              bold: row.isParent,
+              color: isDangerAlert ? "D32F2F" : "333333",
+            };
+
+            const valueOpts = {
+              ...cc115ValueCellOptions,
+              fill: bgFill,
+              bold: row.isParent || isDangerAlert,
+              color: isDangerAlert ? "D32F2F" : (row.isParent ? "1939B7" : "333333"),
+            };
+
+            const noteOpts = {
+              ...cc115LabelCellOptions,
+              fill: bgFill,
+              italic: true,
+              color: "555555",
+            };
+
+            return [
+              { text: row.stt, options: { ...valueOpts, bold: row.isParent } },
+              { text: row.label, options: cellOpts },
+              { text: String(value), options: valueOpts },
+              { text: note, options: noteOpts },
+            ];
+          }),
+        ];
+
+        slideThongKeCC115.addTable(tableData, {
+          x: 0.3,
+          y: 1.3,
+          w: 9.4,
+          h: 3.5,
+          colW: [0.6, 4.0, 1.2, 3.6],
+        });
+
+        addCC115PatientSlides(cc115BNTuvongs, "Người bệnh tử vong CC115");
+        addCC115PatientSlides(cc115BNCapCuus, "Người bệnh cấp cứu CC115");
+      }
+
       //Export lstBenhNhan
       if (lstBenhNhan.length > 0) {
         //Slide chuyen ngoai gio he noi
@@ -1763,373 +2175,7 @@ function Sumary() {
       }
     });
 
-    const cc115Reports = getObjectByMaKhoa(baocaongays, cc115DepartmentCodes);
-    const cc115BNTuvongs = filterChiTietBenhNhansCLC(
-      baocaongays,
-      10,
-      cc115DepartmentCodes,
-    );
-    const cc115BNCapCuus = filterChiTietBenhNhansCLC(
-      baocaongays,
-      11,
-      cc115DepartmentCodes,
-    );
-    const cc115ChiSoMap = cc115ChiSoFields.reduce((acc, field) => {
-      acc[field.trongGioCode] = 0;
-      acc[field.ngoaiGioCode] = 0;
-      return acc;
-    }, {});
 
-    cc115Reports.forEach((entry) => {
-      entry.ChiTietChiSo.forEach((chitiet) => {
-        if (
-          Object.prototype.hasOwnProperty.call(cc115ChiSoMap, chitiet.ChiSoCode)
-        ) {
-          cc115ChiSoMap[chitiet.ChiSoCode] += chitiet.SoLuong;
-        }
-      });
-    });
-
-    const cc115BSTruc = cc115Reports[0]?.BSTruc || "";
-    const cc115DDTruc = cc115Reports[0]?.DDTruc || "";
-
-    const addCC115PatientSlides = (lstBenhNhan, title) => {
-      if (lstBenhNhan.length === 0) {
-        return;
-      }
-
-      for (let benhnhan of lstBenhNhan) {
-        let slide = pres.addSlide();
-        slide.addText(`${title} : ${lstBenhNhan.length}`, {
-          ...styleTitle,
-          h: 1,
-        });
-        slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
-        slide.addShape(pres.shapes.RECTANGLE, {
-          x: 0,
-          y: 1,
-          w: 1.6,
-          h: 4.6,
-          fill: { color: "FFFFFF" },
-          line: { color: "1939B7", width: 1 },
-        });
-        slide.addText(benhnhan.TenKhoa, {
-          x: 0,
-          y: 1,
-          w: 1.6,
-          h: 4.6,
-          fontSize: 29,
-          color: "bb1515",
-          valign: "center",
-          align: "center",
-        });
-        slide.addShape(pres.shapes.RECTANGLE, {
-          x: 1.6,
-          y: 1,
-          w: 8.4,
-          h: 4.6,
-          fill: { color: "FFFFFF" },
-          line: { color: "1939B7", width: 1 },
-        });
-
-        let textForCol2 =
-          benhnhan.Stt +
-          ". " +
-          benhnhan.TenBenhNhan +
-          " - " +
-          benhnhan.Tuoi +
-          " tuổi - " +
-          benhnhan.GioiTinh;
-        textForCol2 +=
-          benhnhan.DiaChi && benhnhan.DiaChi.trim().length > 0
-            ? `\n- Địa chỉ: ${benhnhan.DiaChi.trim()}`
-            : "";
-        textForCol2 +=
-          benhnhan.VaoVien && benhnhan.VaoVien.trim().length > 0
-            ? `\n- Vào viện: ${benhnhan.VaoVien.trim()}`
-            : "";
-        textForCol2 +=
-          benhnhan.LyDoVV && benhnhan.LyDoVV.trim().length > 0
-            ? `\n- Lý do vv: ${benhnhan.LyDoVV.trim()}`
-            : "";
-        textForCol2 +=
-          benhnhan.DienBien && benhnhan.DienBien.trim().length > 0
-            ? `\n- Diễn biến: ${benhnhan.DienBien.trim()}`
-            : "";
-        textForCol2 +=
-          benhnhan.ChanDoan && benhnhan.ChanDoan.trim().length > 0
-            ? `\n- Chẩn đoán: ${benhnhan.ChanDoan.trim()}`
-            : "";
-        textForCol2 +=
-          benhnhan.XuTri && benhnhan.XuTri.trim().length > 0
-            ? `\n- Xử trí: ${benhnhan.XuTri.trim()}`
-            : "";
-        textForCol2 +=
-          benhnhan.HienTai && benhnhan.HienTai.trim().length > 0
-            ? `\n- Hiện tại: ${benhnhan.HienTai.trim()}`
-            : "";
-        textForCol2 +=
-          benhnhan.GhiChu && benhnhan.GhiChu.trim().length > 0
-            ? `\n- ${benhnhan.GhiChu.trim()}`
-            : "";
-
-        let MAX_CHARS_PER_LINE = 65;
-        let MAX_LINES_PER_SLIDE = 12;
-        let paragraphs = textForCol2.split("\n");
-        let lines = [];
-
-        paragraphs.forEach((paragraph) => {
-          let words = paragraph.split(" ");
-          let currentLine = "";
-
-          words.forEach((word) => {
-            if (currentLine.length + word.length < MAX_CHARS_PER_LINE) {
-              if (currentLine.length > 0) {
-                currentLine += " ";
-              }
-              currentLine += word;
-            } else {
-              lines.push(currentLine);
-              currentLine = word;
-            }
-          });
-          if (currentLine.length > 0) {
-            lines.push(currentLine);
-          }
-        });
-
-        for (let i = 0; i < lines.length; i += MAX_LINES_PER_SLIDE) {
-          let textToInclude = lines
-            .slice(i, i + MAX_LINES_PER_SLIDE)
-            .join("\n");
-          slide.addText(textToInclude, {
-            x: 1.6,
-            y: 1,
-            w: 8.4,
-            h: 4.5,
-            fontFace: "Times New Roman",
-            fontSize: 20,
-            color: "1939B7",
-          });
-          if (i + MAX_LINES_PER_SLIDE < lines.length) {
-            slide = pres.addSlide();
-            slide.addText(`${title} : ${lstBenhNhan.length}`, {
-              ...styleTitle,
-              h: 1,
-            });
-            slide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
-            slide.addShape(pres.shapes.RECTANGLE, {
-              x: 0,
-              y: 1,
-              w: 1.6,
-              h: 4.6,
-              fill: { color: "FFFFFF" },
-              line: { color: "1939B7", width: 1 },
-            });
-            slide.addText(benhnhan.TenKhoa, {
-              x: 0,
-              y: 1,
-              w: 1.6,
-              h: 4.5,
-              fontFace: "Times New Roman",
-              fontSize: 30,
-              color: "bb1515",
-              valign: "center",
-              align: "center",
-            });
-            slide.addShape(pres.shapes.RECTANGLE, {
-              x: 1.6,
-              y: 1,
-              w: 8.4,
-              h: 4.6,
-              fill: { color: "FFFFFF" },
-              line: { color: "1939B7", width: 1 },
-            });
-          }
-        }
-
-        for (let img of benhnhan.Images || []) {
-          let imgSlide = pres.addSlide();
-          imgSlide.addText(`${title} : ${lstBenhNhan.length}`, {
-            ...styleTitle,
-            h: 1,
-          });
-          imgSlide.addImage({ path: "/logo.png", x: 9, y: 0, w: 1, h: 1 });
-          imgSlide.addShape(pres.shapes.RECTANGLE, {
-            x: 0,
-            y: 1,
-            w: 1.6,
-            h: 4.6,
-            fill: { color: "FFFFFF" },
-            line: { color: "1939B7", width: 1 },
-          });
-          imgSlide.addText(benhnhan.TenKhoa, {
-            x: 0,
-            y: 1,
-            w: 1.6,
-            h: 4.5,
-            fontSize: 30,
-            fontFace: "Times New Roman",
-            color: "bb1515",
-            valign: "center",
-            align: "center",
-          });
-          imgSlide.addImage({ path: img, x: 3.5, y: 1.1, w: 4.5, h: 4.5 });
-        }
-      }
-    };
-
-    let slideChuyenCC115 = pres.addSlide();
-    slideChuyenCC115.addText("BÁO CÁO GIAO BAN TOÀN VIỆN", {
-      ...styleTitle,
-      align: "center",
-    });
-    slideChuyenCC115.addImage({
-      path: "/logo.png",
-      x: 9,
-      y: 0,
-      w: 1,
-      h: 1,
-    });
-    slideChuyenCC115.addText(
-      "BÁO CÁO TRUNG TÂM CẤP CỨU 115",
-      styleTextChuyenForm,
-    );
-
-    let slideThongKeCC115 = pres.addSlide();
-    slideThongKeCC115.addText("Trực Trung tâm cấp cứu 115", {
-      x: 0,
-      y: 0,
-      fontSize: 20,
-      fontFace: "Times New Roman",
-      bold: true,
-      color: "FFFFFF",
-      fill: { color: "1939B7" },
-      align: "left",
-      w: 9,
-      h: 0.5,
-    });
-    slideThongKeCC115.addText(
-      `Kíp trực: ${cc115BSTruc}${cc115BSTruc && cc115DDTruc ? " - " : ""}${cc115DDTruc}`,
-      {
-        x: 0,
-        y: 0.5,
-        fontSize: 20,
-        fontFace: "Times New Roman",
-        bold: true,
-        color: "FFFFFF",
-        fill: { color: "1939B7" },
-        align: "left",
-        w: 10,
-        h: 0.5,
-      },
-    );
-    slideThongKeCC115.addImage({
-      path: "/logo.png",
-      x: 9,
-      y: 0,
-      w: 1,
-      h: 1,
-    });
-
-    const cc115SectionTitleStyle = {
-      fontSize: 15,
-      fontFace: "Times New Roman",
-      bold: true,
-      color: "FFFFFF",
-      fill: { color: "1939B7" },
-      align: "left",
-      margin: 0.08,
-      w: 9.4,
-      h: 0.32,
-      x: 0.3,
-    };
-
-    const cc115HeaderCellOptions = {
-      fontFace: "Times New Roman",
-      fontSize: 10.5,
-      bold: true,
-      color: "1939B7",
-      fill: { color: "EAF0FF" },
-      align: "center",
-      valign: "middle",
-      border: { type: "solid", color: "1939B7", pt: 1 },
-      margin: 0.05,
-    };
-
-    const cc115LabelCellOptions = {
-      fontFace: "Times New Roman",
-      fontSize: 10,
-      bold: false,
-      color: "1939B7",
-      align: "left",
-      valign: "middle",
-      border: { type: "solid", color: "1939B7", pt: 1 },
-      margin: 0.06,
-    };
-
-    const cc115ValueCellOptions = {
-      fontFace: "Times New Roman",
-      fontSize: 10,
-      bold: false,
-      color: "1939B7",
-      align: "center",
-      valign: "middle",
-      border: { type: "solid", color: "1939B7", pt: 1 },
-      margin: 0.04,
-    };
-
-    const buildCC115TableData = (fields) => [
-      [
-        { text: "Chỉ số", options: cc115HeaderCellOptions },
-        { text: "Trong giờ", options: cc115HeaderCellOptions },
-        { text: "Ngoài giờ", options: cc115HeaderCellOptions },
-      ],
-      ...fields.map((field) => [
-        { text: field.label, options: cc115LabelCellOptions },
-        {
-          text: String(cc115ChiSoMap[field.trongGioCode] || 0),
-          options: cc115ValueCellOptions,
-        },
-        {
-          text: String(cc115ChiSoMap[field.ngoaiGioCode] || 0),
-          options: cc115ValueCellOptions,
-        },
-      ]),
-    ];
-
-    const tableNgoaiVienCC115 = buildCC115TableData(cc115ChiSoGroups[0].fields);
-
-    slideThongKeCC115.addText("Thống kê ngoại viện", {
-      ...cc115SectionTitleStyle,
-      y: 1.14,
-    });
-
-    slideThongKeCC115.addTable(tableNgoaiVienCC115, {
-      x: 0.3,
-      y: 1.5,
-      w: 9.4,
-      h: 2.05,
-      colW: [5.5, 1.95, 1.95],
-    });
-
-    const tableVanChuyenCC115 = buildCC115TableData(cc115ChiSoGroups[1].fields);
-
-    slideThongKeCC115.addText("Thống kê vận chuyển", {
-      ...cc115SectionTitleStyle,
-      y: 3.78,
-    });
-
-    slideThongKeCC115.addTable(tableVanChuyenCC115, {
-      x: 0.3,
-      y: 4.14,
-      w: 9.4,
-      h: 1.08,
-      colW: [5.5, 1.95, 1.95],
-    });
-
-    addCC115PatientSlides(cc115BNTuvongs, "Người bệnh tử vong CC115");
-    addCC115PatientSlides(cc115BNCapCuus, "Người bệnh cấp cứu CC115");
 
     //Export du lieu Trung tam CLC
     let slideChuyenTrungTamCLC = pres.addSlide();

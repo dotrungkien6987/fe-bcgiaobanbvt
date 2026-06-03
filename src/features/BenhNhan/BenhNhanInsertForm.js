@@ -41,6 +41,7 @@ function BenhNhanInsertForm({
   handleSave,
   benhnhan,
   handleChange,
+  isCC115,
 }) {
   const methods = useForm({
     resolver: yupResolver(yupSchema),
@@ -56,6 +57,10 @@ function BenhNhanInsertForm({
       XuTri: benhnhan.XuTri || "",
       HienTai: benhnhan.HienTai || "",
       GhiChu: benhnhan.GhiChu || "",
+      TiepNhanLuc: benhnhan.TiepNhanLuc || "",
+      DenCapCuuLuc: benhnhan.DenCapCuuLuc || "",
+      LamSang: benhnhan.LamSang || "",
+      ThuocDaDung: benhnhan.ThuocDaDung || "",
     },
   });
   const {
@@ -120,17 +125,10 @@ function BenhNhanInsertForm({
         open={open}
         onClose={handleClose}
         aria-labelledby="form-dialog-title"
-        // sx={{
-        //   "& .MuiDialog-paper": {
-        //     width: "1000px", // Or any other width you want
-        //     height: "600px", // Or any other height you want
-        //   },
-        // }}
       >
         <DialogTitle id="form-dialog-title">Bệnh nhân {tenLoaiBN}</DialogTitle>
         <DialogContent>
           <Card sx={{ p: 3 }}>
-            {/* onSubmit={handleSubmit(onSubmit)} */}
             <FormProvider
               methods={methods}
               onSubmit={handleSubmit(onSubmitData)}
@@ -150,13 +148,34 @@ function BenhNhanInsertForm({
                   />
                 </Stack>
                 <FTextField multiline name="DiaChi" label="Địa chỉ" />
-                <FTextField multiline name="VaoVien" label="Vào viện" />
-                <FTextField multiline name="LyDoVV" label="Lý do" />
-                <FTextField multiline name="DienBien" label="Diễn biến" />
-                <FTextField multiline name="ChanDoan" label="Chẩn đoán" />
-                <FTextField multiline name="XuTri" label="Xử trí" />
-                <FTextField multiline name="HienTai" label="Hiện tại" />
-                <FTextField multiline name="GhiChu" label="Ghi chú" />
+
+                {isCC115 ? (
+                  <>
+                    <Stack direction="row" spacing={2}>
+                      <FTextField name="TiepNhanLuc" label="Tiếp nhận thông tin lúc" placeholder="Ví dụ: 14 giờ 30 phút" />
+                      <FTextField name="DenCapCuuLuc" label="Đến cấp cứu lúc" placeholder="Ví dụ: 14 giờ 45 phút" />
+                    </Stack>
+                    <FTextField multiline name="DienBien" label="Diễn biến bệnh" />
+                    <FTextField multiline name="LamSang" label="Dấu hiệu, triệu chứng lâm sàng chính" />
+                    <FTextField 
+                      multiline 
+                      name="ChanDoan" 
+                      label={tenLoaiBN.includes("tử vong") ? "Chẩn đoán nguyên nhân tử vong" : "Chẩn đoán"} 
+                    />
+                    <FTextField multiline name="XuTri" label="Các can thiệp cấp cứu được thực hiện" />
+                    <FTextField multiline name="ThuocDaDung" label="Các thuốc đã dùng cho bệnh nhân" />
+                  </>
+                ) : (
+                  <>
+                    <FTextField multiline name="VaoVien" label="Vào viện" />
+                    <FTextField multiline name="LyDoVV" label="Lý do" />
+                    <FTextField multiline name="DienBien" label="Diễn biến" />
+                    <FTextField multiline name="ChanDoan" label="Chẩn đoán" />
+                    <FTextField multiline name="XuTri" label="Xử trí" />
+                    <FTextField multiline name="HienTai" label="Hiện tại" />
+                    <FTextField multiline name="GhiChu" label="Ghi chú" />
+                  </>
+                )}
 
                 <Divider />
                 <Stack>

@@ -53,8 +53,20 @@ function BenhNhanCard({ benhnhan }) {
     GhiChu,
     Images,
     Stt,
+    TiepNhanLuc,
+    DenCapCuuLuc,
+    LamSang,
+    ThuocDaDung,
+    LoaiBN,
+    TenKhoa,
+    MaKhoa,
   } = benhnhan;
   const dispatch = useDispatch();
+
+  const isCC115Patient = (LoaiBN === 10 || LoaiBN === 11) && 
+    (TiepNhanLuc || DenCapCuuLuc || LamSang || ThuocDaDung || 
+     (TenKhoa && TenKhoa.toUpperCase().includes("115")) ||
+     (MaKhoa && (MaKhoa.toUpperCase() === "CC115" || MaKhoa.toUpperCase() === "TT115")));
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (event) => {
@@ -246,67 +258,107 @@ function BenhNhanCard({ benhnhan }) {
           <Divider sx={{ my: 2, borderColor: alpha("#E0E0E0", 0.6) }} />
           {/* Information Section */}
           <Stack spacing={1.5}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <CalendarTodayIcon
-                sx={{ fontSize: 16, color: "text.secondary" }}
-              />
-              <Typography variant="body2" color="text.secondary">
-                <strong>Vào viện:</strong> {VaoVien}
-              </Typography>
-            </Box>
+            {isCC115Patient ? (
+              <>
+                {(TiepNhanLuc || DenCapCuuLuc) && (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <CalendarTodayIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                    <Typography variant="body2" color="text.secondary">
+                      <strong>Tiếp nhận:</strong> {TiepNhanLuc || "..."} | <strong>Đến CC:</strong> {DenCapCuuLuc || "..."}
+                    </Typography>
+                  </Box>
+                )}
+                {DienBien && (
+                  <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
+                    <strong>Diễn biến:</strong> {DienBien}
+                  </Typography>
+                )}
+                {LamSang && (
+                  <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
+                    <strong>Lâm sàng:</strong> {LamSang}
+                  </Typography>
+                )}
+                {ChanDoan && (
+                  <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
+                    <strong>{LoaiBN === 10 ? "Chẩn đoán tử vong" : "Chẩn đoán"}:</strong> {ChanDoan}
+                  </Typography>
+                )}
+                {XuTri && (
+                  <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
+                    <strong>Xử trí:</strong> {XuTri}
+                  </Typography>
+                )}
+                {ThuocDaDung && (
+                  <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
+                    <strong>Thuốc đã dùng:</strong> {ThuocDaDung}
+                  </Typography>
+                )}
+              </>
+            ) : (
+              <>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <CalendarTodayIcon
+                    sx={{ fontSize: 16, color: "text.secondary" }}
+                  />
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Vào viện:</strong> {VaoVien}
+                  </Typography>
+                </Box>
 
-            <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
-              <LocalHospitalIcon
-                sx={{ fontSize: 16, color: "text.secondary", mt: 0.2 }}
-              />
-              <Typography variant="body2" color="text.secondary">
-                <strong>Lý do vào viện:</strong> {LyDoVV}
-              </Typography>
-            </Box>
+                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+                  <LocalHospitalIcon
+                    sx={{ fontSize: 16, color: "text.secondary", mt: 0.2 }}
+                  />
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Lý do vào viện:</strong> {LyDoVV}
+                  </Typography>
+                </Box>
 
-            {DienBien && (
-              <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
-                <strong>Diễn biến:</strong> {DienBien}
-              </Typography>
-            )}
+                {DienBien && (
+                  <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
+                    <strong>Diễn biến:</strong> {DienBien}
+                  </Typography>
+                )}
 
-            {ChanDoan && (
-              <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
-                <strong>Chẩn đoán:</strong> {ChanDoan}
-              </Typography>
-            )}
+                {ChanDoan && (
+                  <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
+                    <strong>Chẩn đoán:</strong> {ChanDoan}
+                  </Typography>
+                )}
 
-            {XuTri && (
-              <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
-                <strong>Xử trí:</strong> {XuTri}
-              </Typography>
-            )}
+                {XuTri && (
+                  <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
+                    <strong>Xử trí:</strong> {XuTri}
+                  </Typography>
+                )}
 
-            {HienTai && (
-              <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
-                <strong>Hiện tại:</strong> {HienTai}
-              </Typography>
-            )}
+                {HienTai && (
+                  <Typography variant="body2" color="text.secondary" sx={{ pl: 3 }}>
+                    <strong>Hiện tại:</strong> {HienTai}
+                  </Typography>
+                )}
 
-            {GhiChu && (
-              <Box
-                sx={{
-                  mt: 2,
-                  p: 2,
-                  bgcolor: alpha("#f5f5f5", 0.5),
-                  borderRadius: 2,
-                  borderLeft: "3px solid",
-                  borderLeftColor: "info.main",
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  fontStyle="italic"
-                >
-                  {GhiChu}
-                </Typography>
-              </Box>
+                {GhiChu && (
+                  <Box
+                    sx={{
+                      mt: 2,
+                      p: 2,
+                      bgcolor: alpha("#f5f5f5", 0.5),
+                      borderRadius: 2,
+                      borderLeft: "3px solid",
+                      borderLeftColor: "info.main",
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontStyle="italic"
+                    >
+                      {GhiChu}
+                    </Typography>
+                  </Box>
+                )}
+              </>
             )}
           </Stack>{" "}
           {/* Images Section */}

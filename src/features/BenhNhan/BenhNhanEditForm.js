@@ -46,6 +46,11 @@ function BenhNhanEditForm({
   benhnhan,
   handleChange,
 }) {
+  const isCC115 = (benhnhan?.LoaiBN === 10 || benhnhan?.LoaiBN === 11) && 
+    (benhnhan?.TiepNhanLuc || benhnhan?.DenCapCuuLuc || benhnhan?.LamSang || benhnhan?.ThuocDaDung || 
+     (benhnhan?.TenKhoa && benhnhan?.TenKhoa.toUpperCase().includes("115")) ||
+     (benhnhan?.MaKhoa && (benhnhan?.MaKhoa.toUpperCase() === "CC115" || benhnhan?.MaKhoa.toUpperCase() === "TT115")));
+
   const methods = useForm({
     resolver: yupResolver(yupSchema),
     defaultValues: {
@@ -60,6 +65,10 @@ function BenhNhanEditForm({
       XuTri: benhnhan.XuTri || "",
       HienTai: benhnhan.HienTai || "",
       GhiChu: benhnhan.GhiChu || "",
+      TiepNhanLuc: benhnhan.TiepNhanLuc || "",
+      DenCapCuuLuc: benhnhan.DenCapCuuLuc || "",
+      LamSang: benhnhan.LamSang || "",
+      ThuocDaDung: benhnhan.ThuocDaDung || "",
     },
   });
   const {
@@ -112,6 +121,10 @@ function BenhNhanEditForm({
       setValue("XuTri", benhnhan.XuTri || "");
       setValue("HienTai", benhnhan.HienTai || "");
       setValue("GhiChu", benhnhan.GhiChu || "");
+      setValue("TiepNhanLuc", benhnhan.TiepNhanLuc || "");
+      setValue("DenCapCuuLuc", benhnhan.DenCapCuuLuc || "");
+      setValue("LamSang", benhnhan.LamSang || "");
+      setValue("ThuocDaDung", benhnhan.ThuocDaDung || "");
       setImages(benhnhan.Images || []);
     }
     // const fetchImages = async () => {
@@ -184,13 +197,33 @@ function BenhNhanEditForm({
                   />
                 </Stack>
                 <FTextField multiline name="DiaChi" label="Địa chỉ" />
-                <FTextField multiline name="VaoVien" label="Vào viện" />
-                <FTextField multiline name="LyDoVV" label="Lý do" />
-                <FTextField multiline name="DienBien" label="Diễn biến" />
-                <FTextField multiline name="ChanDoan" label="Chẩn đoán" />
-                <FTextField multiline name="XuTri" label="Xử trí" />
-                <FTextField multiline name="HienTai" label="Hiện tại" />
-                <FTextField multiline name="GhiChu" label="Ghi chú" />
+                {isCC115 ? (
+                  <>
+                    <Stack direction="row" spacing={2}>
+                      <FTextField name="TiepNhanLuc" label="Tiếp nhận thông tin lúc" placeholder="Ví dụ: 14 giờ 30 phút" />
+                      <FTextField name="DenCapCuuLuc" label="Đến cấp cứu lúc" placeholder="Ví dụ: 14 giờ 45 phút" />
+                    </Stack>
+                    <FTextField multiline name="DienBien" label="Diễn biến bệnh" />
+                    <FTextField multiline name="LamSang" label="Dấu hiệu, triệu chứng lâm sàng chính" />
+                    <FTextField 
+                      multiline 
+                      name="ChanDoan" 
+                      label={(tenLoaiBN && tenLoaiBN.includes("tử vong")) || benhnhan.LoaiBN === 10 ? "Chẩn đoán nguyên nhân tử vong" : "Chẩn đoán"} 
+                    />
+                    <FTextField multiline name="XuTri" label="Các can thiệp cấp cứu được thực hiện" />
+                    <FTextField multiline name="ThuocDaDung" label="Các thuốc đã dùng cho bệnh nhân" />
+                  </>
+                ) : (
+                  <>
+                    <FTextField multiline name="VaoVien" label="Vào viện" />
+                    <FTextField multiline name="LyDoVV" label="Lý do" />
+                    <FTextField multiline name="DienBien" label="Diễn biến" />
+                    <FTextField multiline name="ChanDoan" label="Chẩn đoán" />
+                    <FTextField multiline name="XuTri" label="Xử trí" />
+                    <FTextField multiline name="HienTai" label="Hiện tại" />
+                    <FTextField multiline name="GhiChu" label="Ghi chú" />
+                  </>
+                )}
 
                 <Divider />
                 <Stack>
