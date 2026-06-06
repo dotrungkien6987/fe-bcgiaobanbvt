@@ -115,18 +115,18 @@ function DashBoardPage() {
     [],
   );
 
-  // Lọc các tab dựa trên quyền của người dùng
+  // Lọc các tab dựa trên quyền của người dùng (dùng trường DashBoard)
   const getAuthorizedTabs = useCallback(() => {
     if (isAdminRole) {
-      return allTabs;
+      return allTabs; // admin/superadmin → tất cả tab
     }
 
-    if (userRole === "manager") {
-      return allTabs.filter((tab) => tab.permission === "TCKHOA");
-    }
+    // Các user khác → lọc theo trường DashBoard của user
+    const userDashBoard = Array.isArray(user?.DashBoard) ? user.DashBoard : [];
+    if (userDashBoard.length === 0) return [];
 
-    return [];
-  }, [allTabs, isAdminRole, userRole]);
+    return allTabs.filter((tab) => userDashBoard.includes(tab.permission));
+  }, [allTabs, isAdminRole, user]);
 
   // Lấy danh sách tab được phép xem (memoized)
   const PROFILE_TABS = useMemo(() => getAuthorizedTabs(), [getAuthorizedTabs]);
@@ -136,9 +136,8 @@ function DashBoardPage() {
     if (PROFILE_TABS.length === 0) return "";
 
     if (isAdminRole) return "TÀI CHÍNH";
-    if (userRole === "manager") return "THEO DÕI THEO KHOA";
-    return "";
-  }, [isAdminRole, userRole, PROFILE_TABS]);
+    return PROFILE_TABS[0].value; // Tab đầu tiên user có quyền
+  }, [isAdminRole, PROFILE_TABS]);
 
   const [currentTab, setCurrentTab] = useState("");
 

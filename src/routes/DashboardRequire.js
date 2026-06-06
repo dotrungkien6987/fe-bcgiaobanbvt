@@ -16,11 +16,16 @@ function DashboardRequire({ children }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   // console.log("isAuthenticated true");
-  if (
-    !["admin", "superadmin", "manager"].includes(
-      (user?.PhanQuyen || "").toLowerCase(),
-    )
-  ) {
+
+  // Admin/superadmin luôn được phép
+  const userRole = (user?.PhanQuyen || "").toLowerCase();
+  const isAdminRole = ["admin", "superadmin"].includes(userRole);
+
+  // Các user khác: phải có DashBoard không rỗng (quyền do admin cấu hình)
+  const hasDashboardPermission =
+    Array.isArray(user?.DashBoard) && user.DashBoard.length > 0;
+
+  if (!isAdminRole && !hasDashboardPermission) {
     alert("Bạn không có quyền xem dashboard");
     return <Navigate to="/" state={{ from: location }} replace />;
   }
