@@ -287,7 +287,7 @@ const slice = createSlice({
         ? JSON.parse(state.chisosObj.doanhthu_toanvien_theochidinh)
         : [] || [];
       state.doanhthu_toanvien_duyetketoan =
-        state.chisosObj.doanhthu_toanvien_duyetketoan !== "null"
+        state.chisosObj.doanhthu_toanvien_duyetketoan && state.chisosObj.doanhthu_toanvien_duyetketoan !== "null"
           ? JSON.parse(state.chisosObj.doanhthu_toanvien_duyetketoan)
           : [] || [];
       state.doanhthu_canlamsang_theochidinh = state.chisosObj
@@ -295,7 +295,7 @@ const slice = createSlice({
         ? JSON.parse(state.chisosObj.doanhthu_canlamsang_theochidinh)
         : [] || [];
       state.doanhthu_canlamsang_duyetketoan =
-        state.chisosObj.doanhthu_canlamsang_duyetketoan !== "null"
+        state.chisosObj.doanhthu_canlamsang_duyetketoan && state.chisosObj.doanhthu_canlamsang_duyetketoan !== "null"
           ? JSON.parse(state.chisosObj.doanhthu_canlamsang_duyetketoan)
           : [] || [];
       state.KPI_DuyetKeToan = calculateDoanhThuAdjusted(
