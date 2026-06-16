@@ -20,12 +20,14 @@ function DashboardRequire({ children }) {
   // Admin/superadmin luôn được phép
   const userRole = (user?.PhanQuyen || "").toLowerCase();
   const isAdminRole = ["admin", "superadmin"].includes(userRole);
+  // Manager: mặc định được vào (luôn có tab "Theo dõi theo khoa"), không cần cấu hình DashBoard
+  const isManager = userRole === "manager";
 
   // Các user khác: phải có DashBoard không rỗng (quyền do admin cấu hình)
   const hasDashboardPermission =
     Array.isArray(user?.DashBoard) && user.DashBoard.length > 0;
 
-  if (!isAdminRole && !hasDashboardPermission) {
+  if (!isAdminRole && !isManager && !hasDashboardPermission) {
     alert("Bạn không có quyền xem dashboard");
     return <Navigate to="/" state={{ from: location }} replace />;
   }
