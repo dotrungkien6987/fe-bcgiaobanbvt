@@ -33,7 +33,6 @@ import {
   ConvertDoanhThuBacSiKhoa,
   ConvertDoanhThuCanLamSang,
   ConvertMangVienPhiThemTong,
-  Get_KhoaID_By_MaKhoa,
   LocKhoaHienThiTheoUser,
   calculateTotalForType,
   tinhChenhLech_DoanhThu_BacSi,
@@ -248,6 +247,9 @@ const khoasFilter = khoas.filter((khoa) => ![2, 7, 38].includes(khoa.HisDepartme
   const [selectedDepartment, setSelectedDepartment] = useState(user.KhoaID._id);
 
   const [makhoa, setMakhoa] = useState("");
+  // HisDepartmentGroupID thật của khoa đang chọn — dùng làm KhoaID khi gọi API
+  // (thay cho bảng map cứng Get_KhoaID_By_MaKhoa vốn trả 0 khi không khớp → 403)
+  const [khoaGroupId, setKhoaGroupId] = useState(null);
 
   const dispatch = useDispatch();
   const { darkMode } = useSelector((state) => state.mytheme);
@@ -257,18 +259,20 @@ const khoasFilter = khoas.filter((khoa) => ![2, 7, 38].includes(khoa.HisDepartme
   }, []);
 
   useEffect(() => {
-    // Update selectedDepartment when khoas changes
+    // Cập nhật makhoa + khoaGroupId theo khoa đang chọn khi danh sách khoa đổi
     if (KhoaHienThi && KhoaHienThi.length > 0) {
-      console.log("chay day");
-      // setSelectedDepartment(user.KhoaID._id);
-
-      const ma_khoa = KhoaHienThi.find(
+      const selected = KhoaHienThi.find(
         (khoa) => khoa._id === selectedDepartment
-      )?.MaKhoa;
+      );
 
-      setMakhoa(ma_khoa);
+      setMakhoa(selected?.MaKhoa);
+      setKhoaGroupId(
+        selected?.HisDepartmentGroupID != null
+          ? Number(selected.HisDepartmentGroupID)
+          : null
+      );
     }
-  }, [KhoaHienThi, user.KhoaID._id]);
+  }, [KhoaHienThi, selectedDepartment, user.KhoaID._id]);
 
   const handleDateChange = (newDate) => {
     // Chuyển đổi về múi giờ VN, kiểm tra đầu vào
@@ -302,22 +306,26 @@ const khoasFilter = khoas.filter((khoa) => ![2, 7, 38].includes(khoa.HisDepartme
   const handleSelectChange = (e) => {
     setSelectedDepartment(e.target.value);
 
-    const ma_khoa = KhoaHienThi.find(
-      (khoa) => khoa._id === e.target.value
-    )?.MaKhoa;
+    const selected = KhoaHienThi.find((khoa) => khoa._id === e.target.value);
 
-    setMakhoa(ma_khoa);
+    setMakhoa(selected?.MaKhoa);
+    setKhoaGroupId(
+      selected?.HisDepartmentGroupID != null
+        ? Number(selected.HisDepartmentGroupID)
+        : null
+    );
   };
   useEffect(() => {
+    // Chưa có khoa hợp lệ → không gọi API (tránh KhoaID=0 → 403 AUTHORIZATION_ERROR)
+    if (!khoaGroupId) return;
     dispatch(
-      getDataNewestByNgayKhoaChenhLech(
-        dateChenhLech.toISOString(),
-        Get_KhoaID_By_MaKhoa(makhoa)
-      )
+      getDataNewestByNgayKhoaChenhLech(dateChenhLech.toISOString(), khoaGroupId)
     );
-  }, [dispatch, dateChenhLech, makhoa]);
+  }, [dispatch, dateChenhLech, khoaGroupId]);
 
   useEffect(() => {
+    // Chưa có khoa hợp lệ → không gọi API (tránh KhoaID=0 → 403 AUTHORIZATION_ERROR)
+    if (!khoaGroupId) return undefined;
     const fetchNewestData = () => {
       // Tính toán tháng và năm từ `date`
       const dateObj = new Date(date);
@@ -329,15 +337,7 @@ const khoasFilter = khoas.filter((khoa) => ![2, 7, 38].includes(khoa.HisDepartme
       setThang(thang);
       setNam(nam);
       setNgay(ngay);
-      // Gọi dispatch cho getKhuyenCaoKhoaByThangNam trước
-      // dispatch(getKhuyenCaoKhoaByThangNam(thang, nam));
-      dispatch(
-        getDataNewestByNgayKhoa(
-          date.toISOString(),
-          Get_KhoaID_By_MaKhoa(makhoa)
-        )
-      );
-      console.log("render lại", makhoa);
+      dispatch(getDataNewestByNgayKhoa(date.toISOString(), khoaGroupId));
     };
     fetchNewestData();
     // Kiểm tra nếu ngày là ngày hiện tại mới chạy setInterval
@@ -352,7 +352,7 @@ const khoasFilter = khoas.filter((khoa) => ![2, 7, 38].includes(khoa.HisDepartme
     }
 
     return undefined; // Nếu không phải ngày hiện tại, không chạy setInterval
-  }, [dispatch, date, isToday, makhoa]); // Chỉ rerun khi dispatch, date, hoặc isToday thay đổi
+  }, [dispatch, date, isToday, khoaGroupId]); // rerun khi dispatch, date, isToday, khoaGroupId đổi
   const defaultValues = {
     TrangThai: "Duyệt kế toán",
   };
