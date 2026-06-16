@@ -123,10 +123,15 @@ function DashBoardPage() {
 
     // Các user khác → lọc theo trường DashBoard của user
     const userDashBoard = Array.isArray(user?.DashBoard) ? user.DashBoard : [];
-    if (userDashBoard.length === 0) return [];
+    const isManager = userRole === "manager";
 
-    return allTabs.filter((tab) => userDashBoard.includes(tab.permission));
-  }, [allTabs, isAdminRole, user]);
+    return allTabs.filter((tab) => {
+      // Mọi quyền manager đều được xem tab "Theo dõi theo khoa" (TCKHOA)
+      if (isManager && tab.permission === "TCKHOA") return true;
+      // Các tab khác (và user không phải manager) → theo cấu hình DashBoard
+      return userDashBoard.includes(tab.permission);
+    });
+  }, [allTabs, isAdminRole, userRole, user]);
 
   // Lấy danh sách tab được phép xem (memoized)
   const PROFILE_TABS = useMemo(() => getAuthorizedTabs(), [getAuthorizedTabs]);
